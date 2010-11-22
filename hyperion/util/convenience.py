@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class OptThinRadius(object):
 
     def __init__(self, temperature, value=1.):
@@ -17,7 +20,11 @@ class OptThinRadius(object):
         rstar = star.radius
         tstar = star.effective_temperature()
         nu, fnu = star.total_spectrum()
-        return self.value * rstar \
-               * (1. - (1. - 2. * (self.temperature / tstar) ** 4. \
-               * dust.kappa_planck_temperature(self.temperature) \
-               / dust.kappa_planck_spectrum(nu, fnu)) ** 2.) ** -0.5
+        x = (self.temperature / tstar) ** 4. \
+            * dust.kappa_planck_temperature(self.temperature) \
+            / dust.kappa_planck_spectrum(nu, fnu)
+        if x < 0.001:
+            r = self.value * rstar / 2. / np.sqrt(x)
+        else:
+            r = self.value * rstar / np.sqrt(1. - (1. - 2. * x) ** 2.)
+        return r
