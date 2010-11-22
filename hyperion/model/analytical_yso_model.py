@@ -71,8 +71,8 @@ class Star(FreezableClass):
             fnu_all.append(fnu)
 
         # Find common minimum and maximum for all spectra
-        nu_min = np.max([nu.min() for nu in nu_all])
-        nu_max = np.min([nu.max() for nu in nu_all])
+        nu_min = np.min([nu.min() for nu in nu_all])
+        nu_max = np.max([nu.max() for nu in nu_all])
 
         # Find common frequencies
         nu_common = np.unique(np.sort(np.hstack(nu_all)))
@@ -81,7 +81,7 @@ class Star(FreezableClass):
         # Compute total spectrum
         fnu_total = np.zeros(nu_common.shape)
         for i in range(len(self.sources)):
-            fnu_total += interp1d_fast_loglog(nu_all[i], fnu_all[i], nu_common)
+            fnu_total += interp1d_fast_loglog(nu_all[i], fnu_all[i], nu_common, bounds_error=False, fill_value=0.)
 
         return nu_common, fnu_total
 
@@ -245,10 +245,10 @@ class AnalyticalYSOModel(Model):
 
         # Define a radial grid to compute the midplane column density on
         r = np.logspace(-20., np.log10(rmax / rmin), 100000) * rmin + rmin
-
+        
         # We need the first point to be exactly at the inner radius
         r[0] = rmin
-
+        
         # Get cumulative midplane optical depth
         tau_midplane = self.get_midplane_tau(r)
 
@@ -347,6 +347,9 @@ class AnalyticalYSOModel(Model):
         Model.star can be further modified.
         '''
 
+        # For convenience
+        lstar = self.star.sources['star'].luminosity
+
         # Tell the model that we are including accretion
         self.accretion = True
 
@@ -358,13 +361,12 @@ class AnalyticalYSOModel(Model):
         lshock = lacc * frac_shock / (frac_shock + frac_disk)
 
         # Hot spot parameters
-        fluxratio = 0.5 * lshock / self.star.luminosity / fspot
-        teff = (self.star.luminosity / (4. * pi * self.star.radius ** 2 * sigma)) ** 0.25  # Kelvin
+        fluxratio = 0.5 * lshock / lstar / fspot
+        teff = (lstar / (4. * pi * self.star.radius ** 2 * sigma)) ** 0.25  # Kelvin
         tshock = teff * (1 + fluxratio) ** 0.25  # Kelvin
 
         # Set the hot spot source
-        self.star.sources['uv'].luminosity = lshock / 2. \
-                                           + self.star.luminosity * fspot
+        self.star.sources['uv'].luminosity = lshock / 2. + lstar * fspot
         self.star.sources['uv'].temperature = tshock
 
         # X-rays from 0.1 to 10nm
@@ -377,7 +379,7 @@ class AnalyticalYSOModel(Model):
         self.star.sources['xray'].spectrum = (nu, fnu)
 
         # Reduce the total luminosity from the original source
-        self.star.luminosity *= 1 - fspot
+        self.star.sources['star'].luminosity *= 1 - fspot
 
         # Prevent any further modifiations to the star
         self.star._finalize()
@@ -386,7 +388,7 @@ class AnalyticalYSOModel(Model):
 
         # Set luminosity from viscous dissipation in disk
         # For this, only find the part that is inside the dust disk
-        disk.lvisc = lacc - lshock
+        disk.lvisc = lacc  # WRONG!!
 
     # RESOLVERS
 
