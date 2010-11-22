@@ -1,3 +1,4 @@
+import os
 import hashlib
 import warnings
 
@@ -454,6 +455,10 @@ class SphericalDust(FreezableClass):
         '''
         Read in from a standard dust file
         '''
+
+        # Check file exists
+        if not os.path.exists(filename):
+            raise Exception("File not found: %s" % filename)
 
         # Read in dust table set
         ts = atpy.TableSet(filename)
