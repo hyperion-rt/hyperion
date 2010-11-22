@@ -61,8 +61,14 @@ class Source(FreezableClass):
     def write_spectrum(self, handle):
         if self.spectrum:
             handle.attrs['spectrum'] = 'spectrum'
-            self.spectrum.table_name = 'Spectrum'
-            self.spectrum.write(handle, type='hdf5')
+            if isinstance(self.spectrum, atpy.Table):
+                self.spectrum.table_name = 'Spectrum'
+                self.spectrum.write(handle, type='hdf5')
+            else:
+                table = atpy.Table(name='Spectrum')
+                table.add_column('nu', self.spectrum[0])
+                table.add_column('fnu', self.spectrum[1])
+                table.write(handle, type='hdf5')
         elif self.temperature:
             handle.attrs['spectrum'] = 'temperature'
             handle.attrs['temperature'] = self.temperature
