@@ -15,10 +15,10 @@ class FreezableClass(object):
     _final = False
 
     def _freeze(self):
-        self._frozen = True
+        object.__setattr__(self, '_frozen', True)
 
     def _finalize(self):
-        self._final = True
+        object.__setattr__(self, '_final', True)
 
     def isfrozen(self):
         return self._frozen
