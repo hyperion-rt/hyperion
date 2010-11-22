@@ -261,7 +261,10 @@ class FlaredDisk(FreezableClass):
         polar coordinates (r, theta, phi), and the volume of the grid cells.
         '''
 
-        if self.mdot == 0.:
+        if 'lvisc' in self.__dict__ and self.lvisc == 0.:
+            return np.zeros(grid.shape)
+
+        if 'mdot' in self.__dict__ and self.mdot == 0.:
             return np.zeros(grid.shape)
 
         self._check_all_set()
@@ -270,12 +273,41 @@ class FlaredDisk(FreezableClass):
         h = self.h_0 * (grid.gw / self.r_0) ** self.beta
 
         # Find normalization constant
-        lvisc0 = 3. * G * self.star.mass * self.mdot \
-              / np.sqrt(32. * pi ** 3.) / grid.gw ** 3 / h * grid.volumes
+        if 'lvisc' in self.__dict__:
+
+            p1 = -1.0
+            p2 = -1.5
+
+            if p1 == 0.:
+                int1 = np.log(self.rmax / self.rmin)
+            else:
+                int1 = (self.rmax ** p1 - self.rmin ** p1) / p1
+
+            if self.geometrical_factor:
+
+                if p2 == 0.:
+                    int2 = np.log(self.rmax / self.rmin)
+                else:
+                    int2 = (self.rmax ** p2 - self.rmin ** p2) / p2
+
+                int2 *= self.star.radius ** 0.5
+
+            else:
+
+                int2 = 0.
+
+            integral = (2. * pi) ** 1.5 * (int1 - int2)
+
+            lvisc0 = self.lvisc / integral
+
+        else:
+            lvisc0 = 3. * G * self.star.mass * self.mdot \
+                / np.sqrt(32. * pi ** 3.)
 
         # Find disk luminosity at all positions
-        luminosity = lvisc0 * (1. - np.sqrt(self.star.radius / grid.gw)) \
-                    * np.exp(-0.5 * (grid.gz / h) ** 2)
+        luminosity = lvisc0 / grid.gw ** 3 / h * grid.volumes \
+                   * (1. - np.sqrt(self.star.radius / grid.gw)) \
+                   * np.exp(-0.5 * (grid.gz / h) ** 2) 
 
         # Truncate below rmin and above rmax
         if self.cylindrical_inner_rim:
@@ -315,7 +347,7 @@ class FlaredDisk(FreezableClass):
             if self.star.mass is None:
                 raise Exception("Stellar mass is undefined - cannot compute disk accretion luminosity")
             lvisc = G * self.star.mass * self.mdot / 2. \
-                 * (3. / self.rmin - 3. / self.rmax \
+                    * (3. / self.rmin - 3. / self.rmax \
                     - 2. * np.sqrt(self.star.radius / self.rmin ** 3.) \
                     + 2. * np.sqrt(self.star.radius / self.rmax ** 3.))
             return lvisc
