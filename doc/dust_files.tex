@@ -1,0 +1,104 @@
+\documentclass[11pt]{article}
+\usepackage[left=2.0cm,top=3.0cm,right=2.0cm,bottom=3.0cm,nohead,a4paper]{geometry}
+\renewcommand{\familydefault}{\sfdefault}
+
+\setlength{\parindent}{0pt}
+
+\RequirePackage[calcwidth]{titlesec}
+\titleformat{\subsection}[block]{\sffamily\bfseries}{\large}{12pt}{\\\large}[{\titlerule[0.5pt]}]
+
+\begin{document}
+
+\title{Dust files for RT Code}
+\author{Thomas Robitaille}
+\date{2 December 2009}
+\maketitle
+
+This document describes the format required of `dust files' for the RT code. The format adopted for all files is the \texttt{FITS} standard.
+
+\section{Dust files}
+
+\subsection{HDU 0}
+
+The primary header must contain the following keywords:
+
+\begin{verbatim}
+VERSION  = 1          integer
+TYPE     = 1          integer
+EMISSVAR = `T'        string
+\end{verbatim}
+
+Where the \texttt{TYPE} argument can take the following values:
+
+\begin{verbatim}
+TYPE     = 1:         Scattering elements are specified by a four-element matrix
+\end{verbatim}
+
+and the \texttt{EMISSVAR} argument can take the following values:
+
+\begin{verbatim}
+EMISSVAR = `T':       Emissivity is a function of temperature
+EMISSVAR = `J':       Emissivity is a function of J_mean
+\end{verbatim}
+
+\subsection{HDU 1 - \texttt{extname=OPTICAL PROPERTIES}}
+
+This HDU should contain a table the following columns:
+
+\begin{verbatim}
+nu               Frequency (Hz)
+albedo           Albedo
+kappa            Opacity (m^2/kg)
+P1, P2, P3, P4   Scattering Matrix elements
+\end{verbatim}
+
+The scattering matrix elements should be given by vector columns, where each row contains the matrix elements as a function of scattering angle $\mu$.
+
+\subsection{HDU 2 - \texttt{extname=SCATTERING ANGLES}}
+
+This HDU contains a table with a single column, \texttt{mu}, which are the cosines of the scattering angles for which the matrix elements are tabulated.
+
+\subsection{HDU 3 - \texttt{extname=MEAN OPACITIES}}
+
+This HDU contains a table with three columns:
+
+\begin{verbatim}
+temperature      The blackbody temperature (K)
+kappa_plank      Plank mean opacity (m^2/kg)
+kappa_rosseland  Rosseland mean opacity (m^2/kg)
+\end{verbatim}
+
+\subsection{HDU 4 - \texttt{extname=EMISSIVITIES}}
+
+This HDU contains two columns:
+
+\begin{verbatim}
+nu               Frequency (Hz)
+jnu              Emissivity (?)
+\end{verbatim}
+
+The emissivity is a vector column, where each row contains the emissivity as a function of an independent variable (e.g. temperature or mean intensity)
+
+\subsection{HDU 5 - \texttt{extname=EMISSIVITY VARIABLE}}
+
+This table contains the independent variable for the emissivities. This can be \texttt{temperature} if \texttt{EMISSVAR='T'} or \texttt{jmean} if \texttt{EMISSVAR='J'}.
+
+\section{Grid files}
+
+\subsection{HDU 0}
+
+The primary header must contain a 2 or 3D array containing e.g. the density, temperature, mass, volume, etc.
+
+\subsection{HDU 1}
+
+Contains a table with a single column giving the wall positions along the first dimension (should have size NAXIS1 + 1).
+
+\subsection{HDU 2}
+
+Contains a table with a single column giving the wall positions along the second dimension (should have size NAXIS2 + 1).
+
+\subsection{HDU 3 (optional)}
+
+Contains a table with a single column giving the wall positions along the first dimension (should have size NAXIS3 + 1).
+
+\end{document}

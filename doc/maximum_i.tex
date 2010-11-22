@@ -1,0 +1,70 @@
+\documentclass[11pt]{article}
+
+\usepackage[left=2.5cm,top=2.5cm,right=2.5cm,bottom=2.5cm,letterpaper,twoside]{geometry}
+
+\usepackage{amsmath}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+I is given by:
+\begin{equation*}
+  I = P_1 \cdot I + P_2 \cdot (\cos{2i_1} \cdot Q - \sin{2i_1} \cdot U)
+\end{equation*}
+since $I = 1$, this means
+\begin{equation*}
+  I = P_1 + P_2 \cdot (\cos{2i_1} \cdot Q - \sin{2i_1} \cdot U) \equiv P_1 + P_2  \cdot \gamma
+\end{equation*}
+where
+\begin{equation*}
+\gamma = \cos{2i_1} \cdot Q - \sin{2i_1} \cdot U
+\end{equation*}
+
+$P_1$ and $P_2$ are functions of $(\mu,\nu)$ where $\mu=\cos{\theta}$. So for a given $(\mu,\nu)$, $P_1$ and $P_2$ are constants. In this case, I is maximized when $P_2\cdot\gamma$ is maximized. If $P_2 < 0$, this occurs when $\gamma$ is minimized, and if $P_2 > 0$, this occurs when $\gamma$ is maximized. So the question is, what is the range of values that $\gamma$ can take?\\
+
+The variables inside $\gamma$ are correlated: $\sin{2i_1} = \sqrt{1.-\cos^2{2i_1}}$ and $|U| < \sqrt{1. - Q^2}$.\\
+
+I wrote a small program that chooses a random $\cos{2i_1}$ between -1 and 1, and calculates the corresponding $\sin{2i_1}$. Then a random Q is sampled between -1 and 1, and U is randomly sampled between $-\sqrt{1. - Q^2}$ and $\sqrt{1. - Q^2}$:
+\begin{verbatim}
+program gamma_range
+  
+  implicit none
+  integer,parameter :: p = 8
+  real(p) :: cosx,sinx,q,u
+  real(p) :: gamma,gamma_min=0._p,gamma_max=0._p
+  integer :: iter
+  
+  do iter=1,100000000
+    call random_number(cosx) ; cosx = cosx * 2._p - 1._p
+    sinx = sqrt(1._p-cosx*cosx)
+    call random_number(q) ; q =  q*2._p-1._p
+    call random_number(u) ; u = (u*2._p-1._p) * sqrt(1._p-q*q)
+    gamma = cosx*q-sinx*u
+    if(gamma > gamma_max) gamma_max = gamma
+    if(gamma < gamma_min) gamma_min = gamma
+  end do
+  
+  print *,'Min = ',gamma_min
+  print *,'Max = ',gamma_max
+
+end program gamma_range
+\end{verbatim}
+
+Which produces the following results
+\begin{verbatim}
+$ ./a.out
+Min =  -0.999999580188680     
+Max =   0.999992504333863   
+\end{verbatim}
+
+Therefore it seems that $\gamma\in[-1:1]$. If $P_2 < 0$, the maximum value of $P_2\cdot\gamma$ is $-P_2$, and if $P_2 > 0$, the maximum value of $P_2\cdot\gamma$ is $P_2$. So the maximum value of $P_2\cdot\gamma$ is $|P_2|$. This means that the maximum value of I is
+\begin{equation*}
+I = P_1 + |P_2|
+\end{equation*}
+
+Since $P_1 + |P_2|$ is still a function of $\mu$, this means that at a given frequency, the `ceiling' value used in the rejection criterion is the maximum value of $P_1 + |P_2|$ at that frequency. It should therefore be possible to pre-compute the maximum $P_1 + |P_2|$ at each frequency. For the scattering of a photon of a frequency $\nu$, the maximum I for the rejection criterion could then be found from simple interpolation.
+
+\end{document}
+
+

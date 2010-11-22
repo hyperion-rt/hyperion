@@ -1,0 +1,57 @@
+\documentclass[11pt]{article}
+\begin{document}
+
+\title{How to calculate U for PAH emissivities}
+\author{Thomas Robitaille}
+\date{\today}
+\maketitle
+
+\section{Lucy temperature calculation}
+
+\noindent In the Lucy iterative method, the energy absorption rate per unit mass is
+\begin{equation}
+\dot{A} = \frac{\epsilon}{V}\sum \ell\,\kappa_\nu
+\end{equation}
+where V is the cell volume,  $\epsilon$ is the energy of a photon packet, $\ell$ is the path length traveled, and $\kappa_\nu$ is the absorptive opacity. This is equation (14) of Lucy (1999), with $\Delta t=1$. The temperature is then found by solving
+\begin{equation}
+4\pi\,\kappa_P(T)\,B(T) = \dot{A}
+\end{equation}
+where $\kappa_P(T)$ is the Planck mean absorption coefficient, and $B=(\sigma/\pi)\,T^4$ is the integral of the Planck function. This is equation (16) of Lucy (1999).
+
+\section{PAH emissivities}
+
+In order to select a PAH emissivity file, we need to compute the quantity $U$ defined by
+\begin{equation}
+U=\frac{\displaystyle{\int I_\nu\,\sigma_{\rm abs, \nu}\,d\nu}}{\displaystyle{\int I_{\rm ref,\nu}\,\sigma_{\rm abs, \nu}\,d\nu}}
+\end{equation}
+where $\sigma_{\rm abs, \nu}$ is the absorption cross section per hydrogen atom, and $I_{\rm ref,\nu}$ is a reference radiation field, in this case Mathis, Mezger, and Panagia (1983). Since $\sigma_{\rm abs, \nu}$ is proportional to $\kappa_\nu$ (the absorption coefficient per unit mass), we can write the above equation as 
+\begin{equation}
+U=\frac{\displaystyle{\int I_\nu\,\kappa_\nu\,d\nu}}{\displaystyle{\int I_{\rm ref,\nu}\,\kappa_\nu\,d\nu}}.
+\end{equation}
+Since we are not interested in the angular dependence of the radiation field, we can write
+\begin{equation}
+U=\frac{\displaystyle{\int J_\nu\,\kappa_\nu\,d\nu}}{\displaystyle{\int J_{\rm ref,\nu}\,\kappa_\nu\,d\nu}}.
+\end{equation}
+Now, from Lucy (1999), we have
+\begin{equation}
+J_\nu\,d\nu = \frac{1}{4\pi}\frac{\epsilon}{V}\sum_{d\nu} \ell,
+\end{equation}
+and therefore, 
+\begin{equation}
+U=\frac{\displaystyle{\int_\nu \kappa_\nu\,\frac{1}{4\pi}\frac{\epsilon}{V}\sum_{d\nu} \ell\,d\nu}}{\displaystyle{\int J_{\rm ref,\nu}\,\kappa_\nu\,d\nu}}.
+\end{equation}
+For a given frequency element, $\kappa_\nu$ is constant, so it can be moved inside the sum:
+\begin{equation}
+U=\frac{\displaystyle{\int_\nu \frac{1}{4\pi}\frac{\epsilon}{V}\sum_{d\nu} \kappa_\nu \ell}}{\displaystyle{\int J_{\rm ref,\nu}\,\kappa_\nu\,d\nu}}.
+\end{equation}
+The top integral and sum can then be transformed into a single sum, independent of frequency interval:
+\begin{equation}
+U=\frac{\displaystyle{\frac{1}{4\pi}\frac{\epsilon}{V}\sum\kappa_\nu \ell}}{\displaystyle{\int J_{\rm ref,\nu}\,\kappa_\nu\,d\nu}},
+\end{equation}
+which can also be written as 
+\begin{equation}
+U=\frac{\displaystyle{\dot{A}/4\pi}}{\displaystyle{\int J_{\rm ref,\nu}\,\kappa_\nu\,d\nu}} = \frac{\displaystyle{\dot{A}}}{\displaystyle{\int 4\pi J_{\rm ref,\nu}\,\kappa_\nu\,d\nu}}.
+\end{equation}
+Thus, the same summation variable used for the Lucy temperature calculation method can be used to find U. The bottom part of the fraction depends only on the ISRF spectrum, and the opacity of the VSG/PAH to absorption, and can therefore be calculated ahead of the Monte-Carlo computation.
+
+\end{document}

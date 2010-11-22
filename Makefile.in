@@ -1,0 +1,232 @@
+FC = @serial_fc@ @extra_serial@
+FCMPI = @mpi_fc@ @extra_mpi@
+
+COMMON = 	src/lib/base_types.f90 \
+		src/lib/lib_messages.f90 \
+		src/lib/lib_io.f90 \
+		src/lib/lib_algebra.f90 \
+		src/lib/lib_conf.f90 \
+		src/lib/lib_array.f90 \
+		src/lib/lib_random.f90 \
+		src/lib/lib_hdf5.f90 \
+		src/lib/lib_constants.f90 \
+		src/lib/type_angle3d.f90 \
+		src/lib/type_vector3d.f90 \
+		src/lib/type_stokes.f90 \
+		src/lib/type_pdf.f90
+
+OBJECTS1 = 	src/core/type_photon.f90 \
+		src/main/settings.f90 \
+		src/images/image_type.f90 \
+		src/dust/dust_type_4elem.f90 \
+		src/dust/dust.f90 \
+
+OBJECTS2 =	src/grid/grid_physics_3d.f90 \
+		src/dust/dust_interact.f90 \
+		src/sources/source_type.f90 \
+		src/sources/source.f90 \
+		src/grid/grid_propagate_3d.f90 \
+		src/grid/grid_mrw_3d.f90 \
+		src/grid/grid_pda_3d.f90 \
+		src/grid/grid_generic.f90 \
+		src/images/images_binned.f90 \
+		src/images/images_peeled.f90 \
+		src/main/setup_rt.f90
+
+OBJECTS3 =	src/main/performance.f90 \
+		src/main/iter_lucy.f90 \
+		src/main/iter_final.f90 \
+		src/main/iter_final_mono.f90 \
+		src/main/iter_raytracing.f90 \
+		src/main/main.f90
+
+OBJECTS_CAR_SER =	src/mpi/mpi_core_nompi.f90 \
+			src/lib/@posix_module_serial@.f90 \
+			$(COMMON) \
+			src/core/core_lib.f90 \
+			src/grid/type_grid_cartesian_3d.f90 \
+			src/core/type_cell_id_3d.f90 \
+			$(OBJECTS1) \
+			src/grid/grid_io.f90 \
+			src/grid/grid_geometry_cartesian_3d.f90 \
+			src/grid/grid_geometry_common_3d.f90 \
+			src/grid/grid_pda_cartesian_3d.f90 \
+			$(OBJECTS2) \
+			src/mpi/mpi_routines_nompi.f90 \
+			$(OBJECTS3)
+
+OBJECTS_CAR_MPI =	src/mpi/mpi_core.f90 \
+			src/lib/@posix_module_mpi@.f90 \
+			$(COMMON) \
+			src/core/core_lib.f90 \
+			src/grid/type_grid_cartesian_3d.f90 \
+			src/core/type_cell_id_3d.f90 \
+			$(OBJECTS1) \
+			src/grid/grid_io.f90 \
+			src/grid/grid_geometry_cartesian_3d.f90 \
+			src/grid/grid_geometry_common_3d.f90 \
+			src/grid/grid_pda_cartesian_3d.f90 \
+			$(OBJECTS2) \
+			src/mpi/mpi_routines.f90 \
+			$(OBJECTS3)
+			
+OBJECTS_AMR_SER =	src/mpi/mpi_core_nompi.f90 \
+			src/lib/@posix_module_serial@.f90 \
+			$(COMMON) \
+			src/core/core_lib.f90 \
+			src/grid/type_grid_amr.f90 \
+			src/core/type_cell_id_amr.f90 \
+			$(OBJECTS1) \
+			src/grid/grid_io_amr.f90 \
+			src/grid/grid_geometry_amr.f90 \
+			src/grid/grid_geometry_common_3d.f90 \
+			src/grid/grid_pda_disabled.f90 \
+			$(OBJECTS2) \
+			src/mpi/mpi_routines_nompi.f90 \
+			$(OBJECTS3)
+
+OBJECTS_AMR_MPI =	src/mpi/mpi_core.f90 \
+			src/lib/@posix_module_mpi@.f90 \
+			$(COMMON) \
+			src/core/core_lib.f90 \
+			src/grid/type_grid_amr.f90 \
+			src/core/type_cell_id_amr.f90 \
+			$(OBJECTS1) \
+			src/grid/grid_io_amr.f90 \
+			src/grid/grid_geometry_amr.f90 \
+			src/grid/grid_geometry_common_3d.f90 \
+			src/grid/grid_pda_disabled.f90 \
+			$(OBJECTS2) \
+			src/mpi/mpi_routines.f90 \
+			$(OBJECTS3)
+			
+OBJECTS_OCT_SER =	src/mpi/mpi_core_nompi.f90 \
+			src/lib/@posix_module_serial@.f90 \
+			$(COMMON) \
+			src/core/core_lib.f90 \
+			src/grid/type_grid_octree.f90 \
+			src/core/type_cell_id_octtree.f90 \
+			$(OBJECTS1) \
+			src/grid/grid_io.f90 \
+			src/grid/grid_geometry_octtree.f90 \
+			src/grid/grid_geometry_common_3d.f90 \
+			src/grid/grid_pda_disabled.f90 \
+			$(OBJECTS2) \
+			src/mpi/mpi_routines_nompi.f90 \
+			$(OBJECTS3)
+
+OBJECTS_OCT_MPI =	src/mpi/mpi_core.f90 \
+			src/lib/@posix_module_mpi@.f90 \
+			$(COMMON) \
+			src/core/core_lib.f90 \
+			src/grid/type_grid_octree.f90 \
+			src/core/type_cell_id_octtree.f90 \
+			$(OBJECTS1) \
+			src/grid/grid_io.f90 \
+			src/grid/grid_geometry_octtree.f90 \
+			src/grid/grid_geometry_common_3d.f90 \
+			src/grid/grid_pda_disabled.f90 \
+			$(OBJECTS2) \
+			src/mpi/mpi_routines.f90 \
+			$(OBJECTS3)
+			
+OBJECTS_SPH_SER =	src/mpi/mpi_core_nompi.f90 \
+			src/lib/@posix_module_serial@.f90 \
+			$(COMMON) \
+			src/core/core_lib.f90 \
+			src/grid/type_grid_spherical_3d.f90 \
+			src/core/type_cell_id_3d.f90 \
+			$(OBJECTS1) \
+			src/grid/grid_io.f90 \
+			src/grid/grid_geometry_spherical_3d.f90 \
+			src/grid/grid_geometry_common_3d.f90 \
+			src/grid/grid_pda_spherical_3d.f90 \
+			$(OBJECTS2) \
+			src/mpi/mpi_routines_nompi.f90 \
+			$(OBJECTS3)
+
+OBJECTS_SPH_MPI =	src/mpi/mpi_core.f90 \
+			src/lib/@posix_module_mpi@.f90 \
+			$(COMMON) \
+			src/core/core_lib.f90 \
+			src/grid/type_grid_spherical_3d.f90 \
+			src/core/type_cell_id_3d.f90 \
+			$(OBJECTS1) \
+			src/grid/grid_io.f90 \
+			src/grid/grid_geometry_spherical_3d.f90 \
+			src/grid/grid_geometry_common_3d.f90 \
+			src/grid/grid_pda_spherical_3d.f90 \
+			$(OBJECTS2) \
+			src/mpi/mpi_routines.f90 \
+			$(OBJECTS3)
+
+OBJECTS_CYL_SER =	src/mpi/mpi_core_nompi.f90 \
+			src/lib/@posix_module_serial@.f90 \
+			$(COMMON) \
+			src/core/core_lib.f90 \
+			src/grid/type_grid_cylindrical_3d.f90 \
+			src/core/type_cell_id_3d.f90 \
+			$(OBJECTS1) \
+			src/grid/grid_io.f90 \
+			src/grid/grid_geometry_cylindrical_3d.f90 \
+			src/grid/grid_geometry_common_3d.f90 \
+			src/grid/grid_pda_cylindrical_3d.f90 \
+			$(OBJECTS2) \
+			src/mpi/mpi_routines_nompi.f90 \
+			$(OBJECTS3)
+
+OBJECTS_CYL_MPI =	src/mpi/mpi_core.f90 \
+			src/lib/@posix_module_mpi@.f90 \
+			$(COMMON) \
+			src/core/core_lib.f90 \
+			src/grid/type_grid_cylindrical_3d.f90 \
+			src/core/type_cell_id_3d.f90 \
+			$(OBJECTS1) \
+			src/grid/grid_io.f90 \
+			src/grid/grid_geometry_cylindrical_3d.f90 \
+			src/grid/grid_geometry_common_3d.f90 \
+			src/grid/grid_pda_cylindrical_3d.f90 \
+			$(OBJECTS2) \
+			src/mpi/mpi_routines.f90 \
+			$(OBJECTS3)
+
+all:		car_serial car_mpi sph_serial sph_mpi cyl_serial cyl_mpi oct_serial oct_mpi amr_serial amr_mpi
+
+serial:		car_serial sph_serial cyl_serial oct_serial amr_serial
+
+mpi:		car_mpi sph_mpi cyl_mpi oct_mpi amr_mpi
+
+car_serial:	$(OBJECTS_CAR_SER)
+		$(FC) $(OBJECTS_CAR_SER) -o bin/hyperion_car
+
+car_mpi:	$(OBJECTS_CAR_MPI)
+		$(FCMPI) $(OBJECTS_CAR_MPI) -o bin/hyperion_car_mpi
+
+oct_serial:	$(OBJECTS_OCT_SER)
+		$(FC) $(OBJECTS_OCT_SER) -o bin/hyperion_oct
+
+oct_mpi:	$(OBJECTS_OCT_MPI)
+		$(FCMPI) $(OBJECTS_OCT_MPI) -o bin/hyperion_oct_mpi
+
+amr_serial:	$(OBJECTS_AMR_SER)
+		$(FC) $(OBJECTS_AMR_SER) -o bin/hyperion_amr
+
+amr_mpi:	$(OBJECTS_AMR_MPI)
+		$(FCMPI) $(OBJECTS_AMR_MPI) -o bin/hyperion_amr_mpi
+
+sph_serial:	$(OBJECTS_SPH_SER)
+		$(FC) $(OBJECTS_SPH_SER) -o bin/hyperion_sph
+
+sph_mpi:	$(OBJECTS_SPH_MPI)
+		$(FCMPI) $(OBJECTS_SPH_MPI) -o bin/hyperion_sph_mpi
+
+cyl_serial:	$(OBJECTS_CYL_SER)
+		$(FC) $(OBJECTS_CYL_SER) -o bin/hyperion_cyl
+
+cyl_mpi:	$(OBJECTS_CYL_MPI)
+		$(FCMPI) $(OBJECTS_CYL_MPI) -o bin/hyperion_cyl_mpi
+
+install:	bin/hyperion_*
+		cp bin/hyperion_* @prefix@/bin/
+
+clean:;		rm *.mod src/*.mod src/*/*.mod *.o */*.o bin/* *~ */*~ fort.* ; echo "This file can be deleted." > bin/empty.txt ; echo "This file can be deleted." > src/modules/empty.txt
