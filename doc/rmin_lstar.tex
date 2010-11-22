@@ -76,4 +76,23 @@ $$
 r = r_{\star} \,  \left\{1-\left[1-2\,T_d^4\left(\frac{4\pi r_\star^2\sigma}{L_\star}\right)\frac{\kappa_{\rm plank}(T_d)}{\kappa_{\rm plank, atmos}}\right]^2\right\} ^ {-1/2}
 $$
 
+In some cases, the term inside the brackets is $\ll 1$ in which case to maintain floating point accuracy we should carry out the binomial expansion. Writing
+
+$$
+x \equiv T_d^4\left(\frac{4\pi r_\star^2\sigma}{L_\star}\right)\frac{\kappa_{\rm plank}(T_d)}{\kappa_{\rm plank, atmos}}
+$$
+
+we have
+
+$$
+r = r_{\star} \,  \left\{1-\left[1-2x \right]^2\right\} ^ {-1/2}
+$$
+
+For $x\ll 1$ we can write
+
+$$
+r \approx r_{\star} \,  \left\{1-\left[1-4x \right]\right\} ^ {-1/2} =  \frac{r_{\star}}{2\sqrt{x}}
+$$
+
+
 \end{document}
