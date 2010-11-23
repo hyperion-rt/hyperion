@@ -3,6 +3,7 @@ import numpy as np
 from hyperion.util.constants import pi
 from hyperion.util.functions import FreezableClass
 from hyperion.densities.bipolar_cavity import BipolarCavity
+from hyperion.util.convenience import OptThinRadius
 
 
 class PowerLawEnvelope(FreezableClass):
