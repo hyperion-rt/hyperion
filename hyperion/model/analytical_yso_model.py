@@ -6,7 +6,7 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as mpl
 
 from hyperion.model import Model
-from hyperion.densities import FlaredDisk, PowerLawEnvelope, UlrichEnvelope
+from hyperion.densities import FlaredDisk, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
 from hyperion.util.interpolate import interp1d_fast_loglog
 from hyperion.util.constants import pi, sigma, c
 from hyperion.sources import SphericalSource, SpotSource
@@ -102,6 +102,8 @@ class AnalyticalYSOModel(Model):
 
         self.accretion = False
 
+        self.ambient = None
+
         Model.__init__(self, name=name)
 
     def __setattr__(self, attribute, value):
@@ -117,6 +119,14 @@ class AnalyticalYSOModel(Model):
         Model.__setattr__(self, attribute, value)
 
     # DENSITY COMPONENTS
+
+    def add_ambient_medium(self):
+        "Add an ambient medium in which the model is embedded"
+        if self.ambient is not None:
+            raise Exception("Ambient medium already present")
+        ambient = AmbientMedium()
+        self.ambient = ambient
+        return ambient
 
     def add_flared_disk(self):
         "Add a flared disk to the geometry"
@@ -226,6 +236,8 @@ class AnalyticalYSOModel(Model):
         else:
             rmin_values = [disk.rmin for disk in self.disks] \
                         + [envelope.rmin for envelope in self.envelopes]
+            if self.ambient is not None:
+                rmin_values += [self.ambient.rmin]
             rmin = _min_none(*rmin_values)
 
         if not rmax:
@@ -234,6 +246,8 @@ class AnalyticalYSOModel(Model):
             else:
                 rmax_values = [disk.rmax for disk in self.disks] \
                             + [envelope.rmax for envelope in self.envelopes]
+                if self.ambient is not None:
+                    rmax_values += [self.ambient.rmax]
                 rmax = _max_none(*rmax_values)
 
         # RADIAL WALLS
@@ -245,10 +259,10 @@ class AnalyticalYSOModel(Model):
 
         # Define a radial grid to compute the midplane column density on
         r = np.logspace(-20., np.log10(rmax / rmin), 100000) * rmin + rmin
-        
+
         # We need the first point to be exactly at the inner radius
         r[0] = rmin
-        
+
         # Get cumulative midplane optical depth
         tau_midplane = self.get_midplane_tau(r)
 
@@ -405,6 +419,11 @@ class AnalyticalYSOModel(Model):
                 envelope.rmin = envelope.rmin.evaluate(self.star, SphericalDust(envelope.dust))
             if isinstance(envelope.rmax, OptThinRadius):
                 envelope.rmax = envelope.rmax.evaluate(self.star, SphericalDust(envelope.dust))
+        if self.ambient is not None:
+            if isinstance(self.ambient.rmin, OptThinRadius):
+                self.ambient.rmin = self.ambient.rmin.evaluate(self.star, SphericalDust(self.ambient.dust))
+            if isinstance(self.ambient.rmax, OptThinRadius):
+                self.ambient.rmax = self.ambient.rmax.evaluate(self.star, SphericalDust(self.ambient.dust))
 
     # OUTPUT
 
@@ -434,6 +453,30 @@ class AnalyticalYSOModel(Model):
                         raise Exception("Cavity dust not set")
                     self.add_density_grid(envelope.cavity.density(self.grid),
                                           envelope.cavity.dust)
+
+        # AMBIENT MEDIUM
+
+        if self.ambient is not None:
+
+            ambient = self.ambient
+
+            if not ambient.dust:
+                raise Exception("Ambient medium dust not set")
+
+            # Find the density of the ambient medium
+            density_amb = ambient.density(self.grid)
+
+            if len(self.density) > 0:
+
+                # Find total density in other components
+                shape = list(self.grid.shape)
+                shape.insert(0, len(self.density))
+                density_sum = np.sum(np.vstack(self.density).reshape(*shape), axis=0)
+
+                density_amb -= density_sum
+                density_amb[density_amb < 0.] = 0.
+
+            self.add_density_grid(density_amb, ambient.dust)
 
         # SOURCES
 
