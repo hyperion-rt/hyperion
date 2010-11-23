@@ -42,6 +42,11 @@ class PowerLawEnvelope(FreezableClass):
             raise Exception("rmax is not set")
         if self.power is None:
             raise Exception("power is not set")
+            
+        if isinstance(self.rmin, OptThinRadius):
+            raise Exception("Inner envelope radius needs to be computed first")
+        if isinstance(self.rmax, OptThinRadius):
+            raise Exception("Outer envelope radius needs to be computed first")
 
     def exists(self):
         return self.mass > 0.
