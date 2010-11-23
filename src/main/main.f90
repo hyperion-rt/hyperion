@@ -56,6 +56,11 @@ program main
   ! Wait for all threads
   call mp_join()  
 
+  if(n_dust==0 .and. n_lucy_iter > 0) then
+     call warn("main", "no dust present, so skipping temperature iterations")
+     n_lucy_iter=0
+  end if
+
   ! Loop over Lucy iterations
   do iter=1,n_lucy_iter
 

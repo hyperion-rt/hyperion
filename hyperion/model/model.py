@@ -244,34 +244,36 @@ class Model(FreezableClass):
         self._write_monochromatic(root, compression=compression, dtype=physics_dtype)
         self.conf.run.write(root)
         self.conf.output.write(g_output)
+        
+        if len(self.density) > 0:
 
-        self.grid.write_physical_array(g_physics, self.density, "Density", dust=True, compression=compression, physics_dtype=physics_dtype)
+            self.grid.write_physical_array(g_physics, self.density, "Density", dust=True, compression=compression, physics_dtype=physics_dtype)
 
-        if self.temperature:
-            self.grid.write_physical_array(g_physics, self.temperature, "Temperature", dust=True, compression=compression, physics_dtype=physics_dtype)
+            if self.temperature:
+                self.grid.write_physical_array(g_physics, self.temperature, "Temperature", dust=True, compression=compression, physics_dtype=physics_dtype)
 
-        # Output dust file
-        checksums = []
-        short_names = []
-        for i, dustfile in enumerate(self.dust):
-            checksum = hashlib.md5(file(dustfile, 'rb').read()).hexdigest()
-            short_name = os.path.splitext(os.path.basename(dustfile))[0]
-            if not checksum in checksums:
-                if short_name in short_names:
-                    raise Exception("Short name already used by a different dust file: %s" % short_name)
-                if copy_dust:
-                    f = h5py.File(dustfile, 'r')
-                    f.copy('/', g_dust, name=short_name)
-                    f.close()
-                else:
-                    if absolute_paths:
-                        g_dust[short_name] = h5py.ExternalLink(os.path.abspath(dustfile), '/')
+            # Output dust file
+            checksums = []
+            short_names = []
+            for i, dustfile in enumerate(self.dust):
+                checksum = hashlib.md5(file(dustfile, 'rb').read()).hexdigest()
+                short_name = os.path.splitext(os.path.basename(dustfile))[0]
+                if not checksum in checksums:
+                    if short_name in short_names:
+                        raise Exception("Short name already used by a different dust file: %s" % short_name)
+                    if copy_dust:
+                        f = h5py.File(dustfile, 'r')
+                        f.copy('/', g_dust, name=short_name)
+                        f.close()
                     else:
-                        g_dust[short_name] = h5py.ExternalLink(os.path.relpath(dustfile), '/')
-            checksums.append(checksum)
-            short_names.append(short_name)
+                        if absolute_paths:
+                            g_dust[short_name] = h5py.ExternalLink(os.path.abspath(dustfile), '/')
+                        else:
+                            g_dust[short_name] = h5py.ExternalLink(os.path.relpath(dustfile), '/')
+                checksums.append(checksum)
+                short_names.append(short_name)
 
-        g_dust.create_dataset('Dust types', data=np.array(zip(short_names), dtype=[('name', '|S100')]), compression=compression)
+            g_dust.create_dataset('Dust types', data=np.array(zip(short_names), dtype=[('name', '|S100')]), compression=compression)
 
         # Output geometry
         self.grid.write_geometry(g_geometry, \

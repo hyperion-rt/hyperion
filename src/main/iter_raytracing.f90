@@ -69,9 +69,17 @@ contains
 
     end do
 
-    call mp_reset_first()
-
     call mp_join()
+
+    if(n_dust==0._dp) return
+
+    call mp_reset_first()
+    
+    if(main_process()) then
+       write(*,*)
+       write(*,'("   # Photons    CPU time (sec)    Photons/sec  ")')
+       write(*,'(" ----------------------------------------------")')
+    end if
 
     n_photons_curr = 0
 

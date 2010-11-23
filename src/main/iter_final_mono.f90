@@ -97,6 +97,8 @@ contains
     ! Wait for all processes
     call mp_join()
 
+    if(n_dust==0._dp) return
+
     ! Tell multi-process routines that this is the start of an iteration
     call mp_reset_first()    
 
@@ -105,6 +107,8 @@ contains
        write(*,'("   # Photons    CPU time (sec)    Photons/sec  ")')
        write(*,'(" ----------------------------------------------")')
     end if
+
+    call mp_join()
 
     n_photons_curr = 0
 

@@ -34,13 +34,16 @@ contains
     integer(hid_t) :: g_indiv
     integer :: id
 
-    call hdf5_table_read_column_auto(group, 'Dust types', 'name', dust_types)
-
-    n_dust = size(dust_types)
-
+    if(hdf5_path_exists(group, 'Dust types')) then
+        call hdf5_table_read_column_auto(group, 'Dust types', 'name', dust_types)
+        n_dust = size(dust_types)
+    else
+        n_dust = 0
+    end if
+    
     allocate(d(n_dust))
     allocate(is_lte_dust(n_dust))
-
+    
     do id=1,n_dust
 
        write(*,'(" [dust] reading ",A)') trim(dust_types(id))

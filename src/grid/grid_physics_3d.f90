@@ -103,16 +103,21 @@ contains
 
     ! Read in all density arrays
     allocate(density(geo%n_cells, n_dust))
-    call read_grid_4d(group, 'Density', density, geo)
-    if(size(density, 2).ne.n_dust) call error("setup_grid","density array has wrong number of dust types")
-
     allocate(temperature(geo%n_cells, n_dust))
-    if(grid_exists(group, 'Temperature')) then
-       if(main_process()) write(*,'(" [grid_physics] reading temperature grid")')
-       call read_grid_4d(group, 'Temperature', temperature, geo)
-       if(size(temperature, 2).ne.n_dust) call error("setup_grid","temperature array has wrong number of dust types")
-    else
-       temperature = minimum_temperature
+
+    if(n_dust > 0) then
+
+        call read_grid_4d(group, 'Density', density, geo)
+        if(size(density, 2).ne.n_dust) call error("setup_grid","density array has wrong number of dust types")
+
+        if(grid_exists(group, 'Temperature')) then
+           if(main_process()) write(*,'(" [grid_physics] reading temperature grid")')
+           call read_grid_4d(group, 'Temperature', temperature, geo)
+           if(size(temperature, 2).ne.n_dust) call error("setup_grid","temperature array has wrong number of dust types")
+        else
+           temperature = minimum_temperature
+        end if
+
     end if
 
     allocate(tmp_column_density(n_dust))
