@@ -6,11 +6,11 @@ from hyperion.util.convenience import OptThinRadius
 
 class AmbientMedium(FreezableClass):
 
-    def __init__(self, density=None, temperature=2.725, rmin=None):
+    def __init__(self, rho=None, temperature=2.725, rmin=None, rmax=None):
         "Initialize an ambient medium instance"
 
         # Basic ambient medium parameters
-        self.density = density
+        self.rho = rho
         self.temperature = temperature
         self.rmin = rmin
         self.rmax = rmax
@@ -47,7 +47,7 @@ class AmbientMedium(FreezableClass):
 
         self.check_all_set()
 
-        rho = np.repeat(self.density, grid.gr.shape)
+        rho = np.ones(grid.gr.shape) * self.rho
 
         rho[grid.gr < self.rmin] = 0.
         rho[grid.gr > self.rmax] = 0.
