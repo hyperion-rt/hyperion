@@ -13,6 +13,7 @@ class AmbientMedium(FreezableClass):
         self.density = density
         self.temperature = temperature
         self.rmin = rmin
+        self.rmax = rmax
 
         # Dust
         self.dust = None
@@ -27,8 +28,12 @@ class AmbientMedium(FreezableClass):
             raise Exception("temperature is not set")
         if self.rmin is None:
             raise Exception("rmin is not set")
+        if self.rmax is None:
+            raise Exception("rmax is not set")
 
         if isinstance(self.rmin, OptThinRadius):
+            raise Exception("Inner ambient medium radius needs to be computed first")
+        if isinstance(self.rmax, OptThinRadius):
             raise Exception("Inner ambient medium radius needs to be computed first")
 
     def density(self, grid):
@@ -45,5 +50,6 @@ class AmbientMedium(FreezableClass):
         rho = np.repeat(self.density, grid.gr.shape)
 
         rho[grid.gr < self.rmin] = 0.
+        rho[grid.gr > self.rmax] = 0.
 
         return rho
