@@ -80,6 +80,8 @@ contains
        write(*,'("   # Photons    CPU time (sec)    Photons/sec  ")')
        write(*,'(" ----------------------------------------------")')
     end if
+    
+    call mp_join()
 
     n_photons_curr = 0
 
