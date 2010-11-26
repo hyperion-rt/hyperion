@@ -170,6 +170,14 @@ class AnalyticalYSOModel(Model):
         self.envelopes.append(envelope)
         return envelope
 
+    def _check_all_set(self):
+        for disk in self.disks:
+            disk._check_all_set()
+        for envelope in self.envelopes:
+            envelope._check_all_set()
+        if self.ambient is not None:
+            self.ambient._check_all_set()
+
     # MIDPLANE OPTICAL DEPTH
 
     def print_midplane_tau(self, wavelength):
@@ -181,6 +189,8 @@ class AnalyticalYSOModel(Model):
                 print "Disk %i: %.5e" % (i + 1, tau)
 
     def get_midplane_tau(self, r):
+
+        self._check_all_set()
 
         # Find the total combined optical depth through the midplane
         tau_midplane = np.zeros(r.shape)
@@ -194,6 +204,15 @@ class AnalyticalYSOModel(Model):
                 dust = SphericalDust(disk.dust)
                 nu, fnu = self.star.total_spectrum()
                 tau_midplane += disk.midplane_cumulative_density(r) \
+                              * dust.chi_planck_spectrum(nu, fnu)
+
+        for i, envelope in enumerate(self.envelopes):
+            if envelope.exists():
+                if envelope.dust is None:
+                    raise Exception("envelope %i dust not set" % i)
+                dust = SphericalDust(envelope.dust)
+                nu, fnu = self.star.total_spectrum()
+                tau_midplane += envelope.midplane_cumulative_density(r) \
                               * dust.chi_planck_spectrum(nu, fnu)
 
         return tau_midplane
@@ -241,14 +260,12 @@ class AnalyticalYSOModel(Model):
             rmin = _min_none(*rmin_values)
 
         if not rmax:
-            if len(self.disks) == 0 and len(self.envelopes) == 0:
-                rmax = 2. * self.star.radius
-            else:
-                rmax_values = [disk.rmax for disk in self.disks] \
-                            + [envelope.rmax for envelope in self.envelopes]
-                if self.ambient is not None:
-                    rmax_values += [self.ambient.rmax]
-                rmax = _max_none(*rmax_values)
+            rmax_values = [2. * self.star.radius]
+            rmax_values += [disk.rmax for disk in self.disks] \
+                         + [envelope.rmax for envelope in self.envelopes]
+            if self.ambient is not None:
+                rmax_values += [self.ambient.rmax]
+            rmax = _max_none(*rmax_values)
 
         # RADIAL WALLS
 
@@ -384,7 +401,7 @@ class AnalyticalYSOModel(Model):
         self.star.sources['uv'].temperature = tshock
 
         # X-rays from 0.1 to 10nm
-        wav = np.logspace(-4., -2., 100)[::-1]
+        wav = np.logspace(-3., -2., 100)[::-1]
         nu = c * 1.e4 / wav
         fnu = np.repeat(1., nu.shape)
 

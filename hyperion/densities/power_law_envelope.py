@@ -33,7 +33,7 @@ class PowerLawEnvelope(FreezableClass):
 
         self._freeze()
 
-    def check_all_set(self):
+    def _check_all_set(self):
 
         if self.mass is None:
             raise Exception("mass is not set")
@@ -61,7 +61,7 @@ class PowerLawEnvelope(FreezableClass):
         parameter dictionary
         '''
 
-        self.check_all_set()
+        self._check_all_set()
 
         alpha = 3. + self.power
 

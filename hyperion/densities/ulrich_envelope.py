@@ -217,6 +217,27 @@ class UlrichEnvelope(FreezableClass):
 
         return rho
 
+    def midplane_cumulative_density(self, r):
+        '''
+        Find the cumulative column density as a function of radius from the
+        star in the midplane of an infalling Ulrich envelope.
+        '''
+
+        self._check_all_set()
+
+        gamma_0 = self.rmin / self.rc
+        gamma_1 = r / self.rc
+
+        rho = np.zeros(r.shape)
+
+        rho[gamma_1 < 1.] = self.rho_0 \
+                          * (np.log((np.sqrt(gamma_1) + 1) / (1. - np.sqrt(gamma_1))) \
+                          -  np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0))))
+
+        rho[gamma_1 >= 1.] = np.inf
+
+        return rho
+
     def add_bipolar_cavity(self):
         if self.cavity is not None:
             raise Exception("Envelope already has a bipolar cavity")

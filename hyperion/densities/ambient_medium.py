@@ -20,7 +20,7 @@ class AmbientMedium(FreezableClass):
 
         self._freeze()
 
-    def check_all_set(self):
+    def _check_all_set(self):
 
         if self.density is None:
             raise Exception("density is not set")
@@ -45,7 +45,7 @@ class AmbientMedium(FreezableClass):
         parameter dictionary
         '''
 
-        self.check_all_set()
+        self._check_all_set()
 
         rho = np.ones(grid.gr.shape) * self.rho
 
