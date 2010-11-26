@@ -18,7 +18,7 @@ def _integrate_powerlaw(xmin, xmax, power):
      xmin
     '''
     if power == -1.:
-        return np.log(xmax - xmin)
+        return np.log(xmax / xmin)
     else:
         return (xmax ** (power + 1.) - xmin ** (power + 1.)) / (power + 1.)
 
