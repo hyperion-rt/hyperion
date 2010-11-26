@@ -267,6 +267,11 @@ class AnalyticalYSOModel(Model):
                 rmax_values += [self.ambient.rmax]
             rmax = _max_none(*rmax_values)
 
+        if rmax < rmin:
+            warnings.warn("Grid rmax < rmin, model with consist only of central star")
+            rmin = self.star.radius
+            rmax = 2. * self.star.radius
+
         # RADIAL WALLS
 
         # Set first wall to be at half the stellar radius to avoid any

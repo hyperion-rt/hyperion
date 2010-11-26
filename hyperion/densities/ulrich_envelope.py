@@ -182,6 +182,10 @@ class UlrichEnvelope(FreezableClass):
         '''
 
         self._check_all_set()
+        
+        if self.rmax <= self.rmin:
+            warnings.warn("Ignoring Ulrich envelope, since rmax < rmin")
+            return np.zeros(grid.shape)
 
         # Find mu = cos(theta)
         mu = np.cos(grid.gt)
@@ -224,6 +228,10 @@ class UlrichEnvelope(FreezableClass):
         '''
 
         self._check_all_set()
+        
+        if self.rmax <= self.rmin:
+            warnings.warn("Ignoring Ulrich envelope, since rmax < rmin")
+            return np.zeros(r.shape)
 
         gamma_0 = self.rmin / self.rc
         gamma_1 = r / self.rc

@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 
 from hyperion.util.constants import pi
@@ -43,7 +45,7 @@ class PowerLawEnvelope(FreezableClass):
             raise Exception("rmax is not set")
         if self.power is None:
             raise Exception("power is not set")
-            
+
         if isinstance(self.rmin, OptThinRadius):
             raise Exception("Inner envelope radius needs to be computed first")
         if isinstance(self.rmax, OptThinRadius):
@@ -62,6 +64,10 @@ class PowerLawEnvelope(FreezableClass):
         '''
 
         self._check_all_set()
+
+        if self.rmax <= self.rmin:
+            warnings.warn("Ignoring power-law envelope, since rmax < rmin")
+            return np.zeros(grid.shape)
 
         alpha = 3. + self.power
 
@@ -82,6 +88,27 @@ class PowerLawEnvelope(FreezableClass):
         if self.cavity is not None:
             mask = self.cavity.mask(grid)
             rho[~mask] = 0.
+
+        return rho
+
+    def midplane_cumulative_density(self, r):
+        '''
+        Find the cumulative column density as a function of radius from the
+        star in the midplane of a power-law envelope.
+        '''
+
+        self._check_all_set()
+
+        if self.rmax <= self.rmin:
+            warnings.warn("Ignoring power-law envelope, since rmax < rmin")
+            return np.zeros(r.shape)
+
+        p = 1 - self.power
+
+        if p == 0.:
+            rho = self.rho_0 * np.log(r / self.rmin)
+        else:
+            rho = self.rho_0 * (r**p - self.rmin**p) / p
 
         return rho
 

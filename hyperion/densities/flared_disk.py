@@ -107,6 +107,10 @@ class FlaredDisk(FreezableClass):
 
         self._check_all_set()
 
+        if self.rmax <= self.rmin:
+            warnings.warn("Ignoring disk, since rmax < rmin")
+            return 0.
+
         p1 = 2.0 + self.beta - self.alpha
         p2 = 1.5 + self.beta - self.alpha
 
@@ -143,6 +147,10 @@ class FlaredDisk(FreezableClass):
         '''
 
         self._check_all_set()
+        
+        if self.rmax <= self.rmin:
+            warnings.warn("Ignoring disk, since rmax < rmin")
+            return np.zeros(grid.shape)
 
         if self.mass == 0:
             return np.zeros(grid.shape)
@@ -187,6 +195,10 @@ class FlaredDisk(FreezableClass):
         '''
 
         self._check_all_set()
+        
+        if self.rmax <= self.rmin:
+            warnings.warn("Ignoring disk, since rmax < rmin")
+            return np.zeros(r.shape)
 
         p1 = 1.0 - self.alpha
         p2 = 0.5 - self.alpha
@@ -218,6 +230,10 @@ class FlaredDisk(FreezableClass):
     def vertical_profile(self, r, theta):
 
         self._check_all_set()
+        
+        if self.rmax <= self.rmin:
+            warnings.warn("Ignoring disk, since rmax < rmin")
+            return np.zeros(theta.shape)
 
         # r is in spherical polars so first find w and z
 
@@ -260,6 +276,10 @@ class FlaredDisk(FreezableClass):
         Input is the position of the center of the grid cells in spherical
         polar coordinates (r, theta, phi), and the volume of the grid cells.
         '''
+        
+        if self.rmax <= self.rmin:
+            warnings.warn("Ignoring disk, since rmax < rmin")
+            return np.zeros(grid.shape)
 
         if 'lvisc' in self.__dict__ and self.lvisc == 0.:
             return np.zeros(grid.shape)
