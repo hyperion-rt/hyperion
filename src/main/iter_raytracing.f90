@@ -9,8 +9,8 @@ module iteration_raytracing
   use peeled_images
   use dust_main
   use grid_physics
-
   use grid_geometry
+  use performance
 
   implicit none
   save
@@ -43,11 +43,7 @@ contains
 
     call mp_join()
 
-    if(main_process()) then
-       write(*,*)
-       write(*,'("   # Photons    CPU time (sec)    Photons/sec  ")')
-       write(*,'(" ----------------------------------------------")')
-    end if
+    if(main_process()) call perf_header()
 
     ! Start loop over chunks of photons
     do
@@ -74,13 +70,9 @@ contains
     if(n_dust==0._dp) return
 
     call mp_reset_first()
-    
-    if(main_process()) then
-       write(*,*)
-       write(*,'("   # Photons    CPU time (sec)    Photons/sec  ")')
-       write(*,'(" ----------------------------------------------")')
-    end if
-    
+
+    if(main_process()) call perf_header()
+
     call mp_join()
 
     n_photons_curr = 0

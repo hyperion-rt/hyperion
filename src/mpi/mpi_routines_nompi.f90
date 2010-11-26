@@ -2,6 +2,7 @@ module mpi_routines
 
   use core_lib
   use mpi_core
+  use performance
 
   implicit none
   save
@@ -31,7 +32,7 @@ contains
     call cpu_time(time2)
     time_curr = time_curr + time2-time1
 
-    write(*,'(1X,3X,I12,3X,4X,F10.1,4X,4X,F9.2,4X)') n_photons_curr,time_curr,dble(n_photons_curr)/time_curr
+    if(mod(n_photons_curr,n_photons_chunk)==0) call perf_numbers(n_photons_curr, time_curr)
 
     n_photons = min(n_photons_chunk, n_photons_tot - n_photons_curr)
     n_photons_curr = n_photons_curr + n_photons

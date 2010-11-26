@@ -13,6 +13,7 @@ module iteration_final_mono
 
   use grid_geometry, only : escaped
   use settings, only : frequencies, n_inter_max, forced_first_scattering, n_reabs_max
+  use performance
 
   implicit none
   save
@@ -51,11 +52,7 @@ contains
 
     call mp_join()
 
-    if(main_process()) then
-       write(*,*)
-       write(*,'("   # Photons    CPU time (sec)    Photons/sec  ")')
-       write(*,'(" ----------------------------------------------")')
-    end if
+    if(main_process()) call perf_header()
 
     ! Initialize the number of completed photons
     n_photons_curr = 0
@@ -102,11 +99,7 @@ contains
     ! Tell multi-process routines that this is the start of an iteration
     call mp_reset_first()    
 
-    if(main_process()) then
-       write(*,*)
-       write(*,'("   # Photons    CPU time (sec)    Photons/sec  ")')
-       write(*,'(" ----------------------------------------------")')
-    end if
+    if(main_process()) call perf_header()
 
     call mp_join()
 

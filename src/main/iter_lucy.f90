@@ -15,6 +15,7 @@ module iteration_lucy
   use grid_mrw
   use grid_pda
   use settings
+  use performance
 
   implicit none
   save
@@ -67,11 +68,7 @@ contains
 
     call mp_join()
 
-    if(main_process()) then
-       write(*,*)
-       write(*,'("   # Photons    CPU time (sec)    Photons/sec  ")')
-       write(*,'(" ----------------------------------------------")')
-    end if
+    if(main_process()) call perf_header()
 
     ! Start loop over chunks of photons
     do
