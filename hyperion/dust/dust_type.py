@@ -18,6 +18,7 @@ class SphericalDust(FreezableClass):
 
     def __init__(self, *args):
 
+        self.filename = None
         self.md5 = None
 
         self.n_wav = None
@@ -451,6 +452,8 @@ class SphericalDust(FreezableClass):
         # Output dust file
         ts.write(filename, overwrite=True, compression=compression)
 
+        self.filename = filename
+
     def read(self, filename):
         '''
         Read in from a standard dust file
@@ -459,6 +462,8 @@ class SphericalDust(FreezableClass):
         # Check file exists
         if not os.path.exists(filename):
             raise Exception("File not found: %s" % filename)
+
+        self.filename = filename
 
         # Read in dust table set
         ts = atpy.TableSet(filename)

@@ -2,6 +2,7 @@ import numpy as np
 
 from hyperion.util.functions import FreezableClass
 from hyperion.util.convenience import OptThinRadius
+from hyperion.dust import SphericalDust
 
 
 class AmbientMedium(FreezableClass):
@@ -53,3 +54,9 @@ class AmbientMedium(FreezableClass):
         rho[grid.gr > self.rmax] = 0.
 
         return rho
+
+    def __setattr__(self, attribute, value):
+        if attribute == 'dust' and value is not None:
+            FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
+        else:
+            FreezableClass.__setattr__(self, attribute, value)

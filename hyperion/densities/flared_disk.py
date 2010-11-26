@@ -6,6 +6,7 @@ from hyperion.util.constants import pi, G
 from hyperion.util.functions import FreezableClass
 from hyperion.util.convenience import OptThinRadius
 from hyperion.util.integrate import integrate_powerlaw
+from hyperion.dust import SphericalDust
 
 
 class FlaredDisk(FreezableClass):
@@ -186,7 +187,7 @@ class FlaredDisk(FreezableClass):
         if self.rmax <= self.rmin:
             warnings.warn("Ignoring disk, since rmax < rmin")
             return np.zeros(r.shape)
-            
+
         int1 = integrate_powerlaw(self.rmin, r.clip(self.rmin, self.rmax), -self.alpha)
         int1 *= self.star.radius ** self.alpha
 
@@ -315,6 +316,8 @@ class FlaredDisk(FreezableClass):
                 warnings.warn("Overriding value of mdot with value derived from lvisc")
                 del self.mdot
             object.__setattr__(self, attribute, value)
+        elif attribute == 'dust' and value is not None:
+            FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
         else:
             FreezableClass.__setattr__(self, attribute, value)
 

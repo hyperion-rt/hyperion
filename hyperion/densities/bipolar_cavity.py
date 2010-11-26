@@ -1,6 +1,7 @@
 import numpy as np
 
 from hyperion.util.functions import FreezableClass
+from hyperion.dust import SphericalDust
 
 
 class BipolarCavity(FreezableClass):
@@ -95,3 +96,9 @@ class BipolarCavity(FreezableClass):
         mask = np.abs(grid.gz) < zcav
 
         return mask
+
+    def __setattr__(self, attribute, value):
+        if attribute == 'dust' and value is not None:
+            FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
+        else:
+            FreezableClass.__setattr__(self, attribute, value)

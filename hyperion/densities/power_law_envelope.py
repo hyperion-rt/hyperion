@@ -7,6 +7,7 @@ from hyperion.util.functions import FreezableClass
 from hyperion.densities.bipolar_cavity import BipolarCavity
 from hyperion.util.convenience import OptThinRadius
 from hyperion.util.integrate import integrate_powerlaw
+from hyperion.dust import SphericalDust
 
 
 class PowerLawEnvelope(FreezableClass):
@@ -112,3 +113,9 @@ class PowerLawEnvelope(FreezableClass):
         else:
             self.cavity = BipolarCavity()
             return self.cavity
+
+    def __setattr__(self, attribute, value):
+        if attribute == 'dust' and value is not None:
+            FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
+        else:
+            FreezableClass.__setattr__(self, attribute, value)

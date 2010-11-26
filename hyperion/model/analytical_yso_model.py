@@ -11,7 +11,6 @@ from hyperion.util.interpolate import interp1d_fast_loglog
 from hyperion.util.constants import pi, sigma, c
 from hyperion.sources import SphericalSource, SpotSource
 from hyperion.util.functions import FreezableClass
-from hyperion.dust import SphericalDust
 from hyperion.util.convenience import OptThinRadius
 
 
@@ -183,9 +182,8 @@ class AnalyticalYSOModel(Model):
     def print_midplane_tau(self, wavelength):
         for i, disk in enumerate(self.disks):
             if disk.mass > 0.:
-                dust = SphericalDust(disk.dust)
                 tau = disk.midplane_cumulative_density(np.array([disk.rmax])) \
-                    * dust.interp_chi_wav(wavelength)
+                    * disk.dust.interp_chi_wav(wavelength)
                 print "Disk %i: %.5e" % (i + 1, tau)
 
     def get_midplane_tau(self, r):
@@ -201,19 +199,17 @@ class AnalyticalYSOModel(Model):
             if disk.mass > 0.:
                 if disk.dust is None:
                     raise Exception("Disk %i dust not set" % i)
-                dust = SphericalDust(disk.dust)
                 nu, fnu = self.star.total_spectrum()
                 tau_midplane += disk.midplane_cumulative_density(r) \
-                              * dust.chi_planck_spectrum(nu, fnu)
+                              * disk.dust.chi_planck_spectrum(nu, fnu)
 
         for i, envelope in enumerate(self.envelopes):
             if envelope.exists():
                 if envelope.dust is None:
                     raise Exception("envelope %i dust not set" % i)
-                dust = SphericalDust(envelope.dust)
                 nu, fnu = self.star.total_spectrum()
                 tau_midplane += envelope.midplane_cumulative_density(r) \
-                              * dust.chi_planck_spectrum(nu, fnu)
+                              * envelope.dust.chi_planck_spectrum(nu, fnu)
 
         return tau_midplane
 
@@ -433,19 +429,19 @@ class AnalyticalYSOModel(Model):
             raise Exception("Stellar parameters need to be finalized before resolving radiation-dependent radii")
         for disk in self.disks:
             if isinstance(disk.rmin, OptThinRadius):
-                disk.rmin = disk.rmin.evaluate(self.star, SphericalDust(disk.dust))
+                disk.rmin = disk.rmin.evaluate(self.star, disk.dust)
             if isinstance(disk.rmax, OptThinRadius):
-                disk.rmax = disk.rmax.evaluate(self.star, SphericalDust(disk.dust))
+                disk.rmax = disk.rmax.evaluate(self.star, disk.dust)
         for envelope in self.envelopes:
             if isinstance(envelope.rmin, OptThinRadius):
-                envelope.rmin = envelope.rmin.evaluate(self.star, SphericalDust(envelope.dust))
+                envelope.rmin = envelope.rmin.evaluate(self.star, envelope.dust)
             if isinstance(envelope.rmax, OptThinRadius):
-                envelope.rmax = envelope.rmax.evaluate(self.star, SphericalDust(envelope.dust))
+                envelope.rmax = envelope.rmax.evaluate(self.star, envelope.dust)
         if self.ambient is not None:
             if isinstance(self.ambient.rmin, OptThinRadius):
-                self.ambient.rmin = self.ambient.rmin.evaluate(self.star, SphericalDust(self.ambient.dust))
+                self.ambient.rmin = self.ambient.rmin.evaluate(self.star, self.ambient.dust)
             if isinstance(self.ambient.rmax, OptThinRadius):
-                self.ambient.rmax = self.ambient.rmax.evaluate(self.star, SphericalDust(self.ambient.dust))
+                self.ambient.rmax = self.ambient.rmax.evaluate(self.star, self.ambient.dust)
 
     # OUTPUT
 

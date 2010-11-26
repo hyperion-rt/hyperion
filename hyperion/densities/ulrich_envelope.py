@@ -6,6 +6,7 @@ from hyperion.util.constants import G, pi
 from hyperion.util.functions import FreezableClass
 from hyperion.densities.bipolar_cavity import BipolarCavity
 from hyperion.util.convenience import OptThinRadius
+from hyperion.dust import SphericalDust
 
 
 def delta_neg(r, q):
@@ -182,7 +183,7 @@ class UlrichEnvelope(FreezableClass):
         '''
 
         self._check_all_set()
-        
+
         if self.rmax <= self.rmin:
             warnings.warn("Ignoring Ulrich envelope, since rmax < rmin")
             return np.zeros(grid.shape)
@@ -228,7 +229,7 @@ class UlrichEnvelope(FreezableClass):
         '''
 
         self._check_all_set()
-        
+
         if self.rmax <= self.rmin:
             warnings.warn("Ignoring Ulrich envelope, since rmax < rmin")
             return np.zeros(r.shape)
@@ -266,6 +267,8 @@ class UlrichEnvelope(FreezableClass):
                 warnings.warn("Overriding value of mdot with value derived from rho_0")
                 del self.mdot
             object.__setattr__(self, attribute, value)
+        elif attribute == 'dust' and value is not None:
+            FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
         else:
             FreezableClass.__setattr__(self, attribute, value)
 

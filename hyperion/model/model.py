@@ -13,6 +13,7 @@ from hyperion.sources import PointSource, SphericalSource, ExternalSphericalSour
 from hyperion.conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from hyperion.util.constants import c, pi
 from hyperion.util.functions import FreezableClass
+from hyperion.dust import SphericalDust
 
 STOKESD = {}
 STOKESD['I'] = 0
@@ -255,21 +256,21 @@ class Model(FreezableClass):
             # Output dust file
             checksums = []
             short_names = []
-            for i, dustfile in enumerate(self.dust):
-                checksum = hashlib.md5(file(dustfile, 'rb').read()).hexdigest()
-                short_name = os.path.splitext(os.path.basename(dustfile))[0]
+            for i, dust in enumerate(self.dust):
+                checksum = hashlib.md5(file(dust.filename, 'rb').read()).hexdigest()
+                short_name = os.path.splitext(os.path.basename(dust.filename))[0]
                 if not checksum in checksums:
                     if short_name in short_names:
                         raise Exception("Short name already used by a different dust file: %s" % short_name)
                     if copy_dust:
-                        f = h5py.File(dustfile, 'r')
+                        f = h5py.File(dust.filename, 'r')
                         f.copy('/', g_dust, name=short_name)
                         f.close()
                     else:
                         if absolute_paths:
-                            g_dust[short_name] = h5py.ExternalLink(os.path.abspath(dustfile), '/')
+                            g_dust[short_name] = h5py.ExternalLink(os.path.abspath(dust.filename), '/')
                         else:
-                            g_dust[short_name] = h5py.ExternalLink(os.path.relpath(dustfile), '/')
+                            g_dust[short_name] = h5py.ExternalLink(os.path.relpath(dust.filename), '/')
                 checksums.append(checksum)
                 short_names.append(short_name)
 
@@ -314,7 +315,10 @@ class Model(FreezableClass):
                 if not temperature.shape == self.grid.shape:
                     raise Exception("Temperature shape does not match that of grid")
         self.density.append(density)
-        self.dust.append(os.path.abspath(dust))
+        if type(dust) is str:
+            self.dust.append(SphericalDust(dust))
+        else:
+            self.dust.append(dust)
         if temperature is not None:
             self.temperature.append(temperature)
 
