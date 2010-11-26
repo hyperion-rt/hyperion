@@ -7,6 +7,22 @@ from hyperion.util.functions import FreezableClass
 from hyperion.util.convenience import OptThinRadius
 
 
+def _integrate_powerlaw(xmin, xmax, power):
+    '''
+    Find the integral of:
+
+         xmax
+        /
+        | x^power dx
+        /
+     xmin
+    '''
+    if power == -1.:
+        return np.log(xmax - xmin)
+    else:
+        return (xmax ** (power + 1.) - xmin ** (power + 1.)) / (power + 1.)
+
+
 class FlaredDisk(FreezableClass):
 
     def __init__(self, mass=0., rmin=None, rmax=None, alpha=2.25, beta=1.25,
@@ -111,27 +127,13 @@ class FlaredDisk(FreezableClass):
             warnings.warn("Ignoring disk, since rmax < rmin")
             return 0.
 
-        p1 = 2.0 + self.beta - self.alpha
-        p2 = 1.5 + self.beta - self.alpha
-
-        if p1 == 0.:
-            int1 = np.log(self.rmax / self.rmin)
-        else:
-            int1 = (self.rmax ** p1 - self.rmin ** p1) / p1
-
+        int1 = _integrate_powerlaw(self.rmin, self.rmax, 1.0 + self.beta - self.alpha)
         int1 *= self.star.radius ** self.alpha / self.r_0 ** self.beta
 
         if self.geometrical_factor:
-
-            if p2 == 0.:
-                int2 = np.log(self.rmax / self.rmin)
-            else:
-                int2 = (self.rmax ** p2 - self.rmin ** p2) / p2
-
+            int2 = _integrate_powerlaw(self.rmin, self.rmax, 0.5 + self.beta - self.alpha)
             int2 *= self.star.radius ** (self.alpha + 0.5) / self.r_0 ** self.beta
-
         else:
-
             int2 = 0.
 
         integral = (2. * pi) ** 1.5 * self.h_0 * (int1 - int2)
@@ -147,7 +149,7 @@ class FlaredDisk(FreezableClass):
         '''
 
         self._check_all_set()
-        
+
         if self.rmax <= self.rmin:
             warnings.warn("Ignoring disk, since rmax < rmin")
             return np.zeros(grid.shape)
@@ -195,34 +197,20 @@ class FlaredDisk(FreezableClass):
         '''
 
         self._check_all_set()
-        
+
         if self.rmax <= self.rmin:
             warnings.warn("Ignoring disk, since rmax < rmin")
             return np.zeros(r.shape)
 
-        p1 = 1.0 - self.alpha
-        p2 = 0.5 - self.alpha
-
-        if p1 == 0.:
-            int1 = np.log(r / self.rmin)
-        else:
-            int1 = (r ** p1 - self.rmin ** p1) / p1
-
+        int1 = _integrate_powerlaw(self.rmin, r, -self.alpha)
         int1 *= self.star.radius ** self.alpha
         int1[r == self.rmin] = 0.
 
         if self.geometrical_factor:
-
-            if p2 == 0.:
-                int2 = np.log(r / self.rmin)
-            else:
-                int2 = (r ** p2 - self.rmin ** p2) / p2
-
+            int2 = _integrate_powerlaw(self.rmin, r, -0.5 - self.alpha)
             int2 *= self.star.radius ** (self.alpha + 0.5)
             int2[r == self.rmin] = 0.
-
         else:
-
             int2 = np.zeros(r.shape)
 
         return self.rho_0() * (int1 - int2)
@@ -230,7 +218,7 @@ class FlaredDisk(FreezableClass):
     def vertical_profile(self, r, theta):
 
         self._check_all_set()
-        
+
         if self.rmax <= self.rmin:
             warnings.warn("Ignoring disk, since rmax < rmin")
             return np.zeros(theta.shape)
@@ -276,7 +264,7 @@ class FlaredDisk(FreezableClass):
         Input is the position of the center of the grid cells in spherical
         polar coordinates (r, theta, phi), and the volume of the grid cells.
         '''
-        
+
         if self.rmax <= self.rmin:
             warnings.warn("Ignoring disk, since rmax < rmin")
             return np.zeros(grid.shape)
@@ -295,25 +283,12 @@ class FlaredDisk(FreezableClass):
         # Find normalization constant
         if 'lvisc' in self.__dict__:
 
-            p1 = -1.0
-            p2 = -1.5
-
-            if p1 == 0.:
-                int1 = np.log(self.rmax / self.rmin)
-            else:
-                int1 = (self.rmax ** p1 - self.rmin ** p1) / p1
+            int1 = _integrate_powerlaw(self.rmin, self.rmax, -2.0)
 
             if self.geometrical_factor:
-
-                if p2 == 0.:
-                    int2 = np.log(self.rmax / self.rmin)
-                else:
-                    int2 = (self.rmax ** p2 - self.rmin ** p2) / p2
-
+                int2 = _integrate_powerlaw(self.rmin, self.rmax, -2.5)
                 int2 *= self.star.radius ** 0.5
-
             else:
-
                 int2 = 0.
 
             integral = (2. * pi) ** 1.5 * (int1 - int2)
@@ -327,7 +302,7 @@ class FlaredDisk(FreezableClass):
         # Find disk luminosity at all positions
         luminosity = lvisc0 / grid.gw ** 3 / h * grid.volumes \
                    * (1. - np.sqrt(self.star.radius / grid.gw)) \
-                   * np.exp(-0.5 * (grid.gz / h) ** 2) 
+                   * np.exp(-0.5 * (grid.gz / h) ** 2)
 
         # Truncate below rmin and above rmax
         if self.cylindrical_inner_rim:
