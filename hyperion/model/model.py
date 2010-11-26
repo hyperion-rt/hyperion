@@ -314,6 +314,9 @@ class Model(FreezableClass):
             if temperature is not None:
                 if not temperature.shape == self.grid.shape:
                     raise Exception("Temperature shape does not match that of grid")
+        if np.all(density == 0.):
+            warnings.warn("All density values are zero - ignoring density grid")
+            return
         self.density.append(density)
         if type(dust) is str:
             self.dust.append(SphericalDust(dust))
