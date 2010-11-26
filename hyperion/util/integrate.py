@@ -260,3 +260,19 @@ def integrate_loglog(x, y):
         raise Exception("Integral is NaN or Inf")
 
     return integral
+
+
+def integrate_powerlaw(xmin, xmax, power):
+    '''
+    Find the integral of:
+
+         xmax
+        /
+        | x^power dx
+        /
+     xmin
+    '''
+    if power == -1.:
+        return np.log(xmax / xmin)
+    else:
+        return (xmax ** (power + 1.) - xmin ** (power + 1.)) / (power + 1.)

@@ -234,7 +234,7 @@ class UlrichEnvelope(FreezableClass):
             return np.zeros(r.shape)
 
         gamma_0 = self.rmin / self.rc
-        gamma_1 = r / self.rc
+        gamma_1 = r.clip(self.rmin, self.rmax) / self.rc
 
         rho = np.zeros(r.shape)
 

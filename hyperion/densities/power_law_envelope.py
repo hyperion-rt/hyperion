@@ -6,6 +6,7 @@ from hyperion.util.constants import pi
 from hyperion.util.functions import FreezableClass
 from hyperion.densities.bipolar_cavity import BipolarCavity
 from hyperion.util.convenience import OptThinRadius
+from hyperion.util.integrate import integrate_powerlaw
 
 
 class PowerLawEnvelope(FreezableClass):
@@ -103,14 +104,7 @@ class PowerLawEnvelope(FreezableClass):
             warnings.warn("Ignoring power-law envelope, since rmax < rmin")
             return np.zeros(r.shape)
 
-        p = 1 - self.power
-
-        if p == 0.:
-            rho = self.rho_0 * np.log(r / self.rmin)
-        else:
-            rho = self.rho_0 * (r**p - self.rmin**p) / p
-
-        return rho
+        return self.rho_0 * integrate_powerlaw(self.rmin, r.clip(self.rmin, self.rmax), self.power)
 
     def add_bipolar_cavity(self):
         if self.cavity is not None:

@@ -5,22 +5,7 @@ import numpy as np
 from hyperion.util.constants import pi, G
 from hyperion.util.functions import FreezableClass
 from hyperion.util.convenience import OptThinRadius
-
-
-def _integrate_powerlaw(xmin, xmax, power):
-    '''
-    Find the integral of:
-
-         xmax
-        /
-        | x^power dx
-        /
-     xmin
-    '''
-    if power == -1.:
-        return np.log(xmax / xmin)
-    else:
-        return (xmax ** (power + 1.) - xmin ** (power + 1.)) / (power + 1.)
+from hyperion.util.integrate import integrate_powerlaw
 
 
 class FlaredDisk(FreezableClass):
@@ -127,11 +112,11 @@ class FlaredDisk(FreezableClass):
             warnings.warn("Ignoring disk, since rmax < rmin")
             return 0.
 
-        int1 = _integrate_powerlaw(self.rmin, self.rmax, 1.0 + self.beta - self.alpha)
+        int1 = integrate_powerlaw(self.rmin, self.rmax, 1.0 + self.beta - self.alpha)
         int1 *= self.star.radius ** self.alpha / self.r_0 ** self.beta
 
         if self.geometrical_factor:
-            int2 = _integrate_powerlaw(self.rmin, self.rmax, 0.5 + self.beta - self.alpha)
+            int2 = integrate_powerlaw(self.rmin, self.rmax, 0.5 + self.beta - self.alpha)
             int2 *= self.star.radius ** (self.alpha + 0.5) / self.r_0 ** self.beta
         else:
             int2 = 0.
@@ -201,15 +186,13 @@ class FlaredDisk(FreezableClass):
         if self.rmax <= self.rmin:
             warnings.warn("Ignoring disk, since rmax < rmin")
             return np.zeros(r.shape)
-
-        int1 = _integrate_powerlaw(self.rmin, r, -self.alpha)
+            
+        int1 = integrate_powerlaw(self.rmin, r.clip(self.rmin, self.rmax), -self.alpha)
         int1 *= self.star.radius ** self.alpha
-        int1[r == self.rmin] = 0.
 
         if self.geometrical_factor:
-            int2 = _integrate_powerlaw(self.rmin, r, -0.5 - self.alpha)
+            int2 = integrate_powerlaw(self.rmin, r.clip(self.rmin, self.rmax), -0.5 - self.alpha)
             int2 *= self.star.radius ** (self.alpha + 0.5)
-            int2[r == self.rmin] = 0.
         else:
             int2 = np.zeros(r.shape)
 
@@ -283,10 +266,10 @@ class FlaredDisk(FreezableClass):
         # Find normalization constant
         if 'lvisc' in self.__dict__:
 
-            int1 = _integrate_powerlaw(self.rmin, self.rmax, -2.0)
+            int1 = integrate_powerlaw(self.rmin, self.rmax, -2.0)
 
             if self.geometrical_factor:
-                int2 = _integrate_powerlaw(self.rmin, self.rmax, -2.5)
+                int2 = integrate_powerlaw(self.rmin, self.rmax, -2.5)
                 int2 *= self.star.radius ** 0.5
             else:
                 int2 = 0.
