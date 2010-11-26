@@ -147,6 +147,8 @@ contains
 
     call mp_join()
 
+    if(main_process()) call perf_footer()
+
     ! Collect all summation variables in main process
     call mp_collect()
 

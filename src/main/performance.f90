@@ -7,6 +7,7 @@ module performance
 
   private
   public :: perf_header
+  public :: perf_footer
   public :: perf_numbers
   public :: perf_init
   public :: perf_display
@@ -22,6 +23,12 @@ contains
     write(*,'("        # Photons    CPU time (sec)    Photons/sec  ")')
     write(*,'("      ----------------------------------------------")')
   end subroutine perf_header
+
+  subroutine perf_footer()
+    implicit none
+    write(*,'("      ----------------------------------------------")')
+    write(*,*)
+  end subroutine perf_footer
 
   subroutine perf_numbers(count, time)
     implicit none

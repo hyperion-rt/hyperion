@@ -67,6 +67,8 @@ contains
 
     call mp_join()
 
+    if(main_process()) call perf_footer()
+
     if(n_dust==0._dp) return
 
     call mp_reset_first()
@@ -100,12 +102,11 @@ contains
 
        end do
 
-
     end do
 
     call mp_join()
 
-    ! Need to worry about adding images up with MPI, are we adding the flux up twice?
+    if(main_process()) call perf_footer()
 
   end subroutine do_raytracing
 

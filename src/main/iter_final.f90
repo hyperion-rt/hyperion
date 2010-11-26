@@ -94,6 +94,8 @@ contains
 
     call mp_join()
 
+    if(main_process()) call perf_footer()
+
     call mp_sync_energy()
 
     if(make_binned_images) call binned_images_adjust_scale(energy_total/energy_current)

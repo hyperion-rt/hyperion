@@ -94,6 +94,8 @@ contains
     ! Wait for all processes
     call mp_join()
 
+    if(main_process()) call perf_footer()
+
     if(n_dust==0._dp) return
 
     ! Tell multi-process routines that this is the start of an iteration
@@ -141,6 +143,10 @@ contains
        end do
 
     end do
+
+    call mp_join()
+
+    if(main_process()) call perf_footer()
 
   end subroutine do_final_mono
 
