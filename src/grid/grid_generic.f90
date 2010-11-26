@@ -39,7 +39,7 @@ contains
     character(len=100) :: group_name
     integer(hid_t) :: group
 
-    call message(1,'[output_grid] outputting grid arrays for iteration')
+    write(*,'(" [output_grid] outputting grid arrays for iteration")')
 
     write(group_name, '("Iteration ",I5.5)') iter
     group = hdf5_create_group(handle, group_name)
