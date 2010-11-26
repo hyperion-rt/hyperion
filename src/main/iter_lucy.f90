@@ -152,12 +152,6 @@ contains
     ! Collect all summation variables in main process
     call mp_collect()
 
-    ! TEMPORARY
-    ! if(main_process()) then
-    !   write(filename, '("dtauabs_",I3.3,".fits.gz")') iter
-    !   call write_grid(trim(output_dir)//'/'//trim(filename), geo%id, energy_abs)
-    ! end if
-
     if(main_process()) then
 
        ! Scale the energy so the total is the total requested
