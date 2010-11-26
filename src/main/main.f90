@@ -30,6 +30,9 @@ program main
      stop "Usage: bin/rt input_file output_file"
   end if
 
+  ! Start up multi-processing if needed
+  call mp_initialize()
+
   if(main_process()) then
      write(*,*) repeat('-',60)
      write(*,'(" Started on ",A)') trim(now())
@@ -37,9 +40,6 @@ program main
      write(*,'(" Output: ", A)') trim(output_file)
      write(*,*) repeat('-',60)
   end if
-
-  ! Start up multi-processing if needed
-  call mp_initialize()
 
   ! SETUP
 
@@ -71,7 +71,7 @@ program main
   do iter=1,n_lucy_iter
 
      ! Display message
-     if(main_process()) call message_number(1,' [main] starting Lucy iteration ',iter,'(I0)','')
+     if(main_process()) write(*,'(" [main] starting Lucy iteration ", I0)') iter
 
      ! Do the RT
      call do_lucy(n_lucy_photons, n_stats)
@@ -80,7 +80,7 @@ program main
      call mp_join()
 
      ! Display message
-     if(main_process()) call message(1,' [main] exiting Lucy iteration')
+     if(main_process()) write(*,'(" [main] exiting Lucy iteration")')
 
      ! Output files
      if(main_process()) call output_grid(handle_out, iter, n_lucy_iter)
@@ -97,7 +97,7 @@ program main
   end if
 
   ! Display message
-  if(main_process()) call message(1,' [main] starting final iteration')
+  if(main_process()) write(*,'(" [main] starting final iteration")')
 
   ! Do the RT
   if(use_exact_nu) then
@@ -107,18 +107,18 @@ program main
   end if
 
   ! Display message
-  if(main_process()) call message(1,' [main] exiting final iteration')
+  if(main_process()) write(*,'(" [main] exiting final iteration")')
 
   if(use_raytracing) then
 
      ! Display message
-     if(main_process()) call message(1,' [main] starting raytracing iteration')
+     if(main_process()) write(*,'(" [main] starting raytracing iteration")')
 
      ! Do the raytracing
      call do_raytracing(n_raytracing_photons_star,n_raytracing_photons_dust, n_stats)
 
      ! Display message
-     if(main_process()) call message(1,' [main] exiting raytracing iteration')
+     if(main_process()) write(*,'(" [main] exiting raytracing iteration")')
 
   end if
 
