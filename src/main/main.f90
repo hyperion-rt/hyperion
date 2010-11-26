@@ -18,7 +18,7 @@ program main
   character(len=1000) :: input_file, output_file
   integer(hid_t) :: handle_in, handle_out, g_peeled, g_binned
   real(dp) :: time1, time2, time
-  
+
   call hdf5_set_compression(.true.)
 
   ! Retrieve command-line arguments
@@ -29,13 +29,13 @@ program main
   if(trim(input_file)=="".or.trim(output_file)=="") then
      stop "Usage: bin/rt input_file output_file"
   end if
-  
+
   if(main_process()) then
-      write(*,*) repeat('-',60)
-      write(*,'(" Started on ",A)') trim(now())
-      write(*,'(" Input:  ", A)') trim(input_file)
-      write(*,'(" Output: ", A)') trim(output_file)
-      write(*,*) repeat('-',60)
+     write(*,*) repeat('-',60)
+     write(*,'(" Started on ",A)') trim(now())
+     write(*,'(" Input:  ", A)') trim(input_file)
+     write(*,'(" Output: ", A)') trim(output_file)
+     write(*,*) repeat('-',60)
   end if
 
   ! Start up multi-processing if needed
@@ -66,7 +66,7 @@ program main
      call warn("main", "no dust present, so skipping temperature iterations")
      n_lucy_iter=0
   end if
-  
+
   ! Loop over Lucy iterations
   do iter=1,n_lucy_iter
 
