@@ -39,17 +39,26 @@ extra_gfortran="-Jsrc/modules -Isrc/modules -g -ffree-line-length-none $debug_gf
 
 # SERIAL CODE
 
-AC_CHECK_PROG(exists_hdf, [h5fc], yes, no)
+AC_CHECK_PROGS(hdf_compiler, [h5fc h5pfc], none)
 
-if test "$exists_hdf" == no
+if test "$hdf_compiler" == none
 then
   AC_ERROR("The HDF5 library with support for Fortran needs to be installed")
 else
-  AC_SUBST(serial_fc, 'h5fc')
+  AC_SUBST(serial_fc, "$hdf_compiler")
 fi
 
 # Find out what compiler is buried under the HDF5 wrapper
-hdf_compiler=`h5fc -show | awk {'print $1'}`
+if test "$hdf_compiler" == "h5fc"
+then
+  hdf_compiler=`h5fc -show | awk {'print $1'}`
+else
+  hdf_compiler=`h5pfc -show | awk {'print $1'}`
+  if test "$hdf_compiler" == "mpif90"
+  then
+    hdf_compiler=`mpif90 -show | awk {'print $1'}`
+  fi
+fi
 
 if test "$hdf_compiler" == f95
 then
@@ -68,7 +77,7 @@ fi
 # MPI CODE
 
 # First find out if we can use h5pfc
-AC_CHECK_PROGS(parallel_compiler, [mpif90 h5pfc])
+AC_CHECK_PROGS(parallel_compiler, [h5pfc mpif90])
 
 if test "$parallel_compiler" == h5pfc
 then
