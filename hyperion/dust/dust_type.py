@@ -473,7 +473,10 @@ class SphericalDust(FreezableClass):
             raise Exception("Version should be 1")
         if ts.keywords['type'] <> 1:
             raise Exception("Type should be 1")
-        self.md5 = ts.keywords['asciimd5']
+        if 'asciimd5' in ts.keywords:
+            self.md5 = ts.keywords['asciimd5']
+        else:
+            self.md5 = None
 
         # Read in the optical properties
         topt = ts['Optical properties']
