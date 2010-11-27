@@ -17,6 +17,7 @@ COMMON = 	src/lib/base_types.f90 \
 
 OBJECTS1 = 	src/core/type_photon.f90 \
 		src/main/settings.f90 \
+		src/main/performance.f90 \
 		src/images/image_type.f90 \
 		src/dust/dust_type_4elem.f90 \
 		src/dust/dust.f90 \
@@ -33,8 +34,7 @@ OBJECTS2 =	src/grid/grid_physics_3d.f90 \
 		src/images/images_peeled.f90 \
 		src/main/setup_rt.f90
 
-OBJECTS3 =	src/main/performance.f90 \
-		src/main/iter_lucy.f90 \
+OBJECTS3 =	src/main/iter_lucy.f90 \
 		src/main/iter_final.f90 \
 		src/main/iter_final_mono.f90 \
 		src/main/iter_raytracing.f90 \
@@ -69,7 +69,7 @@ OBJECTS_CAR_MPI =	src/mpi/mpi_core.f90 \
 			$(OBJECTS2) \
 			src/mpi/mpi_routines.f90 \
 			$(OBJECTS3)
-			
+
 OBJECTS_AMR_SER =	src/mpi/mpi_core_nompi.f90 \
 			src/lib/@posix_module_serial@.f90 \
 			$(COMMON) \
@@ -99,7 +99,7 @@ OBJECTS_AMR_MPI =	src/mpi/mpi_core.f90 \
 			$(OBJECTS2) \
 			src/mpi/mpi_routines.f90 \
 			$(OBJECTS3)
-			
+
 OBJECTS_OCT_SER =	src/mpi/mpi_core_nompi.f90 \
 			src/lib/@posix_module_serial@.f90 \
 			$(COMMON) \
@@ -129,7 +129,7 @@ OBJECTS_OCT_MPI =	src/mpi/mpi_core.f90 \
 			$(OBJECTS2) \
 			src/mpi/mpi_routines.f90 \
 			$(OBJECTS3)
-			
+
 OBJECTS_SPH_SER =	src/mpi/mpi_core_nompi.f90 \
 			src/lib/@posix_module_serial@.f90 \
 			$(COMMON) \
