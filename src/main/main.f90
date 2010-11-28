@@ -43,6 +43,7 @@ program main
 
   ! SETUP
 
+  call check_file_exists(input_file)
   handle_in = hdf5_open_read(input_file)
 
   ! Prepare output directory
