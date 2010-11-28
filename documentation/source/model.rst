@@ -103,6 +103,8 @@ Once we have an AMR grid object, which we call ``amr`` here, the geometry can be
 
 The quantity contained in the grid is unimportant for this step, as long as the geometry is correct.
 
+For more details on how to create or read in an AMR object, see :ref:`amr_indepth`.
+
 Octree grids
 ------------
 
@@ -168,6 +170,8 @@ Temperatures can be specified using the same kinds of objects and using the `tem
             fab.data[:, :, :] = 100.  # Set to 100K
             
     m.add_density_grid(amr, 'kmh.hdf5', temperature=amr_temp)
+
+For more details on how to create or read in an AMR object, see :ref:`amr_indepth`.
 
 Octree grids
 ------------
