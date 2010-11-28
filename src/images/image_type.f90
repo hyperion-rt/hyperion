@@ -285,12 +285,12 @@ contains
     if(.not.allocated(img%img)) call error('bin_photon','Image not allocated')
     if(.not.allocated(img%sed)) call error('bin_photon','SED not allocated')
 
-    if(isnan(p%energy)) then
+    if(is_nan(p%energy)) then
        call warn("image_bin","photon has NaN energy - ignoring")
        return
     end if
 
-    if(isnan(p%s%i)) then
+    if(is_nan(p%s%i)) then
        call warn("image_bin","photon has NaN flux - ignoring")
        return
     end if
@@ -348,12 +348,12 @@ contains
     if(.not.allocated(img%img)) call error('bin_photon','Image not allocated')
     if(.not.allocated(img%sed)) call error('bin_photon','SED not allocated')
 
-    if(isnan(p%energy)) then
+    if(is_nan(p%energy)) then
        call warn("image_bin_raytraced","photon has NaN energy - ignoring")
        return
     end if
 
-    if(isnan(p%s%i)) then
+    if(is_nan(p%s%i)) then
        call warn("image_bin_raytraced","photon has NaN flux - ignoring")
        return
     end if
@@ -747,10 +747,5 @@ contains
     img%dust(dust_id)%chi = chi_nu_new
 
   end subroutine image_raytracing_set_opacity
-
-  logical function isnan(value)
-    real(dp),intent(in) :: value
-    isnan = value.ne.value
-  end function isnan
 
 end module type_image

@@ -88,6 +88,7 @@ contains
           write(full_path, '("Level ", I0, "/Fab ", I0,"/")') ilevel, ifab
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array4d)
+          if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
           array(fab%start_id:fab%start_id + fab%n_cells - 1, :) = reshape(array4d, (/fab%n_cells, size(array, 2)/))
        end do
     end do
@@ -115,6 +116,7 @@ contains
           write(full_path, '("Level ", I0, "/Fab ", I0,"/")') ilevel, ifab
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array3d)
+          if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
        end do
     end do

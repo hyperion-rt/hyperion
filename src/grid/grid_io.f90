@@ -1,4 +1,4 @@
-! MD5 of template: 8855b443da55408a0bd7595e661076ef
+! MD5 of template: dd0a6439c9247d88cbda7262e87fb5d5
 module grid_io
 
   use core_lib
@@ -71,6 +71,8 @@ contains
     end if
     call hdf5_read_array_auto(group,path, array4d)
 
+    if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
+
     n_cells = size(array, 1)
     n_dust = size(array, 2)
 
@@ -96,6 +98,8 @@ contains
        call error("read_grid", "geometry IDs do not match")
     end if
     call hdf5_read_array_auto(group,path, array3d)
+
+    if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
 
     n_cells = size(array)
 
@@ -151,6 +155,8 @@ contains
     end if
     call hdf5_read_array_auto(group,path, array4d)
 
+    if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
+
     n_cells = size(array, 1)
     n_dust = size(array, 2)
 
@@ -176,6 +182,8 @@ contains
        call error("read_grid", "geometry IDs do not match")
     end if
     call hdf5_read_array_auto(group,path, array3d)
+
+    if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
 
     n_cells = size(array)
 
@@ -231,6 +239,8 @@ contains
     end if
     call hdf5_read_array_auto(group,path, array4d)
 
+    if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
+
     n_cells = size(array, 1)
     n_dust = size(array, 2)
 
@@ -256,6 +266,8 @@ contains
        call error("read_grid", "geometry IDs do not match")
     end if
     call hdf5_read_array_auto(group,path, array3d)
+
+    if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
 
     n_cells = size(array)
 
@@ -311,6 +323,8 @@ contains
     end if
     call hdf5_read_array_auto(group,path, array4d)
 
+    if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
+
     n_cells = size(array, 1)
     n_dust = size(array, 2)
 
@@ -336,6 +350,8 @@ contains
        call error("read_grid", "geometry IDs do not match")
     end if
     call hdf5_read_array_auto(group,path, array3d)
+
+    if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
 
     n_cells = size(array)
 
