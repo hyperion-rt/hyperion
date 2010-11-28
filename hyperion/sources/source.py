@@ -228,6 +228,8 @@ class MapSource(Source):
     def check_all_set(self):
         if self.map is None:
             raise Exception("map is not set")
+        if np.all(self.map == 0.):
+            raise Exception("Luminosity map is zero everywhere")
         Source.check_all_set(self)
 
     def write(self, handle, name, grid, compression=True, map_dtype=float):
