@@ -11,8 +11,8 @@ class Star(object):
 
     def __init__(self, line):
         values = line.split()
-        self.m, self.x, self.y, self.z, self.r = [float(values[i]) \
-                                                  for i in [0, 1, 2, 3, 11]]
+        self.m, self.x, self.y, self.z, self.r, self.mdot = \
+            [float(values[i]) for i in [0, 1, 2, 3, 11, 14]]
 
 
 class Grid(object):
