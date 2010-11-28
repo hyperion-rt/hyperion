@@ -1,4 +1,4 @@
-! MD5 of template: 9900a1cd2d5e5a9bc873296583c4ac9f
+! MD5 of template: 5eb8f79665a237db77deb18f58d27ade
 module grid_io
 
   use core_lib
@@ -130,7 +130,35 @@ contains
     integer(hid_t), intent(in) :: group
     character(len=*), intent(in) :: path
     integer(idp), intent(in) :: array(:,:)
-    type(grid_geometry_desc),intent(in) :: geo
+    type(grid_geometry_desc),intent(in),target :: geo
+    integer(hid_t) :: g_level, g_fab
+    character(len=100) :: name
+    integer :: ilevel, ifab
+    type(level_desc), pointer :: level
+    type(fab_desc), pointer :: fab
+
+    do ilevel=1,size(geo%levels)
+       level => geo%levels(ilevel)
+       write(name, '("Level ", I0)') ilevel
+       if(hdf5_path_exists(group, name)) then
+          g_level = hdf5_open_group(group, name)
+       else
+          g_level = hdf5_create_group(group, name)
+       end if
+       do ifab=1,size(level%fabs)
+          fab => level%fabs(ifab)
+          write(name, '("Fab ", I0)') ifab
+          if(hdf5_path_exists(g_level, name)) then
+             g_fab = hdf5_open_group(g_level, name)
+          else
+             g_fab = hdf5_create_group(g_level, name)
+          end if
+          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
+          call hdf5_close_group(g_fab)
+       end do
+       call hdf5_close_group(g_level)
+
+    end do
 
   end subroutine write_grid_4d_int8
 
@@ -141,7 +169,35 @@ contains
     integer(hid_t), intent(in) :: group
     character(len=*), intent(in) :: path
     integer(idp), intent(in) :: array(:)
-    type(grid_geometry_desc),intent(in) :: geo
+    type(grid_geometry_desc),intent(in),target :: geo
+    integer(hid_t) :: g_level, g_fab
+    character(len=100) :: name
+    integer :: ilevel, ifab
+    type(level_desc), pointer :: level
+    type(fab_desc), pointer :: fab
+
+    do ilevel=1,size(geo%levels)
+       level => geo%levels(ilevel)
+       write(name, '("Level ", I0)') ilevel
+       if(hdf5_path_exists(group, name)) then
+          g_level = hdf5_open_group(group, name)
+       else
+          g_level = hdf5_create_group(group, name)
+       end if
+       do ifab=1,size(level%fabs)
+          fab => level%fabs(ifab)
+          write(name, '("Fab ", I0)') ifab
+          if(hdf5_path_exists(g_level, name)) then
+             g_fab = hdf5_open_group(g_level, name)
+          else
+             g_fab = hdf5_create_group(g_level, name)
+          end if
+          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1), (/fab%n1, fab%n2, fab%n3/)))
+          call hdf5_close_group(g_fab)
+       end do
+       call hdf5_close_group(g_level)
+
+    end do
 
   end subroutine write_grid_3d_int8
 
@@ -209,7 +265,35 @@ contains
     integer(hid_t), intent(in) :: group
     character(len=*), intent(in) :: path
     integer, intent(in) :: array(:,:)
-    type(grid_geometry_desc),intent(in) :: geo
+    type(grid_geometry_desc),intent(in),target :: geo
+    integer(hid_t) :: g_level, g_fab
+    character(len=100) :: name
+    integer :: ilevel, ifab
+    type(level_desc), pointer :: level
+    type(fab_desc), pointer :: fab
+
+    do ilevel=1,size(geo%levels)
+       level => geo%levels(ilevel)
+       write(name, '("Level ", I0)') ilevel
+       if(hdf5_path_exists(group, name)) then
+          g_level = hdf5_open_group(group, name)
+       else
+          g_level = hdf5_create_group(group, name)
+       end if
+       do ifab=1,size(level%fabs)
+          fab => level%fabs(ifab)
+          write(name, '("Fab ", I0)') ifab
+          if(hdf5_path_exists(g_level, name)) then
+             g_fab = hdf5_open_group(g_level, name)
+          else
+             g_fab = hdf5_create_group(g_level, name)
+          end if
+          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
+          call hdf5_close_group(g_fab)
+       end do
+       call hdf5_close_group(g_level)
+
+    end do
 
   end subroutine write_grid_4d_int
 
@@ -220,7 +304,35 @@ contains
     integer(hid_t), intent(in) :: group
     character(len=*), intent(in) :: path
     integer, intent(in) :: array(:)
-    type(grid_geometry_desc),intent(in) :: geo
+    type(grid_geometry_desc),intent(in),target :: geo
+    integer(hid_t) :: g_level, g_fab
+    character(len=100) :: name
+    integer :: ilevel, ifab
+    type(level_desc), pointer :: level
+    type(fab_desc), pointer :: fab
+
+    do ilevel=1,size(geo%levels)
+       level => geo%levels(ilevel)
+       write(name, '("Level ", I0)') ilevel
+       if(hdf5_path_exists(group, name)) then
+          g_level = hdf5_open_group(group, name)
+       else
+          g_level = hdf5_create_group(group, name)
+       end if
+       do ifab=1,size(level%fabs)
+          fab => level%fabs(ifab)
+          write(name, '("Fab ", I0)') ifab
+          if(hdf5_path_exists(g_level, name)) then
+             g_fab = hdf5_open_group(g_level, name)
+          else
+             g_fab = hdf5_create_group(g_level, name)
+          end if
+          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1), (/fab%n1, fab%n2, fab%n3/)))
+          call hdf5_close_group(g_fab)
+       end do
+       call hdf5_close_group(g_level)
+
+    end do
 
   end subroutine write_grid_3d_int
 
@@ -288,7 +400,35 @@ contains
     integer(hid_t), intent(in) :: group
     character(len=*), intent(in) :: path
     real(dp), intent(in) :: array(:,:)
-    type(grid_geometry_desc),intent(in) :: geo
+    type(grid_geometry_desc),intent(in),target :: geo
+    integer(hid_t) :: g_level, g_fab
+    character(len=100) :: name
+    integer :: ilevel, ifab
+    type(level_desc), pointer :: level
+    type(fab_desc), pointer :: fab
+
+    do ilevel=1,size(geo%levels)
+       level => geo%levels(ilevel)
+       write(name, '("Level ", I0)') ilevel
+       if(hdf5_path_exists(group, name)) then
+          g_level = hdf5_open_group(group, name)
+       else
+          g_level = hdf5_create_group(group, name)
+       end if
+       do ifab=1,size(level%fabs)
+          fab => level%fabs(ifab)
+          write(name, '("Fab ", I0)') ifab
+          if(hdf5_path_exists(g_level, name)) then
+             g_fab = hdf5_open_group(g_level, name)
+          else
+             g_fab = hdf5_create_group(g_level, name)
+          end if
+          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
+          call hdf5_close_group(g_fab)
+       end do
+       call hdf5_close_group(g_level)
+
+    end do
 
   end subroutine write_grid_4d_dp
 
@@ -299,7 +439,35 @@ contains
     integer(hid_t), intent(in) :: group
     character(len=*), intent(in) :: path
     real(dp), intent(in) :: array(:)
-    type(grid_geometry_desc),intent(in) :: geo
+    type(grid_geometry_desc),intent(in),target :: geo
+    integer(hid_t) :: g_level, g_fab
+    character(len=100) :: name
+    integer :: ilevel, ifab
+    type(level_desc), pointer :: level
+    type(fab_desc), pointer :: fab
+
+    do ilevel=1,size(geo%levels)
+       level => geo%levels(ilevel)
+       write(name, '("Level ", I0)') ilevel
+       if(hdf5_path_exists(group, name)) then
+          g_level = hdf5_open_group(group, name)
+       else
+          g_level = hdf5_create_group(group, name)
+       end if
+       do ifab=1,size(level%fabs)
+          fab => level%fabs(ifab)
+          write(name, '("Fab ", I0)') ifab
+          if(hdf5_path_exists(g_level, name)) then
+             g_fab = hdf5_open_group(g_level, name)
+          else
+             g_fab = hdf5_create_group(g_level, name)
+          end if
+          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1), (/fab%n1, fab%n2, fab%n3/)))
+          call hdf5_close_group(g_fab)
+       end do
+       call hdf5_close_group(g_level)
+
+    end do
 
   end subroutine write_grid_3d_dp
 
@@ -367,7 +535,35 @@ contains
     integer(hid_t), intent(in) :: group
     character(len=*), intent(in) :: path
     real(sp), intent(in) :: array(:,:)
-    type(grid_geometry_desc),intent(in) :: geo
+    type(grid_geometry_desc),intent(in),target :: geo
+    integer(hid_t) :: g_level, g_fab
+    character(len=100) :: name
+    integer :: ilevel, ifab
+    type(level_desc), pointer :: level
+    type(fab_desc), pointer :: fab
+
+    do ilevel=1,size(geo%levels)
+       level => geo%levels(ilevel)
+       write(name, '("Level ", I0)') ilevel
+       if(hdf5_path_exists(group, name)) then
+          g_level = hdf5_open_group(group, name)
+       else
+          g_level = hdf5_create_group(group, name)
+       end if
+       do ifab=1,size(level%fabs)
+          fab => level%fabs(ifab)
+          write(name, '("Fab ", I0)') ifab
+          if(hdf5_path_exists(g_level, name)) then
+             g_fab = hdf5_open_group(g_level, name)
+          else
+             g_fab = hdf5_create_group(g_level, name)
+          end if
+          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
+          call hdf5_close_group(g_fab)
+       end do
+       call hdf5_close_group(g_level)
+
+    end do
 
   end subroutine write_grid_4d_sp
 
@@ -378,7 +574,35 @@ contains
     integer(hid_t), intent(in) :: group
     character(len=*), intent(in) :: path
     real(sp), intent(in) :: array(:)
-    type(grid_geometry_desc),intent(in) :: geo
+    type(grid_geometry_desc),intent(in),target :: geo
+    integer(hid_t) :: g_level, g_fab
+    character(len=100) :: name
+    integer :: ilevel, ifab
+    type(level_desc), pointer :: level
+    type(fab_desc), pointer :: fab
+
+    do ilevel=1,size(geo%levels)
+       level => geo%levels(ilevel)
+       write(name, '("Level ", I0)') ilevel
+       if(hdf5_path_exists(group, name)) then
+          g_level = hdf5_open_group(group, name)
+       else
+          g_level = hdf5_create_group(group, name)
+       end if
+       do ifab=1,size(level%fabs)
+          fab => level%fabs(ifab)
+          write(name, '("Fab ", I0)') ifab
+          if(hdf5_path_exists(g_level, name)) then
+             g_fab = hdf5_open_group(g_level, name)
+          else
+             g_fab = hdf5_create_group(g_level, name)
+          end if
+          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1), (/fab%n1, fab%n2, fab%n3/)))
+          call hdf5_close_group(g_fab)
+       end do
+       call hdf5_close_group(g_level)
+
+    end do
 
   end subroutine write_grid_3d_sp
 
