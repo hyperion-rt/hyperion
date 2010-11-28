@@ -417,6 +417,7 @@ class AnalyticalYSOModel(Model):
         self.star._finalize()
 
         # Resolve any sublimation radii in envelopes/disks
+        self._resolve_optically_thin_radii()
 
         # Set luminosity from viscous dissipation in disk
         # For this, only find the part that is inside the dust disk
@@ -452,49 +453,69 @@ class AnalyticalYSOModel(Model):
 
         for i, disk in enumerate(self.disks):
 
-            if disk.mass > 0.:
+            if disk.rmin >= disk.rmax:
+                warnings.warn("Disk rmin >= rmax, ignoring density contribution")
+            elif disk.mass == 0.:
+                warnings.warn("Disk mass is zero, ignoring density contribution")
+            else:
+
                 if not disk.dust:
                     raise Exception("Disk %i dust not set" % (i + 1))
                 self.add_density_grid(disk.density(self.grid), disk.dust)
 
         for i, envelope in enumerate(self.envelopes):
 
-            if envelope.exists():
+            if envelope.rmin >= envelope.rmax:
+                warnings.warn("Envelope rmin >= rmax, ignoring density contribution")
+            elif isinstance(envelope, UlrichEnvelope) and envelope.rho_0 == 0.:
+                warnings.warn("Ulrich envelope has zero density everywhere, ignoring density contribution")
+            elif isinstance(envelope, PowerLawEnvelope) and envelope.mass == 0.:
+                warnings.warn("Power-law envelope has zero density everywhere, ignoring density contribution")
+            else:
+
                 if not envelope.dust:
                     raise Exception("Envelope dust not set")
                 self.add_density_grid(envelope.density(self.grid),
                                       envelope.dust)
 
-            if envelope.cavity is not None:
-                if envelope.cavity.exists():
-                    if not envelope.cavity.dust:
-                        raise Exception("Cavity dust not set")
-                    self.add_density_grid(envelope.cavity.density(self.grid),
-                                          envelope.cavity.dust)
+                if envelope.cavity is not None:
+                    if envelope.cavity.theta_0 == 0.:
+                        warnings.warn("Cavity opening angle is zero, ignoring density contribution")
+                    elif envelope.cavity.rho_0 == 0.:
+                        warnings.warn("Cavity density is zero, ignoring density contribution")
+                    else:
+                        if not envelope.cavity.dust:
+                            raise Exception("Cavity dust not set")
+                        self.add_density_grid(envelope.cavity.density(self.grid),
+                                              envelope.cavity.dust)
 
         # AMBIENT MEDIUM
 
         if self.ambient is not None:
 
-            ambient = self.ambient
+            if self.ambient.density == 0.:
+                warnings.warn("Ambient medium has zero density, ignoring density contribution")
+            else:
 
-            if not ambient.dust:
-                raise Exception("Ambient medium dust not set")
+                ambient = self.ambient
 
-            # Find the density of the ambient medium
-            density_amb = ambient.density(self.grid)
+                if not ambient.dust:
+                    raise Exception("Ambient medium dust not set")
 
-            if len(self.density) > 0:
+                # Find the density of the ambient medium
+                density_amb = ambient.density(self.grid)
 
-                # Find total density in other components
-                shape = list(self.grid.shape)
-                shape.insert(0, len(self.density))
-                density_sum = np.sum(np.vstack(self.density).reshape(*shape), axis=0)
+                if len(self.density) > 0:
 
-                density_amb -= density_sum
-                density_amb[density_amb < 0.] = 0.
+                    # Find total density in other components
+                    shape = list(self.grid.shape)
+                    shape.insert(0, len(self.density))
+                    density_sum = np.sum(np.vstack(self.density).reshape(*shape), axis=0)
 
-            self.add_density_grid(density_amb, ambient.dust)
+                    density_amb -= density_sum
+                    density_amb[density_amb < 0.] = 0.
+
+                self.add_density_grid(density_amb, ambient.dust)
 
         # SOURCES
 
@@ -514,6 +535,14 @@ class AnalyticalYSOModel(Model):
                 self.add_source(self.star.sources['xray'])
 
             for i, disk in enumerate(self.disks):
-                self.add_map_source(luminosity=disk.lvisc, map=disk.accretion_luminosity(self.grid), name='accdisk%i' % i)
+
+                if disk.rmin >= disk.rmax:
+                    warnings.warn("Disk rmin >= rmax, ignoring accretion luminosity")
+                elif disk.mass == 0.:
+                    warnings.warn("Disk mass is zero, ignoring accretion luminosity")
+                elif disk.lvisc == 0.:
+                    warnings.warn("Disk viscous luminosity is zero, ignoring accretion luminosity")
+                else:
+                    self.add_map_source(luminosity=disk.lvisc, map=disk.accretion_luminosity(self.grid), name='accdisk%i' % i)
 
         Model.write(self, **kwargs)
