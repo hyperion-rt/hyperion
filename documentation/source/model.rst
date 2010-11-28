@@ -33,6 +33,8 @@ If the model name was set to ``example``, the ``write`` method will write
 an HDF5 file named ``example.rtin`` that is ready for use in the Fortran
 code.
     
+.. _grid:
+
 Grid
 ====
 
@@ -82,7 +84,24 @@ grid types
 AMR grids
 ---------
 
-Coming soon...
+AMR grids have to be specified using nested Python objects. The names of the classes used, and the origin of the AMR grid is unimportant, but an AMR grid has to contain a ``levels`` attribute. The ``levels`` attribute should be iterable, and contain single levels that have a ``fabs`` attribute. The ``fabs`` attribute should be iterable and contain single fabs that have the following attributes:
+
+* ``xmin`` - lower x position of the fab
+* ``xmax`` - upper x position of the fab
+* ``ymin`` - lower y position of the fab
+* ``ymax`` - upper y position of the fab
+* ``zmin`` - lower z position of the fab
+* ``zmax`` - upper z position of the fab
+* ``nx`` - number of cells in x direction
+* ``ny`` - number of cells in y direction
+* ``nz`` - number of cells in z direction
+* ``data`` - a NumPy array with shape (``nx``, ``ny``, ``nz``) containing a physical quantity (e.g. density or temperature)
+
+Once we have an AMR grid object, which we call ``amr`` here, the geometry can be set using::
+
+    m.set_amr_grid(amr)
+
+The quantity contained in the grid is unimportant for this step, as long as the geometry is correct.
 
 Octree grids
 ------------
@@ -124,7 +143,31 @@ array using the ``temperature=`` argument::
 AMR grids
 ---------
 
-Coming soon...
+The density can be added using an AMR object (as described in :ref:`grid`)::
+
+    m.add_density_grid(amr_object, dust_file)
+    
+for example::
+
+    m.add_density_grid(amr, 'kmh.hdf5')
+
+Temperatures can be specified using the same kinds of objects and using the `temperature` argument::
+
+    m.add_density_grid(amr, dust_file, temperature=amr_temperature)
+
+. If one wants to set a preliminary temperature based e.g. on density or a constant temperature, then one can do for example::
+
+    # Set the AMR object
+    amr = ...
+
+    # Create a constant temperature grid
+    from copy import deepcopy
+    amr_temp = deepcopy(amr)
+    for level in amr_temp.levels:
+        for fab in level.fabs:
+            fab.data[:, :, :] = 100.  # Set to 100K
+            
+    m.add_density_grid(amr, 'kmh.hdf5', temperature=amr_temp)
 
 Octree grids
 ------------
