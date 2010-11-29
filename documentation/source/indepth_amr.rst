@@ -33,3 +33,21 @@ Importing functions are available in ``hyperion.importers`` to convert simulatio
 
     from hyperion.importers import parse_orion
     amr = parse_orion('directory')
+    
+As well as a ``levels`` attribute, the amr object retrieved in this way contains a ``stars`` attribute, which is a list of ``Star`` instances. These ``Star`` instances have several attributes, which include:
+
+* ``x``, ``y``, and ``z`` - the position of the star
+* ``m``, ``r`` - the mass and radius of the star
+* ``mdot`` - the infall rate onto the star
+
+These can be used for example to set up sources of emission in the model::
+
+    # Set up the stars
+    for star in amr.stars:
+        source = m.add_point_source()
+        source.luminosity = lsun
+        source.position = (star.x, star.y, star.z)
+        source.temperature = 6000.
+        
+The above just creates sources with equal temperatures and luminosities, but these can also be set depending on ``m``, ``r``, and ``mdot``.
+    
