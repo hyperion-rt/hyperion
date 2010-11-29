@@ -97,7 +97,7 @@ program main
 
   ! Do the RT
   if(use_exact_nu) then
-     call do_final_mono(n_last_photons_star, n_last_photons_dust, n_stats, use_raytracing)
+     call do_final_mono(n_last_photons_sources, n_last_photons_dust, n_stats, use_raytracing)
   else
      call do_final(n_last_photons, n_stats, use_raytracing)
   end if
@@ -111,7 +111,7 @@ program main
      if(main_process()) write(*,'(" [main] starting raytracing iteration")')
 
      ! Do the raytracing
-     call do_raytracing(n_raytracing_photons_star,n_raytracing_photons_dust, n_stats)
+     call do_raytracing(n_raytracing_photons_sources,n_raytracing_photons_dust, n_stats)
 
      ! Display message
      if(main_process()) write(*,'(" [main] exiting raytracing iteration")')

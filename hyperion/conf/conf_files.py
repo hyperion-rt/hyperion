@@ -62,8 +62,9 @@ class RunConf(FreezableClass):
     def _write_n_temperature_iterations(self, group):
         group.attrs['n_lucy_iter'] = self.n_iter
 
-    def set_n_photons(self, temperature=1000000, imaging=1000000,
-                      raytracing=100000, stats=100):
+    def set_n_photons(self, temperature=None, imaging=None,
+                      imaging_mono_sources=None, imaging_mono_dust=None,
+                      raytracing_sources=None, raytracing_dust=None, stats=10000):
         '''
         Set the number of photons for the different iterations
 
@@ -75,24 +76,55 @@ class RunConf(FreezableClass):
         temperature : float, optional
             Number of photons for the temperature iterations
         imaging : float, optional
-            Number of photons for the main SED/image iteration
-        raytracing : float, optional
-            Number of photons for the raytracing SED/image iteration, if
-            applicable.
+            Number of photons for the main SED/image iteration. This argument
+            is used in the case of non-monochromatic radiation transfer.
+        imaging_mono_sources : float, optional
+            Number of photons emitted from sources during the main SED/image
+            iteration in the case of monochromatic radiation transfer.
+        imaging_mono_dust : float, optional
+            Number of photons emitted from dust during the main SED/image
+            iteration in the case of monochromatic radiation transfer.
+        raytracing_sources : float, optional
+            Number of photons emitted from sources during the raytracing
+            SED/image iteration, if applicable.
+        raytracing_dust : float, optional
+            Number of photons emitted from dust during the raytracing
+            SED/image iteration, if applicable.
         stats : float, optional
             How often to print out statistics. Also used to determine the
             photon chunk size for MPI.
         '''
+
+        if imaging is not None and imaging_mono_sources is None:
+            raise Exception("imaging and imaging_mono_sources cannot both be set")
+
+        if imaging is not None and imaging_mono_dust is None:
+            raise Exception("imaging and imaging_mono_dust cannot both be set")
+
         self.n_lucy_photons = temperature
         self.n_last_photons = imaging
-        self.n_ray_photons = raytracing
+        self.n_last_photons_sources = imaging_mono_sources
+        self.n_last_photons_dust = imaging_mono_dust
+        self.n_ray_photons_sources = raytracing_sources
+        self.n_ray_photons_dust = raytracing_dust
         self.n_stats = stats
 
     def _write_n_photons(self, group):
-        group.attrs['n_lucy_photons'] = self.n_lucy_photons
-        group.attrs['n_last_photons'] = self.n_last_photons
-        group.attrs['n_ray_photons'] = self.n_ray_photons
-        group.attrs['n_stats'] = self.n_stats
+
+        if self.n_lucy_photons is not None:
+            group.attrs['n_lucy_photons'] = self.n_lucy_photons
+        if self.n_last_photons is not None:
+            group.attrs['n_last_photons'] = self.n_last_photons
+        if self.n_last_photons_sources is not None:
+            group.attrs['n_last_photons_sources'] = self.n_last_photons_sources
+        if self.n_last_photons_dust is not None:
+            group.attrs['n_last_photons_dust'] = self.n_last_photons_dust
+        if self.n_ray_photons_sources is not None:
+            group.attrs['n_ray_photons_sources'] = self.n_ray_photons_sources
+        if self.n_ray_photons_dust is not None:
+            group.attrs['n_ray_photons_dust'] = self.n_ray_photons_dust
+        if self.n_stats is not None:
+            group.attrs['n_stats'] = self.n_stats
 
     def set_raytracing(self, raytracing):
         '''
@@ -129,7 +161,7 @@ class RunConf(FreezableClass):
 
     def _write_max_interactions(self, group):
         group.attrs['n_inter_max'] = self.n_inter_max
-        
+
     def set_max_reabsorptions(self, reabs_max):
         '''
         Set the maximum number of successive reabsorptions by a source that a
@@ -573,7 +605,7 @@ class PeeledImageConf(ImageConf):
         Parameters
         ----------
         position : tuple of 3 floats
-           The coordinates of the observer, in cm           
+           The coordinates of the observer, in cm
         '''
         self.inside_observer = position
 
@@ -581,15 +613,15 @@ class PeeledImageConf(ImageConf):
         group.attrs['observer_x'] = self.inside_observer[0]
         group.attrs['observer_y'] = self.inside_observer[1]
         group.attrs['observer_z'] = self.inside_observer[2]
-        
+
     def set_peeloff_origin(self, position):
         '''
         Set the origin for the peeloff.
-        
+
         Parameters
         ----------
         position : tuple of 3 floats
-           The coordinates of the origin of the peeling-off, in cm           
+           The coordinates of the origin of the peeling-off, in cm
         '''
         self.peeloff_origin = position
 

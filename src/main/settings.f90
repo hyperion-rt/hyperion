@@ -17,9 +17,9 @@ module settings
   integer,public :: n_lucy_iter
   integer(idp),public :: n_lucy_photons
   integer(idp),public :: n_last_photons = 0
-  integer(idp),public :: n_last_photons_star = 0
+  integer(idp),public :: n_last_photons_sources = 0
   integer(idp),public :: n_last_photons_dust = 0
-  integer(idp),public :: n_raytracing_photons_star = 0
+  integer(idp),public :: n_raytracing_photons_sources = 0
   integer(idp),public :: n_raytracing_photons_dust = 0
   logical,public :: use_raytracing, use_mrw, use_pda
   logical, public :: kill_on_absorb
