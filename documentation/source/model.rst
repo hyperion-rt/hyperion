@@ -310,16 +310,33 @@ Number of photons
 The number of photons to run in various iterations is set using the
 following method::
 
-    m.set_n_photons(temperature=100000, imaging=100000, \
-                    raytracing=10000, stats=1000)
+    m.set_n_photons(...)
+    
+This method can take the following arguments, which depend on the type of radiation transfer calculations requested:
 
-The ``temperature`` argument specifies the number of photons to run per
-temperature iteration. The ``imaging`` argument specifies the number of
-photons to run for the final iteration, which produces images and SEDs. The
-``raytracing`` argument is used to specify the number of photons to run for
-the raytracing. Finally, the ``stats`` argument is used to determine how
-often to print out statistics, or the size of the photon chunks (if MPI is
-used).
+* ``temperature=`` - number of photons per temperature iteration
+* ``imaging=`` - number of photons emitted in the SED/image iteration.
+* ``raytracing_sources=`` - number of photons emitted from sources in the
+  raytracing iteration
+* ``raytracing_dust=`` - number of photons emitted from dust in the raytracing
+  iteration
+* ``stats=`` - used to determine how often to print out statistics, or the
+  size of the photon chunks (if MPI is used).
+
+If computing the radiation transfer in monochromatic mode, the ``imaging`` argument should be replaced by:
+
+* ``imaging_sources=`` - number of photons emitted from sources in the
+  SED/image iteration.
+* ``imaging_dust=`` - number of photons emitted from dust in the SED/image
+  iteration.
+
+.. note:: Only the relevant arguments need to be specified - for example if no
+          sources are present, the ``*_sources`` arguments can be ignored,
+          while if no dust density grids are present, the ``*_dust`` arguments
+          can be ignored.
+
+.. note:: All the required arguments have to be specified in a single call to
+          ``set_n_photons``.
 
 Temperature calculation
 -----------------------
