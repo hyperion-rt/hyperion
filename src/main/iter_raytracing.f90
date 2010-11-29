@@ -43,70 +43,92 @@ contains
 
     call mp_join()
 
-    if(main_process()) call perf_header()
+    if(n_photons_sources > 0) then
 
-    ! Start loop over chunks of photons
-    do
+       if(main_process()) call perf_header()
 
-       ! Find out how many photons to run
-       call mp_n_photons(n_photons_sources, n_photons_curr, n_photons_chunk, n_photons)
+       call mp_join()
 
-       if(n_photons==0) exit
+       ! Start loop over chunks of photons
+       do
 
-       ! Compute all photons in chunk
-       do ip=1,n_photons
+          ! Find out how many photons to run
+          call mp_n_photons(n_photons_sources, n_photons_curr, n_photons_chunk, n_photons)
 
-          ! Emit photon from original sources
-          call emit(p)
-          p%energy = p%energy * energy_total / dble(n_photons_sources)
-          call peeloff_photon(p, polychromatic=.true.)
+          if(n_photons==0) exit
+
+          ! Compute all photons in chunk
+          do ip=1,n_photons
+
+             ! Emit photon from original sources
+             call emit(p)
+             p%energy = p%energy * energy_total / dble(n_photons_sources)
+             call peeloff_photon(p, polychromatic=.true.)
+
+          end do
 
        end do
 
-    end do
+       call mp_join()
 
-    call mp_join()
+       if(main_process()) call perf_footer()
 
-    if(main_process()) call perf_footer()
+    else
+       if(main_process()) then
+          write(*,*)
+          write(*,'("      ---------- Skipping source emission ----------")')
+          write(*,*)
+       end if
+    end if
 
     if(n_dust==0._dp) return
 
     call mp_reset_first()
 
-    if(main_process()) call perf_header()
+    if(n_photons_thermal > 0) then
 
-    call mp_join()
+       if(main_process()) call perf_header()
 
-    n_photons_curr = 0
+       call mp_join()
 
-    ! Start loop over chunks of photons
-    do
+       n_photons_curr = 0
 
-       ! Find out how many photons to run
-       call mp_n_photons(n_photons_thermal, n_photons_curr, n_photons_chunk, n_photons)
+       ! Start loop over chunks of photons
+       do
 
-       if(n_photons==0) exit
+          ! Find out how many photons to run
+          call mp_n_photons(n_photons_thermal, n_photons_curr, n_photons_chunk, n_photons)
 
-       ! Compute all photons in chunk
-       do ip=1,n_photons
+          if(n_photons==0) exit
 
-          p = emit_from_grid()
+          ! Compute all photons in chunk
+          do ip=1,n_photons
 
-          if(p%energy > 0._dp) then
+             p = emit_from_grid()
 
-             p%energy = p%energy * energy_abs_tot(p%dust_id) / dble(n_photons_thermal) * dble(n_dust)
+             if(p%energy > 0._dp) then
 
-             call peeloff_photon(p, polychromatic=.true.)
+                p%energy = p%energy * energy_abs_tot(p%dust_id) / dble(n_photons_thermal) * dble(n_dust)
 
-          end if
+                call peeloff_photon(p, polychromatic=.true.)
+
+             end if
+
+          end do
 
        end do
 
-    end do
+       call mp_join()
 
-    call mp_join()
+       if(main_process()) call perf_footer()
 
-    if(main_process()) call perf_footer()
+    else
+       if(main_process()) then
+          write(*,*)
+          write(*,'("      ----------- Skipping dust emission -----------")')
+          write(*,*)
+       end if
+    end if
 
   end subroutine do_raytracing
 

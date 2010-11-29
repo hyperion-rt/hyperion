@@ -42,8 +42,6 @@ contains
 
     integer :: inu
 
-    if(n_photons_sources == 0 .and. n_photons_thermal == 0) return
-
     ! Tell multi-process routines that this is the start of an iteration
     call mp_reset_first()
 
@@ -52,83 +50,36 @@ contains
 
     call mp_join()
 
-    if(main_process()) call perf_header()
+    if(n_photons_sources > 0) then
 
-    ! Initialize the number of completed photons
-    n_photons_curr = 0
+       if(main_process()) call perf_header()
 
-    ! Start loop over chunks of photons
-    do
+       call mp_join()
 
-       ! Find out how many photons to run
-       call mp_n_photons(n_photons_sources, n_photons_curr, n_photons_chunk, n_photons)
+       ! Initialize the number of completed photons
+       n_photons_curr = 0
 
-       if(n_photons==0) exit
+       ! Start loop over chunks of photons
+       do
 
-       ! Compute all photons in chunk
-       do ip=1,n_photons
+          ! Find out how many photons to run
+          call mp_n_photons(n_photons_sources, n_photons_curr, n_photons_chunk, n_photons)
 
-          ! Loop over monochromatic frequencies
-          do inu=1,size(frequencies)
+          if(n_photons==0) exit
 
-             ! Emit photon from a source
-             call emit(p,inu=inu)
+          ! Compute all photons in chunk
+          do ip=1,n_photons
 
-             ! Scale the energy by the number of photons
-             p%energy = p%energy / dble(n_photons_sources)
+             ! Loop over monochromatic frequencies
+             do inu=1,size(frequencies)
 
-             ! Peeloff the photons from the star
-             if(make_peeled_images) then
-                if(.not.peeloff_scattering_only) call peeloff_photon(p, polychromatic=.false.)
-             end if
+                ! Emit photon from a source
+                call emit(p,inu=inu)
 
-             ! Propagate until photon is absorbed again
-             call propagate(p, peeloff_scattering_only)
+                ! Scale the energy by the number of photons
+                p%energy = p%energy / dble(n_photons_sources)
 
-          end do
-
-       end do
-
-    end do
-
-    ! Wait for all processes
-    call mp_join()
-
-    if(main_process()) call perf_footer()
-
-    if(n_dust==0._dp) return
-
-    ! Tell multi-process routines that this is the start of an iteration
-    call mp_reset_first()    
-
-    if(main_process()) call perf_header()
-
-    call mp_join()
-
-    n_photons_curr = 0
-
-    ! Start loop over chunks of photons
-    do
-
-       ! Find out how many photons to run
-       call mp_n_photons(n_photons_thermal, n_photons_curr, n_photons_chunk, n_photons)
-
-       if(n_photons==0) exit
-
-       ! Compute all photons in chunk
-       do ip=1,n_photons
-
-          ! Loop over monochromatic frequencies
-          do inu=1,size(frequencies)
-
-             p = emit_from_grid(inu=inu)
-
-             if(p%energy > 0._dp) then
-
-                ! Scale energy - CHECK THIS
-                p%energy = p%energy * energy_abs_tot(p%dust_id) / dble(n_photons_thermal) * dble(n_dust)
-
-                ! Peeloff the photons from the dust
+                ! Peeloff the photons from the star
                 if(make_peeled_images) then
                    if(.not.peeloff_scattering_only) call peeloff_photon(p, polychromatic=.false.)
                 end if
@@ -136,17 +87,86 @@ contains
                 ! Propagate until photon is absorbed again
                 call propagate(p, peeloff_scattering_only)
 
-             end if
+             end do
 
           end do
 
        end do
 
-    end do
+       ! Wait for all processes
+       call mp_join()
+
+       if(main_process()) call perf_footer()
+
+    else
+       if(main_process()) then
+          write(*,*)
+          write(*,'("      ---------- Skipping source emission ----------")')
+          write(*,*)
+       end if
+    end if
+
+    ! Tell multi-process routines that this is the start of an iteration
+    call mp_reset_first()    
 
     call mp_join()
 
-    if(main_process()) call perf_footer()
+    if(n_photons_thermal > 0) then
+
+       if(main_process()) call perf_header()
+
+       call mp_join()
+
+       n_photons_curr = 0
+
+       ! Start loop over chunks of photons
+       do
+
+          ! Find out how many photons to run
+          call mp_n_photons(n_photons_thermal, n_photons_curr, n_photons_chunk, n_photons)
+
+          if(n_photons==0) exit
+
+          ! Compute all photons in chunk
+          do ip=1,n_photons
+
+             ! Loop over monochromatic frequencies
+             do inu=1,size(frequencies)
+
+                p = emit_from_grid(inu=inu)
+
+                if(p%energy > 0._dp) then
+
+                   ! Scale energy - CHECK THIS
+                   p%energy = p%energy * energy_abs_tot(p%dust_id) / dble(n_photons_thermal) * dble(n_dust)
+
+                   ! Peeloff the photons from the dust
+                   if(make_peeled_images) then
+                      if(.not.peeloff_scattering_only) call peeloff_photon(p, polychromatic=.false.)
+                   end if
+
+                   ! Propagate until photon is absorbed again
+                   call propagate(p, peeloff_scattering_only)
+
+                end if
+
+             end do
+
+          end do
+
+       end do
+
+       call mp_join()
+
+       if(main_process()) call perf_footer()
+
+    else
+       if(main_process()) then
+          write(*,*)
+          write(*,'("      ----------- Skipping dust emission -----------")')
+          write(*,*)
+       end if
+    end if
 
   end subroutine do_final_mono
 

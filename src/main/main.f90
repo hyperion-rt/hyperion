@@ -63,11 +63,6 @@ program main
   ! Wait for all threads
   call mp_join()  
 
-  if(n_dust==0 .and. n_lucy_iter > 0) then
-     call warn("main", "no dust present, so skipping temperature iterations")
-     n_lucy_iter=0
-  end if
-
   ! Loop over Lucy iterations
   do iter=1,n_lucy_iter
 
@@ -102,7 +97,7 @@ program main
 
   ! Do the RT
   if(use_exact_nu) then
-     call do_final_mono(n_last_photons, 20*n_last_photons, n_stats, use_raytracing)
+     call do_final_mono(n_last_photons_star, n_last_photons_dust, n_stats, use_raytracing)
   else
      call do_final(n_last_photons, n_stats, use_raytracing)
   end if

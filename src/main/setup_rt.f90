@@ -47,13 +47,25 @@ contains
        call error('setup_initial','Unknown dust sublimation mode: '//trim(dust_sublimation))
     end select
 
+    call hdf5_read_keyword(input_handle, '/', 'monochromatic', use_exact_nu)
+    call hdf5_read_keyword(input_handle, '/', 'raytracing', use_raytracing)
+
     call hdf5_read_keyword(input_handle, '/', 'n_stats', n_stats)
     call hdf5_read_keyword(input_handle, '/', 'n_lucy_iter', n_lucy_iter)
 
     call hdf5_read_keyword(input_handle, '/', 'n_lucy_photons', n_lucy_photons)
-    call hdf5_read_keyword(input_handle, '/', 'n_last_photons', n_last_photons)
-    call hdf5_read_keyword(input_handle, '/', 'n_ray_photons', n_raytracing_photons_star)
-    call hdf5_read_keyword(input_handle, '/', 'n_ray_photons', n_raytracing_photons_dust)
+
+    if(use_exact_nu) then
+       call hdf5_read_keyword(input_handle, '/', 'n_last_photons_star', n_last_photons_star)
+       call hdf5_read_keyword(input_handle, '/', 'n_last_photons_dust', n_last_photons_dust)
+    else
+       call hdf5_read_keyword(input_handle, '/', 'n_last_photons', n_last_photons)
+    end if
+
+    if(use_raytracing) then
+       call hdf5_read_keyword(input_handle, '/', 'n_ray_photons', n_raytracing_photons_star)
+       call hdf5_read_keyword(input_handle, '/', 'n_ray_photons', n_raytracing_photons_dust)
+    end if
 
     call hdf5_read_keyword(input_handle, '/', 'n_inter_max', n_inter_max)
     call hdf5_read_keyword(input_handle, '/', 'n_reabs_max', n_reabs_max)
@@ -68,9 +80,6 @@ contains
        call hdf5_read_keyword(input_handle, '/', 'n_inter_mrw_max', n_mrw_max)
     end if
 
-    call hdf5_read_keyword(input_handle, '/', 'monochromatic', use_exact_nu)
-    call hdf5_read_keyword(input_handle, '/', 'raytracing', use_raytracing)
-
     call hdf5_read_keyword(input_handle, '/', 'kill_on_absorb', kill_on_absorb)
     call hdf5_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_scattering)
 
@@ -79,6 +88,15 @@ contains
     g_dust = hdf5_open_group(input_handle, '/Dust')
     call setup_dust(g_dust)
     call hdf5_close_group(g_dust)
+
+    if(n_dust==0) then
+       if(n_lucy_iter > 0) then
+          call warn("main", "no dust present, so skipping temperature iterations")
+          n_lucy_iter=0
+       end if
+       if(use_exact_nu) n_last_photons_dust = 0
+       if(use_raytracing) n_raytracing_photons_dust = 0
+    end if
 
     ! GRID
 
@@ -115,15 +133,13 @@ contains
 
     ! If no sources have been set up, give an error if we are not in raytracing only mode
     if(n_sources == 0) then
-       if(n_lucy_iter > 0) then
-          call error("setup_initial","no sources set up - need sources for lucy iteration")
+       if(n_lucy_iter > 0) call error("setup_initial","no sources set up - need sources for temperature iteration")
+       if(use_exact_nu) then
+          n_last_photons_star = 0
+       else
+          if(n_last_photons > 0) call error("setup_initial","no sources set up - need sources for last iteration")
        end if
-       if(n_last_photons > 0) then
-          call error("setup_initial","no sources set up - need sources for last iteration")
-       end if
-       if(n_raytracing_photons_star > 0) then
-          n_raytracing_photons_star = 0
-       end if
+       if(use_raytracing) n_raytracing_photons_star = 0
     end if
 
     ! OUTPUT

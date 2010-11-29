@@ -48,7 +48,14 @@ contains
     ! REMOVE
     real(dp) :: tau_achieved
 
-    if(n_photons_tot == 0) return
+    if(n_photons_tot == 0) then
+       if(main_process()) then
+          write(*,*)
+          write(*,'("      ------------------ Skipping ------------------")')
+          write(*,*)
+       end if
+       return
+    end if
 
     n_photons_curr = 0
 

@@ -41,7 +41,14 @@ contains
     ! Whether to only peeloff scattered photons
     logical,intent(in) :: peeloff_scattering_only
 
-    if(n_photons_tot == 0) return
+    if(n_photons_tot == 0) then
+       if(main_process()) then
+          write(*,*)
+          write(*,'("      ------------------ Skipping ------------------")')
+          write(*,*)
+       end if
+       return
+    end if
 
     n_photons_curr = 0
 
