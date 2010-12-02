@@ -14,7 +14,9 @@ dependencies installed:
 
    fortran_dependencies.rst
    python_dependencies.rst
-   
+
+For instructions for specific computer clusters, see the :ref:`specific` instead.
+
 Hyperion
 ========
 
