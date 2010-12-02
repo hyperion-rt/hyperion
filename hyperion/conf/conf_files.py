@@ -95,10 +95,10 @@ class RunConf(FreezableClass):
             photon chunk size for MPI.
         '''
 
-        if imaging is not None and imaging_mono_sources is None:
+        if imaging is not None and imaging_mono_sources is not None:
             raise Exception("imaging and imaging_mono_sources cannot both be set")
 
-        if imaging is not None and imaging_mono_dust is None:
+        if imaging is not None and imaging_mono_dust is not None:
             raise Exception("imaging and imaging_mono_dust cannot both be set")
 
         self.n_lucy_photons = temperature
