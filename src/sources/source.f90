@@ -91,7 +91,7 @@ contains
     energy_total = sum(s(:)%luminosity)
   end subroutine add_source
 
-  subroutine emit(p,reemit,reemit_id,inu)
+  subroutine emit(p,reemit,reemit_id,reemit_energy,inu)
 
     implicit none
 
@@ -100,7 +100,9 @@ contains
 
     logical,intent(in),optional :: reemit
     integer,intent(in),optional :: reemit_id
+    real(dp),intent(in),optional :: reemit_energy
     integer,intent(in),optional :: inu
+    logical :: do_reemit
 
     if(n_sources==0) call error("emit", "no sources to emit from")
 
@@ -113,12 +115,16 @@ contains
     end if
 
     if(present(reemit)) then
-       if(reemit) then
-          if(present(reemit_id)) then
-             p%source_id = reemit_id
-          else
-             call error("emit", "reemit_id is missing")
-          end if
+       do_reemit = reemit
+    else
+       do_reemit = .false.
+    end if
+
+    if(do_reemit) then
+       if(present(reemit_id)) then
+          p%source_id = reemit_id
+       else
+          call error("emit", "reemit_id is missing")
        end if
     end if
 
@@ -133,12 +139,15 @@ contains
 
     call angle3d_to_vector3d(p%a,p%v)
 
-    if(present(inu)) p%energy = p%energy * s(p%source_id)%luminosity
-
-    energy_current = energy_current + p%energy
-
-    if(present(reemit)) then
-       if(reemit) energy_current = energy_current - p%energy
+    if(do_reemit) then
+       if(present(reemit_energy)) then
+          p%energy = reemit_energy
+       else
+          call error("emit", "reemit_energy is missing")
+       end if
+    else
+       if(present(inu)) p%energy = p%energy * s(p%source_id)%luminosity
+       energy_current = energy_current + p%energy
     end if
 
     call prepare_photon(p)

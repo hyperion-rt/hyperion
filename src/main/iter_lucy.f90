@@ -117,7 +117,7 @@ contains
                    ! The parentheses are required in the following expression to
                    ! force the evaluation of the option (otherwise it gets reset
                    ! because p has intent(out) from emit)
-                   call emit(p, reemit=.true., reemit_id=(p%reabsorbed_id))
+                   call emit(p, reemit=.true., reemit_id=(p%reabsorbed_id), reemit_energy=(p%energy))
 
                    ! Sample optical depth and travel
                    call random_exp(tau)
