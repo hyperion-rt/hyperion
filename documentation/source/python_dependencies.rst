@@ -36,7 +36,7 @@ then the module is not installed. If you see this
 
 then the module is already installed.
 
-.. note:: If you do not have root access to the machine you are using, then follow the instructions at `astropython <http://www.astropython.org/tutorial/2010/1/User-rootsudo-free-installation-of-Python-modules>`_ to install the modules into your home directory. In addition, you should not ever include ``sudo`` in any of the commands.
+.. note:: If you do not have root access to the machine you are using, then follow the instructions in :ref:`nonrootpython` to install the modules into your home directory. In addition, you should not ever include ``sudo`` in any of the commands.
 
 Python newbies
 ==============

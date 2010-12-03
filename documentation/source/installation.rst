@@ -15,7 +15,7 @@ dependencies installed:
    fortran_dependencies.rst
    python_dependencies.rst
 
-For instructions for specific computer clusters, see the :ref:`specific` instead.
+.. note:: For instructions for specific computer clusters, see the :ref:`specific` instead, then proceed to the instructions for installing Hyperion below.
 
 Hyperion
 ========
@@ -28,7 +28,7 @@ to install the Python module, and then::
 
     ./configure
     make
-    sudo make install
+    make install
     
 to install the Fortran code. By default, the binaries will be written to ``/usr/local/bin``, but you can change this using the ``--prefix`` option to configure, for example::
 
@@ -37,7 +37,7 @@ to install the Fortran code. By default, the binaries will be written to ``/usr/
 To check that the Fortran binaries are correctly installed, try typing::
 
     $ hyperion_sph
-    Usage: bin/rt input_file output_file
+    Usage: hyperion input_file output_file
 
 If you get::
 
