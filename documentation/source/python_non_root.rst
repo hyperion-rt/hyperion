@@ -15,7 +15,7 @@ First, create a file called ``.pydistutils.cfg`` in your home directory, with th
     
 Then, add::
 
-    export PYTHONPATH=$HOME/usr/python/2.6/site-packages/
+    export PYTHONPATH=$HOME/usr/python/2.6/site-packages/:$PYTHONPATH
     export PATH=$HOME/usr/bin:$PATH
 
 to your ``.bashrc`` file (or the equivalent ``setenv`` commands if you are using ``csh``).
