@@ -351,14 +351,18 @@ class RunConf(FreezableClass):
 
 class ImageConf(FreezableClass):
 
-    def __init__(self):
+    def __init__(self, sed=True, image=True):
         '''
         Initialize default image configuration
         '''
-        self.set_image_size(1, 1)
-        self.set_image_limits(-np.inf, np.inf, -np.inf, np.inf)
+        self.sed = sed
+        self.image = image
+        if self.sed:
+            self.set_aperture_range(1, np.inf, np.inf)
+        if self.image:
+            self.set_image_size(1, 1)
+            self.set_image_limits(-np.inf, np.inf, -np.inf, np.inf)
         self.set_wavelength_range(250, 0.01, 5000.)
-        self.set_aperture_range(1, np.inf, np.inf)
         self.set_output_bytes(8)
         self.set_track_origin(False)
         self.set_uncertainties(False)
@@ -515,11 +519,15 @@ class ImageConf(FreezableClass):
         pass
 
     def _write_main_info(self, group):
-        self._write_output_bytes(group)
-        self._write_image_size(group)
-        self._write_image_limits(group)
-        self._write_aperture_range(group)
+        group.attrs['compute_sed'] = bool2str(self.sed)
+        group.attrs['compute_image'] = bool2str(self.image)
+        if self.sed:
+            self._write_aperture_range(group)
+        if self.image:
+            self._write_image_size(group)
+            self._write_image_limits(group)
         self._write_wavelength_range(group)
+        self._write_output_bytes(group)
         self._write_track_origin(group)
         self._write_uncertainties(group)
 
@@ -589,7 +597,7 @@ class PeeledImageConf(ImageConf):
 
         >>> image.set_viewing_angles([77.],[25.])
         '''
-        if len(theta) <> len(phi):
+        if len(theta) != len(phi):
             raise Exception("Length of theta and phi arrays do not match")
         self.viewing_angles = zip(theta, phi)
         self.n_view = len(self.viewing_angles)
