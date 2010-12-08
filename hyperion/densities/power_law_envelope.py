@@ -12,7 +12,7 @@ from hyperion.dust import SphericalDust
 
 class PowerLawEnvelope(FreezableClass):
 
-    def __init__(self, mass=None, rmin=None, rmax=None, power=None):
+    def __init__(self, mass=None, rho_0=None, rmin=None, rmax=None, power=None, star=None):
         '''
         Initialize a power-law envelope instance. The required parameters are:
 
@@ -24,10 +24,23 @@ class PowerLawEnvelope(FreezableClass):
         '''
 
         # Basic envelope parameters
-        self.mass = mass
         self.rmin = rmin
         self.rmax = rmax
         self.power = power
+
+        # Envelope Infall
+        if mass is not None and rho_0 is not None:
+            raise Exception("Cannot specify both mass and rho_0")
+
+        if mass is not None:
+            self.mass = mass
+        elif rho_0 is not None:
+            self.rho_0 = rho_0
+        else:
+            self.mass = 0.
+
+        # Central star
+        # self.star = star
 
         # Cavity
         self.cavity = None
@@ -39,8 +52,6 @@ class PowerLawEnvelope(FreezableClass):
 
     def _check_all_set(self):
 
-        if self.mass is None:
-            raise Exception("mass is not set")
         if self.rmin is None:
             raise Exception("rmin is not set")
         if self.rmax is None:
@@ -54,7 +65,7 @@ class PowerLawEnvelope(FreezableClass):
             raise Exception("Outer envelope radius needs to be computed first")
 
     def exists(self):
-        return self.mass > 0.
+        return self.rho_0 > 0.
 
     def density(self, grid):
         '''
@@ -71,12 +82,7 @@ class PowerLawEnvelope(FreezableClass):
             warnings.warn("Ignoring power-law envelope, since rmax < rmin")
             return np.zeros(grid.shape)
 
-        alpha = 3. + self.power
-
-        rho_0 = self.mass * alpha / \
-            (4. * pi * (self.rmax ** alpha - self.rmin ** alpha))
-
-        rho = rho_0 * grid.gr ** self.power
+        rho = self.rho_0 * grid.gr ** self.power
 
         rho[grid.gr < self.rmin] = 0.
         rho[grid.gr > self.rmax] = 0.
@@ -112,10 +118,39 @@ class PowerLawEnvelope(FreezableClass):
             raise Exception("Envelope already has a bipolar cavity")
         else:
             self.cavity = BipolarCavity()
+            self.cavity.envelope = self
             return self.cavity
 
     def __setattr__(self, attribute, value):
-        if attribute == 'dust' and value is not None:
+        if attribute == 'mass':
+            if 'rho_0' in self.__dict__:
+                warnings.warn("Overriding value of rho_0 with value derived from mass")
+                del self.rho_0
+            object.__setattr__(self, attribute, value)
+        elif attribute == 'rho_0':
+            if 'mass' in self.__dict__:
+                warnings.warn("Overriding value of mass with value derived from rho_0")
+                del self.mass
+            object.__setattr__(self, attribute, value)
+        elif attribute == 'dust' and value is not None:
             FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
         else:
             FreezableClass.__setattr__(self, attribute, value)
+
+    def __getattr__(self, attribute):
+
+        if attribute == 'rho_0':
+            self._check_all_set()
+            alpha = 3. + self.power
+            rho_0 = self.mass * alpha / \
+                (4. * pi * (self.rmax ** alpha - self.rmin ** alpha))
+            return rho_0
+
+        if attribute == 'mass':
+            self._check_all_set()
+            alpha = 3. + self.power
+            mass = self.rho_0 / alpha * \
+                (4. * pi * (self.rmax ** alpha - self.rmin ** alpha))
+            return mass
+
+        raise AttributeError(attribute)

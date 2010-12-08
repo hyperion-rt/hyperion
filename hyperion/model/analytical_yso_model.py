@@ -165,7 +165,6 @@ class AnalyticalYSOModel(Model):
     def add_power_law_envelope(self):
         "Add a power-law envelope to the geometry"
         envelope = PowerLawEnvelope()
-        envelope.star = self.star
         self.envelopes.append(envelope)
         return envelope
 
