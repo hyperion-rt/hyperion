@@ -478,6 +478,19 @@ and to write them out as 64-bit floats, use::
 
     image.set_output_bytes(8)
     
+Disabling SEDs or Images
+------------------------
+
+When adding a set of binned or peeled images, it is possible to disable the SED or image part::
+
+    image = m.add_binned_images()  # Images and SEDs
+    image = m.add_binned_images(image=False)  # SEDs
+    image = m.add_binned_images(sed=False)  # Images
+
+    image = m.add_peeled_images()  # Images and SEDs
+    image = m.add_peeled_images(image=False)  # SEDs
+    image = m.add_peeled_images(sed=False)  # Images
+
 Example
 -------
 
