@@ -18,6 +18,7 @@ program main
   character(len=1000) :: input_file, output_file
   integer(hid_t) :: handle_in, handle_out, g_peeled, g_binned
   real(dp) :: time1, time2, time
+  logical :: converged
 
   call hdf5_set_compression(.true.)
 
@@ -80,6 +81,24 @@ program main
 
      ! Output files
      if(main_process()) call output_grid(handle_out, iter, n_lucy_iter)
+
+     ! Check for convergence
+     if(check_convergence) then
+
+        if(main_process()) converged = specific_energy_abs_converged()
+
+        call mp_broadcast_convergence(converged)
+
+        if(converged) then
+           if(main_process()) then
+              write(*,*)
+              write(*,'("      ------ Temperature calculation converged -----")')
+              write(*,*)
+           end if
+           exit
+        end if
+
+     end if
 
   end do
 

@@ -52,6 +52,11 @@ contains
   subroutine mp_broadcast_temperature() 
   end subroutine mp_broadcast_temperature
 
+  subroutine mp_broadcast_convergence(converged)
+    implicit none
+    logical,intent(inout) :: converged
+  end subroutine mp_broadcast_convergence
+
   subroutine mp_sync_energy() 
   end subroutine mp_sync_energy
 

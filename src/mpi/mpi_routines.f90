@@ -32,6 +32,7 @@ module mpi_routines
   public :: mp_collect
   public :: mp_broadcast_temperature
   public :: mp_collect_results
+  public :: mp_broadcast_convergence
   public :: mp_sync_energy
   public :: mp_sync_cputime
   public :: mp_set_random_seed
@@ -275,6 +276,12 @@ contains
     end if
 
   end subroutine mp_broadcast_temperature
+
+  subroutine mp_broadcast_convergence(converged)
+    implicit none
+    logical,intent(inout) :: converged
+    call mpi_bcast(converged, 1, mpi_logical, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_broadcast_convergence
 
   subroutine mp_sync_energy()
     implicit none

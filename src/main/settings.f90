@@ -36,4 +36,9 @@ module settings
   character(len=4) :: output_specific_energy_abs
   character(len=4) :: output_n_photons
 
+  logical :: check_convergence = .false.
+  real(dp) :: convergence_absolute = 0._dp
+  real(dp) :: convergence_relative = 0._dp
+  real(dp) :: convergence_percentile = 100._dp
+
 end module settings

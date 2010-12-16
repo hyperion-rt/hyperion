@@ -7,6 +7,7 @@ COMMON = 	src/lib/base_types.f90 \
 		src/lib/lib_algebra.f90 \
 		src/lib/lib_conf.f90 \
 		src/lib/lib_array.f90 \
+		src/lib/lib_statistics.f90 \
 		src/lib/lib_random.f90 \
 		src/lib/lib_hdf5.f90 \
 		src/lib/lib_constants.f90 \

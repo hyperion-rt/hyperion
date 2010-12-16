@@ -126,6 +126,7 @@ class Model(FreezableClass):
         self.set_max_interactions = self.conf.run.set_max_interactions
         self.set_pda = self.conf.run.set_pda
         self.set_mrw = self.conf.run.set_mrw
+        self.set_convergence = self.conf.run.set_convergence
         self.set_kill_on_absorb = self.conf.run.set_kill_on_absorb
         self.set_forced_first_scattering = self.conf.run.set_forced_first_scattering
         self.set_dust_sublimation = self.conf.run.set_dust_sublimation
@@ -245,7 +246,7 @@ class Model(FreezableClass):
         self._write_monochromatic(root, compression=compression, dtype=physics_dtype)
         self.conf.run.write(root)
         self.conf.output.write(g_output)
-        
+
         if len(self.density) > 0:
 
             self.grid.write_physical_array(g_physics, self.density, "Density", dust=True, compression=compression, physics_dtype=physics_dtype)

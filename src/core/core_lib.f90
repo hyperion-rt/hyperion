@@ -15,6 +15,7 @@ module core_lib
   ! Maths
   use lib_constants
   use lib_algebra
+  use lib_statistics
   use type_pdf
   use type_angle3d
   use type_vector3d

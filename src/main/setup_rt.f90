@@ -175,6 +175,16 @@ contains
 
     call hdf5_close_group(g_output)
 
+    ! TEMPERATURE CONVERGENCE
+    if(n_lucy_iter > 0) then
+       call hdf5_read_keyword(input_handle, '/', 'check_convergence', check_convergence)
+       if(check_convergence) then
+          call hdf5_read_keyword(input_handle, '/', 'convergence_absolute', convergence_absolute)
+          call hdf5_read_keyword(input_handle, '/', 'convergence_relative', convergence_relative)
+          call hdf5_read_keyword(input_handle, '/', 'convergence_percentile', convergence_percentile)
+       end if
+    end if
+
   end subroutine setup_initial
 
   subroutine setup_final_iteration(input_handle)

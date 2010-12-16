@@ -41,6 +41,7 @@ class RunConf(FreezableClass):
         self.set_max_reabsorptions(1000000)
         self.set_pda(False)
         self.set_mrw(False)
+        self.set_convergence(False)
         self.set_kill_on_absorb(False)
         self.set_forced_first_scattering(True)
         self.set_dust_sublimation('no')
@@ -236,6 +237,43 @@ class RunConf(FreezableClass):
             group.attrs['mrw_gamma'] = self.mrw_gamma
             group.attrs['n_inter_mrw_max'] = self.n_inter_mrw_max
 
+    def set_convergence(self, convergence, percentile=100., absolute=0., relative=0.):
+        '''
+        Set whether to check for convergence over the initial iterations
+
+        If enabled, the code will check whether the specific energy absorbed
+        in each cell has converged. First, the ratio between the previous
+        and current specific energy absorbed in each cell is computed in each
+        cell, and the value at the specified percentile (`percentile`) is
+        found. Then, convergence has been achieved if this value is less than
+        an absolute threshold (`absolute`), and if it changed by less than
+        a relative threshold ratio (`relative`).
+
+        Parameters
+        ----------
+        convergence : bool
+            Whether or not to check for convergence.
+        percentile : float, optional
+            The percentile at which to check for convergence.
+        absolute : float, optional
+            The abolute threshold below which the percentile value of the
+            ratio has to be for convergence.
+        relative : float, optional
+            The relative threshold below which the ratio in the percentile
+            value has to be for convergence.
+        '''
+        self.check_convergence = True
+        self.convergence_percentile = percentile
+        self.convergence_absolute = absolute
+        self.convergence_relative = relative
+
+    def _write_convergence(self, group):
+        group.attrs['check_convergence'] = bool2str(self.check_convergence)
+        if(self.check_convergence):
+            group.attrs['convergence_percentile'] = self.convergence_percentile
+            group.attrs['convergence_absolute'] = self.convergence_absolute
+            group.attrs['convergence_relative'] = self.convergence_relative
+
     def set_kill_on_absorb(self, kill_on_absorb):
         '''
         Set whether to kill absorbed photons
@@ -342,6 +380,7 @@ class RunConf(FreezableClass):
         self._write_max_reabsorptions(group)
         self._write_pda(group)
         self._write_mrw(group)
+        self._write_convergence(group)
         self._write_kill_on_absorb(group)
         self._write_forced_first_scattering(group)
         self._write_dust_sublimation(group)

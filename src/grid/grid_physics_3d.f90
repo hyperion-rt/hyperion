@@ -27,6 +27,7 @@ module grid_physics
   public :: emit_from_grid
   public :: precompute_jnu_var
   public :: tau_rosseland_to_closest_wall
+  public :: specific_energy_abs_converged
 
   ! Density (immutable)
   real(dp),allocatable,target, public :: density(:,:)
@@ -107,16 +108,16 @@ contains
 
     if(n_dust > 0) then
 
-        call read_grid_4d(group, 'Density', density, geo)
-        if(size(density, 2).ne.n_dust) call error("setup_grid","density array has wrong number of dust types")
+       call read_grid_4d(group, 'Density', density, geo)
+       if(size(density, 2).ne.n_dust) call error("setup_grid","density array has wrong number of dust types")
 
-        if(grid_exists(group, 'Temperature')) then
-           if(main_process()) write(*,'(" [grid_physics] reading temperature grid")')
-           call read_grid_4d(group, 'Temperature', temperature, geo)
-           if(size(temperature, 2).ne.n_dust) call error("setup_grid","temperature array has wrong number of dust types")
-        else
-           temperature = minimum_temperature
-        end if
+       if(grid_exists(group, 'Temperature')) then
+          if(main_process()) write(*,'(" [grid_physics] reading temperature grid")')
+          call read_grid_4d(group, 'Temperature', temperature, geo)
+          if(size(temperature, 2).ne.n_dust) call error("setup_grid","temperature array has wrong number of dust types")
+       else
+          temperature = minimum_temperature
+       end if
 
     end if
 
@@ -309,12 +310,54 @@ contains
     if(main_process()) write(*,'(" [grid_physics] pre-computing jnu_var")')
 
     do ic=1,geo%n_cells
-       do id=1,n_dust               
+       do id=1,n_dust   
           call dust_jnu_var_pos_frac(d(id),temperature(ic,id),specific_energy_abs(ic,id),jnu_var_id(ic,id),jnu_var_frac(ic,id))
        end do
     end do
 
   end subroutine precompute_jnu_var
+
+  real(dp) elemental function difference_ratio(a, b)
+    implicit none
+    real(dp), intent(in) :: a, b
+    difference_ratio = max(a/b, b/a)
+  end function difference_ratio
+
+  logical function specific_energy_abs_converged() result(converged)
+
+    implicit none
+
+    real(dp) :: value
+    real(dp), save :: value_prev = huge(1._dp)
+    real(dp), allocatable, save :: specific_energy_abs_prev(:,:)
+
+    write(*,'(" [specific_energy_abs_converged] checking convergence")')
+
+    if(.not.allocated(specific_energy_abs_prev)) then
+       allocate(specific_energy_abs_prev(geo%n_cells, n_dust))
+       specific_energy_abs_prev = specific_energy_abs
+       converged = .false.
+       return
+    end if
+
+    value = quantile(reshape(difference_ratio(specific_energy_abs_prev, specific_energy_abs), (/geo%n_cells*n_dust/)), &
+         &           convergence_percentile, &
+         &           mask=reshape(specific_energy_abs_prev > 0 .and. specific_energy_abs > 0. .and. specific_energy_abs_prev .ne. specific_energy_abs, (/geo%n_cells*n_dust/)))
+
+    write(*,'("     -> Percentile: ",F7.2)') convergence_percentile
+    write(*,'("     -> Value @ Percentile: ",F)') value
+    if(value_prev < huge(1._dp)) then
+       write(*,'("     -> Difference from previous iteration: ", F)') difference_ratio(value_prev, value)
+    end if
+
+    converged = value < convergence_absolute .and. &
+         &      abs(difference_ratio(value_prev, value)) < convergence_relative
+
+    specific_energy_abs_prev = specific_energy_abs
+
+    value_prev = value
+
+  end function specific_energy_abs_converged
 
   type(photon) function emit_from_grid(inu) result(p)
 
