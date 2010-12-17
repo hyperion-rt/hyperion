@@ -91,7 +91,6 @@ program main
 
         if(converged) then
            if(main_process()) then
-              write(*,*)
               write(*,'("      ------ Temperature calculation converged -----")')
               write(*,*)
            end if

@@ -344,11 +344,13 @@ contains
          &           convergence_percentile, &
          &           mask=reshape(specific_energy_abs_prev > 0 .and. specific_energy_abs > 0. .and. specific_energy_abs_prev .ne. specific_energy_abs, (/geo%n_cells*n_dust/)))
 
+    write(*,*)
     write(*,'("     -> Percentile: ",F7.2)') convergence_percentile
     write(*,'("     -> Value @ Percentile: ",F)') value
     if(value_prev < huge(1._dp)) then
        write(*,'("     -> Difference from previous iteration: ", F)') difference_ratio(value_prev, value)
     end if
+    write(*,*)
 
     converged = value < convergence_absolute .and. &
          &      abs(difference_ratio(value_prev, value)) < convergence_relative
