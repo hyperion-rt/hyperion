@@ -150,21 +150,21 @@ contains
     if(trim(output_temperature).ne.'all' &
          & .and.trim(output_temperature).ne.'last' &
          & .and.trim(output_temperature).ne.'none') &
-         & call error("setup_initial", "output_temperature should be one of all/last/non")
+         & call error("setup_initial", "output_temperature should be one of all/last/none")
 
     call hdf5_read_keyword(g_output, '.', 'output_density', output_density)
 
     if(trim(output_density).ne.'all' &
          & .and.trim(output_density).ne.'last' &
          & .and.trim(output_density).ne.'none') &
-         & call error("setup_initial","output_density should be one of all/last/non")
+         & call error("setup_initial","output_density should be one of all/last/none")
 
     call hdf5_read_keyword(g_output, '.', 'output_density_diff', output_density_diff)
 
     if(trim(output_density_diff).ne.'all' &
          & .and.trim(output_density_diff).ne.'last' &
          & .and.trim(output_density_diff).ne.'none') &
-         & call error("setup_initial","output_density_diff should be one of all/last/non")
+         & call error("setup_initial","output_density_diff should be one of all/last/none")
 
     if(output_density_diff .ne. 'none' .and. dust_sublimation_mode==0) call error("setup_initial", "cannot output density difference if there is no dust sublimation")
 
@@ -173,14 +173,14 @@ contains
     if(trim(output_specific_energy_abs).ne.'all' &
          & .and.trim(output_specific_energy_abs).ne.'last' &
          & .and.trim(output_specific_energy_abs).ne.'none') &
-         & call error("setup_initial","output_specific_energy_abs should be one of all/last/non")
+         & call error("setup_initial","output_specific_energy_abs should be one of all/last/none")
 
     call hdf5_read_keyword(g_output, '.', 'output_n_photons', output_n_photons)
 
     if(trim(output_n_photons).ne.'all' &
          & .and.trim(output_n_photons).ne.'last' &
          & .and.trim(output_n_photons).ne.'none') &
-         & call error("setup_initial","output_n_photons should be one of all/last/non")
+         & call error("setup_initial","output_n_photons should be one of all/last/none")
 
     call hdf5_close_group(g_output)
 
