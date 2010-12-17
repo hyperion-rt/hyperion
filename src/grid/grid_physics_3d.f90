@@ -31,6 +31,7 @@ module grid_physics
 
   ! Density (immutable)
   real(dp),allocatable,target, public :: density(:,:)
+  real(dp),allocatable, public :: density_original(:,:)
 
   ! Variable quantities (made public for MPI)
   real(dp),allocatable, public :: temperature(:,:)
@@ -110,6 +111,11 @@ contains
 
        call read_grid_4d(group, 'Density', density, geo)
        if(size(density, 2).ne.n_dust) call error("setup_grid","density array has wrong number of dust types")
+
+       if(output_density_diff.ne.'none') then
+          allocate(density_original(geo%n_cells, n_dust))
+          density_original = density
+       end if
 
        if(grid_exists(group, 'Temperature')) then
           if(main_process()) write(*,'(" [grid_physics] reading temperature grid")')

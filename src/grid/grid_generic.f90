@@ -91,7 +91,7 @@ contains
     ! DENSITY
 
     if(trim(output_density)=='all' .or. (trim(output_density)=='last'.and.iter==n_iter)) then
-       if((dust_sublimation_mode == 1 .or. dust_sublimation_mode == 2) .and. allocated(density)) then
+       if(allocated(density)) then
           select case(physics_io_type)
           case(sp)  
              call write_grid_4d(group, 'density', real(density, sp), geo)
@@ -102,6 +102,25 @@ contains
           end select
        else
           call warn("output_grid","density array is not allocated")
+       end if
+    end if
+    
+    
+    ! DENSITY DIFFERENCE
+
+    if(trim(output_density_diff)=='all' .or. (trim(output_density_diff)=='last'.and.iter==n_iter)) then
+       if(allocated(density).and.allocated(density_original)) then
+          select case(physics_io_type)
+          case(sp)  
+             call write_grid_4d(group, 'density_diff', real(density - density_original, sp), geo)
+          case(dp)
+             call write_grid_4d(group, 'density_diff', real(density - density_original, dp), geo)
+          case default
+             call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
+          end select
+       else
+         if(.not.allocated(density)) call warn("output_grid","density array is not allocated")
+         if(.not.allocated(density_original)) call warn("output_grid","density_original array is not allocated")
        end if
     end if
 

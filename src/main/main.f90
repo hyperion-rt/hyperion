@@ -79,9 +79,6 @@ program main
      ! Display message
      if(main_process()) write(*,'(" [main] exiting Lucy iteration")')
 
-     ! Output files
-     if(main_process()) call output_grid(handle_out, iter, n_lucy_iter)
-
      ! Check for convergence
      if(check_convergence) then
 
@@ -90,14 +87,26 @@ program main
         call mp_broadcast_convergence(converged)
 
         if(converged) then
+
            if(main_process()) then
+
               write(*,'("      ------ Temperature calculation converged -----")')
               write(*,*)
+
+              ! Output files (and signal that this is the last iteration)
+              if(iter < n_lucy_iter) call output_grid(handle_out, iter, iter)
+
            end if
+
+           ! Exit the temperature iteration
            exit
+
         end if
 
      end if
+
+     ! Output files
+     if(main_process()) call output_grid(handle_out, iter, n_lucy_iter)
 
   end do
 

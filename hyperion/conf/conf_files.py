@@ -17,6 +17,7 @@ class OutputConf(FreezableClass):
         '''
         self.output_temperature = 'all'
         self.output_density = 'all'
+        self.output_density_diff = 'all'
         self.output_specific_energy_abs = 'all'
         self.output_n_photons = 'all'
         self._freeze()
@@ -24,6 +25,7 @@ class OutputConf(FreezableClass):
     def write(self, group):
         group.attrs['output_temperature'] = self.output_temperature
         group.attrs['output_density'] = self.output_density
+        group.attrs['output_density_diff'] = self.output_density_diff
         group.attrs['output_specific_energy_abs'] = self.output_specific_energy_abs
         group.attrs['output_n_photons'] = self.output_n_photons
 
