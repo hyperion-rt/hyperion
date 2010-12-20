@@ -15,11 +15,11 @@ class OutputConf(FreezableClass):
         '''
         Initialize default output configuration
         '''
-        self.output_temperature = 'all'
-        self.output_density = 'all'
-        self.output_density_diff = 'all'
-        self.output_specific_energy_abs = 'all'
-        self.output_n_photons = 'all'
+        self.output_temperature = 'last'
+        self.output_density = 'none'
+        self.output_density_diff = 'none'
+        self.output_specific_energy_abs = 'last'
+        self.output_n_photons = 'last'
         self._freeze()
 
     def write(self, group):
