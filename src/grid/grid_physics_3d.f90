@@ -101,64 +101,105 @@ contains
     integer(hid_t),intent(in) :: group
     logical,intent(in) :: use_mrw, use_pda
 
-    if(main_process()) write(*,'(" [grid_physics] reading density grid")')
-
-    ! Read in all density arrays
+    ! Density
     allocate(density(geo%n_cells, n_dust))
+
+    ! Temperature
     allocate(temperature(geo%n_cells, n_dust))
 
     if(n_dust > 0) then
 
+       if(main_process()) write(*,'(" [grid_physics] reading density grid")')
+
+       ! Read in density
        call read_grid_4d(group, 'Density', density, geo)
+
+       ! Check number of dust types for density
        if(size(density, 2).ne.n_dust) call error("setup_grid","density array has wrong number of dust types")
 
+       ! If density difference is requested, save original density
        if(output_density_diff.ne.'none') then
           allocate(density_original(geo%n_cells, n_dust))
           density_original = density
        end if
 
        if(grid_exists(group, 'Temperature')) then
+
           if(main_process()) write(*,'(" [grid_physics] reading temperature grid")')
+
+          ! Read in temperature
           call read_grid_4d(group, 'Temperature', temperature, geo)
+
+          ! Check number of dust types for temperature
           if(size(temperature, 2).ne.n_dust) call error("setup_grid","temperature array has wrong number of dust types")
+
+          ! Check if any of the temperatures are below the minimum requested
+          if(any(temperature < minimum_temperature)) then
+             call warn("setup_grid_physics", "some of the initial temeperatures provided are below the requested minimum (resetting)")
+             where(temperature < minimum_temperature)
+                temperature = minimum_temperature
+             end where
+          end if
+
        else
+
+          ! Set all temperatures to minimum requested
           temperature = minimum_temperature
+
        end if
 
     end if
 
+    ! Column density for peeling-off
     allocate(tmp_column_density(n_dust))
 
+    ! Specific energy absorbed
     allocate(specific_energy_abs(geo%n_cells, n_dust))
     specific_energy_abs = 0._dp
 
+    ! Total energy absorbed
     allocate(energy_abs_tot(n_dust))
     energy_abs_tot = 0._dp
 
+    ! Emissivity index and interpolation fraction
     allocate(jnu_var_id(geo%n_cells, n_dust))
     allocate(jnu_var_frac(geo%n_cells, n_dust))
 
+    ! Modified Random Walk
     if(use_mrw) then
+
+       ! Rosseland extinction coefficient
        allocate(alpha_rosseland(geo%n_cells))
        alpha_rosseland = 0._dp
+
     end if
 
+    ! Partial Diffusion Approximation 
     if(use_pda) then
+
+       ! Number of photons in each cell
        allocate(n_photons(geo%n_cells))
-       allocate(last_photon_id(geo%n_cells))
        n_photons = 0
+
+       ! ID of last photon in each cell
+       allocate(last_photon_id(geo%n_cells))
        last_photon_id = 0
+
+       ! Rosseland optical depth across each cell (in 3 directions)
        allocate(dtau_rosseland(geo%n_cells, 3))
        dtau_rosseland = 0._dp
+
+       ! Mean temperature across dust types
        allocate(temperature_mean(geo%n_cells))
        temperature_mean = minimum_temperature
+
     end if
 
+    ! Create PDF for absorption in each cell
     call allocate_pdf(absorption,n_dust)
 
-    if(grid_exists(group, 'Temperature')) then
-       call update_energy_abs() ! Update energy absorbed in each cell to match temperature
-    end if
+    ! Update energy absorbed in each cell to match temperature
+    call update_energy_abs()
 
   end subroutine setup_grid_physics
 
