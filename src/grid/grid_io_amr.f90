@@ -1,4 +1,4 @@
-! MD5 of template: 5eb8f79665a237db77deb18f58d27ade
+! MD5 of template: ab0adb9aef73b67809c81a9876b78f6f
 module grid_io
 
   use core_lib
@@ -77,7 +77,7 @@ contains
     type(grid_geometry_desc),intent(in),target :: geo
     integer(idp), allocatable :: array4d(:,:,:,:)
     character(len=100) :: full_path
-    integer :: ilevel, ifab
+    integer :: ilevel, ifab, idust
     type(level_desc), pointer :: level
     type(fab_desc), pointer :: fab
 
@@ -89,6 +89,11 @@ contains
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
+          do idust=1,size(array4d, 4)
+             where(fab%goto_fab > 0)
+                array4d(:,:,:,idust) = 0
+             end where
+          end do
           array(fab%start_id:fab%start_id + fab%n_cells - 1, :) = reshape(array4d, (/fab%n_cells, size(array, 2)/))
        end do
     end do
@@ -117,6 +122,9 @@ contains
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
+          where(fab%goto_fab > 0)
+             array3d(:,:,:) = 0
+          end where
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
        end do
     end do
@@ -212,7 +220,7 @@ contains
     type(grid_geometry_desc),intent(in),target :: geo
     integer, allocatable :: array4d(:,:,:,:)
     character(len=100) :: full_path
-    integer :: ilevel, ifab
+    integer :: ilevel, ifab, idust
     type(level_desc), pointer :: level
     type(fab_desc), pointer :: fab
 
@@ -224,6 +232,11 @@ contains
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
+          do idust=1,size(array4d, 4)
+             where(fab%goto_fab > 0)
+                array4d(:,:,:,idust) = 0
+             end where
+          end do
           array(fab%start_id:fab%start_id + fab%n_cells - 1, :) = reshape(array4d, (/fab%n_cells, size(array, 2)/))
        end do
     end do
@@ -252,6 +265,9 @@ contains
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
+          where(fab%goto_fab > 0)
+             array3d(:,:,:) = 0
+          end where
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
        end do
     end do
@@ -347,7 +363,7 @@ contains
     type(grid_geometry_desc),intent(in),target :: geo
     real(dp), allocatable :: array4d(:,:,:,:)
     character(len=100) :: full_path
-    integer :: ilevel, ifab
+    integer :: ilevel, ifab, idust
     type(level_desc), pointer :: level
     type(fab_desc), pointer :: fab
 
@@ -359,6 +375,11 @@ contains
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
+          do idust=1,size(array4d, 4)
+             where(fab%goto_fab > 0)
+                array4d(:,:,:,idust) = 0
+             end where
+          end do
           array(fab%start_id:fab%start_id + fab%n_cells - 1, :) = reshape(array4d, (/fab%n_cells, size(array, 2)/))
        end do
     end do
@@ -387,6 +408,9 @@ contains
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
+          where(fab%goto_fab > 0)
+             array3d(:,:,:) = 0
+          end where
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
        end do
     end do
@@ -482,7 +506,7 @@ contains
     type(grid_geometry_desc),intent(in),target :: geo
     real(sp), allocatable :: array4d(:,:,:,:)
     character(len=100) :: full_path
-    integer :: ilevel, ifab
+    integer :: ilevel, ifab, idust
     type(level_desc), pointer :: level
     type(fab_desc), pointer :: fab
 
@@ -494,6 +518,11 @@ contains
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
+          do idust=1,size(array4d, 4)
+             where(fab%goto_fab > 0)
+                array4d(:,:,:,idust) = 0
+             end where
+          end do
           array(fab%start_id:fab%start_id + fab%n_cells - 1, :) = reshape(array4d, (/fab%n_cells, size(array, 2)/))
        end do
     end do
@@ -522,6 +551,9 @@ contains
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
+          where(fab%goto_fab > 0)
+             array3d(:,:,:) = 0
+          end where
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
        end do
     end do
