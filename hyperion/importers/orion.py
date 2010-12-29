@@ -77,6 +77,12 @@ class Fab(object):
         array = np.fromstring(f.read()[:n_bytes * fabsize],
                               dtype='%sf%i' % (endian, n_bytes))
         self.data = array.reshape(self.nx, self.ny, self.nz)
+        
+        print np.mean(self.data)
+        print self.data.shape
+        print self.xmin, self.xmax
+        print self.ymin, self.ymax
+        print self.zmin, self.zmax
 
 
 class Level(object):

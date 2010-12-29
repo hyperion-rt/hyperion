@@ -135,7 +135,8 @@ contains
 
           ! Check if any of the temperatures are below the minimum requested
           if(any(temperature < minimum_temperature)) then
-             call warn("setup_grid_physics", "some of the initial temeperatures provided are below the requested minimum (resetting)")
+             call warn("setup_grid_physics", &
+                  &    "some of the initial temeperatures provided are below the requested minimum (resetting)")
              where(temperature < minimum_temperature)
                 temperature = minimum_temperature
              end where
@@ -389,13 +390,14 @@ contains
 
     value = quantile(reshape(difference_ratio(specific_energy_abs_prev, specific_energy_abs), (/geo%n_cells*n_dust/)), &
          &           convergence_percentile, &
-         &           mask=reshape(specific_energy_abs_prev > 0 .and. specific_energy_abs > 0. .and. specific_energy_abs_prev .ne. specific_energy_abs, (/geo%n_cells*n_dust/)))
+         &           mask=reshape(specific_energy_abs_prev > 0 .and. specific_energy_abs > 0. .and. &
+         &                        specific_energy_abs_prev .ne. specific_energy_abs, (/geo%n_cells*n_dust/)))
 
     write(*,*)
     write(*,'("     -> Percentile: ",F7.2)') convergence_percentile
-    write(*,'("     -> Value @ Percentile: ",F)') value
+    write(*,'("     -> Value @ Percentile: ",F10.2)') value
     if(value_prev < huge(1._dp)) then
-       write(*,'("     -> Difference from previous iteration: ", F)') difference_ratio(value_prev, value)
+       write(*,'("     -> Difference from previous iteration: ", F10.2)') difference_ratio(value_prev, value)
     end if
     write(*,*)
 

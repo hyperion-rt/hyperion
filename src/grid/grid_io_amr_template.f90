@@ -161,7 +161,8 @@ contains
           else
              g_fab = hdf5_create_group(g_level, name)
           end if
-          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
+          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
+               &                                     (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
           call hdf5_close_group(g_fab)
        end do
        call hdf5_close_group(g_level)

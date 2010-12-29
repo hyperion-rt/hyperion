@@ -1,4 +1,4 @@
-! MD5 of template: ab0adb9aef73b67809c81a9876b78f6f
+! MD5 of template: 8d1024111d4b7e0026e9b43f1fcf890e
 module grid_io
 
   use core_lib
@@ -161,7 +161,8 @@ contains
           else
              g_fab = hdf5_create_group(g_level, name)
           end if
-          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
+          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
+               &                                     (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
           call hdf5_close_group(g_fab)
        end do
        call hdf5_close_group(g_level)
@@ -304,7 +305,8 @@ contains
           else
              g_fab = hdf5_create_group(g_level, name)
           end if
-          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
+          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
+               &                                     (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
           call hdf5_close_group(g_fab)
        end do
        call hdf5_close_group(g_level)
@@ -447,7 +449,8 @@ contains
           else
              g_fab = hdf5_create_group(g_level, name)
           end if
-          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
+          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
+               &                                     (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
           call hdf5_close_group(g_fab)
        end do
        call hdf5_close_group(g_level)
@@ -590,7 +593,8 @@ contains
           else
              g_fab = hdf5_create_group(g_level, name)
           end if
-          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
+          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
+               &                                     (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
           call hdf5_close_group(g_fab)
        end do
        call hdf5_close_group(g_level)

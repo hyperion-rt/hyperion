@@ -166,7 +166,9 @@ contains
          & .and.trim(output_density_diff).ne.'none') &
          & call error("setup_initial","output_density_diff should be one of all/last/none")
 
-    if(output_density_diff .ne. 'none' .and. dust_sublimation_mode==0) call error("setup_initial", "cannot output density difference if there is no dust sublimation")
+    if(output_density_diff .ne. 'none' .and. dust_sublimation_mode==0) then
+       call error("setup_initial", "cannot output density difference if there is no dust sublimation")
+    end if
 
     call hdf5_read_keyword(g_output, '.', 'output_specific_energy_abs', output_specific_energy_abs)
 

@@ -19,6 +19,7 @@ program main
   integer(hid_t) :: handle_in, handle_out, g_peeled, g_binned
   real(dp) :: time1, time2, time
   logical :: converged
+  character(len=30) :: datetime
 
   call hdf5_set_compression(.true.)
 
@@ -36,7 +37,8 @@ program main
 
   if(main_process()) then
      write(*,*) repeat('-',60)
-     write(*,'(" Started on ",A)') trim(now())
+     datetime = now()
+     write(*,'(" Started on ",A)') trim(datetime)
      write(*,'(" Input:  ", A)') trim(input_file)
      write(*,'(" Output: ", A)') trim(output_file)
      write(*,*) repeat('-',60)
@@ -164,7 +166,8 @@ program main
   if(main_process()) then
      write(*,*) repeat('-',60)
      write(*,'(" Total CPU time elapsed: ",F16.2)') time
-     write(*,'(" Ended on ",A)') trim(now())
+     datetime = now()
+     write(*,'(" Ended on ",A)') trim(datetime)
      write(*,*) repeat('-',60)
   end if
 
