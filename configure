@@ -1696,7 +1696,7 @@ then
   debug_nag='-C=all -gline -nan'
   debug_ifort='-check all -warn all -warn nodec -warn interfaces -gen_interfaces -traceback -g'
   debug_gfortran='-Wall -fbounds-check -g'
-  debug_pgi=''
+  debug_pgi='-Mbounds -traceback -g'
 else
   debug_nag=''
   debug_ifort=''
