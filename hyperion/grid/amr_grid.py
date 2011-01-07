@@ -1,6 +1,22 @@
 import numpy as np
 
+from hyperion.util.meshgrid import meshgrid_nd
 from hyperion.util.functions import FreezableClass
+
+
+def zero_density(grid, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, zmin=np.inf, zmax=np.inf):
+    for ilevel,level in enumerate(grid.levels):
+        for ifab,fab in enumerate(level.fabs):
+            wx = np.linspace(fab.xmin, fab.xmax, fab.nx + 1)
+            wy = np.linspace(fab.ymin, fab.ymax, fab.ny + 1)
+            wz = np.linspace(fab.zmin, fab.zmax, fab.nz + 1)
+            x = 0.5 * (wx[:-1] + wx[1:])
+            y = 0.5 * (wy[:-1] + wy[1:])
+            z = 0.5 * (wz[:-1] + wz[1:])
+            gx, gy, gz = meshgrid_nd(x, y, z)
+            reset = (gx < xmin) | (gx > xmax) | (gy < ymin) | (gy > ymax) | (gz < zmin) | (gz > zmax)
+            fab.data[reset] = 0.
+    return grid
 
 
 class AMRGrid(FreezableClass):
@@ -57,4 +73,3 @@ class AMRGrid(FreezableClass):
                 g_fab.attrs['n1'] = fab.nx
                 g_fab.attrs['n2'] = fab.ny
                 g_fab.attrs['n3'] = fab.nz
-
