@@ -6,7 +6,7 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as mpl
 
 from hyperion.model import Model
-from hyperion.densities import FlaredDisk, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
+from hyperion.densities import FlaredDisk, AlphaDisk, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
 from hyperion.util.interpolate import interp1d_fast_loglog
 from hyperion.util.constants import pi, sigma, c
 from hyperion.sources import SphericalSource, SpotSource
@@ -130,6 +130,12 @@ class AnalyticalYSOModel(Model):
     def add_flared_disk(self):
         "Add a flared disk to the geometry"
         disk = FlaredDisk()
+        self.disks.append(disk)
+        return disk
+        
+    def add_alpha_disk(self):
+        "Add an alpha disk to the geometry"
+        disk = AlphaDisk()
         disk.star = self.star
         self.disks.append(disk)
         return disk
