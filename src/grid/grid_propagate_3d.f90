@@ -327,11 +327,15 @@ contains
 
   end subroutine grid_integrate_noenergy
 
-  subroutine grid_escape_tau(p,tmax,tau,killed)
+  subroutine grid_escape_tau(p_orig,tmax,tau,killed)
 
     implicit none
 
-    type(photon),value :: p
+    ! This should work with recent compilers but not widespread yet
+    ! type(photon),value :: p
+    type(photon),intent(in) :: p_orig
+    type(photon) :: p
+
     real(dp),intent(in) :: tmax
     real(dp),intent(out) :: tau
     logical,intent(out) :: killed
@@ -343,6 +347,8 @@ contains
     integer :: source_id
 
     real(dp),parameter :: tau_max = 20._dp
+
+    p = p_orig
 
     killed = .false.
 
@@ -428,11 +434,15 @@ contains
 
   end subroutine grid_escape_tau
 
-  subroutine grid_escape_column_density(p,tmax,column_density,killed)
+  subroutine grid_escape_column_density(p_orig,tmax,column_density,killed)
 
     implicit none
 
-    type(photon),value :: p
+    ! This should work with recent compilers but not widespread yet
+    ! type(photon),value :: p
+    type(photon),intent(in) :: p_orig
+    type(photon) :: p
+
     real(dp),intent(in) :: tmax
     real(dp),intent(out) :: column_density(:)
     logical,intent(out) :: killed
@@ -442,6 +452,8 @@ contains
     logical :: radial, finished
     real(dp) :: xi
     integer :: source_id
+
+    p = p_orig
 
     killed = .false.
 
