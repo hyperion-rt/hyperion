@@ -473,38 +473,42 @@ class Model(FreezableClass):
         else:
             scale = 1.
 
+        seds = g['seds'].value
+        if uncertainties:
+            seds_unc = g['seds_unc'].value
+
+        # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
+        if seds.dtype == np.float32:
+            seds = seds.astype(np.float64)
+        if uncertainties and seds_unc.dtype == np.float32:
+            seds_unc = seds_unc.astype(np.float64)
+
         # Select correct origin component
         if component == 'total':
-            flux = np.sum(g['seds'][:, :, :, :, :], axis=1)
+            flux = np.sum(seds[:, :, :, :, :], axis=1)
             if uncertainties:
-                unc = np.sqrt(np.sum(g['seds_unc'][:, :, :, :, :] ** 2, axis=1))
+                unc = np.sqrt(np.sum(seds_unc[:, :, :, :, :] ** 2, axis=1))
         elif component == 'source_emit':
-            flux = g['seds'][:, 0, :, :, :]
+            flux = seds[:, 0, :, :, :]
             if uncertainties:
-                unc = g['seds_unc'][:, 0, :, :, :]
+                unc = seds_unc[:, 0, :, :, :]
         elif component == 'dust_emit':
-            flux = g['seds'][:, 1, :, :, :]
+            flux = seds[:, 1, :, :, :]
             if uncertainties:
-                unc = g['seds_unc'][:, 1, :, :, :]
+                unc = seds_unc[:, 1, :, :, :]
         elif component == 'source_scat':
-            flux = g['seds'][:, 2, :, :, :]
+            flux = seds[:, 2, :, :, :]
             if uncertainties:
-                unc = g['seds_unc'][:, 2, :, :, :]
+                unc = seds_unc[:, 2, :, :, :]
         elif component == 'dust_scat':
-            flux = g['seds'][:, 3, :, :, :]
+            flux = seds[:, 3, :, :, :]
             if uncertainties:
-                unc = g['seds_unc'][:, 3, :, :, :]
+                unc = seds_unc[:, 3, :, :, :]
         else:
             raise Exception("Unknown component: %s" % component)
 
         # Close HDF5 file
         f.close()
-
-        # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
-        if flux.dtype == np.float32:
-            flux = flux.astype(np.float64)
-        if uncertainties and unc.dtype == np.float32:
-            unc = unc.astype(np.float64)
 
         # Select correct Stokes component
         if stokes in STOKESD:
@@ -828,27 +832,37 @@ class Model(FreezableClass):
         else:
             scale = 1.
 
+        image = g['image'].value
+        if uncertainties:
+            image_unc = g['image_unc'].value
+
+        # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
+        if image.dtype == np.float32:
+            image = image.astype(np.float64)
+        if uncertainties and image_unc.dtype == np.float32:
+            image_unc = image_unc.astype(np.float64)
+
         # Select correct origin component
         if component == 'total':
-            flux = np.sum(g['image'][:, :, :, :, :], axis=1)
+            flux = np.sum(image[:, :, :, :, :], axis=1)
             if uncertainties:
-                unc = np.sqrt(np.sum(g['image_unc'][:, :, :, :, :] ** 2, axis=1))
+                unc = np.sqrt(np.sum(image_unc[:, :, :, :, :] ** 2, axis=1))
         elif component == 'source_emit':
-            flux = g['image'][:, 0, :, :, :, :]
+            flux = image[:, 0, :, :, :, :]
             if uncertainties:
-                unc = g['image_unc'][:, 0, :, :, :, :]
+                unc = image_unc[:, 0, :, :, :, :]
         elif component == 'dust_emit':
-            flux = g['image'][:, 1, :, :, :, :]
+            flux = image[:, 1, :, :, :, :]
             if uncertainties:
-                unc = g['image_unc'][:, 1, :, :, :, :]
+                unc = image_unc[:, 1, :, :, :, :]
         elif component == 'source_scat':
-            flux = g['image'][:, 2, :, :, :, :]
+            flux = image[:, 2, :, :, :, :]
             if uncertainties:
-                unc = g['image_unc'][:, 2, :, :, :, :]
+                unc = image_unc[:, 2, :, :, :, :]
         elif component == 'dust_scat':
-            flux = g['image'][:, 3, :, :, :, :]
+            flux = image[:, 3, :, :, :, :]
             if uncertainties:
-                unc = g['image_unc'][:, 3, :, :, :, :]
+                unc = image_unc[:, 3, :, :, :, :]
         else:
             raise Exception("Unknown component: %s" % component)
 
