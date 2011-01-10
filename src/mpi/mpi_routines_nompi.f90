@@ -6,10 +6,13 @@ module mpi_routines
 
   implicit none
   save
+  
+  real(dp) :: time_curr
 
 contains
 
   subroutine mp_reset_first()
+    time_curr = 0._dp
   end subroutine mp_reset_first
 
   subroutine mp_n_photons(n_photons_tot, n_photons_curr, n_photons_chunk, n_photons)
@@ -24,9 +27,8 @@ contains
     ! Number of photons to compute this time
     integer(idp),intent(out) :: n_photons
 
-    real(dp) :: time1=-1.
+    real(dp),save :: time1 = -1._dp
     real(dp) :: time2
-    real(dp),save :: time_curr = 0._dp
 
     if(time1 < 0._dp) call cpu_time(time1)
     call cpu_time(time2)
