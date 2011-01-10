@@ -500,6 +500,12 @@ class Model(FreezableClass):
         # Close HDF5 file
         f.close()
 
+        # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
+        if flux.dtype == np.float32:
+            flux = flux.astype(np.float64)
+        if uncertainties and unc.dtype == np.float32:
+            unc = unc.astype(np.float64)
+
         # Select correct Stokes component
         if stokes in STOKESD:
             y = flux[STOKESD[stokes], :, :, :] * scale
@@ -512,7 +518,7 @@ class Model(FreezableClass):
                 f = np.vectorize(mc_linear_polarization)
                 y, yerr = f(flux[0, :, :, :], unc[0, :, :, :], flux[1, :, :, :], unc[1, :, :, :], flux[2, :, :, :], unc[2, :, :, :])
             else:
-                y = np.sqrt((flux[1, :, :, :, :] ** 2 + flux[2, :, :, :, :] ** 2) / flux[0, :, :, :, :] ** 2)
+                y = np.sqrt((flux[1, :, :, :] ** 2 + flux[2, :, :, :] ** 2) / flux[0, :, :, :] ** 2)
                 y[np.isnan(y)] = 0.
                 yerr = np.zeros(y.shape)
         elif stokes == 'circpol':
@@ -520,7 +526,7 @@ class Model(FreezableClass):
                 f = np.vectorize(mc_circular_polarization)
                 y, yerr = f(flux[0, :, :, :], unc[0, :, :, :], flux[3, :, :, :], unc[3, :, :, :])
             else:
-                y = np.abs(flux[3, :, :, :, :] / flux[0, :, :, :, :])
+                y = np.abs(flux[3, :, :, :] / flux[0, :, :, :])
                 y[np.isnan(y)] = 0.
                 yerr = np.zeros(y.shape)
         else:
