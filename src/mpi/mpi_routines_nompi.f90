@@ -6,12 +6,13 @@ module mpi_routines
 
   implicit none
   save
-  
+
   real(dp) :: time_curr
 
 contains
 
   subroutine mp_reset_first()
+    implicit none
     time_curr = 0._dp
   end subroutine mp_reset_first
 
