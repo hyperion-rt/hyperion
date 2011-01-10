@@ -6,6 +6,22 @@ AC_INIT(rt,version-1.0)
 
 AC_ARG_ENABLE(profiling, [  --enable-profiling      Enables the profiling flags])
 AC_ARG_ENABLE(debug, [  --enable-debug          Enables the full debugging flags])
+AC_ARG_ENABLE(static, [  --enable-static         Enables static compilation])
+
+# Static flags
+
+if test "$enable_static" == "yes"
+then
+  static_ifort='--static'
+  static_nag=''
+  static_gfortran=''
+  static_pgi='-Bstatic'
+else
+  static_ifort=''
+  static_nag=''
+  static_gfortran=''
+  static_pgi=''
+fi
 
 # Profiling flags
 
@@ -37,10 +53,10 @@ else
   debug_pgi=''
 fi
 
-extra_nag="-Isrc/modules -mdir src/modules -f2003 -colour -ieee=full $debug_nag $profiling_nag"
-extra_ifort="-module src/modules -heap-arrays -L/usr/lib -lgcc -error-limit 1 $debug_ifort $profiling_ifort"
-extra_gfortran="-Jsrc/modules -Isrc/modules -g -ffree-line-length-none $debug_gfortran $profiling_gfortran"
-extra_pgi=""
+extra_nag="-Isrc/modules -mdir src/modules -f2003 -colour -ieee=full $debug_nag $profiling_nag $static_nag"
+extra_ifort="-module src/modules -heap-arrays -L/usr/lib -lgcc -error-limit 1 $debug_ifort $profiling_ifort $static_ifort"
+extra_gfortran="-Jsrc/modules -Isrc/modules -g -ffree-line-length-none $debug_gfortran $profiling_gfortran $static_gfortran"
+extra_pgi="$debug_pgi $profiling_pgi $static_pgi"
 
 # SERIAL CODE
 
