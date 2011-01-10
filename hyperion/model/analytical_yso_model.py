@@ -230,6 +230,26 @@ class AnalyticalYSOModel(Model):
         fig.savefig(filename)
 
     # COORDINATE GRID
+    
+    def radial_range(self):
+        
+        if len(self.disks) == 0 and len(self.envelopes) == 0:
+            rmin = self.star.radius
+        else:
+            rmin_values = [disk.rmin for disk in self.disks] \
+                        + [envelope.rmin for envelope in self.envelopes]
+            if self.ambient is not None:
+                rmin_values += [self.ambient.rmin]
+            rmin = _min_none(*rmin_values)
+
+        rmax_values = [self.star.radius]
+        rmax_values += [disk.rmax for disk in self.disks] \
+                     + [envelope.rmax for envelope in self.envelopes]
+        if self.ambient is not None:
+            rmax_values += [self.ambient.rmax]
+        rmax = _max_none(*rmax_values)
+
+        return rmin, rmax
 
     def set_cylindrical_polar_grid_auto(self, n_w, n_z, n_phi, zmax=None):
         self._set_polar_grid_auto(n_w, n_z, n_phi, 'cylindrical', zmax=zmax)
