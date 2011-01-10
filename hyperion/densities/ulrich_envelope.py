@@ -239,11 +239,23 @@ class UlrichEnvelope(FreezableClass):
 
         rho = np.zeros(r.shape)
 
-        rho[gamma_1 < 1.] = self.rho_0 \
-                          * (np.log((np.sqrt(gamma_1) + 1) / (1. - np.sqrt(gamma_1))) \
-                          -  np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0))))
+        if gamma_0 < 1.:
 
-        rho[gamma_1 >= 1.] = np.inf
+            rho[gamma_1 < 1.] = self.rho_0 \
+                              * (np.log((np.sqrt(gamma_1) + 1) / (1. - np.sqrt(gamma_1))) \
+                              -  np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0))))
+
+            rho[gamma_1 >= 1.] = np.inf
+
+        elif gamma_0 > 1:
+
+            rho[:] = self.rho_0 \
+                   * (np.log((np.sqrt(2. * gamma_1 - 1.) - 1.) / (np.sqrt(2. * gamma_1 - 1.) + 1.)) \
+                   -  np.log((np.sqrt(2. * gamma_0 - 1.) - 1.) / (np.sqrt(2. * gamma_0 - 1.) + 1.)))
+
+        else:
+
+            rho[:] = np.inf
 
         return rho
 
@@ -267,7 +279,7 @@ class UlrichEnvelope(FreezableClass):
                 warnings.warn("Overriding value of mdot with value derived from rho_0")
                 del self.mdot
             object.__setattr__(self, attribute, value)
-        elif attribute == 'dust' and value is not None:
+        elif attribute == 'dust' and value is not None and type(value) is str:
             FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
         else:
             FreezableClass.__setattr__(self, attribute, value)

@@ -56,7 +56,7 @@ class AmbientMedium(FreezableClass):
         return rho
 
     def __setattr__(self, attribute, value):
-        if attribute == 'dust' and value is not None:
+        if attribute == 'dust' and value is not None and type(value) is str:
             FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
         else:
             FreezableClass.__setattr__(self, attribute, value)

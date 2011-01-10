@@ -257,7 +257,7 @@ class AlphaDisk(FlaredDisk):
                 warnings.warn("Overriding value of mdot with value derived from lvisc")
                 del self.mdot
             object.__setattr__(self, attribute, value)
-        elif attribute == 'dust' and value is not None:
+        elif attribute == 'dust' and value is not None and type(value) is str:
             FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
         else:
             FreezableClass.__setattr__(self, attribute, value)

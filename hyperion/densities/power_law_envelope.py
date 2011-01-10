@@ -12,7 +12,7 @@ from hyperion.dust import SphericalDust
 
 class PowerLawEnvelope(FreezableClass):
 
-    def __init__(self, mass=None, rho_0=None, rmin=None, rmax=None, power=None, star=None):
+    def __init__(self, mass=None, rho_0=None, r_0=None, rmin=None, rmax=None, power=None, star=None):
         '''
         Initialize a power-law envelope instance. The required parameters are:
 
@@ -27,6 +27,7 @@ class PowerLawEnvelope(FreezableClass):
         self.rmin = rmin
         self.rmax = rmax
         self.power = power
+        self.r_0 = r_0
 
         # Envelope Infall
         if mass is not None and rho_0 is not None:
@@ -52,6 +53,8 @@ class PowerLawEnvelope(FreezableClass):
 
     def _check_all_set(self):
 
+        if self.r_0 is None:
+            raise Exception("r_0 is not set")
         if self.rmin is None:
             raise Exception("rmin is not set")
         if self.rmax is None:
@@ -82,7 +85,7 @@ class PowerLawEnvelope(FreezableClass):
             warnings.warn("Ignoring power-law envelope, since rmax < rmin")
             return np.zeros(grid.shape)
 
-        rho = self.rho_0 * grid.gr ** self.power
+        rho = self.rho_0 * (grid.gr/self.r_0) ** self.power
 
         rho[grid.gr < self.rmin] = 0.
         rho[grid.gr > self.rmax] = 0.
@@ -111,7 +114,7 @@ class PowerLawEnvelope(FreezableClass):
             warnings.warn("Ignoring power-law envelope, since rmax < rmin")
             return np.zeros(r.shape)
 
-        return self.rho_0 * integrate_powerlaw(self.rmin, r.clip(self.rmin, self.rmax), self.power)
+        return self.rho_0 * integrate_powerlaw(self.rmin, r.clip(self.rmin, self.rmax), self.power) / self.r_0 ** self.power
 
     def add_bipolar_cavity(self):
         if self.cavity is not None:
@@ -132,7 +135,7 @@ class PowerLawEnvelope(FreezableClass):
                 warnings.warn("Overriding value of mass with value derived from rho_0")
                 del self.mass
             object.__setattr__(self, attribute, value)
-        elif attribute == 'dust' and value is not None:
+        elif attribute == 'dust' and value is not None and type(value) is str:
             FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
         else:
             FreezableClass.__setattr__(self, attribute, value)
@@ -143,14 +146,14 @@ class PowerLawEnvelope(FreezableClass):
             self._check_all_set()
             alpha = 3. + self.power
             rho_0 = self.mass * alpha / \
-                (4. * pi * (self.rmax ** alpha - self.rmin ** alpha))
+                (4. * pi * (self.rmax ** alpha - self.rmin ** alpha) / self.r_0 ** self.power)
             return rho_0
 
         if attribute == 'mass':
             self._check_all_set()
             alpha = 3. + self.power
             mass = self.rho_0 / alpha * \
-                (4. * pi * (self.rmax ** alpha - self.rmin ** alpha))
+                (4. * pi * (self.rmax ** alpha - self.rmin ** alpha)  / self.r_0 ** self.power)
             return mass
 
         raise AttributeError(attribute)
