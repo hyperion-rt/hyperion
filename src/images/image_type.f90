@@ -576,23 +576,23 @@ contains
 
        select case(img%io_type)
        case(sp)
-          call hdf5_write_array(group, 'image', real(cube6d, sp))
-          if(img%uncertainties) call hdf5_write_array(group, 'image_unc', real(cube6de, sp))
+          call hdf5_write_array(group, 'images', real(cube6d, sp))
+          if(img%uncertainties) call hdf5_write_array(group, 'images_unc', real(cube6de, sp))
        case(dp)
-          call hdf5_write_array(group, 'image', real(cube6d, dp))
-          if(img%uncertainties) call hdf5_write_array(group, 'image_unc', real(cube6de, dp))
+          call hdf5_write_array(group, 'images', real(cube6d, dp))
+          if(img%uncertainties) call hdf5_write_array(group, 'images_unc', real(cube6de, dp))
        case default
           call error("image_write","unexpected value of img%io_type (should be sp or dp)")
        end select
 
        if(.not.img%use_exact_nu) then
-          call hdf5_write_keyword(group, 'image','numin',img%nu_min)
-          call hdf5_write_keyword(group, 'image','numax',img%nu_max)
+          call hdf5_write_keyword(group, 'images','numin',img%nu_min)
+          call hdf5_write_keyword(group, 'images','numax',img%nu_max)
        end if
-       call hdf5_write_keyword(group, 'image','xmin',img%x_min)
-       call hdf5_write_keyword(group, 'image','xmax',img%x_max)
-       call hdf5_write_keyword(group, 'image','ymin',img%y_min)
-       call hdf5_write_keyword(group, 'image','ymax',img%y_max)
+       call hdf5_write_keyword(group, 'images','xmin',img%x_min)
+       call hdf5_write_keyword(group, 'images','xmax',img%x_max)
+       call hdf5_write_keyword(group, 'images','ymin',img%y_min)
+       call hdf5_write_keyword(group, 'images','ymax',img%y_max)
 
     end if
 

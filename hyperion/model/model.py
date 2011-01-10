@@ -813,15 +813,15 @@ class Model(FreezableClass):
             g = f['Binned']
 
         # Check that uncertainties are present if requested
-        if uncertainties and not 'image_unc' in g:
+        if uncertainties and not 'images_unc' in g:
             raise Exception("Uncertainties requested but not present in file")
 
         # Set up wavelength space
-        if 'numin' in g['image'].attrs:
-            numin = g['image'].attrs['numin']
-            numax = g['image'].attrs['numax']
+        if 'numin' in g['images'].attrs:
+            numin = g['images'].attrs['numin']
+            numax = g['images'].attrs['numax']
             wavmin, wavmax = c / numax * 1.e4, c / numin * 1.e4
-            wav = np.logspace(np.log10(wavmax), np.log10(wavmin), g['image'].shape[3] * 2 + 1)[1::2]
+            wav = np.logspace(np.log10(wavmax), np.log10(wavmin), g['images'].shape[3] * 2 + 1)[1::2]
         else:
             nu = g['frequencies']['nu']
             wav = c / nu * 1.e4
@@ -832,37 +832,37 @@ class Model(FreezableClass):
         else:
             scale = 1.
 
-        image = g['image'].value
+        images = g['images'].value
         if uncertainties:
-            image_unc = g['image_unc'].value
+            images_unc = g['images_unc'].value
 
         # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
-        if image.dtype == np.float32:
-            image = image.astype(np.float64)
-        if uncertainties and image_unc.dtype == np.float32:
-            image_unc = image_unc.astype(np.float64)
+        if images.dtype == np.float32:
+            images = images.astype(np.float64)
+        if uncertainties and images_unc.dtype == np.float32:
+            images_unc = images_unc.astype(np.float64)
 
         # Select correct origin component
         if component == 'total':
-            flux = np.sum(image[:, :, :, :, :], axis=1)
+            flux = np.sum(images[:, :, :, :, :], axis=1)
             if uncertainties:
-                unc = np.sqrt(np.sum(image_unc[:, :, :, :, :] ** 2, axis=1))
+                unc = np.sqrt(np.sum(images_unc[:, :, :, :, :] ** 2, axis=1))
         elif component == 'source_emit':
-            flux = image[:, 0, :, :, :, :]
+            flux = images[:, 0, :, :, :, :]
             if uncertainties:
-                unc = image_unc[:, 0, :, :, :, :]
+                unc = images_unc[:, 0, :, :, :, :]
         elif component == 'dust_emit':
-            flux = image[:, 1, :, :, :, :]
+            flux = images[:, 1, :, :, :, :]
             if uncertainties:
-                unc = image_unc[:, 1, :, :, :, :]
+                unc = images_unc[:, 1, :, :, :, :]
         elif component == 'source_scat':
-            flux = image[:, 2, :, :, :, :]
+            flux = images[:, 2, :, :, :, :]
             if uncertainties:
-                unc = image_unc[:, 2, :, :, :, :]
+                unc = images_unc[:, 2, :, :, :, :]
         elif component == 'dust_scat':
-            flux = image[:, 3, :, :, :, :]
+            flux = images[:, 3, :, :, :, :]
             if uncertainties:
-                unc = image_unc[:, 3, :, :, :, :]
+                unc = images_unc[:, 3, :, :, :, :]
         else:
             raise Exception("Unknown component: %s" % component)
 
