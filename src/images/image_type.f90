@@ -490,7 +490,7 @@ contains
        cube5d(:,:,:,:,4) = img%sed%v
 
        if(img%uncertainties) then
-          where(img%sedn > 0)
+          where(img%sedn > 1)
              cube5de(:,:,:,:,1) = sqrt((img%sed2%i + (img%sed%i)**2 / img%sedn) / (img%sedn - 1)) * sqrt(img%sedn)
              cube5de(:,:,:,:,2) = sqrt((img%sed2%q + (img%sed%q)**2 / img%sedn) / (img%sedn - 1)) * sqrt(img%sedn)
              cube5de(:,:,:,:,3) = sqrt((img%sed2%u + (img%sed%u)**2 / img%sedn) / (img%sedn - 1)) * sqrt(img%sedn)
@@ -551,7 +551,7 @@ contains
        cube6d(:,:,:,:,:,4) = img%img%v
 
        if(img%uncertainties) then
-          where(img%imgn > 0)
+          where(img%imgn > 1)
              cube6de(:,:,:,:,:,1) = sqrt((img%img2%i + (img%img%i)**2 / img%imgn) / (img%imgn - 1)) * sqrt(img%imgn)
              cube6de(:,:,:,:,:,2) = sqrt((img%img2%q + (img%img%q)**2 / img%imgn) / (img%imgn - 1)) * sqrt(img%imgn)
              cube6de(:,:,:,:,:,3) = sqrt((img%img2%u + (img%img%u)**2 / img%imgn) / (img%imgn - 1)) * sqrt(img%imgn)
