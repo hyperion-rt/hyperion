@@ -512,7 +512,7 @@ contains
        P2 = interp2d(d%mu,d%nu,d%P2,a_scat%cost,nu)
        P3 = interp2d(d%mu,d%nu,d%P3,a_scat%cost,nu)
        P4 = interp2d(d%mu,d%nu,d%P4,a_scat%cost,nu)
-       call scatter_stokes(s,a,a_scat,P1,P2,P3,P4)
+       call scatter_stokes(s,a,a_scat,a_req,P1,P2,P3,P4)
     end if
     a = a_req
   end subroutine dust_scatter_peeloff
@@ -528,6 +528,7 @@ contains
     real(dp) :: nu
 
     type(angle3d_dp) :: a_scat
+    type(angle3d_dp) :: a_final
 
     real(dp) :: P1,P2,P3,P4,norm
 
@@ -604,7 +605,10 @@ contains
 
     end if
 
-    call scatter_stokes(s,a,a_scat,P1,P2,P3,P4) 
+    call rotate_angle3d(a_scat,a,a_final)
+
+    ! Compute how the stokes parameters are changed by the interaction
+    call scatter_stokes(s,a,a_scat,a_final,P1,P2,P3,P4) 
 
     norm = 1._dp / S%I
 
@@ -650,33 +654,76 @@ contains
   !
   !#############################################################################
 
-  subroutine scatter_stokes(s,a,a_scat,P1,P2,P3,P4)
+  subroutine scatter_stokes(s,a_coord,a_scat,a_final,P1,P2,P3,P4)
 
     implicit none
 
-    type(angle3d_dp),intent(inout) :: a           ! The photon direction angle
+    type(angle3d_dp),intent(in)    :: a_coord     ! The photon direction angle
     type(angle3d_dp),intent(in)    :: a_scat      ! The photon scattering angle
+    type(angle3d_dp),intent(in)    :: a_final     ! The final photon direction
     type(stokes_dp),intent(inout)  :: s           ! The Stokes parameters of the photon
     real(dp)                       :: P1,P2,P3,P4 ! 4-element matrix elements
 
+    ! Spherical trigonometry
+    real(dp) :: cos_a,sin_a
+    real(dp) :: cos_b,sin_b
+    real(dp) :: cos_c,sin_c
+    real(dp) :: cos_big_a,sin_big_a
+    real(dp) :: cos_big_b,sin_big_b
+    real(dp) :: cos_big_c,sin_big_c
+
     ! Local
-    type(angle3d_dp) :: a_original ! Original direction
-    type(angle3d_dp) :: a_final    ! Final direction
     real(dp) :: cos_i2,cos_2_i2
     real(dp) :: sin_i2,sin_2_i2
     real(dp) :: cos_2_alpha,cos_2_beta
     real(dp) :: sin_2_alpha,sin_2_beta
     real(dp) :: RLS1,RLS2,RLS3,RLS4
 
-    a_original = a
+    ! The general spherical trigonometry routines in type_angle3d have served
+    ! us well this far, but now we need to compute a specific angle in the
+    ! spherical triangle. The meaning of the angles is as follows:
 
-    call rotate_angle3d(a_scat,a_original,a_final,cos_big_a=cos_i2,sin_big_a=sin_i2)
+    ! a =   old theta angle (initial direction angle)
+    ! b = local theta angle (scattering or emission angle)
+    ! c =   new theta angle (final direction angle)
 
-    cos_2_alpha = 1._dp - 2._dp * a_scat%sinp * a_scat%sinp
-    sin_2_alpha =       - 2._dp * a_scat%sinp * a_scat%cosp
+    ! A = what we want to calculate here
+    ! B = new phi - old phi
+    ! C = local phi angle (scattering or emission angle)
+
+    cos_a = a_coord%cost
+    sin_a = a_coord%sint
+
+    cos_c = a_final%cost
+    sin_c = a_final%sint
+
+    cos_big_b = a_coord%cosp * a_final%cosp + a_coord%sinp * a_final%sinp
+    sin_big_b = a_coord%sinp * a_final%cosp - a_coord%cosp * a_final%sinp
+
+    if(a_scat%sinp < 0._dp) then
+       cos_big_C = + a_scat%cosp
+       sin_big_C = - a_scat%sinp
+    else
+       cos_big_C = + a_scat%cosp
+       sin_big_C = + a_scat%sinp
+    end if
+
+    if(sin_big_c < 10. * tiny(1._dp) .and. sin_c < 10. * tiny(1._dp)) then
+       cos_big_a = - cos_big_b * cos_big_c
+       sin_big_a = sqrt(1._8 - cos_big_a * cos_big_a)
+    else
+       cos_big_a = - cos_big_b * cos_big_c + sin_big_b * sin_big_c * cos_a
+       sin_big_a = + sin_big_c * sin_a / sin_c
+    end if
+
+    cos_i2 = cos_big_a
+    sin_i2 = sin_big_a
 
     cos_2_i2    = 1._dp - 2._dp * sin_i2 * sin_i2
     sin_2_i2    =         2._dp * sin_i2 * cos_i2
+
+    cos_2_alpha = 1._dp - 2._dp * a_scat%sinp * a_scat%sinp
+    sin_2_alpha =       - 2._dp * a_scat%sinp * a_scat%cosp
 
     if(a_scat%sinp < 0.) then
        cos_2_beta =  cos_2_i2
@@ -695,8 +742,6 @@ contains
     S%Q = + cos_2_beta * RLS2 + sin_2_beta * RLS3
     S%U = - sin_2_beta * RLS2 + cos_2_beta * RLS3
     S%V = RLS4
-
-    a = a_final
 
   end subroutine scatter_stokes
 
