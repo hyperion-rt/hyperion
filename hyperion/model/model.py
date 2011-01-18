@@ -243,7 +243,7 @@ class Model(FreezableClass):
         if self.binned_output is not None:
             self.binned_output.write(g_binned.create_group('Group 1'))
 
-        self._write_monochromatic(root, compression=compression, dtype=physics_dtype)
+        self._write_monochromatic(root, compression=compression)
         self.conf.run.write(root)
         self.conf.output.write(g_output)
 
