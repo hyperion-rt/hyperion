@@ -48,11 +48,25 @@ class AMRGrid(FreezableClass):
                 else:
                     g_fab = g_level.create_group("Fab %i" % (ifab + 1))
                 if dust:
+
+                    # First check that the dimensions are ok
+                    for a in array:
+                        if a.levels[ilevel].fabs[ifab].data.shape != (fab.nz,fab.ny,fab.nx):
+                            raise Exception("Fab dimensions inconsistent with physical array dimensions")
+
+                    # Restack list of arrays as single array
                     shape = list(array[0].levels[ilevel].fabs[ifab].data.shape)
                     shape.insert(0, len(array))
                     fab_array = np.vstack([a.levels[ilevel].fabs[ifab].data for a in array]).reshape(*shape)
+
                 else:
+
+                    # First check that the dimensions are ok
+                    if array.levels[ilevel].fabs[ifab].data.shape != (fab.nz,fab.ny,fab.nx):
+                        raise Exception("Fab dimensions inconsistent with physical array dimensions")
+
                     fab_array = array.levels[ilevel].fabs[ifab].data
+
                 g_fab.create_dataset(name, data=fab_array, compression=compression, dtype=physics_dtype)
 
     def write_geometry(self, group, overwrite=True, volumes=False, areas=False, widths=False, compression=True, geo_dtype=float, wall_dtype=float):
