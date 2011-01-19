@@ -1,4 +1,4 @@
-! MD5 of template: 9fc47298ca95ea184e2bf1e085a3d38a
+! MD5 of template: e05aa265faa3e7ecf447dffe0784d249
 module grid_io
 
   use core_lib
@@ -90,7 +90,7 @@ contains
           call hdf5_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
           do idust=1,size(array4d, 4)
-             where(reshape(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3),(/fab%n3,fab%n2,fab%n1/),(/3,2,1/)) > 0)
+             where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
                 array4d(:,:,:,idust) = 0
              end where
           end do
@@ -122,7 +122,7 @@ contains
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
-          where(reshape(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3),(/fab%n3,fab%n2,fab%n1/),(/3,2,1/)) > 0)
+          where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
              array3d(:,:,:) = 0
           end where
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
@@ -234,7 +234,7 @@ contains
           call hdf5_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
           do idust=1,size(array4d, 4)
-             where(reshape(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3),(/fab%n3,fab%n2,fab%n1/),(/3,2,1/)) > 0)
+             where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
                 array4d(:,:,:,idust) = 0
              end where
           end do
@@ -266,7 +266,7 @@ contains
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
-          where(reshape(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3),(/fab%n3,fab%n2,fab%n1/),(/3,2,1/)) > 0)
+          where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
              array3d(:,:,:) = 0
           end where
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
@@ -378,7 +378,7 @@ contains
           call hdf5_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
           do idust=1,size(array4d, 4)
-             where(reshape(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3),(/fab%n3,fab%n2,fab%n1/),(/3,2,1/)) > 0)
+             where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
                 array4d(:,:,:,idust) = 0
              end where
           end do
@@ -410,7 +410,7 @@ contains
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
-          where(reshape(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3),(/fab%n3,fab%n2,fab%n1/),(/3,2,1/)) > 0)
+          where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
              array3d(:,:,:) = 0
           end where
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
@@ -522,7 +522,7 @@ contains
           call hdf5_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
           do idust=1,size(array4d, 4)
-             where(reshape(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3),(/fab%n3,fab%n2,fab%n1/),(/3,2,1/)) > 0)
+             where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
                 array4d(:,:,:,idust) = 0
              end where
           end do
@@ -554,7 +554,7 @@ contains
           full_path = trim(full_path)//trim(path)
           call hdf5_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
-          where(reshape(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3),(/fab%n3,fab%n2,fab%n1/),(/3,2,1/)) > 0)
+          where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
              array3d(:,:,:) = 0
           end where
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
