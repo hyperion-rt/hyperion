@@ -232,7 +232,11 @@ contains
     make_peeled_images = n_peeled > 0
 
     if(make_peeled_images) then
-       call peeled_images_setup(g_peeled, group_names, use_raytracing, use_exact_nu, frequencies)
+       if(allocated(frequencies)) then
+          call peeled_images_setup(g_peeled, group_names, use_raytracing, use_exact_nu, frequencies)
+       else
+          call peeled_images_setup(g_peeled, group_names, use_raytracing, use_exact_nu)
+       end if
     end if
 
   end subroutine setup_final_iteration
