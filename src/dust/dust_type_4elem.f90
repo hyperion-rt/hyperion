@@ -608,7 +608,7 @@ contains
     call rotate_angle3d(a_scat,a,a_final)
 
     ! Compute how the stokes parameters are changed by the interaction
-    call scatter_stokes(s,a,a_scat,a_final,P1,P2,P3,P4) 
+    call scatter_stokes(s,a,a_scat,a_final,P1,P2,P3,P4)
 
     norm = 1._dp / S%I
 
@@ -694,25 +694,23 @@ contains
     cos_a = a_coord%cost
     sin_a = a_coord%sint
 
+    cos_b = a_scat%cost
+    sin_b = a_scat%sint
+
     cos_c = a_final%cost
     sin_c = a_final%sint
 
     cos_big_b = a_coord%cosp * a_final%cosp + a_coord%sinp * a_final%sinp
     sin_big_b = a_coord%sinp * a_final%cosp - a_coord%cosp * a_final%sinp
 
-    if(a_scat%sinp < 0._dp) then
-       cos_big_C = + a_scat%cosp
-       sin_big_C = - a_scat%sinp
-    else
-       cos_big_C = + a_scat%cosp
-       sin_big_C = + a_scat%sinp
-    end if
+    cos_big_C = a_scat%cosp
+    sin_big_C = abs(a_scat%sinp)
 
     if(sin_big_c < 10. * tiny(1._dp) .and. sin_c < 10. * tiny(1._dp)) then
        cos_big_a = - cos_big_b * cos_big_c
        sin_big_a = sqrt(1._8 - cos_big_a * cos_big_a)
     else
-       cos_big_a = - cos_big_b * cos_big_c + sin_big_b * sin_big_c * cos_a
+       cos_big_a = (cos_a - cos_b * cos_c) / (sin_b * sin_c)
        sin_big_a = + sin_big_c * sin_a / sin_c
     end if
 
