@@ -77,8 +77,6 @@ class Fab(object):
         array = np.fromstring(f.read()[:n_bytes * fabsize],
                               dtype='%sf%i' % (endian, n_bytes))
         self.data = array.reshape(self.nz, self.ny, self.nx)
-        
-        print self.data.shape
 
 
 class Level(object):
