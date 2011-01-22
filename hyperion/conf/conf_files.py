@@ -326,6 +326,8 @@ class RunConf(FreezableClass):
         temperature : float, optional
             The dust sublimation temperature, in K
         '''
+        if mode not in ['no', 'fast', 'slow', 'cap']:
+            raise Exception("mode should be one of no/fast/slow/cap")
         self.dust_sublimation_mode = mode
         self.dust_sublimation_temperature = temperature
 
