@@ -569,7 +569,7 @@ contains
 
     if(inu==-1) then
 
-       ! Frequency is out of bounds, use isotropic scattering 
+       ! Frequency is out of bounds, use isotropic scattering
        P1 = 1._dp
        P2 = 0._dp
        P3 = 0._dp
