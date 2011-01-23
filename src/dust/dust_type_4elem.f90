@@ -605,10 +605,14 @@ contains
 
     end if
 
+    ! Find new photon direction
     call rotate_angle3d(a_scat,a,a_final)
 
     ! Compute how the stokes parameters are changed by the interaction
-    call scatter_stokes(s,a,a_scat,a_final,P1,P2,P3,P4)
+    call scatter_stokes(s,a,a_scat,a_final,P1,P2,P3,P4) 
+
+    ! Change photon direction
+    a = a_final
 
     norm = 1._dp / S%I
 
@@ -662,7 +666,7 @@ contains
     type(angle3d_dp),intent(in)    :: a_scat      ! The photon scattering angle
     type(angle3d_dp),intent(in)    :: a_final     ! The final photon direction
     type(stokes_dp),intent(inout)  :: s           ! The Stokes parameters of the photon
-    real(dp)                       :: P1,P2,P3,P4 ! 4-element matrix elements
+    real(dp),intent(in)            :: P1,P2,P3,P4 ! 4-element matrix elements
 
     ! Spherical trigonometry
     real(dp) :: cos_a,sin_a
