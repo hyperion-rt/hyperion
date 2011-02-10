@@ -35,15 +35,6 @@ program main
   ! Start up multi-processing if needed
   call mp_initialize()
 
-  if(main_process()) then
-     write(*,*) repeat('-',60)
-     datetime = now()
-     write(*,'(" Started on ",A)') trim(datetime)
-     write(*,'(" Input:  ", A)') trim(input_file)
-     write(*,'(" Output: ", A)') trim(output_file)
-     write(*,*) repeat('-',60)
-  end if
-
   ! SETUP
 
   call check_file_exists(input_file)
@@ -52,6 +43,16 @@ program main
   ! Prepare output directory
   if(main_process()) then
      handle_out = hdf5_open_new(output_file)
+  end if
+
+  if(main_process()) then
+     write(*,*) repeat('-',60)
+     datetime = now()
+     write(*,'(" Started on ",A)') trim(datetime)
+     call hdf5_write_keyword(handle_out, '/', 'date_started', trim(datetime))
+     write(*,'(" Input:  ", A)') trim(input_file)
+     write(*,'(" Output: ", A)') trim(output_file)
+     write(*,*) repeat('-',60)
   end if
 
   ! Wait for all threads
@@ -166,8 +167,10 @@ program main
   if(main_process()) then
      write(*,*) repeat('-',60)
      write(*,'(" Total CPU time elapsed: ",F16.2)') time
+     call hdf5_write_keyword(handle_out, '/', 'cpu_time', time)
      datetime = now()
      write(*,'(" Ended on ",A)') trim(datetime)
+     call hdf5_write_keyword(handle_out, '/', 'date_ended', trim(datetime))
      write(*,*) repeat('-',60)
   end if
 
