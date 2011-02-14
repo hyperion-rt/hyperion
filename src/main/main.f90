@@ -113,6 +113,15 @@ program main
 
   end do
 
+  if(main_process()) then
+     call hdf5_write_keyword(handle_out, '/', 'converged', converged)
+     if(converged) then
+        call hdf5_write_keyword(handle_out, '/', 'iterations', iter)
+     else
+        call hdf5_write_keyword(handle_out, '/', 'iterations', n_lucy_iter)
+     end if
+  end if
+
   ! Set up image-related variables
   call setup_final_iteration(handle_in)
 
