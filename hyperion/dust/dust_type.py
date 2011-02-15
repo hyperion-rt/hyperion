@@ -14,6 +14,13 @@ from hyperion.util.functions import FreezableClass
 import matplotlib.pyplot as mpl
 
 
+def henyey_greenstein(mu, g, p_lin_max):
+    P1 = (1.-g*g)/(1.+g*g-2.*g*mu)**1.5
+    P2 = - p_lin_max * P1 * (1.-mu*mu)/(1.+mu*mu)
+    P3 = P1 * 2. * mu/(1.+mu*mu)
+    P4 = 0.
+    return P1, P2, P3, P4
+
 class SphericalDust(FreezableClass):
 
     def __init__(self, *args):
@@ -574,15 +581,7 @@ class SimpleSphericalDust(SphericalDust):
         self._initialize_scattering_matrix()
 
         for i in range(0, self.n_mu):
-
-            g = dustfile['g']
-            p_lin_max = dustfile['p_lin_max']
-
-            self.P1[:, i] = (1.-g*g)/(1.+g*g-2.*g*self.mu[i])**1.5
-            self.P2[:, i] = - p_lin_max * self.P1[:, i] * (1.-self.mu[i]*self.mu[i])/(1.+self.mu[i]*self.mu[i])
-            self.P3[:, i] = self.P1[:, i] * 2. * self.mu[i]/(1.+self.mu[i]*self.mu[i])
-            self.P4[:, i] = 0.
-
+            self.P1[:, i], self.P2[:, i], self.P3[:,i], self.P4[:,i] = henyey_greenstein(self.mu[i], self.g, dustfile['p_lin_max'])
 
 class CoatsphSingle(SphericalDust):
 
