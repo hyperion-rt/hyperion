@@ -237,7 +237,7 @@ contains
 
     real(dp),parameter :: tol = 1.e-8
 
-    source_distance = huge(1._dp)
+    source_distance = infinity_dp()
 
     select case(src%type)
     case(2,3)

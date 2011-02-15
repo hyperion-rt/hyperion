@@ -195,7 +195,7 @@ contains
     integer,intent(out) :: nearest_id
 
     nearest_id = 0
-    nearest_distance = huge(1._dp)
+    nearest_distance = infinity_dp()
 
     if(.not.any_intersect) return
 
