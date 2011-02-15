@@ -102,6 +102,13 @@ class PowerLawEnvelope(FreezableClass):
 
         return rho
 
+    def outermost_radius(self, rho):
+        '''
+        Find the outermost radius at which the density of the envelope has
+        fallen to `rho`.
+        '''
+        return self.r_0 * (rho / self.rho_0) ** (1. / self.power)
+
     def midplane_cumulative_density(self, r):
         '''
         Find the cumulative column density as a function of radius from the

@@ -222,6 +222,18 @@ class UlrichEnvelope(FreezableClass):
 
         return rho
 
+    def outermost_radius(self, rho):
+        '''
+        Find the outermost radius at which the density of the envelope has
+        fallen to `rho`.
+        '''
+        a, b, c, d = 2., -5., 4., -1 - (self.rho_0 / rho)**2
+        p = (3 * a * c - b ** 2) / (3. * a ** 2)
+        q = (2. * b ** 3 - 9. * a * b * c + 27. * a ** 2. * d) / (27 * a ** 3.)
+        x1, _, _ = cubic(np.array([p]), np.array([q]))
+        x1 = x1.real[0] - b / 3. / a
+        return x1 * self.rc
+        
     def midplane_cumulative_density(self, r):
         '''
         Find the cumulative column density as a function of radius from the
