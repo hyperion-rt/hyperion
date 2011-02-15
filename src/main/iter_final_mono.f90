@@ -137,7 +137,7 @@ contains
 
                 if(p%energy > 0._dp) then
 
-                   ! Scale energy - CHECK THIS
+                   ! Scale energy
                    p%energy = p%energy * energy_abs_tot(p%dust_id) / dble(n_photons_thermal) * dble(n_dust)
 
                    ! Peeloff the photons from the dust
