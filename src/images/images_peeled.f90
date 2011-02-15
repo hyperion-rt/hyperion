@@ -113,10 +113,10 @@ contains
        if(inside_observer(ig)) then
           dr = p%r-r_peeloff(ig)
           d = sqrt(dr.dot.dr)
-          tmax = d
+          tmax = d - d_min(ig)
        else
           d = -(v_req.dot.p%r)
-          tmax = huge(1._dp)
+          tmax = - d_min(ig) + d
        end if
 
        if(d < d_min(ig) .or. d > d_max(ig)) return
@@ -206,6 +206,10 @@ contains
        end if
        call hdf5_read_keyword(handle, paths(ig), 'd_min', d_min(ig))
        call hdf5_read_keyword(handle, paths(ig), 'd_max', d_max(ig))
+       if(inside_observer(ig).and.d_min(ig) < 0.) then
+          call warn("d_min cannot be < 0. for inside observer - resetting to 0", "peeled_images_setup")
+          d_min(ig) = 0.
+       end if
        n_peeled = n_peeled + n_view
     end do
 
