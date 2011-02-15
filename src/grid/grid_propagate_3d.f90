@@ -407,6 +407,7 @@ contains
        end if
 
        p%r = p%r + tmin * p%v
+       t_current = t_current + tmin
 
        do id=1,n_dust
           tau = tau + p%current_chi(id) * density(p%icell%ic, id) * tmin
@@ -512,6 +513,7 @@ contains
        end if
 
        p%r = p%r + tmin * p%v
+       t_current = t_current + tmin
        column_density = column_density + density(p%icell%ic, :) * tmin
 
        if(finished) return
