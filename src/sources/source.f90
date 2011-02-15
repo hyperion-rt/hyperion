@@ -153,7 +153,6 @@ contains
     call prepare_photon(p)
     call update_optconsts(p)
 
-    ! TEMPORARY
     p%emiss_type = s(p%source_id)%freq_type
 
     photon_counter = photon_counter + 1
