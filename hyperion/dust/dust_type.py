@@ -473,7 +473,7 @@ class SphericalDust(FreezableClass):
         self.filename = filename
 
         # Read in dust table set
-        ts = atpy.TableSet(filename)
+        ts = atpy.TableSet(filename, verbose=False)
 
         # Check version and type
         if ts.keywords['version'] <> 1:
