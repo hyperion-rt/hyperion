@@ -7,6 +7,7 @@ import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 
+import hyperion
 from hyperion.util.functions import delete_file, random_id
 from hyperion.grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OcTreeGrid, AMRGrid
 from hyperion.sources import PointSource, SphericalSource, ExternalSphericalSource, MapSource
@@ -214,6 +215,7 @@ class Model(FreezableClass):
         # Create output file
         delete_file('%s.rtin' % self.name)
         root = h5py.File('%s.rtin' % self.name, 'w')
+        root.attrs['python_version'] = hyperion.__version__
 
         g_dust = root.create_group('Dust')
         g_grid = root.create_group('Grid')

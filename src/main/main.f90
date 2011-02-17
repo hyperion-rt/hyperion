@@ -20,6 +20,8 @@ program main
   real(dp) :: time1, time2, time
   logical :: converged
   character(len=30) :: datetime
+  
+  character(len=5), parameter :: version = '0.7.1'
 
   call hdf5_set_compression(.true.)
 
@@ -43,6 +45,7 @@ program main
   ! Prepare output directory
   if(main_process()) then
      handle_out = hdf5_open_new(output_file)
+     call hdf5_write_keyword(handle_out, '/', 'fortran_version', version)
   end if
 
   if(main_process()) then
