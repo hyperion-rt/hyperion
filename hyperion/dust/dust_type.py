@@ -476,9 +476,9 @@ class SphericalDust(FreezableClass):
         ts = atpy.TableSet(filename, verbose=False)
 
         # Check version and type
-        if ts.keywords['version'] <> 1:
+        if ts.keywords['version'] != 1:
             raise Exception("Version should be 1")
-        if ts.keywords['type'] <> 1:
+        if ts.keywords['type'] != 1:
             raise Exception("Type should be 1")
         if 'asciimd5' in ts.keywords:
             self.md5 = ts.keywords['asciimd5']
@@ -759,13 +759,13 @@ class MieXDust(SphericalDust):
 
         for j in range(self.n_wav):
 
-            if float(f11.readline()) <> self.wav[j]:
+            if float(f11.readline()) != self.wav[j]:
                 raise Exception("Incorrect wavelength in f11")
-            if float(f12.readline()) <> self.wav[j]:
+            if float(f12.readline()) != self.wav[j]:
                 raise Exception("Incorrect wavelength in f12")
-            if float(f33.readline()) <> self.wav[j]:
+            if float(f33.readline()) != self.wav[j]:
                 raise Exception("Incorrect wavelength in f33")
-            if float(f34.readline()) <> self.wav[j]:
+            if float(f34.readline()) != self.wav[j]:
                 raise Exception("Incorrect wavelength in f34")
 
             for i in range(self.n_mu):

@@ -43,14 +43,14 @@ def prepare_emiss(files, values, emissvar, filename_out):
         data = np.loadtxt(filename, dtype=[('wav', float), ('jnu', float)])
 
         # Check the file length
-        if len(data) <> n_lines:
+        if len(data) != n_lines:
             raise Exception("Files with different lengths")
 
         # Save wavelength grid
         if i == 0:
             wav = data['wav']
         else:
-            if np.any(data['wav'] <> wav):
+            if np.any(data['wav'] != wav):
                 raise Exception("Wavelength grids do not agree")
 
         # Save the emissivity
