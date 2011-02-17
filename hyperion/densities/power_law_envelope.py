@@ -92,7 +92,7 @@ class PowerLawEnvelope(FreezableClass):
 
         norm = self.mass / np.sum(rho * grid.volumes)
 
-        print "Normalization factor for envelope mass (should ideally be 1): %5.2f" % norm
+        print "Normalization factor for envelope mass: %5.2f" % norm
 
         rho = rho * norm
 

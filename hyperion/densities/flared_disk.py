@@ -136,7 +136,7 @@ class FlaredDisk(FreezableClass):
 
         norm = self.mass / np.sum(rho * grid.volumes)
 
-        print "Normalization factor for disk mass (should ideally be 1): %16.10f" % norm
+        print "Normalization factor for disk mass: %5.2f" % norm
 
         # Normalize to total disk mass
         rho = rho * norm
