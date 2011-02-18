@@ -64,6 +64,8 @@ module type_photon
 
      integer :: inu
 
+     integer :: face_id = 0
+
   end type photon
 
 end module type_photon

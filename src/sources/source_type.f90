@@ -54,6 +54,12 @@ module type_source
      real(dp) :: radius
      logical  :: limb_darkening
 
+     ! Range for external box source
+     real(dp) :: xmin, xmax
+     real(dp) :: ymin, ymax
+     real(dp) :: zmin, zmax
+     type(pdf_discrete_dp) :: face
+
      ! Luminosity grid
      type(pdf_discrete_dp) :: luminosity_map
 
@@ -84,6 +90,7 @@ contains
     integer :: i
     character(len=255),allocatable :: spot_names(:)
     integer(hid_t) :: g_spot
+    real(dp) :: dx, dy, dz
 
     call hdf5_read_keyword(group, '.', 'type', type)
 
@@ -181,6 +188,28 @@ contains
        call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
 
        if(s%freq_type == 3) call error("source_read", "External spherical source cannot have LTE spectrum")
+
+    case('extern_box')
+
+       s%type = 6
+
+       call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call hdf5_read_keyword(group, '.', 'xmin', s%xmin)
+       call hdf5_read_keyword(group, '.', 'xmax', s%xmax)
+       call hdf5_read_keyword(group, '.', 'ymin', s%ymin)
+       call hdf5_read_keyword(group, '.', 'ymax', s%ymax)
+       call hdf5_read_keyword(group, '.', 'zmin', s%zmin)
+       call hdf5_read_keyword(group, '.', 'zmax', s%zmax)
+
+       dx = s%xmax - s%xmin
+       dy = s%ymax - s%ymin
+       dz = s%zmax - s%zmin
+
+       call set_pdf(s%face, (/dy*dz, dy*dz, dz*dx, dz*dx, dx*dy, dx*dy/))
+
+       call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
+
+       if(s%freq_type == 3) call error("source_read", "External box source cannot have LTE spectrum")
 
     case default
        call error("source_read", "unknown type in source list: "//trim(type))
@@ -331,6 +360,8 @@ contains
        call emit_from_map(src,p,icell)
     case(5)
        call emit_from_extern_sph(src,p)
+    case(6)
+       call emit_from_extern_box(src,p)
     end select
 
     if(present(nu)) then
@@ -409,6 +440,8 @@ contains
        call emit_from_sphere_peeloff(src,p,a_req)
     case(5)
        call emit_from_extern_sph_peeloff(src,p,a_req)
+    case(6)
+       call emit_from_extern_box_peeloff(src,p,a_req)
     case default
        stop "Should not be here, all other source types are isotropic"
     end select
@@ -664,6 +697,119 @@ contains
     p%s = stokes_dp(4._dp*mu, 0._dp, 0._dp, 0._dp)
     p%a = a_req
   end subroutine emit_from_extern_sph_peeloff
+
+  subroutine emit_from_extern_box(src,p)
+
+    implicit none
+
+    ! --- Input --- !
+
+    type(source),intent(in) :: src
+    ! the source to emit from
+
+    ! --- Output --- !
+
+    type(photon),intent(inout) :: p
+    ! the emitted photon
+
+    ! --- Local variables --- !
+
+    type(angle3d_dp)  :: a_coord,a_local
+
+    ! temporary position
+
+    real(dp) :: phi_local
+
+    real(dp) :: xi
+
+    integer :: face
+
+    ! Sample a side to emit from
+    face = sample_pdf(src%face)
+
+    ! Sample direction vector
+
+    call random_uni(phi_local,zero,twopi)
+    a_local%cosp = cos(phi_local)
+    a_local%sinp = sin(phi_local)
+
+    call random(xi) 
+    a_local%cost = sqrt(xi)
+    a_local%sint = sqrt( 1._dp - a_local%cost * a_local%cost )
+
+    ! Set position and rotation angle depending on the face
+
+    select case(face)
+    case(1)
+       p%r%x = src%xmin
+       call random_uni(p%r%y, src%ymin, src%ymax)
+       call random_uni(p%r%z, src%zmin, src%zmax)
+       a_coord = angle3d_dp(0._dp, 1._dp, 1._dp, 0._dp)
+    case(2)
+       p%r%x = src%xmax
+       call random_uni(p%r%y, src%ymin, src%ymax)
+       call random_uni(p%r%z, src%zmin, src%zmax)
+       a_coord = angle3d_dp(0._dp, -1._dp, 1._dp, 0._dp)
+    case(3)
+       call random_uni(p%r%x, src%xmin, src%xmax)
+       p%r%y = src%ymin
+       call random_uni(p%r%z, src%zmin, src%zmax)
+       a_coord = angle3d_dp(0._dp, 1._dp, 0._dp, 1._dp)
+    case(4)
+       call random_uni(p%r%x, src%xmin, src%xmax)
+       p%r%y = src%ymax
+       call random_uni(p%r%z, src%zmin, src%zmax)
+       a_coord = angle3d_dp(0._dp, -1._dp, 0._dp, 1._dp)
+    case(5)
+       call random_uni(p%r%x, src%xmin, src%xmax)
+       call random_uni(p%r%y, src%ymin, src%ymax)
+       p%r%z = src%zmin
+       a_coord = angle3d_dp(1._dp, 0._dp, 1._dp, 0._dp)
+    case(6)
+       call random_uni(p%r%x, src%xmin, src%xmax)
+       call random_uni(p%r%y, src%ymin, src%ymax)
+       p%r%z = src%zmax
+       a_coord = angle3d_dp(-1._dp, 0._dp, 1._dp, 0._dp)
+    end select
+
+    call rotate_angle3d(a_local,a_coord,p%a)
+
+    ! Set Stokes vector
+    p%s = stokes_dp(1._dp,0._dp,0._dp,0._dp)
+
+    ! --- Set positon to stellar position + vector to surface --- !
+
+    p%last_isotropic = .false.
+
+    p%face_id = face
+
+  end subroutine emit_from_extern_box
+
+  subroutine emit_from_extern_box_peeloff(src,p,a_req)
+    implicit none
+    type(source),intent(in) :: src ! the source to emit from
+    type(photon),intent(inout) :: p ! the photon to peeloff
+    type(angle3d_dp),intent(in) :: a_req ! requested angle
+    real(dp) :: mu
+    type(angle3d_dp) :: a_coord
+    select case(p%face_id)
+    case(1)
+       a_coord = angle3d_dp(0._dp, 1._dp, 1._dp, 0._dp)
+    case(2)
+       a_coord = angle3d_dp(0._dp, -1._dp, 1._dp, 0._dp)
+    case(3)
+       a_coord = angle3d_dp(0._dp, 1._dp, 0._dp, 1._dp)
+    case(4)
+       a_coord = angle3d_dp(0._dp, -1._dp, 0._dp, 1._dp)
+    case(5)
+       a_coord = angle3d_dp(1._dp, 0._dp, 1._dp, 0._dp)
+    case(6)
+       a_coord = angle3d_dp(-1._dp, 0._dp, 1._dp, 0._dp)
+    end select
+    mu = max(a_req .dot. a_coord, 0._dp)
+    p%s = stokes_dp(4._dp*mu, 0._dp, 0._dp, 0._dp)
+    p%a = a_req
+  end subroutine emit_from_extern_box_peeloff
 
   !**********************************************************************!
   ! ran_mu_limb(a,b) : sample random mu with limb darkening a*mu^2+b*mu

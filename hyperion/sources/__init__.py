@@ -1,1 +1,1 @@
-from source import Source, PointSource, SphericalSource, SpotSource, ExternalSphericalSource, MapSource
+from source import Source, PointSource, SphericalSource, SpotSource, ExternalSphericalSource, ExternalBoxSource, MapSource

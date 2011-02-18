@@ -306,7 +306,7 @@ contains
     integer :: ig
     ig = group_id(ip)
     if(inside_observer(ig)) then
-       call vector3d_to_angle3d(r-r_peeloff(ig), a_peeloff)
+       call vector3d_to_angle3d(r_peeloff(ig)-r, a_peeloff)
     else
        a_peeloff = a_peeloff_fixed(ip)
     end if

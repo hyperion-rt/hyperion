@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import hyperion
 from hyperion.util.functions import delete_file, random_id
 from hyperion.grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OcTreeGrid, AMRGrid
-from hyperion.sources import PointSource, SphericalSource, ExternalSphericalSource, MapSource
+from hyperion.sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource
 from hyperion.conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from hyperion.util.constants import c, pi
 from hyperion.util.functions import FreezableClass
@@ -297,6 +297,11 @@ class Model(FreezableClass):
 
     def add_external_spherical_source(self, *args, **kwargs):
         source = ExternalSphericalSource(*args, **kwargs)
+        self.add_source(source)
+        return source
+
+    def add_external_box_source(self, *args, **kwargs):
+        source = ExternalBoxSource(*args, **kwargs)
         self.add_source(source)
         return source
 

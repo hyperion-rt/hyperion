@@ -217,6 +217,37 @@ class ExternalSphericalSource(Source):
         self.write_spectrum(g)
 
 
+class ExternalBoxSource(Source):
+
+    def __init__(self, luminosity=None, bounds=None,
+                 spectrum=None, temperature=None, name=None):
+        self.bounds = bounds
+        Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
+                        temperature=temperature, name=name)
+
+    def check_all_set(self):
+        if self.bounds is None:
+            raise Exception("bounds are not set")
+        if self.has_lte_spectrum():
+            raise Exception("External spherical source cannot have LTE spectrum")
+        Source.check_all_set(self)
+
+    def write(self, handle, name):
+
+        self.check_all_set()
+
+        g = handle.create_group(name)
+        g.attrs['type'] = 'extern_box'
+        g.attrs['luminosity'] = self.luminosity
+        g.attrs['xmin'] = self.bounds[0][0]
+        g.attrs['xmax'] = self.bounds[0][1]
+        g.attrs['ymin'] = self.bounds[1][0]
+        g.attrs['ymax'] = self.bounds[1][1]
+        g.attrs['zmin'] = self.bounds[2][0]
+        g.attrs['zmax'] = self.bounds[2][1]
+        self.write_spectrum(g)
+
+
 class MapSource(Source):
 
     def __init__(self, luminosity=None, map=None, spectrum=None,
