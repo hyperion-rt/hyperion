@@ -57,133 +57,7 @@ module type_dust
 
   end type dust
 
-  public :: interpolate_chi_nu
-  interface interpolate_chi_nu
-     module procedure interpolate_chi_nu_scalar
-     module procedure interpolate_chi_nu_array
-  end interface interpolate_chi_nu
-
-  public :: interpolate_kappa_nu
-  interface interpolate_kappa_nu
-     module procedure interpolate_kappa_nu_scalar
-     module procedure interpolate_kappa_nu_array
-  end interface interpolate_kappa_nu
-
-  public :: interpolate_albedo_nu
-  interface interpolate_albedo_nu
-     module procedure interpolate_albedo_nu_scalar
-     module procedure interpolate_albedo_nu_array
-  end interface interpolate_albedo_nu
-
-  public :: interpolate_eta_nu
-  interface interpolate_eta_nu
-     module procedure interpolate_eta_nu_scalar
-     module procedure interpolate_eta_nu_array
-  end interface interpolate_eta_nu
-
-  public :: interpolate_j_nu
-  interface interpolate_j_nu
-     module procedure interpolate_j_nu_scalar
-     module procedure interpolate_j_nu_array
-  end interface interpolate_j_nu
-
 contains
-
-  function interpolate_chi_nu_scalar(d, nu) result(chi_nu)
-    implicit none
-    type(dust),intent(in) :: d
-    real(dp),intent(in) :: nu
-    real(dp) :: chi_nu
-    chi_nu = interp1d_loglog(d%nu,d%chi_nu,nu)
-  end function interpolate_chi_nu_scalar
-
-  function interpolate_chi_nu_array(d, nu) result(chi_nu)
-    implicit none
-    type(dust),intent(in) :: d
-    real(dp),intent(in) :: nu(:)
-    real(dp) :: chi_nu(size(nu))
-    chi_nu = interp1d_loglog(d%nu,d%chi_nu,nu)
-  end function interpolate_chi_nu_array
-
-  function interpolate_kappa_nu_scalar(d, nu) result(kappa_nu)
-    implicit none
-    type(dust),intent(in) :: d
-    real(dp),intent(in) :: nu
-    real(dp) :: kappa_nu
-    kappa_nu = interp1d_loglog(d%nu,d%kappa_nu,nu)
-  end function interpolate_kappa_nu_scalar
-
-  function interpolate_kappa_nu_array(d, nu) result(kappa_nu)
-    implicit none
-    type(dust),intent(in) :: d
-    real(dp),intent(in) :: nu(:)
-    real(dp) :: kappa_nu(size(nu))
-    kappa_nu = interp1d_loglog(d%nu,d%kappa_nu,nu)
-  end function interpolate_kappa_nu_array
-
-  function interpolate_albedo_nu_scalar(d, nu) result(albedo_nu)
-    implicit none
-    type(dust),intent(in) :: d
-    real(dp),intent(in) :: nu
-    real(dp) :: albedo_nu
-    albedo_nu = interp1d_loglog(d%nu,d%albedo_nu,nu)
-  end function interpolate_albedo_nu_scalar
-
-  function interpolate_albedo_nu_array(d, nu) result(albedo_nu)
-    implicit none
-    type(dust),intent(in) :: d
-    real(dp),intent(in) :: nu(:)
-    real(dp) :: albedo_nu(size(nu))
-    albedo_nu = interp1d_loglog(d%nu,d%albedo_nu,nu)
-  end function interpolate_albedo_nu_array
-
-  function interpolate_eta_nu_scalar(d, nu, jnu_var_id, jnu_var_frac) result(eta_nu)
-    implicit none
-    type(dust),intent(in) :: d
-    real(dp),intent(in) :: nu
-    integer,intent(in) :: jnu_var_id
-    real(dp),intent(in) :: jnu_var_frac
-    real(dp) :: eta_nu, eta_nu1, eta_nu2
-    eta_nu1 = interp1d_loglog(d%e_nu(jnu_var_id)%x,d%e_nu(jnu_var_id)%pdf,nu)
-    eta_nu2 = interp1d_loglog(d%e_nu(jnu_var_id+1)%x,d%e_nu(jnu_var_id+1)%pdf,nu)
-    eta_nu = 10._dp**(log10(eta_nu1) + jnu_var_frac * (log10(eta_nu2) - log10(eta_nu1)))
-  end function interpolate_eta_nu_scalar
-
-  function interpolate_eta_nu_array(d, nu, jnu_var_id, jnu_var_frac) result(eta_nu)
-    implicit none
-    type(dust),intent(in) :: d
-    real(dp),intent(in) :: nu(:)
-    integer,intent(in) :: jnu_var_id
-    real(dp),intent(in) :: jnu_var_frac
-    real(dp) :: eta_nu(size(nu)), eta_nu1(size(nu)), eta_nu2(size(nu))
-    eta_nu1 = interp1d_loglog(d%e_nu(jnu_var_id)%x,d%e_nu(jnu_var_id)%pdf,nu)
-    eta_nu2 = interp1d_loglog(d%e_nu(jnu_var_id+1)%x,d%e_nu(jnu_var_id+1)%pdf,nu)
-    eta_nu = 10._dp**(log10(eta_nu1) + jnu_var_frac * (log10(eta_nu2) - log10(eta_nu1)))
-  end function interpolate_eta_nu_array
-
-  function interpolate_j_nu_scalar(d, nu, jnu_var_id, jnu_var_frac) result(j_nu)
-    implicit none
-    type(dust),intent(in) :: d
-    real(dp),intent(in) :: nu
-    integer,intent(in) :: jnu_var_id
-    real(dp),intent(in) :: jnu_var_frac
-    real(dp) :: j_nu, j_nu1, j_nu2
-    j_nu1 = interp1d_loglog(d%j_nu(jnu_var_id)%x,d%j_nu(jnu_var_id)%pdf,nu)
-    j_nu2 = interp1d_loglog(d%j_nu(jnu_var_id+1)%x,d%j_nu(jnu_var_id+1)%pdf,nu)
-    j_nu = 10._dp**(log10(j_nu1) + jnu_var_frac * (log10(j_nu2) - log10(j_nu1)))
-  end function interpolate_j_nu_scalar
-
-  function interpolate_j_nu_array(d, nu, jnu_var_id, jnu_var_frac) result(j_nu)
-    implicit none
-    type(dust),intent(in) :: d
-    real(dp),intent(in) :: nu(:)
-    integer,intent(in) :: jnu_var_id
-    real(dp),intent(in) :: jnu_var_frac
-    real(dp) :: j_nu(size(nu)), j_nu1(size(nu)), j_nu2(size(nu))
-    j_nu1 = interp1d_loglog(d%j_nu(jnu_var_id)%x,d%j_nu(jnu_var_id)%pdf,nu)
-    j_nu2 = interp1d_loglog(d%j_nu(jnu_var_id+1)%x,d%j_nu(jnu_var_id+1)%pdf,nu)
-    j_nu = 10._dp**(log10(j_nu1) + jnu_var_frac * (log10(j_nu2) - log10(j_nu1)))
-  end function interpolate_j_nu_array
 
   subroutine dust_setup(group,d,beta)
 
@@ -217,9 +91,9 @@ contains
     if(any(d%albedo_nu.ne.d%albedo_nu)) call error("dust_setup","albedo_nu array contains NaN values")
     if(any(d%chi_nu.ne.d%chi_nu)) call error("dust_setup","chi_nu array contains NaN values")    
     if(any(d%P1.ne.d%P1)) call error("dust_setup","P1 matrix contains NaN values")
-    if(any(d%P2.ne.d%P2)) call error("dust_setup","P1 matrix contains NaN values")
-    if(any(d%P3.ne.d%P3)) call error("dust_setup","P1 matrix contains NaN values")
-    if(any(d%P4.ne.d%P4)) call error("dust_setup","P1 matrix contains NaN values")
+    if(any(d%P2.ne.d%P2)) call error("dust_setup","P2 matrix contains NaN values")
+    if(any(d%P3.ne.d%P3)) call error("dust_setup","P3 matrix contains NaN values")
+    if(any(d%P4.ne.d%P4)) call error("dust_setup","P4 matrix contains NaN values")
 
     ! Find number of frequencies
     d%n_nu = size(d%nu)
