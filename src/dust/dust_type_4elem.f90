@@ -14,7 +14,6 @@ module type_dust
   public :: dust_scatter_peeloff
   public :: dust_sample_emit_probability
   public :: dust_sample_emit_frequency
-  public :: dust_sample_emit_frequency_eta_nu
   public :: dust_jnu_var_pos_frac
 
   type dust
@@ -50,7 +49,6 @@ module type_dust
      real(dp),allocatable :: j_nu_var(:)          ! independent emissivity variable
      real(dp),allocatable :: log10_j_nu_var(:)    ! independent emissivity variable [Log10]
      type(pdf_dp),allocatable :: j_nu(:)          ! emissivity
-     type(pdf_dp),allocatable :: e_nu(:)          ! emissivity for diffusion (includes scattering)
 
      ! integer :: beta ! power of the photon energy sampling
      ! real(dp),allocatable  :: a(:) ! Energy of the emitted photon = a*nu^beta * incoming energy
@@ -220,7 +218,6 @@ contains
 
     ! Allocate emissivity PDF
     allocate(d%j_nu(d%n_jnu))
-    allocate(d%e_nu(d%n_jnu))
 
     do i=1,d%n_jnu
        call set_pdf(d%j_nu(i),emiss_nu,emiss_jnu(i,:),log=.true.)
@@ -344,27 +341,6 @@ contains
     nu = 10._dp**nu
 
   end subroutine dust_sample_emit_frequency
-
-  subroutine dust_sample_emit_frequency_eta_nu(d,jnu_var_id,jnu_var_frac,nu)
-
-    implicit none
-
-    type(dust),intent(in)          :: d
-    integer,intent(in)             :: jnu_var_id
-    real(dp),intent(in)            :: jnu_var_frac
-    real(dp),intent(out)           :: nu
-
-    real(dp) :: nu1,nu2,xi
-
-    call random(xi)
-
-    nu1 = sample_pdf(d%e_nu(jnu_var_id),xi)
-    nu2 = sample_pdf(d%e_nu(jnu_var_id+1),xi)
-
-    nu = log10(nu1) + jnu_var_frac * (log10(nu2) - log10(nu1))
-    nu = 10._dp**nu
-
-  end subroutine dust_sample_emit_frequency_eta_nu
 
   subroutine dust_scatter_peeloff(d,nu,a,s,a_req)
     implicit none
