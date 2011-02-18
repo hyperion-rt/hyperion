@@ -21,7 +21,7 @@ program main
   logical :: converged
   character(len=30) :: datetime
   
-  character(len=5), parameter :: version = '0.7.1'
+  character(len=5), parameter :: version = '0.7.2'
 
   call hdf5_set_compression(.true.)
 
