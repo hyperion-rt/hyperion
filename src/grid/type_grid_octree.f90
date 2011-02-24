@@ -23,8 +23,6 @@ module type_grid
      integer :: n_cells, n_dim, n1=0, n2=0, n3=0
      type(cell),allocatable,dimension(:) :: cells
      real(dp), allocatable :: volume(:)
-     real(dp), allocatable :: area(:, :)
-     real(dp), allocatable :: width(:, :)
      character(len=10) :: type
      real(dp) :: xmin, xmax, ymin, ymax, zmin, zmax
   end type grid_geometry_desc

@@ -13,6 +13,7 @@ module grid_geometry_specific
   private
 
   ! Photon position routines
+  public :: cell_width
   public :: grid_geometry_debug
   public :: find_cell
   public :: next_cell
@@ -56,6 +57,34 @@ module grid_geometry_specific
   integer :: n_filled = 0
 
 contains
+
+  real(dp) function cell_width(cell, idir)
+    implicit none
+    type(grid_cell),intent(in) :: cell
+    integer,intent(in) :: idir
+    select case(idir)    
+    case(1)
+       cell_width = geo%cells(cell%ic)%dx * 2._dp
+    case(2)
+       cell_width = geo%cells(cell%ic)%dy * 2._dp
+    case(3)
+       cell_width = geo%cells(cell%ic)%dz * 2._dp
+    end select
+  end function cell_width
+
+  real(dp) function cell_area(cell, iface)
+    implicit none
+    type(grid_cell),intent(in) :: cell
+    integer,intent(in) :: iface
+    select case(iface)
+    case(1,2)
+       cell_area = geo%cells(cell%ic)%dy * geo%cells(cell%ic)%dz * 4._dp
+    case(3,4)
+       cell_area = geo%cells(cell%ic)%dz * geo%cells(cell%ic)%dx * 4._dp
+    case(5,6)
+       cell_area = geo%cells(cell%ic)%dx * geo%cells(cell%ic)%dy * 4._dp
+    end select
+  end function cell_area
 
   ! Octree Helper Routines
 
@@ -150,14 +179,13 @@ contains
 
   ! Standard Routines
 
-  subroutine setup_grid_geometry(group, use_pda)
+  subroutine setup_grid_geometry(group)
 
     ! Read an octree from an HDF5 file
 
     implicit none
 
     integer(hid_t),intent(in) :: group
-    logical,intent(in) :: use_pda
 
     real(dp) :: x, y, z, dx, dy, dz
     integer :: ic
@@ -197,42 +225,13 @@ contains
     if(geo%cells(1)%refined) call octree_setup_indiv(1)
 
     allocate(geo%volume(geo%n_cells))
-    if(.false.) allocate(geo%area(geo%n_cells, 6))
-    if(use_pda) allocate(geo%width(geo%n_cells, 3))
 
-    ! Compute geometrical quantities
+    ! Compute cell volumes
     do ic=1,geo%n_cells
-
-       dx = geo%cells(ic)%dx * 2
-       dy = geo%cells(ic)%dy * 2
-       dz = geo%cells(ic)%dz * 2
-
-       ! Cell volumes
-       geo%volume(ic) = dx * dy * dz
-
-       ! Cell wall areas
-       if (.false.) then
-          geo%area(ic, 1:2) = dy * dz
-          geo%area(ic, 3:4) = dx * dz
-          geo%area(ic, 5:6) = dx * dy
-       end if
-
-       ! Cell widths
-       if(use_pda) then
-          geo%width(ic, 1) = dx
-          geo%width(ic, 2) = dy
-          geo%width(ic, 3) = dz
-       end if
-
+       geo%volume(ic) = geo%cells(ic)%dx * geo%cells(ic)%dy * geo%cells(ic)%dz * 8._dp
     end do
 
     if(any(geo%volume==0._dp)) call error('setup_grid_geometry','all volumes should be greater than zero')
-    if(.false.) then
-       if(any(geo%area==0._dp)) call error('setup_grid_geometry','all areas should be greater than zero')
-    end if
-    if(use_pda) then
-       if(any(geo%width==0._dp)) call error('setup_grid_geometry','all widths should be greater than zero')
-    end if
 
     geo%n_dim = 3
 

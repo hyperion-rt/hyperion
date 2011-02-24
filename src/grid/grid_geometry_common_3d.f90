@@ -23,6 +23,7 @@ module grid_geometry
   public :: setup_grid_geometry
   public :: geo
   public :: escaped
+  public :: cell_width
 
   public :: opposite_wall
   public :: random_cell

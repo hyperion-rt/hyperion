@@ -18,7 +18,6 @@ module grid_physics
   public :: update_temperature
   public :: sublimate_dust
   public :: update_alpha_rosseland
-  public :: update_dtau_rosseland
   public :: update_mean_temperature
   public :: update_energy_abs
   public :: update_energy_abs_tot
@@ -41,7 +40,6 @@ module grid_physics
   real(dp),allocatable, public :: energy_abs_tot(:)
 
   real(dp), allocatable,target, public :: temperature_mean(:)
-  real(dp), allocatable,target, public :: dtau_rosseland(:,:)
   real(dp), allocatable,target, public :: alpha_rosseland(:)
 
   integer, allocatable, public :: jnu_var_id(:,:)
@@ -186,10 +184,6 @@ contains
        allocate(last_photon_id(geo%n_cells))
        last_photon_id = 0
 
-       ! Rosseland optical depth across each cell (in 3 directions)
-       allocate(dtau_rosseland(geo%n_cells, 3))
-       dtau_rosseland = 0._dp
-
        ! Mean temperature across dust types
        allocate(temperature_mean(geo%n_cells))
        temperature_mean = minimum_temperature
@@ -222,25 +216,6 @@ contains
     end do
 
   end subroutine update_alpha_rosseland
-
-  subroutine update_dtau_rosseland()
-
-    implicit none
-
-    integer :: ic, idir
-
-    if(main_process()) write(*,'(" [grid_physics] pre-computing Rosseland optical depth")')
-    dtau_rosseland = 0._dp
-    do ic=1,geo%n_cells
-       do id=1,n_dust
-          do idir=1,3
-             dtau_rosseland(ic,idir) = dtau_rosseland(ic,idir) + &
-                  &density(ic,id) * chi_rosseland(id, temperature(ic,id)) * geo%width(ic,idir)
-          end do
-       end do
-    end do
-
-  end subroutine update_dtau_rosseland
 
   subroutine update_mean_temperature()
 

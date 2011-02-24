@@ -12,10 +12,9 @@ module type_grid
      character(len=32) :: id
      integer :: n_cells, n_dim, n1, n2, n3
      real(dp), allocatable :: volume(:)
-     real(dp), allocatable :: area(:, :)
-     real(dp), allocatable :: width(:, :)
      real(dp), allocatable :: w1(:), w2(:), w3(:)
      real(dp), allocatable :: wr2(:), wtanp(:)
+     real(dp), allocatable :: w(:), dw(:), dw2(:), dz(:), dphi(:)
      character(len=10) :: type
   end type grid_geometry_desc
 

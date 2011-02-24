@@ -28,8 +28,6 @@ module type_grid
      character(len=32) :: id
      integer :: n_cells, n_dim
      real(dp), allocatable :: volume(:)
-     real(dp), allocatable :: area(:, :)
-     real(dp), allocatable :: width(:, :)
      type(level_desc),allocatable :: levels(:)
      character(len=10) :: type
      real(dp) :: eps

@@ -13,6 +13,7 @@ module grid_geometry_specific
   private
 
   ! Photon position routines
+  public :: cell_width
   public :: grid_geometry_debug
   public :: find_cell
   public :: next_cell
@@ -38,14 +39,44 @@ module grid_geometry_specific
 
 contains
 
-  subroutine setup_grid_geometry(group, use_pda)
+  real(dp) function cell_width(cell, idir)
+    implicit none
+    type(grid_cell),intent(in) :: cell
+    integer,intent(in) :: idir
+    select case(idir)    
+    case(1)
+       cell_width = geo%dr(cell%i1)
+    case(2)
+       cell_width = geo%r(cell%i1) * geo%dt(cell%i2)
+    case(3)
+       cell_width = geo%r(cell%i1) * sin(geo%t(cell%i2)) * geo%dphi(cell%i3)
+    end select
+  end function cell_width
+
+  real(dp) function cell_area(cell, iface)
+    implicit none
+    type(grid_cell),intent(in) :: cell
+    integer,intent(in) :: iface
+    select case(iface)
+    case(1)
+       cell_area = geo%w1(cell%i1)**2 * geo%dcost(cell%i2) * geo%dphi(cell%i3)
+    case(2)
+       cell_area = geo%w1(cell%i1+1)**2 * geo%dcost(cell%i2) * geo%dphi(cell%i3)
+    case(3)
+       cell_area = 0.5_dp * geo%dr2(cell%i1) * sin(geo%w2(cell%i2)) * geo%dphi(cell%i3)
+    case(4)
+       cell_area = 0.5_dp * geo%dr2(cell%i1) * sin(geo%w2(cell%i2 + 1)) * geo%dphi(cell%i3)
+    case(5,6)
+       cell_area = 0.5_dp * geo%dr2(cell%i1) * geo%dt(cell%i2)
+    end select
+  end function cell_area
+
+  subroutine setup_grid_geometry(group)
 
     implicit none
 
     integer(hid_t),intent(in) :: group
-    logical,intent(in) :: use_pda
     integer :: ic
-    real(dp) :: dr, dr2, dr3, dt, dcost, dphi, r, t
     type(grid_cell) :: cell
 
     ! Read geometry file
@@ -77,61 +108,42 @@ contains
     geo%n3 = size(geo%w3) - 1
     geo%n_cells = geo%n1 * geo%n2 * geo%n3
 
+    allocate(geo%r(geo%n1))
+    allocate(geo%dr(geo%n1))
+    allocate(geo%dr2(geo%n1))
+    allocate(geo%dr3(geo%n1))
+    allocate(geo%t(geo%n2))
+    allocate(geo%dt(geo%n2))
+    allocate(geo%dcost(geo%n2))
+    allocate(geo%dphi(geo%n3))
+
+    where(geo%w1(:geo%n1) == 0.)
+       geo%r = geo%w1(1:) / 2._dp
+    elsewhere
+       geo%r = 10._dp**((log10(geo%w1(:geo%n1)) + log10(geo%w1(1:)) / 2._dp))      
+    end where
+
+    geo%t = (geo%w2(:geo%n2) + geo%w2(1:)) / 2._dp
+
+    geo%dr    = geo%w1(1:)           - geo%w1(:geo%n1)
+    geo%dr2   = geo%w1(1:)**2        - geo%w1(:geo%n1)**2
+    geo%dr3   = geo%w1(1:)**3        - geo%w1(:geo%n1)**3
+    geo%dt    = geo%w2(1:)           - geo%w2(:geo%n2)
+    geo%dcost = cos(geo%w2(:geo%n2)) - cos(geo%w2(1:))
+    geo%dphi  = geo%w3(1:)           - geo%w3(:geo%n3)
+
     allocate(geo%volume(geo%n_cells))
-    if(.false.) allocate(geo%area(geo%n_cells, 6))
-    if(use_pda) allocate(geo%width(geo%n_cells, 3))
 
-    ! Compute geometrical quantities
+    ! Compute cell volumes
     do ic=1,geo%n_cells
-
        cell = new_grid_cell(ic, geo)
-
-
-       ! Useful quantities
-       dr = geo%w1(cell%i1+1) - geo%w1(cell%i1)
-       dr2 = geo%w1(cell%i1+1)**2 - geo%w1(cell%i1)**2
-       dr3 = geo%w1(cell%i1+1)**3 - geo%w1(cell%i1)**3
-       dt = geo%w2(cell%i2+1) - geo%w2(cell%i2)
-       dcost = cos(geo%w2(cell%i2)) - cos(geo%w2(cell%i2+1))
-       dphi = geo%w3(cell%i3+1) - geo%w3(cell%i3)  
-
-       if(geo%w1(cell%i1)==0._dp) then
-          r = geo%w1(cell%i1+1) * 0.5_dp
-       else
-          r = 10._dp**((log10(geo%w1(cell%i1)) + log10(geo%w1(cell%i1+1))) * 0.5_dp)  
-       end if
-
-       t = (geo%w2(cell%i2) + geo%w2(cell%i2+1)) * 0.5_dp     
-
-       ! Cell volumes
-       geo%volume(ic) = dr3 * dcost * dphi / 3.
-
-       ! Cell wall areas
-       if (.false.) then
-          geo%area(ic, 1) = geo%w1(cell%i1)**2 * dcost * dphi
-          geo%area(ic, 2) = geo%w1(cell%i1+1)**2 * dcost * dphi
-          geo%area(ic, 3) = 0.5 * dr2 * sin(geo%w2(cell%i2)) * dphi
-          geo%area(ic, 4) = 0.5 * dr2 * sin(geo%w2(cell%i2+1)) * dphi
-          geo%area(ic, 5) = 0.5 * dr2 * dt
-          geo%area(ic, 6) = 0.5 * dr2 * dt
-       end if
-
-       ! Cell widths
-       if(use_pda) then
-          geo%width(ic, 1) = dr
-          geo%width(ic, 2) = r * dt
-          geo%width(ic, 3) = r * sin(t) * dphi
-       end if
-
+       geo%volume(ic) = geo%dr3(cell%i1) * geo%dcost(cell%i2) * geo%dphi(cell%i3) / 3._dp
     end do
 
     if(any(geo%volume==0._dp)) call error('setup_grid_geometry','all volumes should be greater than zero')
-    if(.false.) then
-       if(any(geo%area==0._dp)) call error('setup_grid_geometry','all areas should be greater than zero')
-    end if
-    if(use_pda) then
-       if(any(geo%width==0._dp)) call error('setup_grid_geometry','all widths should be greater than zero')
-    end if
+    if(any(geo%dr==0._dp)) call error('setup_grid_geometry','all dr values should be greater than zero')
+    if(any(geo%dt==0._dp)) call error('setup_grid_geometry','all dt values should be greater than zero')
+    if(any(geo%dphi==0._dp)) call error('setup_grid_geometry','all dphi values should be greater than zero')
 
     ! Compute other useful quantities
 

@@ -93,7 +93,7 @@ contains
     ! GRID
 
     g_geometry = hdf5_open_group(input_handle, '/Grid/Geometry')
-    call setup_grid_geometry(g_geometry, use_pda)
+    call setup_grid_geometry(g_geometry)
     call hdf5_close_group(g_geometry)
 
     g_physics = hdf5_open_group(input_handle, '/Grid/Physics')

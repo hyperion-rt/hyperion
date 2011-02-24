@@ -13,6 +13,7 @@ module grid_geometry_specific
   private
 
   ! Photon position routines
+  public :: cell_width
   public :: grid_geometry_debug
   public :: find_cell
   public :: next_cell
@@ -36,6 +37,13 @@ module grid_geometry_specific
 contains
 
   ! AMR Helper functions
+
+  real(dp) function cell_width(cell, idir)
+    implicit none
+    type(grid_cell),intent(in) :: cell
+    integer,intent(in) :: idir
+    cell_width = geo%levels(cell%ilevel)%fabs(cell%ifab)%width(idir)
+  end function cell_width
 
   logical function fabs_intersect(fab1, fab2)
     ! Given two fabs, do they intersect anywhere?
@@ -166,12 +174,11 @@ contains
 
   ! Standard Grid Methods
 
-  subroutine setup_grid_geometry(group, use_pda)
+  subroutine setup_grid_geometry(group)
 
     implicit none
 
     integer(hid_t),intent(in) :: group
-    logical,intent(in) :: use_pda
 
     integer :: nlevels, ilevel, ilevel1, ilevel2
     integer(hid_t) :: g_level
@@ -184,6 +191,7 @@ contains
     type(fab_desc), pointer :: fab, fab1, fab2
     integer :: i1, i2, i3
     type(vector3d_dp) :: r
+    real(dp) :: min_width
 
     ! Read geometry file
     call hdf5_read_keyword(group, '.', "geometry", geo%id)
@@ -221,33 +229,27 @@ contains
     ! Set the total number of cells
     geo%n_cells = start_id - 1
 
-    ! Compute geometrical quantities for all cells
+    ! Compute volume for all cells
     allocate(geo%volume(geo%n_cells))
-    if(.false.) allocate(geo%area(geo%n_cells, 6))
-    allocate(geo%width(geo%n_cells, 3))
+    min_width = huge(1._dp)
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
        do ifab=1,size(level%fabs)
           fab => level%fabs(ifab)
+          if(any(fab%width < min_width)) min_width = minval(fab%width)
           do icell=fab%start_id,fab%start_id+fab%n_cells-1
              geo%volume(icell) = fab%volume
-             if(.false.) geo%area(icell,:) = fab%area(:)
-             geo%width(icell,:) = fab%width(:)
              if(geo%volume(icell)==0.) stop
           end do
        end do
     end do
     if(any(geo%volume==0._dp)) call error('setup_grid_geometry','all volumes should be greater than zero')
-    if(.false.) then
-       if(any(geo%area==0._dp)) call error('setup_grid_geometry','all areas should be greater than zero')
-    end if
-    if(any(geo%width==0._dp)) call error('setup_grid_geometry','all widths should be greater than zero')
 
     ! Set number of dimensions (is this needed by PDA?)
     geo%n_dim = 3
 
     ! Set the step size for stepping out of fabs. Choose half the smallest width in the grid.
-    geo%eps = minval(geo%width) / 2._dp
+    geo%eps = min_width / 2._dp
 
     ! Find the level ID, fab ID, and internal 3D coordinates for each unique ID
     call preset_cell_id(geo)

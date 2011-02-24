@@ -80,7 +80,6 @@ contains
        temperature_prev = temperature
 
        call update_mean_temperature()
-       call update_dtau_rosseland()
 
        if(count(do_pda) < 10000) then
           call solve_pda_indiv_exact(pda_cells, id_pda_cell)
@@ -100,10 +99,21 @@ contains
 
     deallocate(do_pda)
     deallocate(temperature_prev)
-    
+
     call update_energy_abs() ! Update energy absorbed in each cell to match temperature
 
   end subroutine solve_pda
+
+  real(dp) function dtau_rosseland(cell, idir)
+    implicit none
+    type(grid_cell), intent(in) :: cell
+    integer,intent(in) :: idir 
+    integer :: id
+    dtau_rosseland = 0._dp   
+    do id=1,n_dust
+       dtau_rosseland = dtau_rosseland + density(cell%ic,id) * chi_rosseland(id, temperature(cell%ic,id)) * cell_width(cell,idir)
+    end do
+  end function dtau_rosseland
 
   subroutine solve_pda_indiv_exact(pda_cells, id_pda_cell)
 
@@ -136,10 +146,10 @@ contains
 
           next = next_cell(curr, wall)
 
-          dtau_ross_curr = dtau_rosseland(curr%ic, direction)
-          dtau_ross_next = dtau_rosseland(next%ic, direction)
+          dtau_ross_curr = dtau_rosseland(curr, direction)
+          dtau_ross_next = dtau_rosseland(next, direction)
 
-          coefficient = 1. / (dtau_ross_curr + dtau_ross_next) / geo%width(curr%ic, direction)
+          coefficient = 1. / (dtau_ross_curr + dtau_ross_next) / cell_width(curr, direction)
           coefficient = coefficient * geometrical_factor(wall, curr)
 
           a(id_curr, id_curr) = a(id_curr, id_curr) - coefficient
@@ -206,10 +216,10 @@ contains
 
              next = next_cell(curr, wall)
 
-             dtau_ross_curr = dtau_rosseland(curr%ic, direction)
-             dtau_ross_next = dtau_rosseland(next%ic, direction)
+             dtau_ross_curr = dtau_rosseland(curr, direction)
+             dtau_ross_next = dtau_rosseland(next, direction)
 
-             coefficient = 1. / (dtau_ross_curr + dtau_ross_next) / geo%width(curr%ic, direction)
+             coefficient = 1. / (dtau_ross_curr + dtau_ross_next) / cell_width(curr, direction)
              coefficient = coefficient * geometrical_factor(wall, curr)
 
              a = a - coefficient

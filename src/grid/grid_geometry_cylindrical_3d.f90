@@ -13,6 +13,7 @@ module grid_geometry_specific
   private
 
   ! Photon position routines
+  public :: cell_width
   public :: grid_geometry_debug
   public :: find_cell
   public :: next_cell
@@ -38,14 +39,42 @@ module grid_geometry_specific
 
 contains
 
-  subroutine setup_grid_geometry(group, use_pda)
+  real(dp) function cell_width(cell, idir)
+    implicit none
+    type(grid_cell),intent(in) :: cell
+    integer,intent(in) :: idir
+    select case(idir)    
+    case(1)
+       cell_width = geo%dw(cell%i1)
+    case(2)
+       cell_width = geo%dz(cell%i2)
+    case(3)
+       cell_width = geo%w(cell%i1) * geo%dphi(cell%i3)
+    end select
+  end function cell_width
+
+  real(dp) function cell_area(cell, iface)
+    implicit none
+    type(grid_cell),intent(in) :: cell
+    integer,intent(in) :: iface
+    select case(iface)
+    case(1)
+       cell_area = geo%w1(cell%i1) * geo%dz(cell%i2) * geo%dphi(cell%i3)
+    case(2)
+       cell_area = geo%w1(cell%i1+1) * geo%dz(cell%i2) * geo%dphi(cell%i3)
+    case(3,4)
+       cell_area = 0.5 * geo%dw2(cell%i1) * geo%dphi(cell%i3)
+    case(5,6)
+       cell_area = geo%dw(cell%i1) * geo%dz(cell%i2)
+    end select
+  end function cell_area
+
+  subroutine setup_grid_geometry(group)
 
     implicit none
 
     integer(hid_t),intent(in) :: group
-    logical,intent(in) :: use_pda
     integer :: ic
-    real(dp) :: dw, dw2, dz, dphi, w
     type(grid_cell) :: cell
 
     ! Read geometry file
@@ -73,57 +102,35 @@ contains
     geo%n3 = size(geo%w3) - 1
     geo%n_cells = geo%n1 * geo%n2 * geo%n3
 
+    allocate(geo%w(geo%n1))
+    allocate(geo%dw(geo%n1))
+    allocate(geo%dw2(geo%n1))
+    allocate(geo%dz(geo%n2))
+    allocate(geo%dphi(geo%n3))
+
+    where(geo%w1(:geo%n1) == 0.)
+       geo%w = geo%w1(1:) / 2._dp
+    elsewhere
+       geo%w = 10._dp**((log10(geo%w1(:geo%n1)) + log10(geo%w1(1:)) / 2._dp))
+    end where
+
+    geo%dw   = geo%w1(1:)    - geo%w1(:geo%n1)
+    geo%dw2  = geo%w1(1:)**2 - geo%w1(:geo%n1)**2
+    geo%dz   = geo%w2(1:)    - geo%w2(:geo%n2)
+    geo%dphi = geo%w3(1:)    - geo%w3(:geo%n3)
+
     allocate(geo%volume(geo%n_cells))
-    if(.false.) allocate(geo%area(geo%n_cells, 6))
-    if(use_pda) allocate(geo%width(geo%n_cells, 3))
 
-    ! Compute geometrical quantities
+    ! Compute cell volumes
     do ic=1,geo%n_cells
-
        cell = new_grid_cell(ic, geo)
-
-       ! Useful quantities
-       dw = geo%w1(cell%i1+1) - geo%w1(cell%i1)
-       dw2 = geo%w1(cell%i1+1)**2 - geo%w1(cell%i1)**2
-       dz = geo%w2(cell%i2+1) - geo%w2(cell%i2)
-       dphi = geo%w3(cell%i3+1) - geo%w3(cell%i3) 
-
-       if(geo%w1(cell%i1)==0._dp) then
-          w = geo%w1(cell%i1+1) * 0.5_dp
-       else
-          w = 10._dp**((log10(geo%w1(cell%i1)) + log10(geo%w1(cell%i1+1))) * 0.5_dp)       
-       end if
-
-       ! Cell volumes 
-       geo%volume(ic) = dw2 * dz * dphi / 2.
-
-       ! Cell wall areas
-       if (.false.) then
-          geo%area(ic, 1) = geo%w1(cell%i1) * dz * dphi
-          geo%area(ic, 2) = geo%w1(cell%i1+1) * dz * dphi
-          geo%area(ic, 3) = 0.5 * dw2 * dphi
-          geo%area(ic, 4) = 0.5 * dw2 * dphi
-          geo%area(ic, 5) = dw * dz
-          geo%area(ic, 6) = dw * dz
-       end if
-
-       ! Cell widths
-       if(use_pda) then
-          geo%width(ic, 1) = dw
-          geo%width(ic, 2) = dz
-          geo%width(ic, 3) = w * dphi
-       end if
-
+       geo%volume(ic) = geo%dw2(cell%i1) * geo%dz(cell%i2) * geo%dphi(cell%i3) / 2._dp
     end do
 
-
     if(any(geo%volume==0._dp)) call error('setup_grid_geometry','all volumes should be greater than zero')
-    if(.false.) then
-       if(any(geo%area==0._dp)) call error('setup_grid_geometry','all areas should be greater than zero')
-    end if
-    if(use_pda) then
-       if(any(geo%width==0._dp)) call error('setup_grid_geometry','all widths should be greater than zero')
-    end if
+    if(any(geo%dw==0._dp)) call error('setup_grid_geometry','all dw values should be greater than zero')
+    if(any(geo%dz==0._dp)) call error('setup_grid_geometry','all dz values should be greater than zero')
+    if(any(geo%dphi==0._dp)) call error('setup_grid_geometry','all dphi values should be greater than zero')
 
     ! Compute other useful quantities
 
