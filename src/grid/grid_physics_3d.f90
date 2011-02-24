@@ -134,7 +134,7 @@ contains
           ! Check if any of the temperatures are below the minimum requested
           if(any(temperature < minimum_temperature)) then
              call warn("setup_grid_physics", &
-                  &    "some of the initial temeperatures provided are below the requested minimum (resetting)")
+                  &    "some of the initial temperatures provided are below the requested minimum (resetting)")
              where(temperature < minimum_temperature)
                 temperature = minimum_temperature
              end where
@@ -204,7 +204,7 @@ contains
 
     integer :: ic
 
-    if(main_process()) write(*,'(" [grid_physics] pre-computing Rosseland absorption coefficient")')
+    if(main_process()) write(*,'(" [grid_physics] pre-computing Rosseland extinction coefficient")')
     alpha_rosseland = 0._dp
 
     do ic=1,geo%n_cells
