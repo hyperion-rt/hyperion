@@ -93,9 +93,9 @@ contains
     allocate(geo%dy(geo%n2))
     allocate(geo%dz(geo%n3))
 
-    geo%dx = geo%w1(1:) - geo%w1(:geo%n1)
-    geo%dy = geo%w2(1:) - geo%w2(:geo%n2)
-    geo%dz = geo%w3(1:) - geo%w3(:geo%n3)
+    geo%dx = geo%w1(2:) - geo%w1(:geo%n1)
+    geo%dy = geo%w2(2:) - geo%w2(:geo%n2)
+    geo%dz = geo%w3(2:) - geo%w3(:geo%n3)
 
     allocate(geo%volume(geo%n_cells))
 

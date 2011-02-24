@@ -109,15 +109,15 @@ contains
     allocate(geo%dphi(geo%n3))
 
     where(geo%w1(:geo%n1) == 0.)
-       geo%w = geo%w1(1:) / 2._dp
+       geo%w = geo%w1(2:) / 2._dp
     elsewhere
-       geo%w = 10._dp**((log10(geo%w1(:geo%n1)) + log10(geo%w1(1:)) / 2._dp))
+       geo%w = 10._dp**((log10(geo%w1(:geo%n1)) + log10(geo%w1(2:)) / 2._dp))
     end where
 
-    geo%dw   = geo%w1(1:)    - geo%w1(:geo%n1)
-    geo%dw2  = geo%w1(1:)**2 - geo%w1(:geo%n1)**2
-    geo%dz   = geo%w2(1:)    - geo%w2(:geo%n2)
-    geo%dphi = geo%w3(1:)    - geo%w3(:geo%n3)
+    geo%dw   = geo%w1(2:)    - geo%w1(:geo%n1)
+    geo%dw2  = geo%w1(2:)**2 - geo%w1(:geo%n1)**2
+    geo%dz   = geo%w2(2:)    - geo%w2(:geo%n2)
+    geo%dphi = geo%w3(2:)    - geo%w3(:geo%n3)
 
     allocate(geo%volume(geo%n_cells))
 

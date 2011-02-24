@@ -118,19 +118,19 @@ contains
     allocate(geo%dphi(geo%n3))
 
     where(geo%w1(:geo%n1) == 0.)
-       geo%r = geo%w1(1:) / 2._dp
+       geo%r = geo%w1(2:) / 2._dp
     elsewhere
-       geo%r = 10._dp**((log10(geo%w1(:geo%n1)) + log10(geo%w1(1:)) / 2._dp))      
+       geo%r = 10._dp**((log10(geo%w1(:geo%n1)) + log10(geo%w1(2:)) / 2._dp))      
     end where
 
-    geo%t = (geo%w2(:geo%n2) + geo%w2(1:)) / 2._dp
+    geo%t = (geo%w2(:geo%n2) + geo%w2(2:)) / 2._dp
 
-    geo%dr    = geo%w1(1:)           - geo%w1(:geo%n1)
-    geo%dr2   = geo%w1(1:)**2        - geo%w1(:geo%n1)**2
-    geo%dr3   = geo%w1(1:)**3        - geo%w1(:geo%n1)**3
-    geo%dt    = geo%w2(1:)           - geo%w2(:geo%n2)
-    geo%dcost = cos(geo%w2(:geo%n2)) - cos(geo%w2(1:))
-    geo%dphi  = geo%w3(1:)           - geo%w3(:geo%n3)
+    geo%dr    = geo%w1(2:)           - geo%w1(:geo%n1)
+    geo%dr2   = geo%w1(2:)**2        - geo%w1(:geo%n1)**2
+    geo%dr3   = geo%w1(2:)**3        - geo%w1(:geo%n1)**3
+    geo%dt    = geo%w2(2:)           - geo%w2(:geo%n2)
+    geo%dcost = cos(geo%w2(:geo%n2)) - cos(geo%w2(2:))
+    geo%dphi  = geo%w3(2:)           - geo%w3(:geo%n3)
 
     allocate(geo%volume(geo%n_cells))
 
