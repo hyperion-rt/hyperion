@@ -111,7 +111,7 @@ contains
     where(geo%w1(:geo%n1) == 0.)
        geo%w = geo%w1(2:) / 2._dp
     elsewhere
-       geo%w = 10._dp**((log10(geo%w1(:geo%n1)) + log10(geo%w1(2:)) / 2._dp))
+       geo%w = 10._dp**((log10(geo%w1(:geo%n1)) + log10(geo%w1(2:))) / 2._dp)
     end where
 
     geo%dw   = geo%w1(2:)    - geo%w1(:geo%n1)

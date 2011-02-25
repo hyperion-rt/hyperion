@@ -120,7 +120,7 @@ contains
     where(geo%w1(:geo%n1) == 0.)
        geo%r = geo%w1(2:) / 2._dp
     elsewhere
-       geo%r = 10._dp**((log10(geo%w1(:geo%n1)) + log10(geo%w1(2:)) / 2._dp))      
+       geo%r = 10._dp**((log10(geo%w1(:geo%n1)) + log10(geo%w1(2:))) / 2._dp)
     end where
 
     geo%t = (geo%w2(:geo%n2) + geo%w2(2:)) / 2._dp
