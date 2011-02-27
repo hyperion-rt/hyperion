@@ -733,7 +733,7 @@ class Model(FreezableClass):
 
     def get_image(self, stokes='I', group=1, technique='peeled',
                   distance=None, component='total', inclination='all',
-                  uncertainties=False):
+                  uncertainties=False, units='ergs/cm^2/s'):
         '''
         Retrieve images for a specific image group and Stokes component
 
@@ -781,6 +781,9 @@ class Model(FreezableClass):
 
         uncertainties : bool, optional
             Whether to compute and return uncertainties
+            
+        units : str, optional
+            The output units for the image(s). The default is ergs/cm^2/s.
 
         Returns
         -------
@@ -829,19 +832,58 @@ class Model(FreezableClass):
             numax = g['images'].attrs['numax']
             wavmin, wavmax = c / numax * 1.e4, c / numin * 1.e4
             wav = np.logspace(np.log10(wavmax), np.log10(wavmin), g['images'].shape[3] * 2 + 1)[1::2]
+            nu = c / wav * 1.e4
         else:
             nu = g['frequencies']['nu']
             wav = c / nu * 1.e4
 
-        # Optionally scale by distance
-        if distance:
-            scale = 1. / (4. * pi * distance ** 2)
-        else:
-            scale = 1.
-
         images = g['images'].value
         if uncertainties:
             images_unc = g['images_unc'].value
+
+        # Optionally scale by distance
+        if distance:
+            
+            # Find spatial extent of the image
+            xmin = g['images'].attrs['xmin']
+            xmax = g['images'].attrs['xmax']
+            ymin = g['images'].attrs['ymin']
+            ymax = g['images'].attrs['ymax']
+
+            # Find pixel dimensions of image
+            ny, nx = images.shape[-2:]
+
+            # The following will all be incorrect for inside observer, as pixel dimensions will already be an angle
+
+            # Find pixel resolution in radians/pixel
+            pix_dx = np.arctan((xmax - xmin) / float(nx) / distance)
+            pix_dy = np.arctan((ymax - ymin) / float(ny) / distance)
+
+            # Find pixel area in steradians
+            pix_area = pix_dx * pix_dy
+
+            # Convert to the correct units
+            if units == 'ergs/cm^2/s':
+                scale = np.repeat(1., len(nu))
+            elif units == 'ergs/cm^2/s/Hz':
+                scale = 1. / nu
+            elif units == 'Jy':
+                scale = 1.e23 / nu
+            elif units == 'mJy':
+                scale = 1.e26 / nu
+            elif units == 'MJy/sr':
+                scale = 1.e17 / nu / pix_area
+            else:
+                raise Exception("Unknown units: %s" % scale)
+
+            # Scale by distance
+            scale *= 1. / (4. * pi * distance ** 2)
+
+        else:
+            
+            # Units here are not technically ergs/cm^2/s but ergs/s
+
+            scale = 1.
 
         # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
         if images.dtype == np.float32:
@@ -878,9 +920,9 @@ class Model(FreezableClass):
 
         # Select correct Stokes component
         if stokes in STOKESD:
-            y = flux[STOKESD[stokes], :, :, :, :] * scale
+            y = flux[STOKESD[stokes], :, :, :, :] * scale[np.newaxis, :, np.newaxis, np.newaxis]
             if uncertainties:
-                yerr = unc[STOKESD[stokes], :, :, :, :] * scale
+                yerr = unc[STOKESD[stokes], :, :, :, :] * scale[np.newaxis, :, np.newaxis, np.newaxis]
             else:
                 yerr = np.zeros(y.shape)
         elif stokes == 'linpol':
