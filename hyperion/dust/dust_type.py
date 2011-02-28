@@ -752,15 +752,12 @@ class MieXDust(SphericalDust):
 
         self.wav = np.loadtxt('%s.alb' % model, usecols=[0])
         self.albedo = np.loadtxt('%s.alb' % model, usecols=[1])
-        self.cabs = np.loadtxt('%s.cabs' % model, usecols=[1])
-        self.cext = np.loadtxt('%s.cext' % model, usecols=[1])
-        self.csca = np.loadtxt('%s.csca' % model, usecols=[1])
         self.g = np.loadtxt('%s.g' % model, usecols=[1])
         kappa = np.loadtxt('%s.k_abs' % model, usecols=[1])
         self.chi = kappa / (1 - self.albedo)
 
         # Check for NaN values
-        for quantity in ['chi', 'cext', 'csca', 'albedo']:
+        for quantity in ['chi', 'albedo']:
 
             values = self.__dict__[quantity]
 
