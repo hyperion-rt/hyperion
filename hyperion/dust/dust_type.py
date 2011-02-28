@@ -554,7 +554,7 @@ class SphericalDust(FreezableClass):
         ts.add_keyword('minimum_specific_energy', self._temperature2specific_energy_abs(self.minimum_temperature))
 
         # Output dust file
-        ts.write(filename, overwrite=True, compression=compression)
+        ts.write(filename, overwrite=True, compression=compression, type='hdf5')
 
         self.filename = filename
 

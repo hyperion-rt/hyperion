@@ -190,7 +190,7 @@ class Model(FreezableClass):
         if self._monochromatic:
             group.create_dataset('Frequencies', data=np.array(zip(self._frequencies), dtype=[('nu', dtype)]), compression=compression)
 
-    def write(self, compression=True, copy_dust=True, absolute_paths=False, geo_dtype=float, wall_dtype=float, physics_dtype=float):
+    def write(self, compression=True, copy_dust=False, absolute_paths=False, geo_dtype=float, wall_dtype=float, physics_dtype=float):
         '''
         Write the model to an HDF5 file
 
@@ -200,7 +200,7 @@ class Model(FreezableClass):
                 Whether to compress the datasets inside the HDF5 file
 
             *copy_dust*: [ True | False ]
-                Whether to copy the dust properties (True), or to just link to them (False)
+                Whether to copy the dust properties when a filename is specified (True), or to just link to the file (False)
 
             *paths*: [ True | False ]
                 Whether to use absolute paths (True) or relative paths (False) when linking to files
@@ -257,27 +257,30 @@ class Model(FreezableClass):
                 self.grid.write_physical_array(g_physics, self.temperature, "Temperature", dust=True, compression=compression, physics_dtype=physics_dtype)
 
             # Output dust file
-            checksums = []
-            short_names = []
+            present = {}
             for i, dust in enumerate(self.dust):
-                checksum = hashlib.md5(file(dust.filename, 'rb').read()).hexdigest()
-                short_name = os.path.splitext(os.path.basename(dust.filename))[0]
-                if not checksum in checksums:
-                    if short_name in short_names:
-                        raise Exception("Short name already used by a different dust file: %s" % short_name)
+
+                short_name = 'dust_%03i' % (i+1)
+
+                if type(dust) == str:
+
                     if copy_dust:
-                        f = h5py.File(dust.filename, 'r')
+                        f = h5py.File(dust, 'r')
                         f.copy('/', g_dust, name=short_name)
                         f.close()
                     else:
                         if absolute_paths:
-                            g_dust[short_name] = h5py.ExternalLink(os.path.abspath(dust.filename), '/')
+                            g_dust[short_name] = h5py.ExternalLink(os.path.abspath(dust), '/')
                         else:
-                            g_dust[short_name] = h5py.ExternalLink(os.path.relpath(dust.filename), '/')
-                checksums.append(checksum)
-                short_names.append(short_name)
+                            g_dust[short_name] = h5py.ExternalLink(os.path.relpath(dust), '/')
 
-            g_dust.create_dataset('Dust types', data=np.array(zip(short_names), dtype=[('name', '|S100')]), compression=compression)
+                else:
+
+                    if id(dust) in present:
+                        g_dust[short_name] = h5py.SoftLink(present[id(dust)])
+                    else:
+                        dust.write(g_dust.create_group(short_name))
+                        present[id(dust)] = short_name
 
         # Output geometry
         self.grid.write_geometry(g_geometry, \
@@ -326,10 +329,7 @@ class Model(FreezableClass):
             warnings.warn("All density values are zero - ignoring density grid")
             return
         self.density.append(density)
-        if type(dust) is str:
-            self.dust.append(SphericalDust(dust))
-        else:
-            self.dust.append(dust)
+        self.dust.append(dust)
         if temperature is not None:
             self.temperature.append(temperature)
 
@@ -781,7 +781,7 @@ class Model(FreezableClass):
 
         uncertainties : bool, optional
             Whether to compute and return uncertainties
-            
+
         units : str, optional
             The output units for the image(s). The default is ergs/cm^2/s.
 
@@ -843,7 +843,7 @@ class Model(FreezableClass):
 
         # Optionally scale by distance
         if distance:
-            
+
             # Find spatial extent of the image
             xmin = g['images'].attrs['xmin']
             xmax = g['images'].attrs['xmax']
@@ -880,7 +880,7 @@ class Model(FreezableClass):
             scale *= 1. / (4. * pi * distance ** 2)
 
         else:
-            
+
             # Units here are not technically ergs/cm^2/s but ergs/s
 
             scale = 1.

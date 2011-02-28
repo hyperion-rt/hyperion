@@ -27,24 +27,21 @@ contains
 
     implicit none
     integer(hid_t),intent(in) :: group
-    character(len=100),allocatable :: dust_types(:)
+    character(len=100),allocatable :: dust_properties(:)
     integer(hid_t) :: g_indiv
     integer :: id
 
-    if(hdf5_path_exists(group, 'Dust types')) then
-       call hdf5_table_read_column_auto(group, 'Dust types', 'name', dust_types)
-       n_dust = size(dust_types)
-    else
-       n_dust = 0
-    end if
+    call hdf5_list_groups(group, '.', dust_properties)
+
+    n_dust = size(dust_properties)
 
     allocate(d(n_dust))
 
     do id=1,n_dust
 
-       write(*,'(" [dust] reading ",A)') trim(dust_types(id))
+       write(*,'(" [dust] reading ",A)') trim(dust_properties(id))
 
-       g_indiv = hdf5_open_group(group, dust_types(id))
+       g_indiv = hdf5_open_group(group, dust_properties(id))
        call dust_setup(g_indiv,d(id),0._dp)
        call hdf5_close_group(g_indiv)
 
