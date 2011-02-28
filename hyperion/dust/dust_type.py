@@ -7,7 +7,7 @@ import numpy as np
 
 from hyperion.util.interpolate import interp1d_fast, interp1d_fast_loglog, interp1d_log10, interp1d_fast_linlog
 from hyperion.util.integrate import integrate_loglog, integrate_linlog_subset
-from hyperion.util.constants import c
+from hyperion.util.constants import c, sigma, pi
 from hyperion.util.functions import B_nu, extrap1d_log10
 from hyperion.util.functions import FreezableClass
 
@@ -61,6 +61,16 @@ class SphericalDust(FreezableClass):
             self.read(args[0])
         else:
             raise Exception("SphericalDust cannot take more than one argument")
+
+    def __getattr__(self, attribute):
+        if attribute == 'specific_energy_abs':
+            return 4. * sigma * self.temperatures ** 4. \
+                   * self.kappa_planck_temperature(self.temperatures)
+        elif attribute == 'kappa':
+            return self.chi * (1. - self.albedo)
+        else:
+            raise AttributeError("%r object has no attribute %r" %
+                                     (type(self).__name__, attribute))
 
     def _sort(self):
 
@@ -387,73 +397,92 @@ class SphericalDust(FreezableClass):
         # Sort by frequency
         topt.sort('nu')
 
-        # Add to table set as HDU = 1
+        # Add to table set
         ts.append(topt)
 
-        # Create scattering angles table and add to table set as HDU = 2
+        # Create scattering angles table and add to table set
         tmu = atpy.Table(name='Scattering angles')
         tmu.add_column('mu', self.mu)
         ts.append(tmu)
 
         # Create table to contain the planck and rosseland mean opacities
-        tmean = atpy.Table(name='Mean opacities')
-        tmean.add_column('temperature', self.temperatures)
 
         self.compute_mean_opacities()
+
+        tmean = atpy.Table(name='Mean opacities')
+
+        tmean.add_column('specific_energy_abs', self.specific_energy_abs)
+        tmean.add_column('temperature', self.temperatures)
 
         tmean.add_column('chi_planck', self.chi_planck)
         tmean.add_column('kappa_planck', self.kappa_planck)
         tmean.add_column('chi_rosseland', self.chi_rosseland)
         tmean.add_column('kappa_rosseland', self.kappa_rosseland)
 
-        # Add to table set as HDU = 3
+        # Add to table set
         ts.append(tmean)
 
-        if self.emissivities: # Read in existing emissivities
+        if self.emissivities:
 
+            # Read in existing emissivities
             te = atpy.Table(self.emissivities, table='Emissivities')
+
+            # Set frequency scale
             emiss_nu = te.nu
+
+            # Set emissivities
             jnu = te.jnu
 
+            # Read in emissivity variable
             tev = atpy.Table(self.emissivities, table='Emissivity variable')
 
+            # Set emissivity variable
             emissvar = tev.names[0]
-            if emissvar == 'specific_energy_abs':
-                specific_energy_abs = tev.specific_energy_abs
-            elif emissvar == 'temperature':
-                temperatures = tev.temperature
-            else:
+
+            # Only specific energy is considered a valid emissivity variable
+            if tev.names[0] != 'specific_energy_abs':
                 raise Exception("Unknown emissivity variable: %s" % emissvar)
 
-        else: # Compute emissivities
+            # Find specific energy emissivity variable
+            specific_energy_abs = tev.specific_energy_abs
 
-            emissvar = 'temperature'
+        else: # Compute LTE emissivities
+
+            # Set frequency scale
             emiss_nu = self._nu_common()
+
+            # Compute opacity to absorption
+            kappa_nu = interp1d_fast_loglog(self.nu, self.kappa, emiss_nu)
+
+            # Compute LTE emissivities
             jnu = np.zeros((len(emiss_nu), self.n_temp))
-            chi_nu = interp1d_fast_loglog(self.nu, self.chi, emiss_nu)
-            albedo_nu = interp1d_fast_loglog(self.nu, self.albedo, emiss_nu)
-            kappa_nu = chi_nu * (1 - albedo_nu)
             for it, T in enumerate(self.temperatures):
                 jnu[:, it] = kappa_nu * B_nu(emiss_nu, T)
+
+            # Set emissivity variable to specific energy
+            emissvar = 'specific_energy_abs'
+
+            # Compute specific energy emissivity variable
+            specific_energy_abs = self.specific_energy_abs
 
         # Add header keyword to specify emissivity variable
         if emissvar == 'specific_energy_abs':
             ts.add_keyword('emissvar', 'E')
-        elif emissvar == 'temperature':
-            ts.add_keyword('emissvar', 'T')
+        else:
+            raise Exception("Unknown emissivity variable: %s" % emissvar)
 
-        # Add emissivities to table set as HDU = 4
+        # Add emissivities to table set
         temiss = atpy.Table(name='Emissivities')
         temiss.add_column('nu', emiss_nu)
         temiss.add_column('jnu', jnu)
         ts.append(temiss)
 
-        # Add emissivity variable to table set as HDU = 5
+        # Add emissivity variable to table set
         temissvar = atpy.Table(name='Emissivity variable')
         if emissvar == 'specific_energy_abs':
             temissvar.add_column('specific_energy_abs', specific_energy_abs)
-        elif emissvar == 'temperature':
-            temissvar.add_column('temperature', self.temperatures)
+        else:
+            raise Exception("Unknown emissivity variable: %s" % emissvar)
         ts.append(temissvar)
 
         # Output dust file
@@ -502,6 +531,7 @@ class SphericalDust(FreezableClass):
 
         # Read in the planck and rosseland mean opacities
         tmean = ts['Mean opacities']
+
         self.temperatures = tmean['temperature']
 
         self.chi_planck = tmean['chi_planck']
@@ -512,8 +542,8 @@ class SphericalDust(FreezableClass):
         # Find the emissivity variable type
         if ts.keywords['emissvar'] == 'E':
             emissvar = 'specific_energy_abs'
-        elif ts.keywords['emissvar'] == 'T':
-            emissvar = 'temperature'
+        else:
+            raise Exception("Unknown emissivity variable: %s" % emissvar)
 
         # Read emissivities
         temiss = ts['Emissivities']
@@ -524,8 +554,9 @@ class SphericalDust(FreezableClass):
         temissvar = ts['Emissivity variable']
         if emissvar == 'specific_energy_abs':
             specific_energy_abs = temissvar['specific_energy_abs']
-        elif emissvar == 'temperature':
-            self.temperatures = temissvar['temperature']
+        else:
+            raise Exception("Unknown emissivity variable: %s" % emissvar)
+
 
 class IsotropicSphericalDust(SphericalDust):
 
