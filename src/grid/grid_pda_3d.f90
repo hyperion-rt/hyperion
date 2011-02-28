@@ -174,7 +174,7 @@ contains
     type(grid_cell) :: curr, next
     real(dp) :: dtau_ross_curr, dtau_ross_next
 
-    integer :: id, ic
+    integer :: ic
     real(dp) :: coefficient
     real(dp),allocatable :: a(:,:), b(:)
     integer :: id_curr, id_next
@@ -242,7 +242,7 @@ contains
 
     real(dp) :: coefficient
     real(dp) :: a, b
-    integer :: id, id_curr, ic
+    integer :: id_curr, ic
 
     real(dp) :: max_e_diff, e_diff, e_new
 

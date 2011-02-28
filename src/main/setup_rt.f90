@@ -28,7 +28,6 @@ contains
     integer(hid_t),intent(in) :: input_handle
     integer(hid_t) :: g_dust, g_geometry, g_physics, g_sources, g_output
     integer :: physics_io_bytes
-    integer :: id
 
     call hdf5_read_keyword(input_handle, '/', 'monochromatic', use_exact_nu)
     call hdf5_read_keyword(input_handle, '/', 'raytracing', use_raytracing)

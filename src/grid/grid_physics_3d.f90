@@ -287,7 +287,7 @@ contains
 
     real(dp), intent(in) :: scale
 
-    integer :: ic, id
+    integer :: id
 
     if(main_process()) write(*,'(" [grid_physics] updating energy_abs")')
 
@@ -309,7 +309,7 @@ contains
 
     implicit none
 
-    integer :: ic, id
+    integer :: id
 
     if(main_process()) write(*,'(" [grid_physics] checking energy_abs")')
 
