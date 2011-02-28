@@ -53,6 +53,8 @@ class SphericalDust(FreezableClass):
         self.kappa_planck = None
         self.kappa_rosseland = None
 
+        self.is_lte = True
+
         self._freeze()
 
         if len(args) == 0:
@@ -424,6 +426,9 @@ class SphericalDust(FreezableClass):
 
         if self.emissivities:
 
+            # Assume emissivities are not LTE
+            self.is_lte = False
+
             # Read in existing emissivities
             te = atpy.Table(self.emissivities, table='Emissivities')
 
@@ -448,6 +453,9 @@ class SphericalDust(FreezableClass):
 
         else: # Compute LTE emissivities
 
+            # Emissivities are LTE
+            self.is_lte = True
+
             # Set frequency scale
             emiss_nu = self._nu_common()
 
@@ -470,6 +478,9 @@ class SphericalDust(FreezableClass):
             ts.add_keyword('emissvar', 'E')
         else:
             raise Exception("Unknown emissivity variable: %s" % emissvar)
+
+        # Add header keyword to specify whether dust is LTE
+        ts.add_keyword('lte', 'yes' if self.is_lte else 'no')
 
         # Add emissivities to table set
         temiss = atpy.Table(name='Emissivities')
