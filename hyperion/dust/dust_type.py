@@ -584,6 +584,7 @@ class SphericalDust(FreezableClass):
 
         # Read in the optical properties
         topt = ts['Optical properties']
+        self.n_wav = len(topt)
         self.nu = topt['nu']
         self.albedo = topt['albedo']
         self.chi = topt['chi']
