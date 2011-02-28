@@ -150,7 +150,7 @@ contains
 
           ! Set all specific_energy_abs to minimum requested
           do id=1,n_dust
-             specific_energy_abs(:,id) = d(id)%specific_energy_abs_min
+             specific_energy_abs(:,id) = d(id)%minimum_specific_energy
           end do
 
        end if
@@ -231,51 +231,49 @@ contains
 
     reset = 0
 
-    select case(dust_sublimation_mode)
-    case(1)
+    do id=1,n_dust
 
-       do ic=1,geo%n_cells
-          do id=1,n_dust
-             if(specific_energy_abs(ic, id) > d(id)%specific_energy_abs_sub) then
+       select case(d(id)%sublimation_mode)
+       case(1)
+
+          do ic=1,geo%n_cells
+             if(specific_energy_abs(ic, id) > d(id)%sublimation_specific_energy) then
                 density(ic, id) = 0.
-                specific_energy_abs(ic, id) = d(id)%specific_energy_abs_min
+                specific_energy_abs(ic, id) = d(id)%minimum_specific_energy
                 reset = reset + 1
              end if
           end do
-       end do
-       if(reset > 0) write(*,'(" [sublimate_dust] dust removed in ",I0," cells")') reset
+          if(reset > 0) write(*,'(" [sublimate_dust] dust removed in ",I0," cells")') reset
 
-    case(2)
+       case(2)
 
-       do ic=1,geo%n_cells
-          do id=1,n_dust
-             if (specific_energy_abs(ic,id) > d(id)%specific_energy_abs_sub) then
+          do ic=1,geo%n_cells
+             if (specific_energy_abs(ic,id) > d(id)%sublimation_specific_energy) then
                 density(ic,id) = density(ic,id) &
-                     & * d(id)%specific_energy_abs_sub / specific_energy_abs(ic, id) &
+                     & * d(id)%sublimation_specific_energy / specific_energy_abs(ic, id) &
                      & * (chi_rosseland(id, specific_energy_abs(ic,id)) &
-                     & / chi_rosseland(id, d(id)%specific_energy_abs_sub))**2
-                specific_energy_abs(ic,id) = d(id)%specific_energy_abs_sub
+                     & / chi_rosseland(id, d(id)%sublimation_specific_energy))**2
+                specific_energy_abs(ic,id) = d(id)%sublimation_specific_energy
                 reset = reset + 1
              end if
           end do
-       end do
 
-       if(reset > 0) write(*,'(" [sublimate_dust] density reset due to sublimation in ",I0," cells")') reset
+          if(reset > 0) write(*,'(" [sublimate_dust] density reset due to sublimation in ",I0," cells")') reset
 
-    case(3)
+       case(3)
 
-       do ic=1,geo%n_cells
-          do id=1,n_dust
-             if(specific_energy_abs(ic, id) > d(id)%specific_energy_abs_sub) then
-                specific_energy_abs(ic, id) = d(id)%specific_energy_abs_sub
+          do ic=1,geo%n_cells
+             if(specific_energy_abs(ic, id) > d(id)%sublimation_specific_energy) then
+                specific_energy_abs(ic, id) = d(id)%sublimation_specific_energy
                 reset = reset + 1
              end if
           end do
-       end do
 
-       if(reset > 0) write(*,'(" [sublimate_dust] capping dust specific_energy_abs in ",I0," cells")') reset
+          if(reset > 0) write(*,'(" [sublimate_dust] capping dust specific_energy_abs in ",I0," cells")') reset
 
-    end select
+       end select
+
+    end do
 
     call update_energy_abs_tot()
 
@@ -317,10 +315,10 @@ contains
 
     do id=1,n_dust
 
-       if(any(specific_energy_abs(:,id) < d(id)%specific_energy_abs_min)) then
+       if(any(specific_energy_abs(:,id) < d(id)%minimum_specific_energy)) then
           call warn("update_energy_abs","specific_energy_abs below minimum requested in some cells - resetting")
-          where(specific_energy_abs(:,id) < d(id)%specific_energy_abs_min)
-             specific_energy_abs(:,id) = d(id)%specific_energy_abs_min
+          where(specific_energy_abs(:,id) < d(id)%minimum_specific_energy)
+             specific_energy_abs(:,id) = d(id)%minimum_specific_energy
           end where
        end if
 

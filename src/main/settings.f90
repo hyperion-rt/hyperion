@@ -5,9 +5,6 @@ module settings
   implicit none
   save
 
-  real(dp), allocatable :: dust_minimum_specific_energy(:)
-  integer :: dust_sublimation_mode = 0 ! 0=no, 1=fast, 2=slow
-  real(dp), allocatable :: dust_sublimation_specific_energy(:)
   integer(idp) :: n_inter_max = 0
   integer(idp) :: n_mrw_max = 0
   integer(idp) :: n_reabs_max = 0

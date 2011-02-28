@@ -7,7 +7,7 @@ import numpy as np
 
 from hyperion.util.interpolate import interp1d_fast, interp1d_fast_loglog, interp1d_log10, interp1d_fast_linlog
 from hyperion.util.integrate import integrate_loglog, integrate_linlog_subset
-from hyperion.util.constants import c, sigma, pi
+from hyperion.util.constants import c, sigma
 from hyperion.util.functions import B_nu, extrap1d_log10
 from hyperion.util.functions import FreezableClass
 
@@ -41,6 +41,9 @@ class SphericalDust(FreezableClass):
         self.P3 = None
         self.P4 = None
 
+        self.set_minimum_temperature(0.1)
+        self.set_sublimation('no')
+
         # Set temperature grid for emissivities and mean opacities
         self.n_temp = 1200
         temp_min = 0.1
@@ -64,10 +67,13 @@ class SphericalDust(FreezableClass):
         else:
             raise Exception("SphericalDust cannot take more than one argument")
 
+    def _temperature2specific_energy_abs(self, temperature):
+        return 4. * sigma * temperature ** 4. \
+               * self.kappa_planck_temperature(temperature)
+
     def __getattr__(self, attribute):
         if attribute == 'specific_energy_abs':
-            return 4. * sigma * self.temperatures ** 4. \
-                   * self.kappa_planck_temperature(self.temperatures)
+            return self._temperature2specific_energy_abs(self.temperatures)
         elif attribute == 'kappa':
             return self.chi * (1. - self.albedo)
         else:
@@ -366,6 +372,49 @@ class SphericalDust(FreezableClass):
         return integrate_loglog(nu, fnu) \
              / integrate_loglog(nu, fnu / kappa_nu)
 
+    def set_sublimation(self, mode, temperature=None):
+        '''
+        Set the dust sublimation parameters.
+
+        Parameters
+        ----------
+        mode : str
+            The dust sublimation mode, which can be:
+                * 'no'   - no sublimation
+                * 'fast' - remove all dust in cells exceeding the
+                           sublimation temperature/energy
+                * 'slow' - reduce the dust in cells exceeding the
+                           sublimation temperature/energy
+                * 'cap'  - any temperature/energy exceeding the sublimation
+                           value is reset to the sublimation value.
+
+        temperature : float, optional
+            The dust sublimation temperature, in K
+        '''
+
+        if mode not in ['no', 'fast', 'slow', 'cap']:
+            raise Exception("mode should be one of no/fast/slow/cap")
+
+        if mode != 'no' and temperature is None:
+            raise Exception("Need to specify a sublimation temperature")
+
+        self.sublimation_mode = mode
+        self.sublimation_temperature = temperature
+
+    def set_minimum_temperature(self, temperature):
+        '''
+        Set the minimum dust temperature
+
+        Dust which has a temperature that falls below this value will be
+        reset to the minimum at the end of each iteration.
+
+        Parameters
+        ----------
+        temperature : float
+            The minimum temperature in K
+        '''
+        self.minimum_temperature = temperature
+
     def write(self, filename, compression=True):
         '''
         Write out to a standard dust file, including calculations of the mean
@@ -495,6 +544,14 @@ class SphericalDust(FreezableClass):
         else:
             raise Exception("Unknown emissivity variable: %s" % emissvar)
         ts.append(temissvar)
+
+        # Dust sublimation parameters
+        ts.add_keyword('sublimation_mode', self.sublimation_mode)
+        if self.sublimation_mode != 'no':
+            ts.add_keyword('sublimation_specific_energy', self._temperature2specific_energy_abs(self.sublimation_temperature))
+
+        # Minimum temperature parameter
+        ts.add_keyword('minimum_specific_energy', self._temperature2specific_energy_abs(self.minimum_temperature))
 
         # Output dust file
         ts.write(filename, overwrite=True, compression=compression)

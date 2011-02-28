@@ -20,6 +20,13 @@ module type_dust
 
   type dust
 
+     ! Sublimation
+     integer :: sublimation_mode = 0 ! 0=no, 1=fast, 2=slow, 3=capped
+     real(dp) :: sublimation_specific_energy
+
+     ! Minimum energy
+     real(dp) :: minimum_specific_energy
+
      ! Optical properties
      integer :: n_nu                              ! number of frequencies
      real(dp),allocatable :: nu(:),log_nu(:)      ! Frequency
@@ -54,9 +61,6 @@ module type_dust
 
      logical :: is_lte ! Whether the emissivities assume therma emission from LTE dust
 
-     real(dp) :: specific_energy_abs_min
-     real(dp) :: specific_energy_abs_sub
-
      ! integer :: beta ! power of the photon energy sampling
      ! real(dp),allocatable  :: a(:) ! Energy of the emitted photon = a*nu^beta * incoming energy
 
@@ -75,6 +79,7 @@ contains
     real(dp),allocatable :: emiss_nu(:), emiss_jnu(:,:)
     real(dp) :: norm, dmu
     character(len=100) :: path
+    character(len=4) :: sublimation
 
     ! Read dust file
 
@@ -83,6 +88,30 @@ contains
     call hdf5_read_keyword(group, '.', 'lte', d%is_lte)
 
     if(d%emiss_var /= 'E') stop "Only emissvar='E' supported at this time"
+
+    ! DUST SUBLIMATION
+
+    call hdf5_read_keyword(group, '/', 'sublimation_mode', sublimation)
+
+    select case(trim(sublimation))
+    case('no')
+       d%sublimation_mode = 0
+    case('fast')
+       d%sublimation_mode = 1
+       call hdf5_read_keyword(group, '/', 'sublimation_temperature', d%sublimation_specific_energy)
+    case('slow')
+       d%sublimation_mode = 2
+       call hdf5_read_keyword(group, '/', 'sublimation_temperature', d%sublimation_specific_energy)
+    case('cap')
+       d%sublimation_mode = 3
+       call hdf5_read_keyword(group, '/', 'sublimation_temperature', d%sublimation_specific_energy)
+    case default
+       call error('setup_initial','Unknown dust sublimation mode: '//trim(sublimation))
+    end select
+
+    ! MINIMUM ENERGY
+
+    call hdf5_read_keyword(group, '/', 'minimum_specific_energy', d%minimum_specific_energy)
 
     ! OPTICAL PROPERTIES
 

@@ -26,30 +26,9 @@ contains
     implicit none
 
     integer(hid_t),intent(in) :: input_handle
-    character(len=4) :: dust_sublimation
     integer(hid_t) :: g_dust, g_geometry, g_physics, g_sources, g_output
     integer :: physics_io_bytes
-    real(dp) :: minimum_temperature
-    real(dp) :: dust_sublimation_temperature
     integer :: id
-
-    call hdf5_read_keyword(input_handle, '/', 'dust_sublimation_mode', dust_sublimation)
-
-    select case(trim(dust_sublimation))
-    case('no')
-       dust_sublimation_mode = 0
-    case('fast')
-       dust_sublimation_mode = 1
-       call hdf5_read_keyword(input_handle, '/', 'dust_sublimation_temperature', dust_sublimation_temperature)
-    case('slow')
-       dust_sublimation_mode = 2
-       call hdf5_read_keyword(input_handle, '/', 'dust_sublimation_temperature', dust_sublimation_temperature)
-    case('cap')
-       dust_sublimation_mode = 3
-       call hdf5_read_keyword(input_handle, '/', 'dust_sublimation_temperature', dust_sublimation_temperature)
-    case default
-       call error('setup_initial','Unknown dust sublimation mode: '//trim(dust_sublimation))
-    end select
 
     call hdf5_read_keyword(input_handle, '/', 'monochromatic', use_exact_nu)
     call hdf5_read_keyword(input_handle, '/', 'raytracing', use_raytracing)
@@ -58,8 +37,6 @@ contains
 
     call hdf5_read_keyword(input_handle, '/', 'n_inter_max', n_inter_max)
     call hdf5_read_keyword(input_handle, '/', 'n_reabs_max', n_reabs_max)
-
-    call hdf5_read_keyword(input_handle, '/', 'minimum_temperature', minimum_temperature)
 
     call hdf5_read_keyword(input_handle, '/', 'pda', use_pda)
     call hdf5_read_keyword(input_handle, '/', 'mrw', use_mrw)
@@ -93,18 +70,6 @@ contains
        if(use_exact_nu) call hdf5_read_keyword(input_handle, '/', 'n_last_photons_dust', n_last_photons_dust)
        if(use_raytracing) call hdf5_read_keyword(input_handle, '/', 'n_ray_photons_dust', n_raytracing_photons_dust)
     end if
-
-    ! Compute minimum specific energy and dust sublimation energy - should not need to do this in future
-    allocate(dust_minimum_specific_energy(n_dust))
-    allocate(dust_sublimation_specific_energy(n_dust))
-    do id=1,n_dust
-       d(id)%specific_energy_abs_min = temperature2specific_energy_abs(d(id), minimum_temperature)
-       if(dust_sublimation_mode > 0) then
-          d(id)%specific_energy_abs_sub = temperature2specific_energy_abs(d(id), dust_sublimation_temperature)
-       else
-          d(id)%specific_energy_abs_sub = huge(1._dp)
-       end if
-    end do
 
     ! GRID
 
@@ -181,10 +146,6 @@ contains
          & .and.trim(output_density_diff).ne.'last' &
          & .and.trim(output_density_diff).ne.'none') &
          & call error("setup_initial","output_density_diff should be one of all/last/none")
-
-    if(output_density_diff .ne. 'none' .and. dust_sublimation_mode==0) then
-       call error("setup_initial", "cannot output density difference if there is no dust sublimation")
-    end if
 
     call hdf5_read_keyword(g_output, '.', 'output_specific_energy_abs', output_specific_energy_abs)
 
