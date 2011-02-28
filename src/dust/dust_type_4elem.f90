@@ -91,27 +91,27 @@ contains
 
     ! DUST SUBLIMATION
 
-    call hdf5_read_keyword(group, '/', 'sublimation_mode', sublimation)
+    call hdf5_read_keyword(group, '.', 'sublimation_mode', sublimation)
 
     select case(trim(sublimation))
     case('no')
        d%sublimation_mode = 0
     case('fast')
        d%sublimation_mode = 1
-       call hdf5_read_keyword(group, '/', 'sublimation_temperature', d%sublimation_specific_energy)
+       call hdf5_read_keyword(group, '.', 'sublimation_specific_energy', d%sublimation_specific_energy)
     case('slow')
        d%sublimation_mode = 2
-       call hdf5_read_keyword(group, '/', 'sublimation_temperature', d%sublimation_specific_energy)
+       call hdf5_read_keyword(group, '.', 'sublimation_specific_energy', d%sublimation_specific_energy)
     case('cap')
        d%sublimation_mode = 3
-       call hdf5_read_keyword(group, '/', 'sublimation_temperature', d%sublimation_specific_energy)
+       call hdf5_read_keyword(group, '.', 'sublimation_specific_energy', d%sublimation_specific_energy)
     case default
        call error('setup_initial','Unknown dust sublimation mode: '//trim(sublimation))
     end select
 
     ! MINIMUM ENERGY
 
-    call hdf5_read_keyword(group, '/', 'minimum_specific_energy', d%minimum_specific_energy)
+    call hdf5_read_keyword(group, '.', 'minimum_specific_energy', d%minimum_specific_energy)
 
     ! OPTICAL PROPERTIES
 
