@@ -55,18 +55,14 @@ contains
              temperature(ic, id) = specific_energy_abs2temperature(d(id), specific_energy_abs(ic, id))
           end do
        end do
-       if(allocated(temperature)) then
-          select case(physics_io_type)
-          case(sp)  
-             call write_grid_4d(group, 'temperature', real(temperature, sp), geo)
-          case(dp)
-             call write_grid_4d(group, 'temperature', real(temperature, dp), geo)
-          case default
-             call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
-          end select
-       else
-          call warn("output_grid","temperature array is not allocated")
-       end if
+       select case(physics_io_type)
+       case(sp)
+          call write_grid_4d(group, 'temperature', real(temperature, sp), geo)
+       case(dp)
+          call write_grid_4d(group, 'temperature', real(temperature, dp), geo)
+       case default
+          call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
+       end select
     end if
 
     ! ENERGY/PATH LENGTHS
