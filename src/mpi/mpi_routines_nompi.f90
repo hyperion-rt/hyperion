@@ -52,8 +52,8 @@ contains
   subroutine mp_collect()
   end subroutine mp_collect
 
-  subroutine mp_broadcast_temperature() 
-  end subroutine mp_broadcast_temperature
+  subroutine mp_broadcast_specific_energy_abs()
+  end subroutine mp_broadcast_specific_energy_abs
 
   subroutine mp_broadcast_convergence(converged)
     implicit none

@@ -162,21 +162,15 @@ contains
     if(main_process()) then
 
        ! Scale the energy so the total is the total requested
-       call adjust_energy_grid(energy_total/energy_current)
-
-       ! Compute total energy absorbed for each dust type
-       call update_energy_abs_tot()
-
-       ! Compute cell temperatures
-       call update_temperature()
+       call update_energy_abs(energy_total/energy_current)
 
        ! Run PDA
        if(use_pda) call solve_pda()
 
     end if
 
-    ! Broadcast grid arrays out to processes
-    call mp_broadcast_temperature()
+    ! Broadcast specific energy out to processes
+    call mp_broadcast_specific_energy_abs()
 
     ! Sublimate dust if needed
     call sublimate_dust()

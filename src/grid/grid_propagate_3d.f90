@@ -4,7 +4,7 @@ module grid_propagate
   use type_photon, only : photon
   use dust_main, only : n_dust
   use grid_geometry, only : escaped, find_wall, place_in_cell, in_correct_cell, next_cell, opposite_wall
-  use grid_physics, only : specific_energy_abs, density, n_photons, last_photon_id
+  use grid_physics, only : specific_energy_abs_sum, density, n_photons, last_photon_id
   use sources
 
   implicit none
@@ -131,8 +131,8 @@ contains
 
           do id=1,n_dust
              if(density(p%icell%ic, id) > 0._dp) then
-                specific_energy_abs(p%icell%ic, id) = &
-                     & specific_energy_abs(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
+                specific_energy_abs_sum(p%icell%ic, id) = &
+                     & specific_energy_abs_sum(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
              end if
           end do
 
@@ -177,8 +177,8 @@ contains
 
           do id=1,n_dust
              if(density(p%icell%ic, id) > 0._dp) then
-                specific_energy_abs(p%icell%ic, id) = &
-                     & specific_energy_abs(p%icell%ic, id) &
+                specific_energy_abs_sum(p%icell%ic, id) = &
+                     & specific_energy_abs_sum(p%icell%ic, id) &
                      & + tact * p%current_kappa(id) * p%energy
              end if
           end do

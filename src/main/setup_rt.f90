@@ -6,6 +6,7 @@ module setup
   use grid_geometry, only : setup_grid_geometry
   use sources
   use dust_main
+  use type_dust
   use lib_conf
   use binned_images
   use peeled_images
@@ -28,6 +29,9 @@ contains
     character(len=4) :: dust_sublimation
     integer(hid_t) :: g_dust, g_geometry, g_physics, g_sources, g_output
     integer :: physics_io_bytes
+    real(dp) :: minimum_temperature
+    real(dp) :: dust_sublimation_temperature
+    integer :: id
 
     call hdf5_read_keyword(input_handle, '/', 'dust_sublimation_mode', dust_sublimation)
 
@@ -89,6 +93,18 @@ contains
        if(use_exact_nu) call hdf5_read_keyword(input_handle, '/', 'n_last_photons_dust', n_last_photons_dust)
        if(use_raytracing) call hdf5_read_keyword(input_handle, '/', 'n_ray_photons_dust', n_raytracing_photons_dust)
     end if
+
+    ! Compute minimum specific energy and dust sublimation energy - should not need to do this in future
+    allocate(dust_minimum_specific_energy(n_dust))
+    allocate(dust_sublimation_specific_energy(n_dust))
+    do id=1,n_dust
+       d(id)%specific_energy_abs_min = temperature2specific_energy_abs(d(id), minimum_temperature)
+       if(dust_sublimation_mode > 0) then
+          d(id)%specific_energy_abs_sub = temperature2specific_energy_abs(d(id), dust_sublimation_temperature)
+       else
+          d(id)%specific_energy_abs_sub = huge(1._dp)
+       end if
+    end do
 
     ! GRID
 

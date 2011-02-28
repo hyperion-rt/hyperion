@@ -6,28 +6,18 @@ module grid_generic
   use grid_physics
   use dust_main
   use settings
+  use type_dust
 
   implicit none
   save
 
 contains
 
-  subroutine adjust_energy_grid(scale)
-    implicit none
-    real(dp),intent(in) :: scale
-    integer :: id
-    if(allocated(specific_energy_abs)) then
-       do id=1,n_dust
-          specific_energy_abs(:,id) = specific_energy_abs(:,id) * scale / geo%volume
-       end do
-    end if
-  end subroutine adjust_energy_grid
-
   subroutine grid_reset_energy()
     implicit none
     if(allocated(n_photons)) n_photons = 0
     if(allocated(last_photon_id)) last_photon_id = 0
-    if(allocated(specific_energy_abs)) specific_energy_abs = 0._dp
+    if(allocated(specific_energy_abs_sum)) specific_energy_abs_sum = 0._dp
   end subroutine grid_reset_energy
 
   subroutine output_grid(handle, iter, n_iter)
@@ -38,6 +28,8 @@ contains
     integer,intent(in) :: iter, n_iter
     character(len=100) :: group_name
     integer(hid_t) :: group
+    real(dp),allocatable :: temperature(:,:)
+    integer :: id, ic
 
     write(*,'(" [output_grid] outputting grid arrays for iteration")')
 
@@ -57,6 +49,12 @@ contains
     ! TEMPERATURE
 
     if(trim(output_temperature)=='all' .or. (trim(output_temperature)=='last'.and.iter==n_iter)) then
+       allocate(temperature(geo%n_cells, n_dust))
+       do ic=1,geo%n_cells
+          do id=1,n_dust
+             temperature(ic, id) = specific_energy_abs2temperature(d(id), specific_energy_abs(ic, id))
+          end do
+       end do
        if(allocated(temperature)) then
           select case(physics_io_type)
           case(sp)  
@@ -104,8 +102,8 @@ contains
           call warn("output_grid","density array is not allocated")
        end if
     end if
-    
-    
+
+
     ! DENSITY DIFFERENCE
 
     if(trim(output_density_diff)=='all' .or. (trim(output_density_diff)=='last'.and.iter==n_iter)) then
@@ -119,8 +117,8 @@ contains
              call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
           end select
        else
-         if(.not.allocated(density)) call warn("output_grid","density array is not allocated")
-         if(.not.allocated(density_original)) call warn("output_grid","density_original array is not allocated")
+          if(.not.allocated(density)) call warn("output_grid","density array is not allocated")
+          if(.not.allocated(density_original)) call warn("output_grid","density_original array is not allocated")
        end if
     end if
 

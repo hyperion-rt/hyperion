@@ -45,7 +45,7 @@ contains
        total_alpha_rosseland = 0._dp
        do id=1,n_dust
           total_alpha_rosseland = total_alpha_rosseland + &
-               &density(ic, id) * chi_rosseland(id, temperature(ic, id))
+               &density(ic, id) * chi_rosseland(id, specific_energy_abs(ic, id))
        end do
        diff_coeff(ic) = 1./3./total_alpha_rosseland
     end do
@@ -62,6 +62,7 @@ contains
     real(dp) :: e,y,ct
     type(vector3d_dp) :: dr
     integer :: id
+    real(dp) :: temperature
 
     ! Find distance to closest wall
     R0 = distance_to_closest_wall(p)
@@ -76,8 +77,8 @@ contains
     do id=1,n_dust
        if(density(p%icell%ic, id) > 0._dp) then
           ! Insert ct into (9), get energy deposited for Lucy method
-          e = p%energy * ct * kappa_planck(id, temperature(p%icell%ic, id))
-          specific_energy_abs(p%icell%ic, id) = specific_energy_abs(p%icell%ic, id) + e
+          e = p%energy * ct * kappa_planck(id, specific_energy_abs(p%icell%ic, id))
+          specific_energy_abs_sum(p%icell%ic, id) = specific_energy_abs_sum(p%icell%ic, id) + e
        end if
     end do
 
@@ -95,7 +96,8 @@ contains
     call angle3d_to_vector3d(p%a, p%v)
 
     id = select_dust_chi_rho(p)
-    call random_planck_frequency(p%nu, temperature(p%icell%ic, id))
+    temperature = specific_energy_abs2temperature(d(id), specific_energy_abs(p%icell%ic, id))
+    call random_planck_frequency(p%nu, temperature)
 
     ! For peeloff, we are going to assume that the radiation is isotropic.
     ! This is not quite exact, but is not likely to matter much.
@@ -114,6 +116,7 @@ contains
     real(dp) :: R0
     type(vector3d_dp) :: dr
     integer :: id
+    real(dp) :: temperature
 
     ! Find distance to closest wall
     R0 = distance_to_closest_wall(p)
@@ -133,7 +136,8 @@ contains
     call angle3d_to_vector3d(p%a, p%v)
 
     id = select_dust_chi_rho(p)
-    call random_planck_frequency(p%nu, temperature(p%icell%ic, id))
+    temperature = specific_energy_abs2temperature(d(id), specific_energy_abs(p%icell%ic, id))
+    call random_planck_frequency(p%nu, temperature)
 
     ! For peeloff, we are going to assume that the radiation is isotropic.
     ! This is not quite exact, but is not likely to matter much.

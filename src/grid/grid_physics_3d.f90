@@ -15,14 +15,13 @@ module grid_physics
 
   private
   public :: setup_grid_physics
-  public :: update_temperature
   public :: sublimate_dust
   public :: update_alpha_rosseland
-  public :: update_mean_temperature
+  public :: check_energy_abs
   public :: update_energy_abs
   public :: update_energy_abs_tot
   public :: select_dust_chi_rho
-  public :: select_dust_temp4_rho
+  public :: select_dust_specific_energy_abs_rho
   public :: emit_from_grid
   public :: precompute_jnu_var
   public :: tau_rosseland_to_closest_wall
@@ -33,13 +32,12 @@ module grid_physics
   real(dp),allocatable, public :: density_original(:,:)
 
   ! Variable quantities (made public for MPI)
-  real(dp),allocatable, public :: temperature(:,:)
   integer(idp),allocatable, public :: n_photons(:)
   integer(idp),allocatable, public :: last_photon_id(:)
   real(dp),allocatable, public :: specific_energy_abs(:,:)
+  real(dp),allocatable, public :: specific_energy_abs_sum(:,:)
   real(dp),allocatable, public :: energy_abs_tot(:)
 
-  real(dp), allocatable,target, public :: temperature_mean(:)
   real(dp), allocatable,target, public :: alpha_rosseland(:)
 
   integer, allocatable, public :: jnu_var_id(:,:)
@@ -78,19 +76,15 @@ contains
     end if
   end function select_dust_chi_rho
 
-  integer function select_dust_temp4_rho(icell) result(id_select)
+  integer function select_dust_specific_energy_abs_rho(icell) result(id_select)
     implicit none
     type(grid_cell),intent(in) :: icell
     do id=1,n_dust
-       if(is_lte_dust(id)) then ! temperature doesn't mean anything if not LTE dust
-          absorption%pdf(id) = temperature(icell%ic, id)**4 * density(icell%ic, id)
-       else
-          absorption%pdf(id) = 0._dp
-       end if
+       absorption%pdf(id) = specific_energy_abs(icell%ic, id) * density(icell%ic, id)
     end do
     call find_cdf(absorption)
     id_select = sample_pdf(absorption)    
-  end function select_dust_temp4_rho
+  end function select_dust_specific_energy_abs_rho
 
   subroutine setup_grid_physics(group, use_mrw, use_pda)
 
@@ -101,9 +95,6 @@ contains
 
     ! Density
     allocate(density(geo%n_cells, n_dust))
-
-    ! Temperature
-    allocate(temperature(geo%n_cells, n_dust))
 
     if(n_dust > 0) then
 
@@ -121,29 +112,24 @@ contains
           density_original = density
        end if
 
-       if(grid_exists(group, 'Temperature')) then
+       if(grid_exists(group, 'Specific Energy')) then
 
-          if(main_process()) write(*,'(" [grid_physics] reading temperature grid")')
+          if(main_process()) write(*,'(" [grid_physics] reading specific_energy_abs grid")')
 
-          ! Read in temperature
-          call read_grid_4d(group, 'Temperature', temperature, geo)
+          ! Read in specific_energy_abs
+          call read_grid_4d(group, 'Specific Energy', specific_energy_abs, geo)
 
-          ! Check number of dust types for temperature
-          if(size(temperature, 2).ne.n_dust) call error("setup_grid","temperature array has wrong number of dust types")
-
-          ! Check if any of the temperatures are below the minimum requested
-          if(any(temperature < minimum_temperature)) then
-             call warn("setup_grid_physics", &
-                  &    "some of the initial temperatures provided are below the requested minimum (resetting)")
-             where(temperature < minimum_temperature)
-                temperature = minimum_temperature
-             end where
-          end if
+          ! Check number of dust types for specific_energy_abs
+          if(size(specific_energy_abs, 2).ne.n_dust) call error("setup_grid","specific_energy_abs array has wrong number of dust types")
 
        else
 
-          ! Set all temperatures to minimum requested
-          temperature = minimum_temperature
+          allocate(specific_energy_abs(geo%n_cells, n_dust))
+
+          ! Set all specific_energy_abs to minimum requested
+          do id=1,n_dust
+             specific_energy_abs(:,id) = d(id)%specific_energy_abs_min
+          end do
 
        end if
 
@@ -152,13 +138,16 @@ contains
     ! Column density for peeling-off
     allocate(tmp_column_density(n_dust))
 
-    ! Specific energy absorbed
-    allocate(specific_energy_abs(geo%n_cells, n_dust))
-    specific_energy_abs = 0._dp
+    ! Specific energy summation
+    allocate(specific_energy_abs_sum(geo%n_cells, n_dust))
+    specific_energy_abs_sum = 0._dp
 
     ! Total energy absorbed
     allocate(energy_abs_tot(n_dust))
     energy_abs_tot = 0._dp
+
+    ! Update energy absorbed in each cell to check bounds and update total
+    call check_energy_abs()
 
     ! Emissivity index and interpolation fraction
     allocate(jnu_var_id(geo%n_cells, n_dust))
@@ -184,17 +173,10 @@ contains
        allocate(last_photon_id(geo%n_cells))
        last_photon_id = 0
 
-       ! Mean temperature across dust types
-       allocate(temperature_mean(geo%n_cells))
-       temperature_mean = minimum_temperature
-
     end if
 
     ! Create PDF for absorption in each cell
     call allocate_pdf(absorption,n_dust)
-
-    ! Update energy absorbed in each cell to match temperature
-    call update_energy_abs()
 
   end subroutine setup_grid_physics
 
@@ -204,117 +186,141 @@ contains
 
     integer :: ic
 
-    if(main_process()) write(*,'(" [grid_physics] pre-computing Rosseland extinction coefficient")')
+    if(main_process()) write(*,'(" [grid_physics] pre-computing Rosseland absorption coefficient")')
     alpha_rosseland = 0._dp
 
     do ic=1,geo%n_cells
        do id=1,n_dust
-          alpha_rosseland(ic) = alpha_rosseland(ic) &
-               & + density(ic,id) &
-               & * chi_rosseland(id, temperature(ic,id))
+          if(density(ic, id) > 0._dp) then
+             alpha_rosseland(ic) = alpha_rosseland(ic) &
+                  & + density(ic,id) &
+                  & * chi_rosseland(id, specific_energy_abs(ic,id))
+          end if
        end do
     end do
 
   end subroutine update_alpha_rosseland
 
-  subroutine update_mean_temperature()
-
-    where(sum(density, dim=2) > 0.)
-       temperature_mean = (sum(density * temperature**4., dim=2) / sum(density, dim=2))**0.25
-    elsewhere
-       temperature_mean = minimum_temperature
-    end where
-
-  end subroutine update_mean_temperature
-
   subroutine sublimate_dust()
 
     implicit none
-    integer :: ic
+    integer :: ic, id
+    integer :: reset
+
+    reset = 0
 
     select case(dust_sublimation_mode)
     case(1)
-       if(any(temperature > dust_sublimation_temperature)) then
-          write(*,'(" [sublimate_dust] removing dust in ",I0," cells")') count(temperature > dust_sublimation_temperature)
-          where(temperature > dust_sublimation_temperature)
-             temperature = minimum_temperature
-             density = 0.
-          end where
-       end if
-    case(2)
-       if(any(temperature > dust_sublimation_temperature)) then
-          write(*,'(" [sublimate_dust] resetting density due to sublimation in ",I0," cells")') &
-               & count(temperature > dust_sublimation_temperature)
-          do ic=1,geo%n_cells
-             do id=1,n_dust
-                if (temperature(ic,id) > dust_sublimation_temperature) then
-                   density(ic,id) = density(ic,id) &
-                        & * (dust_sublimation_temperature / temperature(ic,id))**4 &
-                        & * (kappa_planck(id, dust_sublimation_temperature) &
-                        & / kappa_planck(id, temperature(ic,id))) &
-                        & * (chi_rosseland(id, temperature(ic,id)) &
-                        & / chi_rosseland(id, dust_sublimation_temperature))**2
-                   temperature(ic,id) = dust_sublimation_temperature
-                end if
-             end do
+
+       do ic=1,geo%n_cells
+          do id=1,n_dust
+             if(specific_energy_abs(ic, id) > d(id)%specific_energy_abs_sub) then
+                density(ic, id) = 0.
+                specific_energy_abs(ic, id) = d(id)%specific_energy_abs_min
+                reset = reset + 1
+             end if
           end do
-       end if
+       end do
+       if(reset > 0) write(*,'(" [sublimate_dust] dust removed in ",I0," cells")') reset
+
+    case(2)
+
+       do ic=1,geo%n_cells
+          do id=1,n_dust
+             if (specific_energy_abs(ic,id) > d(id)%specific_energy_abs_sub) then
+                density(ic,id) = density(ic,id) &
+                     & * d(id)%specific_energy_abs_sub / specific_energy_abs(ic, id) &
+                     & * (chi_rosseland(id, specific_energy_abs(ic,id)) &
+                     & / chi_rosseland(id, d(id)%specific_energy_abs_sub))**2
+                specific_energy_abs(ic,id) = d(id)%specific_energy_abs_sub
+                reset = reset + 1
+             end if
+          end do
+       end do
+
+       if(reset > 0) write(*,'(" [sublimate_dust] density reset due to sublimation in ",I0," cells")') reset
+
     case(3)
-       if(any(temperature > dust_sublimation_temperature)) then
-          write(*,'(" [sublimate_dust] capping dust temperature in ",I0," cells")') count(temperature > dust_sublimation_temperature)
-          where(temperature > dust_sublimation_temperature)
-             temperature = dust_sublimation_temperature
-          end where
-       end if
+
+       do ic=1,geo%n_cells
+          do id=1,n_dust
+             if(specific_energy_abs(ic, id) > d(id)%specific_energy_abs_sub) then
+                specific_energy_abs(ic, id) = d(id)%specific_energy_abs_sub
+                reset = reset + 1
+             end if
+          end do
+       end do
+
+       if(reset > 0) write(*,'(" [sublimate_dust] capping dust specific_energy_abs in ",I0," cells")') reset
+
     end select
 
-    call update_energy_abs() ! Update energy absorbed in each cell to match temperature
+    call update_energy_abs_tot()
+
+    call check_energy_abs()
 
   end subroutine sublimate_dust
 
-  subroutine update_temperature()
+  subroutine update_energy_abs(scale)
 
     implicit none
 
-    integer :: ic
+    real(dp), intent(in) :: scale
 
-    write(*,'(" [update_temperature] updating temperature")')
+    integer :: ic, id
+
+    if(main_process()) write(*,'(" [grid_physics] updating energy_abs")')
+
+    do id=1,n_dust
+       specific_energy_abs(:,id) = specific_energy_abs_sum(:,id) * scale / geo%volume
+    end do
 
     if(count(specific_energy_abs==0.and.density>0.) > 0) then
-       write(*,'(" [update_temperature] ",I0," cells have no energy")') count(specific_energy_abs==0.and.density>0.)
+       write(*,'(" [update_energy_abs] ",I0," cells have no energy")') count(specific_energy_abs==0.and.density>0.)
     end if
 
-    do ic=1,geo%n_cells
-       do id=1,n_dust
-          if(is_lte_dust(id)) then
-             temperature(ic,id) = specific_energy_abs2temperature(id, specific_energy_abs(ic,id))
-          end if
-       end do
-    end do
-
-    where(temperature < minimum_temperature)
-       temperature = minimum_temperature
-    end where
-
-    if(allocated(temperature_mean)) call update_mean_temperature()
-
-    call update_energy_abs() ! Update energy absorbed in each cell to match temperature
-
-  end subroutine update_temperature
-
-  subroutine update_energy_abs()
-    implicit none
-    integer :: ic
-    if(main_process()) write(*,'(" [grid_physics] updating energy_abs")')
-    do ic=1,geo%n_cells
-       do id=1,n_dust
-          if(is_lte_dust(id)) then
-             specific_energy_abs(ic,id) = temperature2specific_energy_abs(id,temperature(ic,id))
-          end if
-       end do
-    end do
     call update_energy_abs_tot()
+
+    call check_energy_abs()
+
   end subroutine update_energy_abs
+
+  subroutine check_energy_abs()
+
+    implicit none
+
+    integer :: ic, id
+
+    if(main_process()) write(*,'(" [grid_physics] checking energy_abs")')
+
+    do id=1,n_dust
+
+       if(any(specific_energy_abs(:,id) < d(id)%specific_energy_abs_min)) then
+          call warn("update_energy_abs","specific_energy_abs below minimum requested in some cells - resetting")
+          where(specific_energy_abs(:,id) < d(id)%specific_energy_abs_min)
+             specific_energy_abs(:,id) = d(id)%specific_energy_abs_min
+          end where
+       end if
+
+       if(any(specific_energy_abs(:,id) < d(id)%specific_energy_abs(1))) then
+          call warn("update_energy_abs","specific_energy_abs below minimum allowed in some cells - resetting")
+          where(specific_energy_abs(:,id) < d(id)%specific_energy_abs(1))
+             specific_energy_abs(:,id) = d(id)%specific_energy_abs(1)
+          end where
+       end if
+
+       if(any(specific_energy_abs(:,id) > d(id)%specific_energy_abs(d(id)%n_e))) then
+          call warn("update_energy_abs","specific_energy_abs above maximum allowed in some cells - resetting")
+          where(specific_energy_abs(:,id) > d(id)%specific_energy_abs(d(id)%n_e))
+             specific_energy_abs(:,id) = d(id)%specific_energy_abs(d(id)%n_e)
+          end where
+       end if
+
+    end do
+
+    call update_energy_abs_tot()
+
+  end subroutine check_energy_abs
 
   subroutine update_energy_abs_tot()
     implicit none
@@ -334,7 +340,7 @@ contains
 
     do ic=1,geo%n_cells
        do id=1,n_dust   
-          call dust_jnu_var_pos_frac(d(id),temperature(ic,id),specific_energy_abs(ic,id),jnu_var_id(ic,id),jnu_var_frac(ic,id))
+          call dust_jnu_var_pos_frac(d(id),specific_energy_abs(ic,id),jnu_var_id(ic,id),jnu_var_frac(ic,id))
        end do
     end do
 

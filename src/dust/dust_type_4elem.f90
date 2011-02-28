@@ -15,6 +15,8 @@ module type_dust
   public :: dust_sample_emit_probability
   public :: dust_sample_emit_frequency
   public :: dust_jnu_var_pos_frac
+  public :: specific_energy_abs2temperature
+  public :: temperature2specific_energy_abs
 
   type dust
 
@@ -34,14 +36,14 @@ module type_dust
      real(dp) :: mu_min, mu_max                   ! range of mu values
 
      ! Mean opacities
-     integer :: n_t                               ! number of temperatures
-     real(dp),allocatable :: T(:)                 ! Temperature
-     real(dp),allocatable :: log10_T(:)           ! Temperature [Log10]
-     real(dp),allocatable :: chi_planck(:)       ! planck mean opacity
-     real(dp),allocatable :: kappa_planck(:)   ! planck mean absoptive opacity
-     real(dp),allocatable :: chi_rosseland(:)   ! Rosseland mean opacity
+     integer :: n_e                              ! Number of energies
+     real(dp),allocatable :: specific_energy_abs(:) ! Energy absorbed per unit mass
+     real(dp),allocatable :: log10_specific_energy_abs(:) ! Energy absorbed per unit mass [Log10]
+     real(dp),allocatable :: chi_planck(:)       ! Planck mean opacity
+     real(dp),allocatable :: kappa_planck(:)     ! Planck mean absoptive opacity
+     real(dp),allocatable :: chi_rosseland(:)    ! Rosseland mean opacity
      real(dp),allocatable :: kappa_rosseland(:)  ! Rosseland mean opacity
-     real(dp),allocatable :: energy_abs_per_mass(:)        ! Corresponding absorbed energy per unit mass
+     real(dp),allocatable :: temperature(:)      ! Corresponding temperature
 
      ! Emissivity
      integer :: n_jnu                             ! number of emissivities
@@ -49,6 +51,11 @@ module type_dust
      real(dp),allocatable :: j_nu_var(:)          ! independent emissivity variable
      real(dp),allocatable :: log10_j_nu_var(:)    ! independent emissivity variable [Log10]
      type(pdf_dp),allocatable :: j_nu(:)          ! emissivity
+
+     logical :: is_lte ! Whether the emissivities assume therma emission from LTE dust
+
+     real(dp) :: specific_energy_abs_min
+     real(dp) :: specific_energy_abs_sub
 
      ! integer :: beta ! power of the photon energy sampling
      ! real(dp),allocatable  :: a(:) ! Energy of the emitted photon = a*nu^beta * incoming energy
@@ -72,6 +79,10 @@ contains
     ! Read dust file
 
     call hdf5_read_keyword(group, '.', 'emissvar', d%emiss_var)
+
+    call hdf5_read_keyword(group, '.', 'lte', d%is_lte)
+
+    if(d%emiss_var /= 'E') stop "Only emissvar='E' supported at this time"
 
     ! OPTICAL PROPERTIES
 
@@ -160,29 +171,28 @@ contains
     ! MEAN OPACITIES
 
     path = 'Mean opacities'
-    call hdf5_table_read_column_auto(group,path,'temperature',d%T)
+    call hdf5_table_read_column_auto(group,path,'specific_energy_abs',d%specific_energy_abs)
+    call hdf5_table_read_column_auto(group,path,'temperature',d%temperature)
     call hdf5_table_read_column_auto(group,path,'chi_planck',d%chi_planck)
     call hdf5_table_read_column_auto(group,path,'kappa_planck',d%kappa_planck)
     call hdf5_table_read_column_auto(group,path,'chi_rosseland',d%chi_rosseland)
     call hdf5_table_read_column_auto(group,path,'kappa_rosseland',d%kappa_rosseland)
 
     ! Check for NaN values
-    if(any(d%T.ne.d%T)) call error("dust_setup","temperature array contains NaN values")
+    if(any(d%specific_energy_abs.ne.d%specific_energy_abs)) call error("dust_setup","specific_energy_abs array contains NaN values")
+    if(any(d%temperature.ne.d%temperature)) call error("dust_setup","temperature array contains NaN values")
     if(any(d%chi_planck.ne.d%chi_planck)) call error("dust_setup","chi_planck array contains NaN values")
     if(any(d%kappa_planck.ne.d%kappa_planck)) call error("dust_setup","kappa_planck array contains NaN values")
     if(any(d%chi_rosseland.ne.d%chi_rosseland)) call error("dust_setup","chi_planck array contains NaN values")
     if(any(d%kappa_rosseland.ne.d%kappa_rosseland)) call error("dust_setup","kappa_rosseland array contains NaN values")
 
-    d%n_t = size(d%T)
-    allocate(d%log10_T(d%n_t))
-    d%log10_T = log10(d%T)
+    d%n_e = size(d%specific_energy_abs)
+    allocate(d%log10_specific_energy_abs(d%n_e))
+    d%log10_specific_energy_abs = log10(d%specific_energy_abs)
 
-    ! Precompute required absorbed energy
-    allocate(d%energy_abs_per_mass(d%n_t))
-    d%energy_abs_per_mass = d%T**4 * d%kappa_planck * 4._dp * stef_boltz
-
-    do i=2,d%n_t
-       if(d%energy_abs_per_mass(i) < d%energy_abs_per_mass(i-1)) then
+    ! Check that specific energy is monotically increasing (important for interpolation)
+    do i=2,d%n_e
+       if(d%specific_energy_abs(i) < d%specific_energy_abs(i-1)) then
           call error("dust_setup","energy per unit mass is not monotonically increasing")
        end if
     end do
@@ -200,15 +210,10 @@ contains
     if(any(emiss_jnu.ne.emiss_jnu)) call error("dust_setup","emiss_jnu array contains NaN values")
 
     path = 'Emissivity variable'
-    select case (d%emiss_var)
-    case('T')
-       call hdf5_table_read_column_auto(group,path,'temperature',d%j_nu_var)
-       if(any(d%j_nu_var.ne.d%j_nu_var)) call error("dust_setup","temperature array contains NaN values")
+    select case(d%emiss_var)
     case('E')
        call hdf5_table_read_column_auto(group,path,'specific_energy_abs',d%j_nu_var)
-       if(any(d%j_nu_var.ne.d%j_nu_var)) call error("dust_setup","specific_energy_abs array contains NaN values")
-    case default
-       stop "Unknown EMISSVAR"
+       if(any(d%j_nu_var.ne.d%j_nu_var)) call error("dust_setup","emissivity variable array contains NaN values")
     end select
 
     ! Find number of emissivites
@@ -234,17 +239,29 @@ contains
 
   end subroutine dust_setup
 
-  subroutine dust_jnu_var_pos_frac(d,temperature,specific_energy_abs,jnu_var_id,jnu_var_frac)
+  real(dp) function specific_energy_abs2temperature(d, specific_energy_abs) result(temperature)
+    implicit none
+    type(dust), intent(in) :: d
+    real(dp),intent(in) :: specific_energy_abs
+    temperature = interp1d_loglog(d%specific_energy_abs, d%temperature, specific_energy_abs)
+  end function specific_energy_abs2temperature
+
+  real(dp) function temperature2specific_energy_abs(d, temperature) result(specific_energy_abs)
+    implicit none
+    type(dust), intent(in) :: d
+    real(dp),intent(in)  :: temperature
+    specific_energy_abs = interp1d_loglog(d%temperature, d%specific_energy_abs, temperature)
+  end function temperature2specific_energy_abs
+
+  subroutine dust_jnu_var_pos_frac(d,specific_energy_abs,jnu_var_id,jnu_var_frac)
     implicit none
     type(dust),intent(in) :: d
-    real(dp),intent(in) :: temperature,specific_energy_abs
+    real(dp),intent(in) :: specific_energy_abs
     integer,intent(out) :: jnu_var_id
     real(dp),intent(out) :: jnu_var_frac
     real(dp) :: jnu_var
 
     select case(d%emiss_var)
-    case('T')
-       jnu_var = temperature    
     case('E')
        jnu_var = specific_energy_abs
     end select

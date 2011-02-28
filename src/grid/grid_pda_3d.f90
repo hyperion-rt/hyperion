@@ -21,13 +21,51 @@ module grid_pda
   real(dp), parameter :: tolerance_iter = 1.e-4 ! temperature calculation convergence criterion
   real(dp), parameter :: tolerance_exact = 1.e-5 ! temperature calculation convergence criterion
   real(dp), parameter :: threshold_pda = 0.005 ! maximum number of photons required to use PDA
+
+  real(dp), allocatable :: e_mean(:)
+
 contains
+
+  real(dp) elemental function difference_ratio(a, b)
+    implicit none
+    real(dp), intent(in) :: a, b
+    difference_ratio = max(a/b, b/a)
+  end function difference_ratio
+
+  subroutine update_specific_energy_abs(ic)
+    implicit none
+    integer,intent(in) :: ic
+    integer :: id
+    real(dp) :: s_prev, s
+    do id=1,n_dust
+       s = specific_energy_abs(ic, id)
+       do
+          s_prev = s
+          s = e_mean(ic) * kappa_planck(id, s)
+          if(difference_ratio(s, s_prev) - 1._dp < 1.e-5_dp) exit
+       end do
+       specific_energy_abs(ic, id) = s
+    end do
+  end subroutine update_specific_energy_abs
+
+  subroutine update_e_mean(ic)
+    implicit none
+    integer,intent(in) :: ic
+    integer :: id
+    e_mean(ic) = 0.
+    if(sum(density(ic, :)) > 0._dp) then
+       do id=1,n_dust
+          e_mean(ic) = e_mean(ic) + density(ic,id) * specific_energy_abs(ic,id) / kappa_planck(id, specific_energy_abs(ic,id))
+       end do
+       e_mean(ic) = e_mean(ic) / sum(density(ic, :))
+    end if
+  end subroutine update_e_mean
 
   subroutine solve_pda()
 
     implicit none
 
-    real(dp), allocatable :: temperature_prev(:,:)
+    real(dp),allocatable :: specific_energy_abs_prev(:,:)
     logical,allocatable :: do_pda(:)
     real(dp) :: maxdiff
     real(dp) :: mean_n_photons
@@ -40,7 +78,7 @@ contains
 
     mean_n_photons = sum(n_photons) / size(n_photons)
 
-    allocate(temperature_prev(geo%n_cells, n_dust))
+    allocate(specific_energy_abs_prev(geo%n_cells, n_dust))
     allocate(do_pda(geo%n_cells))
 
     do_pda = n_photons < max(30,ceiling(threshold_pda*mean_n_photons)) .and. sum(density, dim=2) > 0.
@@ -53,12 +91,18 @@ contains
     end if
 
     if(count(do_pda) < 10000) then
-       write(*,'(" [pda] less than 10,000 PDA cells - using Gauss pivot method")')
+       write(*,'(" [pda] fewer than 10,000 PDA cells - using Gauss pivot method")')
        tolerance = tolerance_exact
     else
        write(*,'(" [pda] more than 10,000 PDA cells - using iterative method")')
        tolerance = tolerance_iter
     end if
+
+    allocate(e_mean(geo%n_cells))
+
+    do ic=1,geo%n_cells
+       call update_e_mean(ic)
+    end do
 
     ! Precompute the cells where the PDA will be computed
     allocate(pda_cells(count(do_pda)))
@@ -75,11 +119,11 @@ contains
        end if
     end do
 
+    specific_energy_abs_prev = specific_energy_abs
+
     do
 
-       temperature_prev = temperature
-
-       call update_mean_temperature()
+       specific_energy_abs_prev = specific_energy_abs
 
        if(count(do_pda) < 10000) then
           call solve_pda_indiv_exact(pda_cells, id_pda_cell)
@@ -87,7 +131,7 @@ contains
           call solve_pda_indiv_iterative(pda_cells)
        end if
 
-       maxdiff = maxval(abs(temperature - temperature_prev) / temperature_prev)
+       maxdiff = maxval(abs(specific_energy_abs - specific_energy_abs_prev) / specific_energy_abs_prev)
 
        write(*,'(" [pda] maximum temperature difference: ", ES9.2)') maxdiff
 
@@ -98,9 +142,12 @@ contains
     write(*,'(" [pda] converged")')
 
     deallocate(do_pda)
-    deallocate(temperature_prev)
+    deallocate(specific_energy_abs_prev)
+    deallocate(e_mean)
 
-    call update_energy_abs() ! Update energy absorbed in each cell to match temperature
+    call update_energy_abs_tot()
+
+    call check_energy_abs()
 
   end subroutine solve_pda
 
@@ -111,7 +158,7 @@ contains
     integer :: id
     dtau_rosseland = 0._dp   
     do id=1,n_dust
-       dtau_rosseland = dtau_rosseland + density(cell%ic,id) * chi_rosseland(id, temperature(cell%ic,id)) * cell_width(cell,idir)
+       dtau_rosseland = dtau_rosseland + density(cell%ic,id) * chi_rosseland(id, specific_energy_abs(cell%ic,id)) * cell_width(cell,idir)
     end do
   end function dtau_rosseland
 
@@ -127,10 +174,15 @@ contains
     type(grid_cell) :: curr, next
     real(dp) :: dtau_ross_curr, dtau_ross_next
 
-    integer :: id
+    integer :: id, ic
     real(dp) :: coefficient
     real(dp),allocatable :: a(:,:), b(:)
     integer :: id_curr, id_next
+
+    do id_curr=1,size(pda_cells)
+       ic = pda_cells(id_curr)%ic
+       call update_e_mean(ic)
+    end do
 
     allocate(a(size(pda_cells), size(pda_cells)), b(size(pda_cells)))
     a = 0._dp
@@ -158,7 +210,7 @@ contains
              id_next = id_pda_cell(next%ic)
              a(id_next, id_curr) = coefficient
           else
-             b(id_curr) = b(id_curr) - coefficient * temperature_mean(next%ic) ** 4.
+             b(id_curr) = b(id_curr) - coefficient * e_mean(next%ic)
           end if
 
        end do
@@ -168,11 +220,9 @@ contains
     call lineq_gausselim(a, b)
 
     do id_curr=1,size(pda_cells)
-       do id=1,n_dust
-          if(density(pda_cells(id_curr)%ic, id) > 0._dp) then
-             temperature(pda_cells(id_curr)%ic, id) = sqrt(sqrt(b(id_curr)))
-          end if
-       end do
+       ic = pda_cells(id_curr)%ic
+       e_mean(ic) = b(id_curr)
+       call update_specific_energy_abs(ic)
     end do
 
     deallocate(a, b)
@@ -192,17 +242,18 @@ contains
 
     real(dp) :: coefficient
     real(dp) :: a, b
-    integer :: id, id_curr
+    integer :: id, id_curr, ic
 
-    real(dp),allocatable :: t4mean(:)
-    real(dp) :: maxt4diff, t4diff, t4new
+    real(dp) :: max_e_diff, e_diff, e_new
 
-    allocate(t4mean(geo%n_cells))
-    t4mean = temperature_mean ** 4
+    do id_curr=1,size(pda_cells)
+       ic = pda_cells(id_curr)%ic
+       call update_e_mean(ic)
+    end do
 
     do
 
-       maxt4diff = 0.
+       max_e_diff = 0.
        do id_curr=1,size(pda_cells)
 
           curr = pda_cells(id_curr)
@@ -223,27 +274,26 @@ contains
              coefficient = coefficient * geometrical_factor(wall, curr)
 
              a = a - coefficient
-             b = b - coefficient * t4mean(next%ic)
+             b = b - coefficient * e_mean(next%ic)
 
           end do
 
-          t4new = b/a
+          e_new = b/a
 
-          t4diff = abs(t4new - t4mean(curr%ic)) / t4mean(curr%ic)
-          if(t4diff > maxt4diff) maxt4diff = t4diff
+          e_diff = abs(e_new - e_mean(curr%ic)) / e_mean(curr%ic)
+          if(e_diff > max_e_diff) max_e_diff = e_diff
 
-          t4mean(curr%ic) = t4new
+          e_mean(curr%ic) = e_new
 
        end do
 
-       if(maxt4diff < tolerance_iter) exit
+       if(max_e_diff < tolerance_iter) exit
 
     end do
 
-    do id=1,n_dust
-       where(density(:,id) > 0.)
-          temperature(:,id) = sqrt(sqrt(t4mean))
-       end where
+    do id_curr=1,size(pda_cells)
+       ic = pda_cells(id_curr)%ic
+       call update_specific_energy_abs(ic)
     end do
 
   end subroutine solve_pda_indiv_iterative
