@@ -98,6 +98,8 @@ contains
 
     ! Density
     allocate(density(geo%n_cells, n_dust))
+    allocate(temperature(geo%n_cells, n_dust))
+    allocate(specific_energy_abs(geo%n_cells, n_dust))
 
     if(n_dust > 0) then
 
@@ -135,18 +137,15 @@ contains
           ! Check number of dust types for specific_energy_abs
           if(size(temperature, 2).ne.n_dust) call error("setup_grid","temperature array has wrong number of dust types")
 
-          ! Convert to specific energy
-          allocate(specific_energy_abs(geo%n_cells, n_dust))
-
           do ic=1,geo%n_cells
              do id=1,n_dust
-                specific_energy_abs(ic, id) = temperature2specific_energy_abs(d(id), temperature(ic, id))
+                if(density(ic, id) > 0._dp) then
+                   specific_energy_abs(ic, id) = temperature2specific_energy_abs(d(id), temperature(ic, id))
+                end if
              end do
           end do
 
        else
-
-          allocate(specific_energy_abs(geo%n_cells, n_dust))
 
           ! Set all specific_energy_abs to minimum requested
           do id=1,n_dust
