@@ -1,6 +1,5 @@
 import os
 import subprocess
-import hashlib
 import warnings
 
 import h5py
@@ -14,7 +13,6 @@ from hyperion.sources import PointSource, SphericalSource, ExternalSphericalSour
 from hyperion.conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from hyperion.util.constants import c, pi
 from hyperion.util.functions import FreezableClass
-from hyperion.dust import SphericalDust
 
 STOKESD = {}
 STOKESD['I'] = 0
@@ -130,8 +128,6 @@ class Model(FreezableClass):
         self.set_convergence = self.conf.run.set_convergence
         self.set_kill_on_absorb = self.conf.run.set_kill_on_absorb
         self.set_forced_first_scattering = self.conf.run.set_forced_first_scattering
-        self.set_dust_sublimation = self.conf.run.set_dust_sublimation
-        self.set_minimum_temperature = self.conf.run.set_minimum_temperature
         self.set_output_bytes = self.conf.run.set_output_bytes
 
         self._freeze()
@@ -181,7 +177,8 @@ class Model(FreezableClass):
 
         for images in self.peeled_output:
             images._monochromatic = True
-            images.set_wavelength_range(len(frequencies), 1, len(frequencies))
+            if type(images.wav_min) != int or type(images.wav_max) != int:
+                images.set_wavelength_range(len(frequencies), 1, len(frequencies))
         if self.binned_output is not None:
             raise Exception("Binned images cannot be computed in monochromatic mode")
 

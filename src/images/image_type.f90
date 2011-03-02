@@ -597,8 +597,8 @@ contains
     end if
 
     if(img%use_exact_nu) then
-       call hdf5_table_write_header(group, 'frequencies',size(img%nu),1,(/'nu'/),(/1/),(/h5t_ieee_f64le/))
-       call hdf5_table_write_column(group, 'frequencies','nu',img%nu)
+       call hdf5_table_write_header(group, 'frequencies',img%inu_max - img%inu_min + 1,1,(/'nu'/),(/1/),(/h5t_ieee_f64le/))
+       call hdf5_table_write_column(group, 'frequencies','nu',img%nu(img%inu_min:img%inu_max))
     end if
 
     write(*,'(" [image_write] done")')
