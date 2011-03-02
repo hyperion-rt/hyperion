@@ -612,7 +612,7 @@ class SphericalDust(FreezableClass):
         if ts.keywords['emissvar'] == 'E':
             emissvar = 'specific_energy_abs'
         else:
-            raise Exception("Unknown emissivity variable: %s" % emissvar)
+            raise Exception("Unknown emissivity variable: %s" % ts.keywords['emissvar'])
 
         # Read emissivities
         temiss = ts['Emissivities']
