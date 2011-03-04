@@ -223,6 +223,9 @@ class Model(FreezableClass):
         g_peeled = g_output.create_group('Peeled')
         g_binned = g_output.create_group('Binned')
 
+        if self.grid is None:
+            raise Exception("No grid has been set up")
+
         # Generate random geometry ID
         self.grid.geometry_id = random_id()
 
