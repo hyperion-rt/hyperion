@@ -1,20 +1,20 @@
 FC = @serial_fc@ @extra_serial@
 FCMPI = @mpi_fc@ @extra_mpi@
 
-COMMON = 	src/lib/base_types.f90 \
-		src/lib/lib_messages.f90 \
-		src/lib/lib_io.f90 \
-		src/lib/lib_algebra.f90 \
-		src/lib/lib_conf.f90 \
-		src/lib/lib_array.f90 \
-		src/lib/lib_statistics.f90 \
-		src/lib/lib_random.f90 \
-		src/lib/lib_hdf5.f90 \
-		src/lib/lib_constants.f90 \
-		src/lib/type_angle3d.f90 \
-		src/lib/type_vector3d.f90 \
-		src/lib/type_stokes.f90 \
-		src/lib/type_pdf.f90
+COMMON = 	fortranlib/src/base_types.f90 \
+		fortranlib/src/lib_messages.f90 \
+		fortranlib/src/lib_io.f90 \
+		fortranlib/src/lib_algebra.f90 \
+		fortranlib/src/lib_conf.f90 \
+		fortranlib/src/lib_array.f90 \
+		fortranlib/src/lib_statistics.f90 \
+		fortranlib/src/lib_random.f90 \
+		fortranlib/src/lib_hdf5.f90 \
+		fortranlib/src/lib_constants.f90 \
+		fortranlib/src/type_angle3d.f90 \
+		fortranlib/src/type_vector3d.f90 \
+		fortranlib/src/type_stokes.f90 \
+		fortranlib/src/type_pdf.f90
 
 OBJECTS1 = 	src/core/type_photon.f90 \
 		src/main/settings.f90 \
@@ -42,7 +42,7 @@ OBJECTS3 =	src/main/iter_lucy.f90 \
 		src/main/main.f90
 
 OBJECTS_CAR_SER =	src/mpi/mpi_core_nompi.f90 \
-			src/lib/@posix_module_serial@.f90 \
+			fortranlib/src/@posix_module_serial@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
 			src/grid/type_grid_cartesian_3d.f90 \
@@ -57,7 +57,7 @@ OBJECTS_CAR_SER =	src/mpi/mpi_core_nompi.f90 \
 			$(OBJECTS3)
 
 OBJECTS_CAR_MPI =	src/mpi/mpi_core.f90 \
-			src/lib/@posix_module_mpi@.f90 \
+			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
 			src/grid/type_grid_cartesian_3d.f90 \
@@ -72,7 +72,7 @@ OBJECTS_CAR_MPI =	src/mpi/mpi_core.f90 \
 			$(OBJECTS3)
 
 OBJECTS_AMR_SER =	src/mpi/mpi_core_nompi.f90 \
-			src/lib/@posix_module_serial@.f90 \
+			fortranlib/src/@posix_module_serial@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
 			src/grid/type_grid_amr.f90 \
@@ -87,7 +87,7 @@ OBJECTS_AMR_SER =	src/mpi/mpi_core_nompi.f90 \
 			$(OBJECTS3)
 
 OBJECTS_AMR_MPI =	src/mpi/mpi_core.f90 \
-			src/lib/@posix_module_mpi@.f90 \
+			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
 			src/grid/type_grid_amr.f90 \
@@ -102,7 +102,7 @@ OBJECTS_AMR_MPI =	src/mpi/mpi_core.f90 \
 			$(OBJECTS3)
 
 OBJECTS_OCT_SER =	src/mpi/mpi_core_nompi.f90 \
-			src/lib/@posix_module_serial@.f90 \
+			fortranlib/src/@posix_module_serial@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
 			src/grid/type_grid_octree.f90 \
@@ -117,7 +117,7 @@ OBJECTS_OCT_SER =	src/mpi/mpi_core_nompi.f90 \
 			$(OBJECTS3)
 
 OBJECTS_OCT_MPI =	src/mpi/mpi_core.f90 \
-			src/lib/@posix_module_mpi@.f90 \
+			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
 			src/grid/type_grid_octree.f90 \
@@ -132,7 +132,7 @@ OBJECTS_OCT_MPI =	src/mpi/mpi_core.f90 \
 			$(OBJECTS3)
 
 OBJECTS_SPH_SER =	src/mpi/mpi_core_nompi.f90 \
-			src/lib/@posix_module_serial@.f90 \
+			fortranlib/src/@posix_module_serial@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
 			src/grid/type_grid_spherical_3d.f90 \
@@ -147,7 +147,7 @@ OBJECTS_SPH_SER =	src/mpi/mpi_core_nompi.f90 \
 			$(OBJECTS3)
 
 OBJECTS_SPH_MPI =	src/mpi/mpi_core.f90 \
-			src/lib/@posix_module_mpi@.f90 \
+			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
 			src/grid/type_grid_spherical_3d.f90 \
@@ -162,7 +162,7 @@ OBJECTS_SPH_MPI =	src/mpi/mpi_core.f90 \
 			$(OBJECTS3)
 
 OBJECTS_CYL_SER =	src/mpi/mpi_core_nompi.f90 \
-			src/lib/@posix_module_serial@.f90 \
+			fortranlib/src/@posix_module_serial@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
 			src/grid/type_grid_cylindrical_3d.f90 \
@@ -177,7 +177,7 @@ OBJECTS_CYL_SER =	src/mpi/mpi_core_nompi.f90 \
 			$(OBJECTS3)
 
 OBJECTS_CYL_MPI =	src/mpi/mpi_core.f90 \
-			src/lib/@posix_module_mpi@.f90 \
+			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
 			src/grid/type_grid_cylindrical_3d.f90 \
