@@ -132,7 +132,7 @@ class AnalyticalYSOModel(Model):
         disk = FlaredDisk()
         self.disks.append(disk)
         return disk
-        
+
     def add_alpha_disk(self):
         "Add an alpha disk to the geometry"
         disk = AlphaDisk()
@@ -230,9 +230,9 @@ class AnalyticalYSOModel(Model):
         fig.savefig(filename)
 
     # COORDINATE GRID
-    
+
     def radial_range(self):
-        
+
         if len(self.disks) == 0 and len(self.envelopes) == 0:
             rmin = self.star.radius
         else:
@@ -292,6 +292,12 @@ class AnalyticalYSOModel(Model):
             warnings.warn("Grid rmax < rmin, model with consist only of central star")
             rmin = self.star.radius
             rmax = 2. * self.star.radius
+
+        if np.isnan(rmin):
+            raise Exception("R_min is NaN")
+
+        if np.isnan(rmax):
+            raise Exception("R_max is NaN")
 
         # RADIAL WALLS
 

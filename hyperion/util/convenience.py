@@ -27,4 +27,6 @@ class OptThinRadius(object):
             r = self.value * rstar / 2. / np.sqrt(x)
         else:
             r = self.value * rstar / np.sqrt(1. - (1. - 2. * x) ** 2.)
+        if np.isnan(r):
+            raise Exception("Optically thin radius is NaN")
         return r
