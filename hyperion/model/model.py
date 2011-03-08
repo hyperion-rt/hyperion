@@ -13,6 +13,7 @@ from hyperion.sources import PointSource, SphericalSource, ExternalSphericalSour
 from hyperion.conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from hyperion.util.constants import c, pi
 from hyperion.util.functions import FreezableClass
+from hyperion.dust import SphericalDust
 
 STOKESD = {}
 STOKESD['I'] = 0
@@ -260,27 +261,25 @@ class Model(FreezableClass):
             present = {}
             for i, dust in enumerate(self.dust):
 
-                short_name = 'dust_%03i' % (i+1)
+                short_name = 'dust_%03i' % (i + 1)
 
-                if type(dust) == str:
+                if copy_dust:
 
-                    if copy_dust:
-                        f = h5py.File(dust, 'r')
-                        f.copy('/', g_dust, name=short_name)
-                        f.close()
-                    else:
-                        if absolute_paths:
-                            g_dust[short_name] = h5py.ExternalLink(os.path.abspath(dust), '/')
-                        else:
-                            g_dust[short_name] = h5py.ExternalLink(os.path.relpath(dust), '/')
-
-                else:
+                    if type(dust) == str:
+                        dust = SphericalDust(dust)
 
                     if id(dust) in present:
                         g_dust[short_name] = h5py.SoftLink(present[id(dust)])
                     else:
                         dust.write(g_dust.create_group(short_name))
                         present[id(dust)] = short_name
+
+                else:
+
+                    if absolute_paths:
+                        g_dust[short_name] = h5py.ExternalLink(os.path.abspath(dust.filename), '/')
+                    else:
+                        g_dust[short_name] = h5py.ExternalLink(os.path.relpath(dust.filename), '/')
 
         # Output geometry
         self.grid.write_geometry(g_geometry, \
