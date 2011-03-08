@@ -42,6 +42,8 @@ class check_bounds(object):
 @check_bounds
 def interp1d_fast(x, y, xval):
     '''On-the-fly linear interpolator'''
+    if len(x) != len(y):
+        raise Exception("x and y should have the same length")
     ipos = np.searchsorted(x, xval)
     return (xval - x[ipos - 1]) \
          / (x[ipos] - x[ipos - 1]) \
@@ -52,6 +54,8 @@ def interp1d_fast(x, y, xval):
 @check_bounds
 def interp1d_fast_loglog(x, y, xval):
     '''On-the-fly log interpolator'''
+    if len(x) != len(y):
+        raise Exception("x and y should have the same length")
     ipos = np.searchsorted(x, xval)
     yval = 10.**((np.log10(xval) - np.log10(x[ipos - 1])) \
               / (np.log10(x[ipos]) - np.log10(x[ipos - 1])) \
@@ -68,6 +72,8 @@ def interp1d_fast_loglog(x, y, xval):
 @check_bounds
 def interp1d_fast_linlog(x, y, xval):
     '''On-the-fly linear-log interpolator'''
+    if len(x) != len(y):
+        raise Exception("x and y should have the same length")
     ipos = np.searchsorted(x, xval)
     yval = 10.**((xval - x[ipos - 1]) \
               / (x[ipos] - x[ipos - 1]) \
@@ -84,6 +90,8 @@ def interp1d_fast_linlog(x, y, xval):
 @check_bounds
 def interp1d_fast_loglin(x, y, xval):
     '''On-the-fly log-linear interpolator'''
+    if len(x) != len(y):
+        raise Exception("x and y should have the same length")
     ipos = np.searchsorted(x, xval)
     return ((np.log10(xval) - np.log10(x[ipos-1])) \
            / (np.log10(x[ipos]) - np.log10(x[ipos - 1])) \
