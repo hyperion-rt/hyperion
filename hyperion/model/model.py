@@ -276,10 +276,13 @@ class Model(FreezableClass):
 
                 else:
 
+                    if type(dust) != str:
+                        dust = dust.filename
+
                     if absolute_paths:
-                        g_dust[short_name] = h5py.ExternalLink(os.path.abspath(dust.filename), '/')
+                        g_dust[short_name] = h5py.ExternalLink(os.path.abspath(dust), '/')
                     else:
-                        g_dust[short_name] = h5py.ExternalLink(os.path.relpath(dust.filename), '/')
+                        g_dust[short_name] = h5py.ExternalLink(os.path.relpath(dust), '/')
 
         # Output geometry
         self.grid.write_geometry(g_geometry, \
