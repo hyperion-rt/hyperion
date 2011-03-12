@@ -1,2 +1,3 @@
 include configure Makefile.in src/modules/empty.txt bin/empty.txt
 recursive-include src/ *.f90
+recursive-include fortranlib *.f90
