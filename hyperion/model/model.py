@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import hyperion
 from hyperion.util.functions import delete_file, random_id
 from hyperion.grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OcTreeGrid, AMRGrid
-from hyperion.sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource
+from hyperion.sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource
 from hyperion.conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from hyperion.util.constants import c, pi
 from hyperion.util.functions import FreezableClass
@@ -312,6 +312,11 @@ class Model(FreezableClass):
 
     def add_map_source(self, *args, **kwargs):
         source = MapSource(*args, **kwargs)
+        self.add_source(source)
+        return source
+
+    def add_plane_parallel_source(self, *args, **kwargs):
+        source = PlaneParallelSource(*args, **kwargs)
         self.add_source(source)
         return source
 

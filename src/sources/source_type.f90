@@ -60,6 +60,9 @@ module type_source
      real(dp) :: zmin, zmax
      type(pdf_discrete_dp) :: face
 
+     ! For plane parallel
+     type(angle3d_dp) :: direction
+
      ! Luminosity grid
      type(pdf_discrete_dp) :: luminosity_map
 
@@ -91,6 +94,7 @@ contains
     character(len=255),allocatable :: spot_names(:)
     integer(hid_t) :: g_spot
     real(dp) :: dx, dy, dz
+    real(dp) :: theta, phi
 
     call hdf5_read_keyword(group, '.', 'type', type)
 
@@ -210,6 +214,24 @@ contains
        call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
 
        if(s%freq_type == 3) call error("source_read", "External box source cannot have LTE spectrum")
+
+    case('plane_parallel')
+
+       s%type = 7
+
+       call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call hdf5_read_keyword(group, '.', 'x', s%position%x)
+       call hdf5_read_keyword(group, '.', 'y', s%position%y)
+       call hdf5_read_keyword(group, '.', 'z', s%position%z)
+       call hdf5_read_keyword(group, '.', 'r', s%radius)
+       call hdf5_read_keyword(group, '.', 'theta', theta)
+       call hdf5_read_keyword(group, '.', 'phi', phi)
+
+       s%direction = angle3d_deg(theta, phi)
+
+       call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
+
+       if(s%freq_type == 3) call error("source_read", "Plane parallel cannot have LTE spectrum")
 
     case default
        call error("source_read", "unknown type in source list: "//trim(type))
@@ -362,6 +384,8 @@ contains
        call emit_from_extern_sph(src,p)
     case(6)
        call emit_from_extern_box(src,p)
+    case(7)
+       call emit_from_plane_parallel(src,p)
     end select
 
     if(present(nu)) then
@@ -442,6 +466,8 @@ contains
        call emit_from_extern_sph_peeloff(src,p,a_req)
     case(6)
        call emit_from_extern_box_peeloff(src,p,a_req)
+    case(7)
+       call emit_from_plane_parallel_peeloff(src,p,a_req)
     case default
        stop "Should not be here, all other source types are isotropic"
     end select
@@ -810,6 +836,58 @@ contains
     p%s = stokes_dp(4._dp*mu, 0._dp, 0._dp, 0._dp)
     p%a = a_req
   end subroutine emit_from_extern_box_peeloff
+
+  subroutine emit_from_plane_parallel(src,p)
+
+    implicit none
+
+    ! --- Input --- !
+
+    type(source),intent(in) :: src
+    ! the source to emit from
+
+    ! --- Output --- !
+
+    type(photon),intent(inout) :: p
+    ! the emitted photon
+
+    real(dp) :: xi, r, phi
+
+    type(angle3d_dp) :: a_local, a_final
+
+    ! Sample radius on emitting disk
+    call random(xi)
+    r = xi**0.5 * src%radius
+
+    ! Sample phi on emitting disk
+    call random_uni(phi, 0._dp, 360._dp)
+
+    ! Find coordinate angle of point on disk
+    a_local = angle3d_deg(90._dp, phi)
+    call rotate_angle3d(a_local,src%direction,a_final)
+
+    ! Convert to position, and apply radius
+    call angle3d_to_vector3d(a_final, p%r)
+    p%r = p%r * r
+    p%r = p%r + src%position
+
+    ! Set photon direction
+    p%a = src%direction
+
+    p%s = stokes_dp(1._dp,0._dp,0._dp,0._dp)
+
+    p%last_isotropic = .false.
+
+  end subroutine emit_from_plane_parallel
+
+  subroutine emit_from_plane_parallel_peeloff(src,p,a_req)
+    implicit none
+    type(source),intent(in) :: src ! the source to emit from
+    type(photon),intent(inout) :: p ! the photon to peeloff
+    type(angle3d_dp),intent(in) :: a_req ! requested angle
+    p%s = stokes_dp(0._dp, 0._dp, 0._dp, 0._dp)
+    p%a = a_req
+  end subroutine emit_from_plane_parallel_peeloff
 
   !**********************************************************************!
   ! ran_mu_limb(a,b) : sample random mu with limb darkening a*mu^2+b*mu

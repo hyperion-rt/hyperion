@@ -274,3 +274,39 @@ class MapSource(Source):
                                   compression=compression,
                                   physics_dtype=map_dtype)
         self.write_spectrum(g)
+
+
+class PlaneParallelSource(Source):
+
+    def __init__(self, luminosity=None, position=(0., 0., 0.), radius=None,
+                 direction=(0.,0.), spectrum=None,
+                 temperature=None, name=None):
+        self.position = position
+        self.radius = range
+        self.direction = direction
+        Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
+                        temperature=temperature, name=name)
+
+    def check_all_set(self):
+        if self.position is None:
+            raise Exception("position is not set")
+        if self.radius is None:
+            raise Exception("radius is not set")
+        if self.direction is None:
+            raise Exception("direction is not set")
+        if self.has_lte_spectrum():
+            raise Exception("Point source cannot have LTE spectrum")
+        Source.check_all_set(self)
+
+    def write(self, handle, name):
+        self.check_all_set()
+        g = handle.create_group(name)
+        g.attrs['type'] = 'plane_parallel'
+        g.attrs['luminosity'] = self.luminosity
+        g.attrs['x'] = self.position[0]
+        g.attrs['y'] = self.position[1]
+        g.attrs['z'] = self.position[2]
+        g.attrs['r'] = self.radius
+        g.attrs['theta'] = self.direction[0]
+        g.attrs['phi'] = self.direction[1]
+        self.write_spectrum(g)
