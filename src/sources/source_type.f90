@@ -42,6 +42,9 @@ module type_source
      ! Source luminosity
      real(dp) :: luminosity
 
+     ! Whether the source should be peeled off
+     logical :: peeloff
+
      ! Source position, used for point, spherical, and spot sources
      type(vector3d_dp) :: position
 
@@ -104,6 +107,7 @@ contains
        s%type = 1
 
        call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call hdf5_read_keyword(group, '.', 'peeloff', s%peeloff)
        call hdf5_read_keyword(group, '.', 'x', s%position%x)
        call hdf5_read_keyword(group, '.', 'y', s%position%y)
        call hdf5_read_keyword(group, '.', 'z', s%position%z)
@@ -117,6 +121,7 @@ contains
        s%type = 2
 
        call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call hdf5_read_keyword(group, '.', 'peeloff', s%peeloff)
        call hdf5_read_keyword(group, '.', 'x', s%position%x)
        call hdf5_read_keyword(group, '.', 'y', s%position%y)
        call hdf5_read_keyword(group, '.', 'z', s%position%z)
@@ -174,6 +179,7 @@ contains
        s%type = 4
 
        call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call hdf5_read_keyword(group, '.', 'peeloff', s%peeloff)
 
        call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
 
@@ -184,6 +190,7 @@ contains
        s%type = 5
 
        call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call hdf5_read_keyword(group, '.', 'peeloff', s%peeloff)
        call hdf5_read_keyword(group, '.', 'x', s%position%x)
        call hdf5_read_keyword(group, '.', 'y', s%position%y)
        call hdf5_read_keyword(group, '.', 'z', s%position%z)
@@ -198,6 +205,7 @@ contains
        s%type = 6
 
        call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call hdf5_read_keyword(group, '.', 'peeloff', s%peeloff)
        call hdf5_read_keyword(group, '.', 'xmin', s%xmin)
        call hdf5_read_keyword(group, '.', 'xmax', s%xmax)
        call hdf5_read_keyword(group, '.', 'ymin', s%ymin)
@@ -220,6 +228,7 @@ contains
        s%type = 7
 
        call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call hdf5_read_keyword(group, '.', 'peeloff', s%peeloff)
        call hdf5_read_keyword(group, '.', 'x', s%position%x)
        call hdf5_read_keyword(group, '.', 'y', s%position%y)
        call hdf5_read_keyword(group, '.', 'z', s%position%z)
@@ -459,18 +468,21 @@ contains
     type(source),intent(in) :: src ! the source to emit from
     type(photon),intent(inout) :: p ! the photon to peeloff
     type(angle3d_dp),intent(in) :: a_req ! requested angle
-    select case(src%type)
-    case(2,3)
-       call emit_from_sphere_peeloff(src,p,a_req)
-    case(5)
-       call emit_from_extern_sph_peeloff(src,p,a_req)
-    case(6)
-       call emit_from_extern_box_peeloff(src,p,a_req)
-    case(7)
-       call emit_from_plane_parallel_peeloff(src,p,a_req)
-    case default
-       stop "Should not be here, all other source types are isotropic"
-    end select
+    if(src%peeloff) then
+       select case(src%type)
+       case(2,3)
+          call emit_from_sphere_peeloff(src,p,a_req)
+       case(5)
+          call emit_from_extern_sph_peeloff(src,p,a_req)
+       case(6)
+          call emit_from_extern_box_peeloff(src,p,a_req)
+       case default
+          stop "Should not be here, all other source types are isotropic"
+       end select
+    else
+       p%s = stokes_dp(0._dp, 0._dp, 0._dp, 0._dp)
+       p%a = a_req
+    end if
   end subroutine source_emit_peeloff
 
   !**********************************************************************!
@@ -879,15 +891,6 @@ contains
     p%last_isotropic = .false.
 
   end subroutine emit_from_plane_parallel
-
-  subroutine emit_from_plane_parallel_peeloff(src,p,a_req)
-    implicit none
-    type(source),intent(in) :: src ! the source to emit from
-    type(photon),intent(inout) :: p ! the photon to peeloff
-    type(angle3d_dp),intent(in) :: a_req ! requested angle
-    p%s = stokes_dp(0._dp, 0._dp, 0._dp, 0._dp)
-    p%a = a_req
-  end subroutine emit_from_plane_parallel_peeloff
 
   !**********************************************************************!
   ! ran_mu_limb(a,b) : sample random mu with limb darkening a*mu^2+b*mu

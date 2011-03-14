@@ -10,7 +10,7 @@ import atpy
 class Source(FreezableClass):
 
     def __init__(self, luminosity=None, spectrum=None, temperature=None,
-                 name=None):
+                 name=None, peeloff=True):
 
         self.luminosity = luminosity
         self.spectrum = None
@@ -25,6 +25,8 @@ class Source(FreezableClass):
             self.name = name
         else:
             self.name = random_id(length=8)
+
+        self.peeloff = peeloff
 
         self._freeze()
 
@@ -82,13 +84,13 @@ class Source(FreezableClass):
 class SpotSource(Source):
 
     def __init__(self, luminosity=None, longitude=None, latitude=None,
-                 radius=None, spectrum=None, temperature=None, name=None):
+                 radius=None, spectrum=None, temperature=None, name=None, peeloff=True):
 
         self.longitude = longitude
         self.latitude = latitude
         self.radius = radius
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name)
+                        temperature=temperature, name=name, peeloff=peeloff)
 
     def check_all_set(self):
         if self.longitude is None:
@@ -105,20 +107,19 @@ class SpotSource(Source):
         self.check_all_set()
         g = handle.create_group(name)
         g.attrs['type'] = 'spot'
-        g.attrs['luminosity'] = self.luminosity
         g.attrs['longitude'] = self.longitude
         g.attrs['latitude'] = self.latitude
         g.attrs['radius'] = self.radius
-        self.write_spectrum(g)
+        Source.write(self, g)
 
 
 class PointSource(Source):
 
     def __init__(self, luminosity=None, position=(0., 0., 0.), spectrum=None,
-                 temperature=None, name=None):
+                 temperature=None, name=None, peeloff=True):
         self.position = position
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name)
+                        temperature=temperature, name=name, peeloff=peeloff)
 
     def check_all_set(self):
         if self.position is None:
@@ -131,24 +132,23 @@ class PointSource(Source):
         self.check_all_set()
         g = handle.create_group(name)
         g.attrs['type'] = 'point'
-        g.attrs['luminosity'] = self.luminosity
         g.attrs['x'] = self.position[0]
         g.attrs['y'] = self.position[1]
         g.attrs['z'] = self.position[2]
-        self.write_spectrum(g)
+        Source.write(self, g)
 
 
 class SphericalSource(Source):
 
     def __init__(self, luminosity=None, position=(0., 0., 0.), radius=None,
                  limb_darkening=False, spectrum=None, temperature=None,
-                 name=None):
+                 name=None, peeloff=True):
         self.position = position
         self.radius = radius
         self.limb = limb_darkening
         self.spots = []
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name)
+                        temperature=temperature, name=name, peeloff=peeloff)
 
     def check_all_set(self):
         if self.position is None:
@@ -167,7 +167,6 @@ class SphericalSource(Source):
 
         g = handle.create_group(name)
         g.attrs['type'] = 'sphere'
-        g.attrs['luminosity'] = self.luminosity
         g.attrs['x'] = self.position[0]
         g.attrs['y'] = self.position[1]
         g.attrs['z'] = self.position[2]
@@ -176,7 +175,7 @@ class SphericalSource(Source):
             g.attrs['limb'] = 'yes'
         else:
             g.attrs['limb'] = 'no'
-        self.write_spectrum(g)
+        Source.write(self, g)
 
         for i, spot in enumerate(self.spots):
             spot.write(g, 'Spot %i' % i)
@@ -188,11 +187,11 @@ class SphericalSource(Source):
 class ExternalSphericalSource(Source):
 
     def __init__(self, luminosity=None, position=(0., 0., 0.), radius=None,
-                 spectrum=None, temperature=None, name=None):
+                 spectrum=None, temperature=None, name=None, peeloff=True):
         self.position = position
         self.radius = radius
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name)
+                        temperature=temperature, name=name, peeloff=peeloff)
 
     def check_all_set(self):
         if self.position is None:
@@ -209,21 +208,20 @@ class ExternalSphericalSource(Source):
 
         g = handle.create_group(name)
         g.attrs['type'] = 'extern_sph'
-        g.attrs['luminosity'] = self.luminosity
         g.attrs['x'] = self.position[0]
         g.attrs['y'] = self.position[1]
         g.attrs['z'] = self.position[2]
         g.attrs['r'] = self.radius
-        self.write_spectrum(g)
+        Source.write(self, g)
 
 
 class ExternalBoxSource(Source):
 
     def __init__(self, luminosity=None, bounds=None,
-                 spectrum=None, temperature=None, name=None):
+                 spectrum=None, temperature=None, name=None, peeloff=True):
         self.bounds = bounds
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name)
+                        temperature=temperature, name=name, peeloff=peeloff)
 
     def check_all_set(self):
         if self.bounds is None:
@@ -238,23 +236,22 @@ class ExternalBoxSource(Source):
 
         g = handle.create_group(name)
         g.attrs['type'] = 'extern_box'
-        g.attrs['luminosity'] = self.luminosity
         g.attrs['xmin'] = self.bounds[0][0]
         g.attrs['xmax'] = self.bounds[0][1]
         g.attrs['ymin'] = self.bounds[1][0]
         g.attrs['ymax'] = self.bounds[1][1]
         g.attrs['zmin'] = self.bounds[2][0]
         g.attrs['zmax'] = self.bounds[2][1]
-        self.write_spectrum(g)
+        Source.write(self, g)
 
 
 class MapSource(Source):
 
     def __init__(self, luminosity=None, map=None, spectrum=None,
-                 temperature=None, name=None):
+                 temperature=None, name=None, peeloff=True):
         self.map = map
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name)
+                        temperature=temperature, name=name, peeloff=peeloff)
 
     def check_all_set(self):
         if self.map is None:
@@ -269,23 +266,24 @@ class MapSource(Source):
 
         g = handle.create_group(name)
         g.attrs['type'] = 'map'
-        g.attrs['luminosity'] = self.luminosity
         grid.write_physical_array(g, self.map, "Luminosity map", dust=False,
                                   compression=compression,
                                   physics_dtype=map_dtype)
-        self.write_spectrum(g)
+        Source.write(self, g)
 
 
 class PlaneParallelSource(Source):
 
     def __init__(self, luminosity=None, position=(0., 0., 0.), radius=None,
-                 direction=(0.,0.), spectrum=None,
-                 temperature=None, name=None):
+                 direction=(0., 0.), spectrum=None,
+                 temperature=None, name=None, peeloff=False):
+        if peeloff:
+            raise Exception("Cannot peeloff plane parallel source")
         self.position = position
         self.radius = range
         self.direction = direction
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name)
+                        temperature=temperature, name=name, peeloff=peeloff)
 
     def check_all_set(self):
         if self.position is None:
@@ -302,11 +300,10 @@ class PlaneParallelSource(Source):
         self.check_all_set()
         g = handle.create_group(name)
         g.attrs['type'] = 'plane_parallel'
-        g.attrs['luminosity'] = self.luminosity
         g.attrs['x'] = self.position[0]
         g.attrs['y'] = self.position[1]
         g.attrs['z'] = self.position[2]
         g.attrs['r'] = self.radius
         g.attrs['theta'] = self.direction[0]
         g.attrs['phi'] = self.direction[1]
-        self.write_spectrum(g)
+        Source.write(self, g)
