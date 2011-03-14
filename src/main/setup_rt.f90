@@ -48,6 +48,12 @@ contains
     call hdf5_read_keyword(input_handle, '/', 'kill_on_absorb', kill_on_absorb)
     call hdf5_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_scattering)
 
+    if(hdf5_exists_keyword(input_handle, '/', 'sample_sources_evenly')) then
+       call hdf5_read_keyword(input_handle, '/', 'sample_sources_evenly', sample_sources_evenly)
+    else
+       sample_sources_evenly = .false.
+    end if
+
     ! DUST
 
     g_dust = hdf5_open_group(input_handle, '/Dust')

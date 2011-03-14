@@ -37,6 +37,8 @@ module sources
 
   logical :: any_intersect = .false.
 
+  logical, public :: sample_sources_evenly = .false.
+
 contains
 
   subroutine setup_sources(group)
@@ -103,13 +105,19 @@ contains
     real(dp),intent(in),optional :: reemit_energy
     integer,intent(in),optional :: inu
     logical :: do_reemit
+    real(dp) :: xi
 
     if(n_sources==0) call error("emit", "no sources to emit from")
 
     ! --- First, decide which source to sample from --- !
 
     if(n_sources > 1) then
-       p%source_id = sample_pdf(luminosity)
+       if(sample_sources_evenly) then
+          call random(xi)
+          p%source_id = int(xi*n_sources) + 1
+       else
+          p%source_id = sample_pdf(luminosity)
+       end if
     else
        p%source_id = 1
     end if
@@ -146,7 +154,8 @@ contains
           call error("emit", "reemit_energy is missing")
        end if
     else
-       if(present(inu)) p%energy = p%energy * s(p%source_id)%luminosity
+       if(present(inu)) p%energy = p%energy * energy_total
+       if(sample_sources_evenly) p%energy = p%energy * luminosity%pdf(p%source_id) * n_sources
        energy_current = energy_current + p%energy
     end if
 

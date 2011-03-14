@@ -130,6 +130,7 @@ class Model(FreezableClass):
         self.set_kill_on_absorb = self.conf.run.set_kill_on_absorb
         self.set_forced_first_scattering = self.conf.run.set_forced_first_scattering
         self.set_output_bytes = self.conf.run.set_output_bytes
+        self.set_sample_sources_evenly = self.conf.run.set_sample_sources_evenly
 
         self._freeze()
 

@@ -49,6 +49,7 @@ class RunConf(FreezableClass):
         self.set_dust_sublimation('no')
         self.set_minimum_temperature(0.1)
         self.set_output_bytes(8)
+        self.set_sample_sources_evenly(False)
         self._freeze()
 
     def set_n_temperature_iterations(self, n_iter):
@@ -368,6 +369,23 @@ class RunConf(FreezableClass):
     def _write_output_bytes(self, group):
         group.attrs['physics_io_bytes'] = self.physics_io_bytes
 
+    def set_sample_sources_evenly(self, sample_sources_evenly):
+        '''
+        If set to 'True', sample evenly from all sources and apply
+        probability weight based on relative luminosities. Otherwise,
+        sample equal energy photons from sources with probability given by
+        relative luminosities.
+
+        Parameters
+        ----------
+        sample_evenly : bool
+            Whether to sample different sources evenly
+        '''
+        self.sample_sources_evenly = sample_sources_evenly
+
+    def _write_sample_sources_evenly(self, group):
+        group.attrs['sample_sources_evenly'] = 'yes' if self.sample_sources_evenly else 'no'
+
     def write(self, group):
         '''
         Writes out the configuation to an HDF5 group
@@ -390,6 +408,7 @@ class RunConf(FreezableClass):
         self._write_dust_sublimation(group)
         self._write_minimum_temperature(group)
         self._write_output_bytes(group)
+        self._write_sample_sources_evenly(group)
 
 
 class ImageConf(FreezableClass):
