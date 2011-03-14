@@ -100,7 +100,7 @@ class Level(object):
 
 class AMR(object):
 
-    def __init__(self, dirname, quantity, verbose=False):
+    def __init__(self, dirname, quantity, verbose=False, max_level=None):
 
         # Open file
         f = file('%s/Header' % dirname, 'rb')
@@ -126,10 +126,13 @@ class AMR(object):
         creation_time = float(f.readline().strip())
 
         # Read in maximum level of refinement
-        max_level = int(f.readline().strip())
+        n_levels = int(f.readline().strip()) + 1
 
         # Create list of levels
-        self.levels = [Level() for i in range(max_level + 1)]
+        self.levels = [Level() for i in range(n_levels)]
+
+        if max_level is None:
+            max_level = n_levels
 
         # Read in position of box corners
         self.xmin, self.ymin, self.zmin = [float(x) for x in f.readline().strip().split()]
@@ -171,7 +174,7 @@ class AMR(object):
         # Initialize list of levels
 
         # Loop through levels
-        for level in self.levels:
+        for level in self.levels[:max_level]:
 
             level_num, nfabs, creation_time = f.readline().strip().split()
             level.number = int(level_num)
@@ -232,6 +235,9 @@ class AMR(object):
                 offset = int(string.split()[1])
                 fab.read_data(filename, offset, quantity_index, verbose=verbose)
 
+        # Throw away levels that aren't needed
+        self.levels = self.levels[:max_level]
+
         # Read in star particles
         fs = open('%s/StarParticles' % dirname, 'rb')
         fs.readline()
@@ -240,5 +246,5 @@ class AMR(object):
             self.stars.append(Star(line))
 
 
-def parse_orion(dirname, quantity='density', verbose=False):
-    return AMR(dirname, quantity=quantity, verbose=verbose)
+def parse_orion(dirname, quantity='density', verbose=False, max_level=None):
+    return AMR(dirname, quantity=quantity, verbose=verbose, max_level=max_level)
