@@ -81,6 +81,13 @@ else
   fi
 fi
 
+# gfortran sometimes includes version number, so check whether this is the case
+hdf_compiler_short=`echo $hdf_compiler | cut -c1-8`
+if test "$hdf_compiler_short" == gfortran
+then
+  hdf_compiler=gfortran
+fi
+
 if test "$hdf_compiler" == f95
 then
   AC_SUBST(posix_module_serial, posix_nag)
@@ -126,6 +133,13 @@ then
   AC_SUBST(mpi_fc, 'HDF5_FLINKER=mpif90 HDF5_FC=mpif90 h5fc')
 else
   AC_ERROR(["h5pfc or mpif90 need to be present"])
+fi
+
+# gfortran sometimes includes version number, so check whether this is the case
+mpi_compiler_short=`echo $mpi_compiler | cut -c1-8`
+if test "$mpi_compiler_short" == gfortran
+then
+  mpi_compiler=gfortran
 fi
 
 if test "$mpi_compiler" == f95

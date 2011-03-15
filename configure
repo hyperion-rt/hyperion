@@ -1797,6 +1797,13 @@ else
   fi
 fi
 
+# gfortran sometimes includes version number, so check whether this is the case
+hdf_compiler_short=`echo $hdf_compiler | cut -c1-8`
+if test "$hdf_compiler_short" == gfortran
+then
+  hdf_compiler=gfortran
+fi
+
 if test "$hdf_compiler" == f95
 then
   posix_module_serial=posix_nag
@@ -1897,6 +1904,13 @@ then
 
 else
   as_fn_error $? "\"h5pfc or mpif90 need to be present\"" "$LINENO" 5
+fi
+
+# gfortran sometimes includes version number, so check whether this is the case
+mpi_compiler_short=`echo $mpi_compiler | cut -c1-8`
+if test "$mpi_compiler_short" == gfortran
+then
+  mpi_compiler=gfortran
 fi
 
 if test "$mpi_compiler" == f95
