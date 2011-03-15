@@ -60,7 +60,9 @@ class Source(FreezableClass):
         norm = integrate_loglog(nu, fnu)
         return nu, fnu / norm * self.luminosity
 
-    def write_spectrum(self, handle):
+    def write(self, handle):
+        handle.attrs['luminosity'] = self.luminosity
+        handle.attrs['peeloff'] = 'yes' if self.peeloff else 'no'
         if self.spectrum:
             handle.attrs['spectrum'] = 'spectrum'
             if isinstance(self.spectrum, atpy.Table):
