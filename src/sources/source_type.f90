@@ -19,6 +19,8 @@ module type_source
   public :: source_intersect
   public :: source_distance
 
+  public :: spot
+
   type spot  
      type(angle3d_dp) :: a
      real(dp) :: cost

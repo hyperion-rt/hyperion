@@ -22,6 +22,9 @@ module type_image
   public :: image_raytracing_set_emissivity
   public :: image_raytracing_set_opacity
 
+  public :: source_helper
+  public :: dust_helper
+
   type source_helper
      real(dp), allocatable :: spectrum(:)
   end type source_helper
