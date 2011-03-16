@@ -8,6 +8,7 @@ module type_grid
   private
 
   ! Define refinable cell
+  public :: cell
   type cell
      real(8) :: x,y,z
      real(8) :: dx,dy,dz
