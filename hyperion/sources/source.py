@@ -3,6 +3,7 @@ import numpy as np
 from hyperion.util.functions import B_nu, random_id
 from hyperion.util.functions import FreezableClass
 from hyperion.util.integrate import integrate_loglog
+from hyperion.util.constants import c
 
 import atpy
 
@@ -53,7 +54,7 @@ class Source(FreezableClass):
             else:
                 raise Exception("Spectrum should be tuple or ATpy table")
         elif self.temperature:
-            nu = np.logspace(np.log10(3.e9), np.log10(3.e16))
+            nu = np.logspace(np.log10(c), np.log10(c * 1.e6))
             fnu = B_nu(nu, self.temperature)
         else:
             raise Exception("Not implemented")
