@@ -38,7 +38,9 @@ module mpi_routines
   public :: mp_set_random_seed
 
   real(dp) :: time_curr
-  integer(idp) :: n_completed
+  integer(idp) :: n_completed, n_photons_chunk
+  integer(idp) :: n_steps = 10
+  integer(idp) :: n_stats_last
 
 contains
 
@@ -47,14 +49,16 @@ contains
     first = .true.
     time_curr = 0._dp
     n_completed = 0
+    n_photons_chunk = 0
+    n_stats_last = 0
   end subroutine mp_reset_first
 
-  subroutine mp_n_photons(n_photons_tot, n_photons_curr, n_photons_chunk, n_photons)
+  subroutine mp_n_photons(n_photons_tot, n_photons_curr, n_photons_stats, n_photons)
 
     implicit none
 
     ! Total number of photons, and size of a chunk
-    integer(idp),intent(in) :: n_photons_tot, n_photons_chunk
+    integer(idp),intent(in) :: n_photons_tot, n_photons_stats
 
     ! Number of photons requested so far
     integer(idp),intent(inout) :: n_photons_curr
@@ -92,6 +96,11 @@ contains
     select case(rank)
     case(rank_main)
 
+       ! Find the number of photons per chunk
+       if(n_photons_chunk == 0) then
+          n_photons_chunk = nint(real(n_photons_tot, dp) / real(nproc, dp) / real(n_steps, dp))
+       end if
+
        time_curr = time_curr + time2-time1
 
        if(.not.allocated(request)) allocate(request(nproc-1))
@@ -127,11 +136,14 @@ contains
              if(n_photons_curr > n_photons_tot) stop "n_photons_curr > n_photons_tot"
 
              ! Find how many photons to request and increment counter
-             if(n_photons_tot - n_photons_curr <= n_photons_chunk*2_idp) then
-                n_photons_send(ir) = n_photons_chunk / 10_idp
+             if(n_photons_tot - n_photons_curr <= n_photons_chunk * nproc) then
+                n_photons_send(ir) = nint(real(n_photons_chunk, dp) / 10._dp)
              else
                 n_photons_send(ir) = n_photons_chunk
              end if
+
+             if(n_photons_curr + n_photons_send(ir) > n_photons_tot) n_photons_send(ir) = n_photons_tot - n_photons_curr
+
              n_photons_curr = n_photons_curr + n_photons_send(ir)
 
              ! Send number of photons and initialize receive for status check
@@ -199,14 +211,20 @@ contains
        else
 
           ! Set number of photons to a fraction of the normal chunk size
-          n_photons = n_photons_chunk / 10_idp
+          n_photons = nint(real(n_photons_chunk, dp) / 10._dp)
+
+          if(n_photons_curr + n_photons > n_photons_tot) n_photons = n_photons_tot - n_photons_curr
+
           n_photons_curr = n_photons_curr + n_photons
 
        end if
 
        if(first) first=.false.       
 
-       if(mod(n_photons_curr,n_photons_chunk)==0) call perf_numbers(n_photons_curr, time_curr)
+       if(n_photons_curr >= n_stats_last + n_photons_stats) then
+          call perf_numbers(n_photons_curr, time_curr)
+          n_stats_last = n_photons_curr - mod(n_photons_curr, n_photons_stats)
+       end if
 
     case default
 
