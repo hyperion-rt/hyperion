@@ -397,12 +397,18 @@ contains
     write(*,'("     -> Percentile: ",F7.2)') convergence_percentile
     write(*,'("     -> Value @ Percentile: ",F10.2)') value
     if(value_prev < huge(1._dp)) then
-       write(*,'("     -> Difference from previous iteration: ", F10.2)') difference_ratio(value_prev, value)
+       if(value == 0._dp) then
+          write(*,'("     -> Exact convergence")')
+          converged = .true.
+       else
+          write(*,'("     -> Difference from previous iteration: ", F10.2)') difference_ratio(value_prev, value)
+          converged = value < convergence_absolute .and. &
+               &      abs(difference_ratio(value_prev, value)) < convergence_relative
+       end if
+    else
+       converged = .false.
     end if
     write(*,*)
-
-    converged = value < convergence_absolute .and. &
-         &      abs(difference_ratio(value_prev, value)) < convergence_relative
 
     specific_energy_abs_prev = specific_energy_abs
 
