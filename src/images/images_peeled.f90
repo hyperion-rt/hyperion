@@ -121,42 +121,45 @@ contains
 
        if(d < d_min(ig) .or. d > d_max(ig)) return
 
-       if(polychromatic) then
-          call grid_escape_column_density(p,tmax,column_density,killed)
+       if(inside_observer(ig)) then
+          ! Convert to angles in degrees
+          x_image = atan2(p%a%sinp, p%a%cosp) * rad2deg + 180._dp
+          y_image = 90._dp - atan2(p%a%sint, p%a%cost) * rad2deg
+          if(y_image > 90._dp) then
+             y_image = 180._dp - y_image
+             x_image = x_image - 180._dp
+          end if
+          if(x_image < -180._dp) x_image = x_image + 360._dp
+          if(x_image > +180._dp) x_image = x_image - 360._dp
        else
-          call grid_escape_tau(p,tmax,tau,killed)
+          ! Project onto 2-D plane perpendicular to direction of peeling-off
+          dr = p%r - r_peeloff(ig)
+          x_image = dr%y * p%a%cosp - dr%x * p%a%sinp
+          y_image = dr%z * p%a%sint - dr%y * p%a%cost * p%a%sinp - dr%x * p%a%cost * p%a%cosp
        end if
 
-       ! For inside observer, don't want optical depth to escape grid, just to go to observer!
-       ! Need to include 1/d^2!
-
-       if(.not.killed) then
-
-          if(inside_observer(ig)) then
-
-             p%s = p%s / (4._dp * pi * tmax**2._dp)
-
-             ! Convert to angles in degrees
-             x_image = atan2(p%a%sinp, p%a%cosp) * rad2deg + 180._dp
-             y_image = 90._dp - atan2(p%a%sint, p%a%cost) * rad2deg
-             if(y_image > 90._dp) then
-                y_image = 180._dp - y_image
-                x_image = x_image - 180._dp
-             end if
-             if(x_image < -180._dp) x_image = x_image + 360._dp
-             if(x_image > +180._dp) x_image = x_image - 360._dp
-          else
-             ! Project onto 2-D plane perpendicular to direction of peeling-off
-             dr = p%r - r_peeloff(ig)
-             x_image = dr%y * p%a%cosp - dr%x * p%a%sinp
-             y_image = dr%z * p%a%sint - dr%y * p%a%cost * p%a%sinp - dr%x * p%a%cost * p%a%cosp
-          end if
+       if(in_image(peeled_image(ig),x_image, y_image)) then
 
           if(polychromatic) then
-             call image_bin_raytraced(peeled_image(ig),p,x_image,y_image,iv,column_density)
+             call grid_escape_column_density(p,tmax,column_density,killed)
           else
-             p%s = p%s * exp(-tau)
-             call image_bin(peeled_image(ig),p,x_image,y_image,iv)
+             call grid_escape_tau(p,tmax,tau,killed)
+          end if
+
+          ! For inside observer, don't want optical depth to escape grid, just to go to observer!
+          ! Need to include 1/d^2!
+
+          if(.not.killed) then
+
+             if(inside_observer(ig)) p%s = p%s / (4._dp * pi * tmax**2._dp)
+
+             if(polychromatic) then
+                call image_bin_raytraced(peeled_image(ig),p,x_image,y_image,iv,column_density)
+             else
+                p%s = p%s * exp(-tau)
+                call image_bin(peeled_image(ig),p,x_image,y_image,iv)
+             end if
+
           end if
 
        end if

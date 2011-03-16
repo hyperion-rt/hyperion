@@ -15,6 +15,7 @@ module type_image
   public :: image_bin_raytraced
   public :: image_setup
   public :: image_write
+  public :: in_image
 
   public :: image_raytracing_initialize
   public :: image_raytracing_set_spectrum
@@ -308,6 +309,43 @@ contains
     iy = ipos(img%y_min,img%y_max,y_image,img%n_y)
 
   end subroutine find_image_bin
+
+  logical function in_image(img, x_image, y_image, nu)
+
+    implicit none
+
+    type(image),intent(in) :: img
+    real(dp),intent(in) :: x_image, y_image
+    real(dp),intent(in),optional :: nu
+
+    in_image = .false.
+
+    ! Check if photon would end up inside the frequency range. Note that we
+    ! can only know for sure that the photon is outside the range in which
+    ! case in_image is already set to .false. so we just return. If it's
+    ! inside the frequency range, then we still have to check if it would
+    ! fall in the image or SEDs.
+    if(present(nu)) then
+       if(nu < img%nu_min .or. nu > img%nu_max) return
+    end if
+
+    ! Check if photon would fall in image
+    if(img%compute_image) then
+       if(x_image >= img%x_min .and. x_image <= img%x_max .and. y_image >= img%y_min .and. y_image <= img%y_max) then
+          in_image = .true.
+          return
+       end if
+    end if
+
+    ! Check if photon would fall in SED
+    if(img%compute_sed) then
+       if(x_image*x_image + y_image*y_image <= img%ap_max * img%ap_max) then
+          in_image = .true.
+          return
+       end if
+    end if
+
+  end function in_image
 
   subroutine image_bin(img,p,x_image,y_image,im)
 
