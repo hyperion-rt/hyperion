@@ -40,12 +40,12 @@ into the source directory::
 
 and configure the installation::
 
-    ./configure --enable-f77 --enable-f90 --prefix=/usr/local/mpich2
+    ./configure --enable-fc --prefix=/usr/local/mpich2
 
 In practice, you will probably want to use a specific fortran compiler, which
-you can specify using the ``FC`` and ``F90`` variables as follows::
+you can specify using the ``F77`` and ``FC`` variables as follows::
 
-    ./configure FC=ifort F90=ifort --enable-f77 --enable-f90 --prefix=/usr/local/mpich2
+    ./configure F77=ifort FC=ifort --enable-fc --prefix=/usr/local/mpich2
 
 Once the configure script has successfully run, you can then proceed to build
 the MPI library::
@@ -90,7 +90,7 @@ with::
     
 Then, rerun configure and build using::
 
-    ./configure FC="ifort -m32" F90="ifort -m32" --enable-f77 --enable-f90 --prefix=/usr/local/mpich2
+    ./configure F77="ifort -m32" FC="ifort -m32" --enable-fc --prefix=/usr/local/mpich2
     make
     sudo make install
 
