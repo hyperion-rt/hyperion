@@ -107,12 +107,9 @@ class Model(FreezableClass):
             name = name[:-6]
 
         self.name = name
-        self.density = []
-        self.temperature = []
-        self.dust = []
-        self.sources = []
-        self.binned_output = None
-        self.peeled_output = []
+        self.reset_density()
+        self.reset_sources()
+        self.reset_images()
         self.set_monochromatic(False)
 
         self.conf = Configuration()
@@ -136,10 +133,15 @@ class Model(FreezableClass):
 
     def reset_density(self):
         self.density = []
+        self.temperature = []
         self.dust = []
 
     def reset_sources(self):
         self.sources = []
+
+    def reset_images(self):
+        self.binned_output = None
+        self.peeled_output = []
 
     def set_monochromatic(self, monochromatic, frequencies=None, wavelengths=None):
         '''
