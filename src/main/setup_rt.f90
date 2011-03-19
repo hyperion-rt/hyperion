@@ -69,6 +69,7 @@ contains
        call hdf5_read_keyword(input_handle, '/', 'n_lucy_iter', n_lucy_iter)
        if(n_lucy_iter > 0) then
           call hdf5_read_keyword(input_handle, '/', 'n_lucy_photons', n_lucy_photons)
+          if(n_lucy_photons==0) call error("setup_initial", "Number of temperature iterations is non-zero, but number of temperature photons is zero")
        else
           n_lucy_photons = 0
        end if
