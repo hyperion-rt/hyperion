@@ -85,7 +85,7 @@ contains
                 end if
 
                 ! Propagate until photon is absorbed again
-                call propagate(p, peeloff_scattering_only)
+                call propagate(p)
 
              end do
 
@@ -146,7 +146,7 @@ contains
                    end if
 
                    ! Propagate until photon is absorbed again
-                   call propagate(p, peeloff_scattering_only)
+                   call propagate(p)
 
                 end if
 
@@ -170,12 +170,11 @@ contains
 
   end subroutine do_final_mono
 
-  subroutine propagate(p, peeloff_scattering_only)
+  subroutine propagate(p)
 
     implicit none
 
     type(photon), intent(inout) :: p
-    logical,intent(in) :: peeloff_scattering_only
     integer(idp) :: interactions
     real(dp) :: tau_achieved, tau, tau_escape
     type(photon) :: p_tmp
@@ -237,10 +236,8 @@ contains
 
        ! Absorb & re-emit, or scatter
        call interact(p)
-       if(peeloff_scattering_only) then
-          p%killed = .not.p%scattered
-          if(p%killed) exit
-       end if
+       p%killed = .not.p%scattered
+       if(p%killed) exit
        if(make_peeled_images) call peeloff_photon(p, polychromatic=.false.)
 
     end do
