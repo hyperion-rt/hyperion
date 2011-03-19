@@ -15,5 +15,5 @@ for filename in sys.argv[1:]:
         group = f['Peeled/Group %05i' % (ig + 1)]
         if 'images' in group:
             image = group['images']
-            pyfits.writeto(filename.replace('.rtout', '_images.fits'),
+            pyfits.writeto(filename.replace('.rtout', '_%05i_images.fits' % (ig + 1)),
                            np.array(image), clobber=True)
