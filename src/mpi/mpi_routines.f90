@@ -98,7 +98,7 @@ contains
 
        ! Find the number of photons per chunk
        if(n_photons_chunk == 0) then
-          n_photons_chunk = nint(real(n_photons_tot, dp) / real(nproc, dp) / real(n_steps, dp))
+          n_photons_chunk = max(nint(real(n_photons_tot, dp) / real(nproc, dp) / real(n_steps, dp)), 1)
        end if
 
        time_curr = time_curr + time2-time1
@@ -137,7 +137,7 @@ contains
 
              ! Find how many photons to request and increment counter
              if(n_photons_tot - n_photons_curr <= n_photons_chunk * nproc) then
-                n_photons_send(ir) = nint(real(n_photons_chunk, dp) / 10._dp)
+                n_photons_send(ir) = max(nint(real(n_photons_chunk, dp) / 10._dp), 1)
              else
                 n_photons_send(ir) = n_photons_chunk
              end if
@@ -211,7 +211,7 @@ contains
        else
 
           ! Set number of photons to a fraction of the normal chunk size
-          n_photons = nint(real(n_photons_chunk, dp) / 10._dp)
+          n_photons = max(nint(real(n_photons_chunk, dp) / 10._dp), 1)
 
           if(n_photons_curr + n_photons > n_photons_tot) n_photons = n_photons_tot - n_photons_curr
 
