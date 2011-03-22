@@ -480,7 +480,6 @@ class AnalyticalYSOModel(Model):
     def write(self, **kwargs):
 
         self.reset_density()
-        self.reset_sources()
 
         for i, disk in enumerate(self.disks):
 
@@ -553,17 +552,20 @@ class AnalyticalYSOModel(Model):
         # Star
 
         if self.star.sources['star'].luminosity > 0:
-            self.add_source(self.star.sources['star'])
+            if self.star.sources['star'] not in self.sources:
+                self.add_source(self.star.sources['star'])
 
         # Accretion
 
         if self.accretion:
 
             if self.star.sources['uv'].luminosity > 0.:
-                self.add_source(self.star.sources['uv'])
+                if self.star.sources['uv'] not in self.sources:
+                    self.add_source(self.star.sources['uv'])
 
             if self.star.sources['xray'].luminosity > 0.:
-                self.add_source(self.star.sources['xray'])
+                if self.star.sources['xray'] not in self.sources:
+                    self.add_source(self.star.sources['xray'])
 
             for i, disk in enumerate(self.disks):
 
