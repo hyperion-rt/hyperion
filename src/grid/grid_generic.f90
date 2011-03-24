@@ -1,6 +1,8 @@
 module grid_generic
 
   use core_lib
+  use mpi_io
+
   use grid_io
   use grid_geometry, only : geo
   use grid_physics
@@ -34,7 +36,7 @@ contains
     write(*,'(" [output_grid] outputting grid arrays for iteration")')
 
     write(group_name, '("Iteration ",I5.5)') iter
-    group = hdf5_create_group(handle, group_name)
+    group = mp_create_group(handle, group_name)
 
     ! NUMBER OF PHOTONS IN EACH CELL
 

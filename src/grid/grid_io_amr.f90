@@ -1,4 +1,4 @@
-! MD5 of template: 8078b57e663d5adb701ccf53797c7710
+! MD5 of template: a75403343f32a6227283db329a1a88b1
 module grid_io
 
   use core_lib
@@ -50,11 +50,11 @@ contains
     integer(hid_t),intent(in) :: group
     character(len=*),intent(in) :: name
     integer(hid_t) :: g_level, g_fab
-    if(hdf5_path_exists(group, 'Level 1')) then
-       g_level = hdf5_open_group(group, 'Level 1')
-       if(hdf5_path_exists(g_level, 'Fab 1')) then
-          g_fab = hdf5_open_group(g_level, 'Fab 1')
-          if(hdf5_path_exists(g_fab, name)) then
+    if(mp_path_exists(group, 'Level 1')) then
+       g_level = mp_open_group(group, 'Level 1')
+       if(mp_path_exists(g_level, 'Fab 1')) then
+          g_fab = mp_open_group(g_level, 'Fab 1')
+          if(mp_path_exists(g_fab, name)) then
              grid_exists = .true.
           else
              grid_exists = .false.
@@ -149,24 +149,24 @@ contains
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
        write(name, '("Level ", I0)') ilevel
-       if(hdf5_path_exists(group, name)) then
-          g_level = hdf5_open_group(group, name)
+       if(mp_path_exists(group, name)) then
+          g_level = mp_open_group(group, name)
        else
-          g_level = hdf5_create_group(group, name)
+          g_level = mp_create_group(group, name)
        end if
        do ifab=1,size(level%fabs)
           fab => level%fabs(ifab)
           write(name, '("Fab ", I0)') ifab
-          if(hdf5_path_exists(g_level, name)) then
-             g_fab = hdf5_open_group(g_level, name)
+          if(mp_path_exists(g_level, name)) then
+             g_fab = mp_open_group(g_level, name)
           else
-             g_fab = hdf5_create_group(g_level, name)
+             g_fab = mp_create_group(g_level, name)
           end if
-          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
+          call mp_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
                &                                     (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
-          call hdf5_close_group(g_fab)
+          call mp_close_group(g_fab)
        end do
-       call hdf5_close_group(g_level)
+       call mp_close_group(g_level)
 
     end do
 
@@ -189,23 +189,23 @@ contains
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
        write(name, '("Level ", I0)') ilevel
-       if(hdf5_path_exists(group, name)) then
-          g_level = hdf5_open_group(group, name)
+       if(mp_path_exists(group, name)) then
+          g_level = mp_open_group(group, name)
        else
-          g_level = hdf5_create_group(group, name)
+          g_level = mp_create_group(group, name)
        end if
        do ifab=1,size(level%fabs)
           fab => level%fabs(ifab)
           write(name, '("Fab ", I0)') ifab
-          if(hdf5_path_exists(g_level, name)) then
-             g_fab = hdf5_open_group(g_level, name)
+          if(mp_path_exists(g_level, name)) then
+             g_fab = mp_open_group(g_level, name)
           else
-             g_fab = hdf5_create_group(g_level, name)
+             g_fab = mp_create_group(g_level, name)
           end if
-          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1), (/fab%n1, fab%n2, fab%n3/)))
-          call hdf5_close_group(g_fab)
+          call mp_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1), (/fab%n1, fab%n2, fab%n3/)))
+          call mp_close_group(g_fab)
        end do
-       call hdf5_close_group(g_level)
+       call mp_close_group(g_level)
 
     end do
 
@@ -293,24 +293,24 @@ contains
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
        write(name, '("Level ", I0)') ilevel
-       if(hdf5_path_exists(group, name)) then
-          g_level = hdf5_open_group(group, name)
+       if(mp_path_exists(group, name)) then
+          g_level = mp_open_group(group, name)
        else
-          g_level = hdf5_create_group(group, name)
+          g_level = mp_create_group(group, name)
        end if
        do ifab=1,size(level%fabs)
           fab => level%fabs(ifab)
           write(name, '("Fab ", I0)') ifab
-          if(hdf5_path_exists(g_level, name)) then
-             g_fab = hdf5_open_group(g_level, name)
+          if(mp_path_exists(g_level, name)) then
+             g_fab = mp_open_group(g_level, name)
           else
-             g_fab = hdf5_create_group(g_level, name)
+             g_fab = mp_create_group(g_level, name)
           end if
-          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
+          call mp_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
                &                                     (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
-          call hdf5_close_group(g_fab)
+          call mp_close_group(g_fab)
        end do
-       call hdf5_close_group(g_level)
+       call mp_close_group(g_level)
 
     end do
 
@@ -333,23 +333,23 @@ contains
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
        write(name, '("Level ", I0)') ilevel
-       if(hdf5_path_exists(group, name)) then
-          g_level = hdf5_open_group(group, name)
+       if(mp_path_exists(group, name)) then
+          g_level = mp_open_group(group, name)
        else
-          g_level = hdf5_create_group(group, name)
+          g_level = mp_create_group(group, name)
        end if
        do ifab=1,size(level%fabs)
           fab => level%fabs(ifab)
           write(name, '("Fab ", I0)') ifab
-          if(hdf5_path_exists(g_level, name)) then
-             g_fab = hdf5_open_group(g_level, name)
+          if(mp_path_exists(g_level, name)) then
+             g_fab = mp_open_group(g_level, name)
           else
-             g_fab = hdf5_create_group(g_level, name)
+             g_fab = mp_create_group(g_level, name)
           end if
-          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1), (/fab%n1, fab%n2, fab%n3/)))
-          call hdf5_close_group(g_fab)
+          call mp_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1), (/fab%n1, fab%n2, fab%n3/)))
+          call mp_close_group(g_fab)
        end do
-       call hdf5_close_group(g_level)
+       call mp_close_group(g_level)
 
     end do
 
@@ -437,24 +437,24 @@ contains
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
        write(name, '("Level ", I0)') ilevel
-       if(hdf5_path_exists(group, name)) then
-          g_level = hdf5_open_group(group, name)
+       if(mp_path_exists(group, name)) then
+          g_level = mp_open_group(group, name)
        else
-          g_level = hdf5_create_group(group, name)
+          g_level = mp_create_group(group, name)
        end if
        do ifab=1,size(level%fabs)
           fab => level%fabs(ifab)
           write(name, '("Fab ", I0)') ifab
-          if(hdf5_path_exists(g_level, name)) then
-             g_fab = hdf5_open_group(g_level, name)
+          if(mp_path_exists(g_level, name)) then
+             g_fab = mp_open_group(g_level, name)
           else
-             g_fab = hdf5_create_group(g_level, name)
+             g_fab = mp_create_group(g_level, name)
           end if
-          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
+          call mp_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
                &                                     (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
-          call hdf5_close_group(g_fab)
+          call mp_close_group(g_fab)
        end do
-       call hdf5_close_group(g_level)
+       call mp_close_group(g_level)
 
     end do
 
@@ -477,23 +477,23 @@ contains
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
        write(name, '("Level ", I0)') ilevel
-       if(hdf5_path_exists(group, name)) then
-          g_level = hdf5_open_group(group, name)
+       if(mp_path_exists(group, name)) then
+          g_level = mp_open_group(group, name)
        else
-          g_level = hdf5_create_group(group, name)
+          g_level = mp_create_group(group, name)
        end if
        do ifab=1,size(level%fabs)
           fab => level%fabs(ifab)
           write(name, '("Fab ", I0)') ifab
-          if(hdf5_path_exists(g_level, name)) then
-             g_fab = hdf5_open_group(g_level, name)
+          if(mp_path_exists(g_level, name)) then
+             g_fab = mp_open_group(g_level, name)
           else
-             g_fab = hdf5_create_group(g_level, name)
+             g_fab = mp_create_group(g_level, name)
           end if
-          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1), (/fab%n1, fab%n2, fab%n3/)))
-          call hdf5_close_group(g_fab)
+          call mp_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1), (/fab%n1, fab%n2, fab%n3/)))
+          call mp_close_group(g_fab)
        end do
-       call hdf5_close_group(g_level)
+       call mp_close_group(g_level)
 
     end do
 
@@ -581,24 +581,24 @@ contains
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
        write(name, '("Level ", I0)') ilevel
-       if(hdf5_path_exists(group, name)) then
-          g_level = hdf5_open_group(group, name)
+       if(mp_path_exists(group, name)) then
+          g_level = mp_open_group(group, name)
        else
-          g_level = hdf5_create_group(group, name)
+          g_level = mp_create_group(group, name)
        end if
        do ifab=1,size(level%fabs)
           fab => level%fabs(ifab)
           write(name, '("Fab ", I0)') ifab
-          if(hdf5_path_exists(g_level, name)) then
-             g_fab = hdf5_open_group(g_level, name)
+          if(mp_path_exists(g_level, name)) then
+             g_fab = mp_open_group(g_level, name)
           else
-             g_fab = hdf5_create_group(g_level, name)
+             g_fab = mp_create_group(g_level, name)
           end if
-          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
+          call mp_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
                &                                     (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
-          call hdf5_close_group(g_fab)
+          call mp_close_group(g_fab)
        end do
-       call hdf5_close_group(g_level)
+       call mp_close_group(g_level)
 
     end do
 
@@ -621,23 +621,23 @@ contains
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
        write(name, '("Level ", I0)') ilevel
-       if(hdf5_path_exists(group, name)) then
-          g_level = hdf5_open_group(group, name)
+       if(mp_path_exists(group, name)) then
+          g_level = mp_open_group(group, name)
        else
-          g_level = hdf5_create_group(group, name)
+          g_level = mp_create_group(group, name)
        end if
        do ifab=1,size(level%fabs)
           fab => level%fabs(ifab)
           write(name, '("Fab ", I0)') ifab
-          if(hdf5_path_exists(g_level, name)) then
-             g_fab = hdf5_open_group(g_level, name)
+          if(mp_path_exists(g_level, name)) then
+             g_fab = mp_open_group(g_level, name)
           else
-             g_fab = hdf5_create_group(g_level, name)
+             g_fab = mp_create_group(g_level, name)
           end if
-          call hdf5_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1), (/fab%n1, fab%n2, fab%n3/)))
-          call hdf5_close_group(g_fab)
+          call mp_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1), (/fab%n1, fab%n2, fab%n3/)))
+          call mp_close_group(g_fab)
        end do
-       call hdf5_close_group(g_level)
+       call mp_close_group(g_level)
 
     end do
 

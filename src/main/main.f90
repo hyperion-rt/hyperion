@@ -23,7 +23,7 @@ program main
 
   character(len=5), parameter :: version = '0.7.5'
 
-  call hdf5_set_compression(.true.)
+  call mp_set_compression(.true.)
 
   ! Retrieve command-line arguments
   call get_command_argument(1, input_file)
@@ -40,19 +40,19 @@ program main
   ! SETUP
 
   call check_file_exists(input_file)
-  handle_in = hdf5_open_read(input_file)
+  handle_in = mp_open_read(input_file)
 
   ! Prepare output directory
   if(main_process()) then
-     handle_out = hdf5_open_new(output_file)
-     call hdf5_write_keyword(handle_out, '/', 'fortran_version', version)
+     handle_out = mp_open_new(output_file)
+     call mp_write_keyword(handle_out, '/', 'fortran_version', version)
   end if
 
   if(main_process()) then
      write(*,*) repeat('-',60)
      datetime = now()
      write(*,'(" Started on ",A)') trim(datetime)
-     call hdf5_write_keyword(handle_out, '/', 'date_started', trim(datetime))
+     call mp_write_keyword(handle_out, '/', 'date_started', trim(datetime))
      write(*,'(" Input:  ", A)') trim(input_file)
      write(*,'(" Output: ", A)') trim(output_file)
      write(*,*) repeat('-',60)
@@ -117,11 +117,11 @@ program main
   end do
 
   if(main_process()) then
-     call hdf5_write_keyword(handle_out, '/', 'converged', converged)
+     call mp_write_keyword(handle_out, '/', 'converged', converged)
      if(converged) then
-        call hdf5_write_keyword(handle_out, '/', 'iterations', iter)
+        call mp_write_keyword(handle_out, '/', 'iterations', iter)
      else
-        call hdf5_write_keyword(handle_out, '/', 'iterations', n_lucy_iter)
+        call mp_write_keyword(handle_out, '/', 'iterations', n_lucy_iter)
      end if
   end if
 
@@ -130,8 +130,8 @@ program main
 
   ! Prepare output directories for images/SEDs
   if(main_process()) then
-     if(make_binned_images) g_binned = hdf5_create_group(handle_out, 'Binned')
-     if(make_peeled_images) g_peeled = hdf5_create_group(handle_out, 'Peeled')
+     if(make_binned_images) g_binned = mp_create_group(handle_out, 'Binned')
+     if(make_peeled_images) g_peeled = mp_create_group(handle_out, 'Peeled')
   end if
 
   ! Display message
@@ -179,10 +179,10 @@ program main
   if(main_process()) then
      write(*,*) repeat('-',60)
      write(*,'(" Total CPU time elapsed: ",F16.2)') time
-     call hdf5_write_keyword(handle_out, '/', 'cpu_time', time)
+     call mp_write_keyword(handle_out, '/', 'cpu_time', time)
      datetime = now()
      write(*,'(" Ended on ",A)') trim(datetime)
-     call hdf5_write_keyword(handle_out, '/', 'date_ended', trim(datetime))
+     call mp_write_keyword(handle_out, '/', 'date_ended', trim(datetime))
      write(*,*) repeat('-',60)
   end if
 

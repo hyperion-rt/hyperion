@@ -166,9 +166,9 @@ contains
 
     do ifab=1,nfabs
        write(fab_name, '("Fab ", I0)') ifab
-       g_fab = hdf5_open_group(group, fab_name)
+       g_fab = mp_open_group(group, fab_name)
        call read_fab(g_fab, level%fabs(ifab))
-       call hdf5_close_group(g_fab)
+       call mp_close_group(g_fab)
     end do
 
   end subroutine read_level
@@ -211,9 +211,9 @@ contains
     ! Loop through the levels and read all the fabs
     do ilevel=1,nlevels
        write(level_name, '("Level ", I0)') ilevel
-       g_level = hdf5_open_group(group, level_name)
+       g_level = mp_open_group(group, level_name)
        call read_level(g_level, geo%levels(ilevel))
-       call hdf5_close_group(g_level)
+       call mp_close_group(g_level)
     end do
 
     ! Find the unique ID of the first cell in each fab

@@ -296,9 +296,9 @@ contains
 
     do ig=1,n_groups
        write(group_name, '("Group ",I5.5)') ig
-       g_indiv = hdf5_create_group(group, group_name)
+       g_indiv = mp_create_group(group, group_name)
        call image_write(peeled_image(ig),g_indiv)
-       call hdf5_close_group(g_indiv)
+       call mp_close_group(g_indiv)
     end do
 
   end subroutine peeled_images_write

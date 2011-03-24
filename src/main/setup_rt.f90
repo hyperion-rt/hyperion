@@ -49,7 +49,7 @@ contains
     call mp_read_keyword(input_handle, '/', 'kill_on_absorb', kill_on_absorb)
     call mp_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_scattering)
 
-    if(hdf5_exists_keyword(input_handle, '/', 'sample_sources_evenly')) then
+    if(mp_exists_keyword(input_handle, '/', 'sample_sources_evenly')) then
        call mp_read_keyword(input_handle, '/', 'sample_sources_evenly', sample_sources_evenly)
     else
        sample_sources_evenly = .false.
@@ -57,9 +57,9 @@ contains
 
     ! DUST
 
-    g_dust = hdf5_open_group(input_handle, '/Dust')
+    g_dust = mp_open_group(input_handle, '/Dust')
     call setup_dust(g_dust)
-    call hdf5_close_group(g_dust)
+    call mp_close_group(g_dust)
 
     if(n_dust==0) then
        call warn("main", "no dust present, so skipping temperature iterations")
@@ -80,13 +80,13 @@ contains
 
     ! GRID
 
-    g_geometry = hdf5_open_group(input_handle, '/Grid/Geometry')
+    g_geometry = mp_open_group(input_handle, '/Grid/Geometry')
     call setup_grid_geometry(g_geometry)
-    call hdf5_close_group(g_geometry)
+    call mp_close_group(g_geometry)
 
-    g_physics = hdf5_open_group(input_handle, '/Grid/Physics')
+    g_physics = mp_open_group(input_handle, '/Grid/Physics')
     call setup_grid_physics(g_physics, use_mrw, use_pda)
-    call hdf5_close_group(g_physics)
+    call mp_close_group(g_physics)
 
     call mp_read_keyword(input_handle, '/', 'physics_io_bytes', physics_io_bytes)
 
@@ -107,9 +107,9 @@ contains
 
     ! SOURCES
 
-    g_sources = hdf5_open_group(input_handle, '/Sources')
+    g_sources = mp_open_group(input_handle, '/Sources')
     call setup_sources(g_sources)
-    call hdf5_close_group(g_sources)
+    call mp_close_group(g_sources)
 
     ! If no sources have been set up, give an error if we are not in raytracing only mode
     if(n_sources == 0) then
@@ -131,7 +131,7 @@ contains
 
     ! OUTPUT
 
-    g_output = hdf5_open_group(input_handle, '/Output')
+    g_output = mp_open_group(input_handle, '/Output')
 
     call mp_read_keyword(g_output, '.', 'output_temperature', output_temperature)
 
@@ -168,7 +168,7 @@ contains
          & .and.trim(output_n_photons).ne.'none') &
          & call error("setup_initial","output_n_photons should be one of all/last/none")
 
-    call hdf5_close_group(g_output)
+    call mp_close_group(g_output)
 
     ! TEMPERATURE CONVERGENCE
     if(n_lucy_iter > 0) then
@@ -192,8 +192,8 @@ contains
     character(len=255),allocatable :: group_names(:)
 
     ! Read configuration for binned images
-    g_binned = hdf5_open_group(input_handle, '/Output/Binned')
-    call hdf5_list_groups(g_binned, '.', group_names)
+    g_binned = mp_open_group(input_handle, '/Output/Binned')
+    call mp_list_groups(g_binned, '.', group_names)
 
     if(size(group_names)==0) then
        make_binned_images = .false.
@@ -210,8 +210,8 @@ contains
     end if
 
     ! Read configuration for peeloff images
-    g_peeled = hdf5_open_group(input_handle, '/Output/Peeled')
-    call hdf5_list_groups(g_peeled, '.', group_names)
+    g_peeled = mp_open_group(input_handle, '/Output/Peeled')
+    call mp_list_groups(g_peeled, '.', group_names)
     n_peeled = size(group_names)
     make_peeled_images = n_peeled > 0
 

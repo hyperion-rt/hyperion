@@ -1,4 +1,4 @@
-! MD5 of template: b90bc2c308f3780e9fe16c9103c6e5ba
+! MD5 of template: 6350b97734d073b8c7b6f308a2cd958e
 module grid_io
 
   use core_lib
@@ -49,7 +49,7 @@ contains
     implicit none
     integer(hid_t),intent(in) :: group
     character(len=*),intent(in) :: name
-    grid_exists = hdf5_path_exists(group, name)
+    grid_exists = mp_path_exists(group, name)
   end function grid_exists
 
 
@@ -117,8 +117,8 @@ contains
     integer(idp), intent(in) :: array(:,:)
     type(grid_geometry_desc),intent(in) :: geo
 
-    call hdf5_write_array(group, path, reshape(array, (/geo%n1, geo%n2, geo%n3, size(array,2)/)))
-    call hdf5_write_keyword(group, path, 'geometry', geo%id)
+    call mp_write_array(group, path, reshape(array, (/geo%n1, geo%n2, geo%n3, size(array,2)/)))
+    call mp_write_keyword(group, path, 'geometry', geo%id)
 
   end subroutine write_grid_4d_int8
 
@@ -131,8 +131,8 @@ contains
     integer(idp), intent(in) :: array(:)
     type(grid_geometry_desc),intent(in) :: geo
 
-    call hdf5_write_array(group,path, reshape(array, (/geo%n1, geo%n2, geo%n3/)))
-    call hdf5_write_keyword(group,path, 'geometry', geo%id)
+    call mp_write_array(group,path, reshape(array, (/geo%n1, geo%n2, geo%n3/)))
+    call mp_write_keyword(group,path, 'geometry', geo%id)
 
   end subroutine write_grid_3d_int8
 
@@ -201,8 +201,8 @@ contains
     integer, intent(in) :: array(:,:)
     type(grid_geometry_desc),intent(in) :: geo
 
-    call hdf5_write_array(group, path, reshape(array, (/geo%n1, geo%n2, geo%n3, size(array,2)/)))
-    call hdf5_write_keyword(group, path, 'geometry', geo%id)
+    call mp_write_array(group, path, reshape(array, (/geo%n1, geo%n2, geo%n3, size(array,2)/)))
+    call mp_write_keyword(group, path, 'geometry', geo%id)
 
   end subroutine write_grid_4d_int
 
@@ -215,8 +215,8 @@ contains
     integer, intent(in) :: array(:)
     type(grid_geometry_desc),intent(in) :: geo
 
-    call hdf5_write_array(group,path, reshape(array, (/geo%n1, geo%n2, geo%n3/)))
-    call hdf5_write_keyword(group,path, 'geometry', geo%id)
+    call mp_write_array(group,path, reshape(array, (/geo%n1, geo%n2, geo%n3/)))
+    call mp_write_keyword(group,path, 'geometry', geo%id)
 
   end subroutine write_grid_3d_int
 
@@ -285,8 +285,8 @@ contains
     real(dp), intent(in) :: array(:,:)
     type(grid_geometry_desc),intent(in) :: geo
 
-    call hdf5_write_array(group, path, reshape(array, (/geo%n1, geo%n2, geo%n3, size(array,2)/)))
-    call hdf5_write_keyword(group, path, 'geometry', geo%id)
+    call mp_write_array(group, path, reshape(array, (/geo%n1, geo%n2, geo%n3, size(array,2)/)))
+    call mp_write_keyword(group, path, 'geometry', geo%id)
 
   end subroutine write_grid_4d_dp
 
@@ -299,8 +299,8 @@ contains
     real(dp), intent(in) :: array(:)
     type(grid_geometry_desc),intent(in) :: geo
 
-    call hdf5_write_array(group,path, reshape(array, (/geo%n1, geo%n2, geo%n3/)))
-    call hdf5_write_keyword(group,path, 'geometry', geo%id)
+    call mp_write_array(group,path, reshape(array, (/geo%n1, geo%n2, geo%n3/)))
+    call mp_write_keyword(group,path, 'geometry', geo%id)
 
   end subroutine write_grid_3d_dp
 
@@ -369,8 +369,8 @@ contains
     real(sp), intent(in) :: array(:,:)
     type(grid_geometry_desc),intent(in) :: geo
 
-    call hdf5_write_array(group, path, reshape(array, (/geo%n1, geo%n2, geo%n3, size(array,2)/)))
-    call hdf5_write_keyword(group, path, 'geometry', geo%id)
+    call mp_write_array(group, path, reshape(array, (/geo%n1, geo%n2, geo%n3, size(array,2)/)))
+    call mp_write_keyword(group, path, 'geometry', geo%id)
 
   end subroutine write_grid_4d_sp
 
@@ -383,8 +383,8 @@ contains
     real(sp), intent(in) :: array(:)
     type(grid_geometry_desc),intent(in) :: geo
 
-    call hdf5_write_array(group,path, reshape(array, (/geo%n1, geo%n2, geo%n3/)))
-    call hdf5_write_keyword(group,path, 'geometry', geo%id)
+    call mp_write_array(group,path, reshape(array, (/geo%n1, geo%n2, geo%n3/)))
+    call mp_write_keyword(group,path, 'geometry', geo%id)
 
   end subroutine write_grid_3d_sp
 

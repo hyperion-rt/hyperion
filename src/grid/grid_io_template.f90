@@ -48,7 +48,7 @@ contains
     implicit none
     integer(hid_t),intent(in) :: group
     character(len=*),intent(in) :: name
-    grid_exists = hdf5_path_exists(group, name)
+    grid_exists = mp_path_exists(group, name)
   end function grid_exists
 
   !!@FOR real(sp):sp real(dp):dp integer:int integer(idp):int8
@@ -117,8 +117,8 @@ contains
     @T, intent(in) :: array(:,:)
     type(grid_geometry_desc),intent(in) :: geo
 
-    call hdf5_write_array(group, path, reshape(array, (/geo%n1, geo%n2, geo%n3, size(array,2)/)))
-    call hdf5_write_keyword(group, path, 'geometry', geo%id)
+    call mp_write_array(group, path, reshape(array, (/geo%n1, geo%n2, geo%n3, size(array,2)/)))
+    call mp_write_keyword(group, path, 'geometry', geo%id)
 
   end subroutine write_grid_4d_<T>
 
@@ -131,8 +131,8 @@ contains
     @T, intent(in) :: array(:)
     type(grid_geometry_desc),intent(in) :: geo
 
-    call hdf5_write_array(group,path, reshape(array, (/geo%n1, geo%n2, geo%n3/)))
-    call hdf5_write_keyword(group,path, 'geometry', geo%id)
+    call mp_write_array(group,path, reshape(array, (/geo%n1, geo%n2, geo%n3/)))
+    call mp_write_keyword(group,path, 'geometry', geo%id)
 
   end subroutine write_grid_3d_<T>
 

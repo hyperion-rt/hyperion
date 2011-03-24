@@ -562,21 +562,21 @@ contains
 
        select case(img%io_type)
        case(sp)
-          call hdf5_write_array(group, 'seds', real(cube5d, sp))
-          if(img%uncertainties) call hdf5_write_array(group, 'seds_unc', real(cube5de, sp))
+          call mp_write_array(group, 'seds', real(cube5d, sp))
+          if(img%uncertainties) call mp_write_array(group, 'seds_unc', real(cube5de, sp))
        case(dp)
-          call hdf5_write_array(group, 'seds', real(cube5d, dp))
-          if(img%uncertainties) call hdf5_write_array(group, 'seds_unc', real(cube5de, dp))
+          call mp_write_array(group, 'seds', real(cube5d, dp))
+          if(img%uncertainties) call mp_write_array(group, 'seds_unc', real(cube5de, dp))
        case default
           call error("image_write","unexpected value of img%io_type (should be sp or dp)")
        end select
 
        if(.not.img%use_exact_nu) then
-          call hdf5_write_keyword(group, 'seds','numin',img%nu_min)
-          call hdf5_write_keyword(group, 'seds','numax',img%nu_max)
+          call mp_write_keyword(group, 'seds','numin',img%nu_min)
+          call mp_write_keyword(group, 'seds','numax',img%nu_max)
        end if
-       call hdf5_write_keyword(group, 'seds','apmin',img%ap_min)
-       call hdf5_write_keyword(group, 'seds','apmax',img%ap_max)
+       call mp_write_keyword(group, 'seds','apmin',img%ap_min)
+       call mp_write_keyword(group, 'seds','apmax',img%ap_max)
 
     end if
 
@@ -618,29 +618,29 @@ contains
 
        select case(img%io_type)
        case(sp)
-          call hdf5_write_array(group, 'images', real(cube6d, sp))
-          if(img%uncertainties) call hdf5_write_array(group, 'images_unc', real(cube6de, sp))
+          call mp_write_array(group, 'images', real(cube6d, sp))
+          if(img%uncertainties) call mp_write_array(group, 'images_unc', real(cube6de, sp))
        case(dp)
-          call hdf5_write_array(group, 'images', real(cube6d, dp))
-          if(img%uncertainties) call hdf5_write_array(group, 'images_unc', real(cube6de, dp))
+          call mp_write_array(group, 'images', real(cube6d, dp))
+          if(img%uncertainties) call mp_write_array(group, 'images_unc', real(cube6de, dp))
        case default
           call error("image_write","unexpected value of img%io_type (should be sp or dp)")
        end select
 
        if(.not.img%use_exact_nu) then
-          call hdf5_write_keyword(group, 'images','numin',img%nu_min)
-          call hdf5_write_keyword(group, 'images','numax',img%nu_max)
+          call mp_write_keyword(group, 'images','numin',img%nu_min)
+          call mp_write_keyword(group, 'images','numax',img%nu_max)
        end if
-       call hdf5_write_keyword(group, 'images','xmin',img%x_min)
-       call hdf5_write_keyword(group, 'images','xmax',img%x_max)
-       call hdf5_write_keyword(group, 'images','ymin',img%y_min)
-       call hdf5_write_keyword(group, 'images','ymax',img%y_max)
+       call mp_write_keyword(group, 'images','xmin',img%x_min)
+       call mp_write_keyword(group, 'images','xmax',img%x_max)
+       call mp_write_keyword(group, 'images','ymin',img%y_min)
+       call mp_write_keyword(group, 'images','ymax',img%y_max)
 
     end if
 
     if(img%use_exact_nu) then
-       call hdf5_table_write_header(group, 'frequencies',img%inu_max - img%inu_min + 1,1,(/'nu'/),(/1/),(/h5t_ieee_f64le/))
-       call hdf5_table_write_column(group, 'frequencies','nu',img%nu(img%inu_min:img%inu_max))
+       call mp_table_write_header(group, 'frequencies',img%inu_max - img%inu_min + 1,1,(/'nu'/),(/1/),(/h5t_ieee_f64le/))
+       call mp_table_write_column(group, 'frequencies','nu',img%nu(img%inu_min:img%inu_max))
     end if
 
     write(*,'(" [image_write] done")')

@@ -2,6 +2,8 @@ module sources
 
   use core_lib
   use mpi_core
+  use mpi_io
+
   use type_source
   use type_photon
   use dust_main
@@ -51,15 +53,15 @@ contains
 
     if(main_process()) write(*,'(" [sources] setting up sources")')
 
-    call hdf5_list_groups(group, '.', source_names)
+    call mp_list_groups(group, '.', source_names)
 
     n_sources = size(source_names)
     allocate(s(n_sources))
 
     do is=1,n_sources
-       g_source = hdf5_open_group(group, source_names(is))
+       g_source = mp_open_group(group, source_names(is))
        call source_read(g_source, s(is))
-       call hdf5_close_group(g_source)
+       call mp_close_group(g_source)
        if(s(is)%intersect) any_intersect = .true.
     end do
 

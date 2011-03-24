@@ -137,7 +137,7 @@ contains
 
        s%intersect = .true.
 
-       call hdf5_list_groups(group, '.', spot_names)
+       call mp_list_groups(group, '.', spot_names)
        s%n_spots = size(spot_names)
 
        ! If there are no spots, we are done
@@ -166,9 +166,9 @@ contains
           s%spot(i)%a = angle3d_deg(lon, lat)
           s%spot(i)%cost = cos(spot_size * deg2rad)
 
-          g_spot = hdf5_open_group(group, spot_names(i))
+          g_spot = mp_open_group(group, spot_names(i))
           call set_spectrum(group, s%spot(i)%freq_type, s%spot(i)%spectrum, s%spot(i)%temperature)
-          call hdf5_close_group(g_spot)
+          call mp_close_group(g_spot)
 
           if(s%freq_type == 3) call error("source_read", "Spot cannot have LTE spectrum")
 
