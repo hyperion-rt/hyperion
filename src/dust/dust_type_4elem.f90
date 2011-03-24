@@ -1,6 +1,7 @@
 module type_dust
 
   use core_lib
+  use mpi_io
 
   implicit none
   save
@@ -30,7 +31,7 @@ module type_dust
      ! Optical properties
      integer :: n_nu                              ! number of frequencies
      real(dp),allocatable :: nu(:),log_nu(:)      ! Frequency
-     real(dp),allocatable :: albedo_nu(:)         ! Albedo 
+     real(dp),allocatable :: albedo_nu(:)         ! Albedo
      real(dp),allocatable :: chi_nu(:)          ! Opacity
      real(dp),allocatable :: kappa_nu(:)      ! Opacity to absorption
 
@@ -83,51 +84,51 @@ contains
 
     ! Read dust file
 
-    call hdf5_read_keyword(group, '.', 'emissvar', d%emiss_var)
+    call mp_read_keyword(group, '.', 'emissvar', d%emiss_var)
 
-    call hdf5_read_keyword(group, '.', 'lte', d%is_lte)
+    call mp_read_keyword(group, '.', 'lte', d%is_lte)
 
     if(d%emiss_var /= 'E') stop "Only emissvar='E' supported at this time"
 
     ! DUST SUBLIMATION
 
-    call hdf5_read_keyword(group, '.', 'sublimation_mode', sublimation)
+    call mp_read_keyword(group, '.', 'sublimation_mode', sublimation)
 
     select case(trim(sublimation))
     case('no')
        d%sublimation_mode = 0
     case('fast')
        d%sublimation_mode = 1
-       call hdf5_read_keyword(group, '.', 'sublimation_specific_energy', d%sublimation_specific_energy)
+       call mp_read_keyword(group, '.', 'sublimation_specific_energy', d%sublimation_specific_energy)
     case('slow')
        d%sublimation_mode = 2
-       call hdf5_read_keyword(group, '.', 'sublimation_specific_energy', d%sublimation_specific_energy)
+       call mp_read_keyword(group, '.', 'sublimation_specific_energy', d%sublimation_specific_energy)
     case('cap')
        d%sublimation_mode = 3
-       call hdf5_read_keyword(group, '.', 'sublimation_specific_energy', d%sublimation_specific_energy)
+       call mp_read_keyword(group, '.', 'sublimation_specific_energy', d%sublimation_specific_energy)
     case default
        call error('setup_initial','Unknown dust sublimation mode: '//trim(sublimation))
     end select
 
     ! MINIMUM ENERGY
 
-    call hdf5_read_keyword(group, '.', 'minimum_specific_energy', d%minimum_specific_energy)
+    call mp_read_keyword(group, '.', 'minimum_specific_energy', d%minimum_specific_energy)
 
     ! OPTICAL PROPERTIES
 
     path = 'Optical properties'
-    call hdf5_table_read_column_auto(group,path,'nu',d%nu)
-    call hdf5_table_read_column_auto(group,path,'albedo',d%albedo_nu)
-    call hdf5_table_read_column_auto(group,path,'chi',d%chi_nu)
-    call hdf5_table_read_column_auto(group,path,'P1',d%P1)
-    call hdf5_table_read_column_auto(group,path,'P2',d%P2)
-    call hdf5_table_read_column_auto(group,path,'P3',d%P3)
-    call hdf5_table_read_column_auto(group,path,'P4',d%P4)
+    call mp_table_read_column_auto(group,path,'nu',d%nu)
+    call mp_table_read_column_auto(group,path,'albedo',d%albedo_nu)
+    call mp_table_read_column_auto(group,path,'chi',d%chi_nu)
+    call mp_table_read_column_auto(group,path,'P1',d%P1)
+    call mp_table_read_column_auto(group,path,'P2',d%P2)
+    call mp_table_read_column_auto(group,path,'P3',d%P3)
+    call mp_table_read_column_auto(group,path,'P4',d%P4)
 
     ! Check for NaN values
     if(any(d%nu.ne.d%nu)) call error("dust_setup","nu array contains NaN values")
     if(any(d%albedo_nu.ne.d%albedo_nu)) call error("dust_setup","albedo_nu array contains NaN values")
-    if(any(d%chi_nu.ne.d%chi_nu)) call error("dust_setup","chi_nu array contains NaN values")    
+    if(any(d%chi_nu.ne.d%chi_nu)) call error("dust_setup","chi_nu array contains NaN values")
     if(any(d%P1.ne.d%P1)) call error("dust_setup","P1 matrix contains NaN values")
     if(any(d%P2.ne.d%P2)) call error("dust_setup","P2 matrix contains NaN values")
     if(any(d%P3.ne.d%P3)) call error("dust_setup","P3 matrix contains NaN values")
@@ -151,7 +152,7 @@ contains
     end do
 
     path = 'Scattering angles'
-    call hdf5_table_read_column_auto(group,path,'mu',d%mu)
+    call mp_table_read_column_auto(group,path,'mu',d%mu)
 
     ! Check for NaN values
     if(any(d%mu.ne.d%mu)) call error("dust_setup","mu array contains NaN values")
@@ -200,12 +201,12 @@ contains
     ! MEAN OPACITIES
 
     path = 'Mean opacities'
-    call hdf5_table_read_column_auto(group,path,'specific_energy_abs',d%specific_energy_abs)
-    call hdf5_table_read_column_auto(group,path,'temperature',d%temperature)
-    call hdf5_table_read_column_auto(group,path,'chi_planck',d%chi_planck)
-    call hdf5_table_read_column_auto(group,path,'kappa_planck',d%kappa_planck)
-    call hdf5_table_read_column_auto(group,path,'chi_rosseland',d%chi_rosseland)
-    call hdf5_table_read_column_auto(group,path,'kappa_rosseland',d%kappa_rosseland)
+    call mp_table_read_column_auto(group,path,'specific_energy_abs',d%specific_energy_abs)
+    call mp_table_read_column_auto(group,path,'temperature',d%temperature)
+    call mp_table_read_column_auto(group,path,'chi_planck',d%chi_planck)
+    call mp_table_read_column_auto(group,path,'kappa_planck',d%kappa_planck)
+    call mp_table_read_column_auto(group,path,'chi_rosseland',d%chi_rosseland)
+    call mp_table_read_column_auto(group,path,'kappa_rosseland',d%kappa_rosseland)
 
     ! Check for NaN values
     if(any(d%specific_energy_abs.ne.d%specific_energy_abs)) call error("dust_setup","specific_energy_abs array contains NaN values")
@@ -231,8 +232,8 @@ contains
     ! EMISSIVITIES
 
     path = 'Emissivities'
-    call hdf5_table_read_column_auto(group,path,'nu',emiss_nu)
-    call hdf5_table_read_column_auto(group,path,'jnu',emiss_jnu)
+    call mp_table_read_column_auto(group,path,'nu',emiss_nu)
+    call mp_table_read_column_auto(group,path,'jnu',emiss_jnu)
 
     ! Check for NaN values
     if(any(emiss_nu.ne.emiss_nu)) call error("dust_setup","emiss_nu array contains NaN values")
@@ -241,7 +242,7 @@ contains
     path = 'Emissivity variable'
     select case(d%emiss_var)
     case('E')
-       call hdf5_table_read_column_auto(group,path,'specific_energy_abs',d%j_nu_var)
+       call mp_table_read_column_auto(group,path,'specific_energy_abs',d%j_nu_var)
        if(any(d%j_nu_var.ne.d%j_nu_var)) call error("dust_setup","emissivity variable array contains NaN values")
     end select
 
@@ -258,8 +259,8 @@ contains
     end do
 
     ! Set power of energy sampling
-    ! d%beta = beta   
-    ! do i=1,n_t          
+    ! d%beta = beta
+    ! do i=1,n_t
     !   call set_pdf(d%j_nu(i),d%nu,d%kappa_nu*B_nu(d%nu,d%T(i))*d%nu**(-d%beta),log=.true.)
     !   ! Find a
     !   d%a(i) = integral(d%nu,d%kappa_nu*B_nu(d%nu,d%T(i))*d%nu**(-d%beta)) &
@@ -395,7 +396,7 @@ contains
     type(angle3d_dp),intent(inout) :: a
     type(stokes_dp),intent(inout)  :: s
     type(angle3d_dp),intent(in)    :: a_req
-    type(angle3d_dp) :: a_scat  
+    type(angle3d_dp) :: a_scat
     real(dp) :: P1,P2,P3,P4
     call difference_angle3d(a, a_req, a_scat)
     if(a_scat%cost < d%mu_min .or. a_scat%cost > d%mu_max) then
@@ -505,7 +506,7 @@ contains
     call rotate_angle3d(a_scat,a,a_final)
 
     ! Compute how the stokes parameters are changed by the interaction
-    call scatter_stokes(s,a,a_scat,a_final,P1,P2,P3,P4) 
+    call scatter_stokes(s,a,a_scat,a_final,P1,P2,P3,P4)
 
     ! Change photon direction
     a = a_final
@@ -515,7 +516,7 @@ contains
     S%I = 1._dp
     S%Q = S%Q * norm
     S%U = S%U * norm
-    S%V = S%V * norm   
+    S%V = S%V * norm
 
   end subroutine dust_scatter
 

@@ -31,7 +31,7 @@ module sources
   real(dp),public :: energy_current = 0._dp
 
   integer :: is
-  ! loop variable  
+  ! loop variable
 
   integer(idp) :: photon_counter = 0
 
@@ -220,4 +220,4 @@ contains
   end subroutine find_nearest_source
 
 end module sources
-  
+

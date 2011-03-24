@@ -10,7 +10,7 @@ module grid_propagate
   implicit none
   save
 
-  private  
+  private
   public :: grid_propagate_debug
   public :: grid_integrate
   public :: grid_integrate_noenergy
@@ -40,7 +40,7 @@ contains
     real(dp),intent(in)  :: tau_required
     real(dp),intent(out) :: tau_achieved
     real(dp) :: tau_needed,tau_cell,chi_rho_total
-    ! the total optical depth to travel, the actual optical depth traveled, 
+    ! the total optical depth to travel, the actual optical depth traveled,
     ! the optical depth remaining to be traveled, and the optical depth in the current cell
 
     real(dp)  :: tmin, tact
@@ -202,7 +202,7 @@ contains
     real(dp),intent(in)  :: tau_required
     real(dp),intent(out) :: tau_achieved
     real(dp) :: tau_needed,tau_cell,chi_rho_total
-    ! the total optical depth to travel, the actual optical depth traveled, 
+    ! the total optical depth to travel, the actual optical depth traveled,
     ! the optical depth remaining to be traveled, and the optical depth in the current cell
 
     real(dp)  :: tmin, tact

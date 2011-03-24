@@ -219,7 +219,7 @@ contains
 
        end if
 
-       if(first) first=.false.       
+       if(first) first=.false.
 
        if(n_photons_curr >= n_stats_last + n_photons_stats) then
           call perf_numbers(n_photons_curr, time_curr)
@@ -270,7 +270,7 @@ contains
 
     if(allocated(n_photons)) then
        if(main_process()) then
-          allocate(tmp_int_1d(size(n_photons,1)))     
+          allocate(tmp_int_1d(size(n_photons,1)))
           call mpi_reduce(n_photons, tmp_int_1d, size(n_photons), mpi_integer8, mpi_sum, rank_main, mpi_comm_world, ierr)
           n_photons = tmp_int_1d
           deallocate(tmp_int_1d)

@@ -107,7 +107,7 @@ contains
 
              ! Sample a random optical depth and propagate that optical depth
              call random_exp(tau)
-             call grid_integrate(p,tau,tau_achieved) 
+             call grid_integrate(p,tau,tau_achieved)
 
              if(p%reabsorbed) then
 
@@ -121,7 +121,7 @@ contains
 
                    ! Sample optical depth and travel
                    call random_exp(tau)
-                   call grid_integrate(p,tau,tau_achieved) 
+                   call grid_integrate(p,tau,tau_achieved)
 
                    ! If we haven't intersected another source, we can proceed
                    if(.not.p%reabsorbed) exit

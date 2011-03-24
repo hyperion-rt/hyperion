@@ -154,9 +154,9 @@ contains
   real(dp) function dtau_rosseland(cell, idir)
     implicit none
     type(grid_cell), intent(in) :: cell
-    integer,intent(in) :: idir 
+    integer,intent(in) :: idir
     integer :: id
-    dtau_rosseland = 0._dp   
+    dtau_rosseland = 0._dp
     do id=1,n_dust
        dtau_rosseland = dtau_rosseland + density(cell%ic,id) * chi_rosseland(id, specific_energy_abs(cell%ic,id)) * cell_width(cell,idir)
     end do

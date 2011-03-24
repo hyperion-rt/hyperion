@@ -1,7 +1,8 @@
-! MD5 of template: e05aa265faa3e7ecf447dffe0784d249
+! MD5 of template: 8078b57e663d5adb701ccf53797c7710
 module grid_io
 
   use core_lib
+  use mpi_io
   use type_grid
 
   implicit none
@@ -87,7 +88,7 @@ contains
           fab => level%fabs(ifab)
           write(full_path, '("Level ", I0, "/Fab ", I0,"/")') ilevel, ifab
           full_path = trim(full_path)//trim(path)
-          call hdf5_read_array_auto(group, full_path, array4d)
+          call mp_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
           do idust=1,size(array4d, 4)
              where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
@@ -120,7 +121,7 @@ contains
           fab => level%fabs(ifab)
           write(full_path, '("Level ", I0, "/Fab ", I0,"/")') ilevel, ifab
           full_path = trim(full_path)//trim(path)
-          call hdf5_read_array_auto(group, full_path, array3d)
+          call mp_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
           where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
              array3d(:,:,:) = 0
@@ -131,7 +132,7 @@ contains
 
   end subroutine read_grid_3d_int8
 
-  subroutine write_grid_4d_int8(group, path, array, geo) 
+  subroutine write_grid_4d_int8(group, path, array, geo)
 
     implicit none
 
@@ -171,7 +172,7 @@ contains
 
   end subroutine write_grid_4d_int8
 
-  subroutine write_grid_3d_int8(group, path, array, geo) 
+  subroutine write_grid_3d_int8(group, path, array, geo)
 
     implicit none
 
@@ -231,7 +232,7 @@ contains
           fab => level%fabs(ifab)
           write(full_path, '("Level ", I0, "/Fab ", I0,"/")') ilevel, ifab
           full_path = trim(full_path)//trim(path)
-          call hdf5_read_array_auto(group, full_path, array4d)
+          call mp_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
           do idust=1,size(array4d, 4)
              where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
@@ -264,7 +265,7 @@ contains
           fab => level%fabs(ifab)
           write(full_path, '("Level ", I0, "/Fab ", I0,"/")') ilevel, ifab
           full_path = trim(full_path)//trim(path)
-          call hdf5_read_array_auto(group, full_path, array3d)
+          call mp_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
           where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
              array3d(:,:,:) = 0
@@ -275,7 +276,7 @@ contains
 
   end subroutine read_grid_3d_int
 
-  subroutine write_grid_4d_int(group, path, array, geo) 
+  subroutine write_grid_4d_int(group, path, array, geo)
 
     implicit none
 
@@ -315,7 +316,7 @@ contains
 
   end subroutine write_grid_4d_int
 
-  subroutine write_grid_3d_int(group, path, array, geo) 
+  subroutine write_grid_3d_int(group, path, array, geo)
 
     implicit none
 
@@ -375,7 +376,7 @@ contains
           fab => level%fabs(ifab)
           write(full_path, '("Level ", I0, "/Fab ", I0,"/")') ilevel, ifab
           full_path = trim(full_path)//trim(path)
-          call hdf5_read_array_auto(group, full_path, array4d)
+          call mp_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
           do idust=1,size(array4d, 4)
              where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
@@ -408,7 +409,7 @@ contains
           fab => level%fabs(ifab)
           write(full_path, '("Level ", I0, "/Fab ", I0,"/")') ilevel, ifab
           full_path = trim(full_path)//trim(path)
-          call hdf5_read_array_auto(group, full_path, array3d)
+          call mp_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
           where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
              array3d(:,:,:) = 0
@@ -419,7 +420,7 @@ contains
 
   end subroutine read_grid_3d_dp
 
-  subroutine write_grid_4d_dp(group, path, array, geo) 
+  subroutine write_grid_4d_dp(group, path, array, geo)
 
     implicit none
 
@@ -459,7 +460,7 @@ contains
 
   end subroutine write_grid_4d_dp
 
-  subroutine write_grid_3d_dp(group, path, array, geo) 
+  subroutine write_grid_3d_dp(group, path, array, geo)
 
     implicit none
 
@@ -519,7 +520,7 @@ contains
           fab => level%fabs(ifab)
           write(full_path, '("Level ", I0, "/Fab ", I0,"/")') ilevel, ifab
           full_path = trim(full_path)//trim(path)
-          call hdf5_read_array_auto(group, full_path, array4d)
+          call mp_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
           do idust=1,size(array4d, 4)
              where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
@@ -552,7 +553,7 @@ contains
           fab => level%fabs(ifab)
           write(full_path, '("Level ", I0, "/Fab ", I0,"/")') ilevel, ifab
           full_path = trim(full_path)//trim(path)
-          call hdf5_read_array_auto(group, full_path, array3d)
+          call mp_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
           where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
              array3d(:,:,:) = 0
@@ -563,7 +564,7 @@ contains
 
   end subroutine read_grid_3d_sp
 
-  subroutine write_grid_4d_sp(group, path, array, geo) 
+  subroutine write_grid_4d_sp(group, path, array, geo)
 
     implicit none
 
@@ -603,7 +604,7 @@ contains
 
   end subroutine write_grid_4d_sp
 
-  subroutine write_grid_3d_sp(group, path, array, geo) 
+  subroutine write_grid_3d_sp(group, path, array, geo)
 
     implicit none
 

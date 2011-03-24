@@ -72,7 +72,7 @@ contains
           absorption%pdf(id) = p%current_chi(id) * density(p%icell%ic, id)
        end do
        call find_cdf(absorption)
-       id_select = sample_pdf(absorption)    
+       id_select = sample_pdf(absorption)
     end if
   end function select_dust_chi_rho
 
@@ -83,7 +83,7 @@ contains
        absorption%pdf(id) = specific_energy_abs(icell%ic, id) * density(icell%ic, id)
     end do
     call find_cdf(absorption)
-    id_select = sample_pdf(absorption)    
+    id_select = sample_pdf(absorption)
   end function select_dust_specific_energy_abs_rho
 
   subroutine setup_grid_physics(group, use_mrw, use_pda)
@@ -183,7 +183,7 @@ contains
 
     end if
 
-    ! Partial Diffusion Approximation 
+    ! Partial Diffusion Approximation
     if(use_pda) then
 
        ! Number of photons in each cell
@@ -358,7 +358,7 @@ contains
     if(main_process()) write(*,'(" [grid_physics] pre-computing jnu_var")')
 
     do ic=1,geo%n_cells
-       do id=1,n_dust   
+       do id=1,n_dust
           call dust_jnu_var_pos_frac(d(id),specific_energy_abs(ic,id),jnu_var_id(ic,id),jnu_var_frac(ic,id))
        end do
     end do
@@ -440,7 +440,7 @@ contains
     p%dust_id = ceiling(xi*real(n_dust,dp))
 
     ! Pick random cell
-    p%icell = random_cell()            
+    p%icell = random_cell()
     p%in_cell = .true.
 
     ! Find random position inside cell

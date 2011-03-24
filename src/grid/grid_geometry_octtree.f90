@@ -2,6 +2,7 @@ module grid_geometry_specific
 
   use core_lib
   use mpi_core
+  use mpi_io
   use type_photon
   use type_grid_cell
   use type_grid
@@ -62,7 +63,7 @@ contains
     implicit none
     type(grid_cell),intent(in) :: cell
     integer,intent(in) :: idir
-    select case(idir)    
+    select case(idir)
     case(1)
        cell_width = geo%cells(cell%ic)%dx * 2._dp
     case(2)
@@ -134,7 +135,7 @@ contains
        new_cell_id = geo%cells(cell_id)%children(subcell_id(cell_id, r))
        final_cell_id = locate_cell(r, new_cell_id)
     else
-       final_cell_id = cell_id 
+       final_cell_id = cell_id
     end if
   end function locate_cell
 
@@ -156,7 +157,7 @@ contains
        child_id = n_filled
        geo%cells(parent_id)%children(ic) = child_id
 
-       sx = 1 ; sy = 1 ; sz = 1        
+       sx = 1 ; sy = 1 ; sz = 1
        if(mod(ic-1,2)==0) sx = -sx
        if(mod(ic-1-mod(ic-1,2),4)/2==0) sy = -sy
        if(mod(ic-1-mod(ic-1,2)-mod(ic-1-mod(ic-1,2),4),8)/4==0) sz = -sz
@@ -194,11 +195,11 @@ contains
     integer, allocatable :: refined(:)
 
     ! Read geometry file
-    call hdf5_read_keyword(group, '.', "geometry", geo%id)
-    call hdf5_read_keyword(group, '.', "grid_type", geo%type)
+    call mp_read_keyword(group, '.', "geometry", geo%id)
+    call mp_read_keyword(group, '.', "grid_type", geo%type)
 
     ! Read in refinement list
-    call hdf5_table_read_column_auto(group, 'Cells', 'refined', refined)
+    call mp_table_read_column_auto(group, 'Cells', 'refined', refined)
 
     ! Find number of cells
     geo%n_cells = size(refined)
@@ -212,12 +213,12 @@ contains
     end do
 
     ! Read parameters for top-level cell
-    call hdf5_read_keyword(group, '.', 'x', geo%cells(1)%x)
-    call hdf5_read_keyword(group, '.', 'y', geo%cells(1)%y)
-    call hdf5_read_keyword(group, '.', 'z', geo%cells(1)%z)
-    call hdf5_read_keyword(group, '.', 'dx', geo%cells(1)%dx)
-    call hdf5_read_keyword(group, '.', 'dy', geo%cells(1)%dy)
-    call hdf5_read_keyword(group, '.', 'dz', geo%cells(1)%dz)
+    call mp_read_keyword(group, '.', 'x', geo%cells(1)%x)
+    call mp_read_keyword(group, '.', 'y', geo%cells(1)%y)
+    call mp_read_keyword(group, '.', 'z', geo%cells(1)%z)
+    call mp_read_keyword(group, '.', 'dx', geo%cells(1)%dx)
+    call mp_read_keyword(group, '.', 'dy', geo%cells(1)%dy)
+    call mp_read_keyword(group, '.', 'dz', geo%cells(1)%dz)
 
     n_filled=1
 

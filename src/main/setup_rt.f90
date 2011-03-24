@@ -1,6 +1,7 @@
 module setup
 
   use core_lib
+  use mpi_io
 
   use grid_physics, only : setup_grid_physics
   use grid_geometry, only : setup_grid_geometry
@@ -29,27 +30,27 @@ contains
     integer(hid_t) :: g_dust, g_geometry, g_physics, g_sources, g_output
     integer :: physics_io_bytes
 
-    call hdf5_read_keyword(input_handle, '/', 'monochromatic', use_exact_nu)
-    call hdf5_read_keyword(input_handle, '/', 'raytracing', use_raytracing)
+    call mp_read_keyword(input_handle, '/', 'monochromatic', use_exact_nu)
+    call mp_read_keyword(input_handle, '/', 'raytracing', use_raytracing)
 
-    call hdf5_read_keyword(input_handle, '/', 'n_stats', n_stats)
+    call mp_read_keyword(input_handle, '/', 'n_stats', n_stats)
 
-    call hdf5_read_keyword(input_handle, '/', 'n_inter_max', n_inter_max)
-    call hdf5_read_keyword(input_handle, '/', 'n_reabs_max', n_reabs_max)
+    call mp_read_keyword(input_handle, '/', 'n_inter_max', n_inter_max)
+    call mp_read_keyword(input_handle, '/', 'n_reabs_max', n_reabs_max)
 
-    call hdf5_read_keyword(input_handle, '/', 'pda', use_pda)
-    call hdf5_read_keyword(input_handle, '/', 'mrw', use_mrw)
+    call mp_read_keyword(input_handle, '/', 'pda', use_pda)
+    call mp_read_keyword(input_handle, '/', 'mrw', use_mrw)
 
     if(use_mrw) then
-       call hdf5_read_keyword(input_handle, '/', 'mrw_gamma', mrw_gamma)
-       call hdf5_read_keyword(input_handle, '/', 'n_inter_mrw_max', n_mrw_max)
+       call mp_read_keyword(input_handle, '/', 'mrw_gamma', mrw_gamma)
+       call mp_read_keyword(input_handle, '/', 'n_inter_mrw_max', n_mrw_max)
     end if
 
-    call hdf5_read_keyword(input_handle, '/', 'kill_on_absorb', kill_on_absorb)
-    call hdf5_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_scattering)
+    call mp_read_keyword(input_handle, '/', 'kill_on_absorb', kill_on_absorb)
+    call mp_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_scattering)
 
     if(hdf5_exists_keyword(input_handle, '/', 'sample_sources_evenly')) then
-       call hdf5_read_keyword(input_handle, '/', 'sample_sources_evenly', sample_sources_evenly)
+       call mp_read_keyword(input_handle, '/', 'sample_sources_evenly', sample_sources_evenly)
     else
        sample_sources_evenly = .false.
     end if
@@ -66,15 +67,15 @@ contains
        if(use_exact_nu) n_last_photons_dust = 0
        if(use_raytracing) n_raytracing_photons_dust = 0
     else
-       call hdf5_read_keyword(input_handle, '/', 'n_lucy_iter', n_lucy_iter)
+       call mp_read_keyword(input_handle, '/', 'n_lucy_iter', n_lucy_iter)
        if(n_lucy_iter > 0) then
-          call hdf5_read_keyword(input_handle, '/', 'n_lucy_photons', n_lucy_photons)
+          call mp_read_keyword(input_handle, '/', 'n_lucy_photons', n_lucy_photons)
           if(n_lucy_photons==0) call error("setup_initial", "Number of temperature iterations is non-zero, but number of temperature photons is zero")
        else
           n_lucy_photons = 0
        end if
-       if(use_exact_nu) call hdf5_read_keyword(input_handle, '/', 'n_last_photons_dust', n_last_photons_dust)
-       if(use_raytracing) call hdf5_read_keyword(input_handle, '/', 'n_ray_photons_dust', n_raytracing_photons_dust)
+       if(use_exact_nu) call mp_read_keyword(input_handle, '/', 'n_last_photons_dust', n_last_photons_dust)
+       if(use_raytracing) call mp_read_keyword(input_handle, '/', 'n_ray_photons_dust', n_raytracing_photons_dust)
     end if
 
     ! GRID
@@ -87,7 +88,7 @@ contains
     call setup_grid_physics(g_physics, use_mrw, use_pda)
     call hdf5_close_group(g_physics)
 
-    call hdf5_read_keyword(input_handle, '/', 'physics_io_bytes', physics_io_bytes)
+    call mp_read_keyword(input_handle, '/', 'physics_io_bytes', physics_io_bytes)
 
     select case(physics_io_bytes)
     case(4)
@@ -101,7 +102,7 @@ contains
     ! FREQUENCIES
 
     if(use_exact_nu) then
-       call hdf5_table_read_column_auto(input_handle, 'Frequencies', 'nu', frequencies)
+       call mp_table_read_column_auto(input_handle, 'Frequencies', 'nu', frequencies)
     end if
 
     ! SOURCES
@@ -121,46 +122,46 @@ contains
        if(use_raytracing) n_raytracing_photons_sources = 0
     else
        if(use_exact_nu) then
-          call hdf5_read_keyword(input_handle, '/', 'n_last_photons_sources', n_last_photons_sources)
+          call mp_read_keyword(input_handle, '/', 'n_last_photons_sources', n_last_photons_sources)
        else
-          call hdf5_read_keyword(input_handle, '/', 'n_last_photons', n_last_photons)
+          call mp_read_keyword(input_handle, '/', 'n_last_photons', n_last_photons)
        end if
-       if(use_raytracing) call hdf5_read_keyword(input_handle, '/', 'n_ray_photons_sources', n_raytracing_photons_sources)
+       if(use_raytracing) call mp_read_keyword(input_handle, '/', 'n_ray_photons_sources', n_raytracing_photons_sources)
     end if
 
     ! OUTPUT
 
-    g_output = hdf5_open_group(input_handle, '/Output')  
+    g_output = hdf5_open_group(input_handle, '/Output')
 
-    call hdf5_read_keyword(g_output, '.', 'output_temperature', output_temperature)
+    call mp_read_keyword(g_output, '.', 'output_temperature', output_temperature)
 
     if(trim(output_temperature).ne.'all' &
          & .and.trim(output_temperature).ne.'last' &
          & .and.trim(output_temperature).ne.'none') &
          & call error("setup_initial", "output_temperature should be one of all/last/none")
 
-    call hdf5_read_keyword(g_output, '.', 'output_density', output_density)
+    call mp_read_keyword(g_output, '.', 'output_density', output_density)
 
     if(trim(output_density).ne.'all' &
          & .and.trim(output_density).ne.'last' &
          & .and.trim(output_density).ne.'none') &
          & call error("setup_initial","output_density should be one of all/last/none")
 
-    call hdf5_read_keyword(g_output, '.', 'output_density_diff', output_density_diff)
+    call mp_read_keyword(g_output, '.', 'output_density_diff', output_density_diff)
 
     if(trim(output_density_diff).ne.'all' &
          & .and.trim(output_density_diff).ne.'last' &
          & .and.trim(output_density_diff).ne.'none') &
          & call error("setup_initial","output_density_diff should be one of all/last/none")
 
-    call hdf5_read_keyword(g_output, '.', 'output_specific_energy_abs', output_specific_energy_abs)
+    call mp_read_keyword(g_output, '.', 'output_specific_energy_abs', output_specific_energy_abs)
 
     if(trim(output_specific_energy_abs).ne.'all' &
          & .and.trim(output_specific_energy_abs).ne.'last' &
          & .and.trim(output_specific_energy_abs).ne.'none') &
          & call error("setup_initial","output_specific_energy_abs should be one of all/last/none")
 
-    call hdf5_read_keyword(g_output, '.', 'output_n_photons', output_n_photons)
+    call mp_read_keyword(g_output, '.', 'output_n_photons', output_n_photons)
 
     if(trim(output_n_photons).ne.'all' &
          & .and.trim(output_n_photons).ne.'last' &
@@ -171,11 +172,11 @@ contains
 
     ! TEMPERATURE CONVERGENCE
     if(n_lucy_iter > 0) then
-       call hdf5_read_keyword(input_handle, '/', 'check_convergence', check_convergence)
+       call mp_read_keyword(input_handle, '/', 'check_convergence', check_convergence)
        if(check_convergence) then
-          call hdf5_read_keyword(input_handle, '/', 'convergence_absolute', convergence_absolute)
-          call hdf5_read_keyword(input_handle, '/', 'convergence_relative', convergence_relative)
-          call hdf5_read_keyword(input_handle, '/', 'convergence_percentile', convergence_percentile)
+          call mp_read_keyword(input_handle, '/', 'convergence_absolute', convergence_absolute)
+          call mp_read_keyword(input_handle, '/', 'convergence_relative', convergence_relative)
+          call mp_read_keyword(input_handle, '/', 'convergence_percentile', convergence_percentile)
        end if
     end if
 
@@ -191,7 +192,7 @@ contains
     character(len=255),allocatable :: group_names(:)
 
     ! Read configuration for binned images
-    g_binned = hdf5_open_group(input_handle, '/Output/Binned')   
+    g_binned = hdf5_open_group(input_handle, '/Output/Binned')
     call hdf5_list_groups(g_binned, '.', group_names)
 
     if(size(group_names)==0) then
@@ -209,7 +210,7 @@ contains
     end if
 
     ! Read configuration for peeloff images
-    g_peeled = hdf5_open_group(input_handle, '/Output/Peeled')   
+    g_peeled = hdf5_open_group(input_handle, '/Output/Peeled')
     call hdf5_list_groups(g_peeled, '.', group_names)
     n_peeled = size(group_names)
     make_peeled_images = n_peeled > 0

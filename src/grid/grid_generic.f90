@@ -70,7 +70,7 @@ contains
     if(trim(output_specific_energy_abs)=='all' .or. (trim(output_specific_energy_abs)=='last'.and.iter==n_iter)) then
        if(allocated(specific_energy_abs)) then
           select case(physics_io_type)
-          case(sp)  
+          case(sp)
              call write_grid_4d(group, 'specific_energy_abs', real(specific_energy_abs, sp), geo)
           case(dp)
              call write_grid_4d(group, 'specific_energy_abs', real(specific_energy_abs, dp), geo)
@@ -87,7 +87,7 @@ contains
     if(trim(output_density)=='all' .or. (trim(output_density)=='last'.and.iter==n_iter)) then
        if(allocated(density)) then
           select case(physics_io_type)
-          case(sp)  
+          case(sp)
              call write_grid_4d(group, 'density', real(density, sp), geo)
           case(dp)
              call write_grid_4d(group, 'density', real(density, dp), geo)
@@ -105,7 +105,7 @@ contains
     if(trim(output_density_diff)=='all' .or. (trim(output_density_diff)=='last'.and.iter==n_iter)) then
        if(allocated(density).and.allocated(density_original)) then
           select case(physics_io_type)
-          case(sp)  
+          case(sp)
              call write_grid_4d(group, 'density_diff', real(density - density_original, sp), geo)
           case(dp)
              call write_grid_4d(group, 'density_diff', real(density - density_original, dp), geo)

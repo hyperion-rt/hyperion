@@ -1,6 +1,7 @@
 module type_source
 
   use core_lib
+  use mpi_io
   use type_grid_cell
   use type_photon
   use grid_geometry
@@ -21,7 +22,7 @@ module type_source
 
   public :: spot
 
-  type spot  
+  type spot
      type(angle3d_dp) :: a
      real(dp) :: cost
      integer :: freq_type = 0
@@ -101,18 +102,18 @@ contains
     real(dp) :: dx, dy, dz
     real(dp) :: theta, phi
 
-    call hdf5_read_keyword(group, '.', 'type', type)
+    call mp_read_keyword(group, '.', 'type', type)
 
     select case(trim(type))
     case('point')
 
        s%type = 1
 
-       call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
-       call hdf5_read_keyword(group, '.', 'peeloff', s%peeloff)
-       call hdf5_read_keyword(group, '.', 'x', s%position%x)
-       call hdf5_read_keyword(group, '.', 'y', s%position%y)
-       call hdf5_read_keyword(group, '.', 'z', s%position%z)
+       call mp_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call mp_read_keyword(group, '.', 'peeloff', s%peeloff)
+       call mp_read_keyword(group, '.', 'x', s%position%x)
+       call mp_read_keyword(group, '.', 'y', s%position%y)
+       call mp_read_keyword(group, '.', 'z', s%position%z)
 
        call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
 
@@ -122,13 +123,13 @@ contains
 
        s%type = 2
 
-       call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
-       call hdf5_read_keyword(group, '.', 'peeloff', s%peeloff)
-       call hdf5_read_keyword(group, '.', 'x', s%position%x)
-       call hdf5_read_keyword(group, '.', 'y', s%position%y)
-       call hdf5_read_keyword(group, '.', 'z', s%position%z)
-       call hdf5_read_keyword(group, '.', 'r', s%radius)
-       call hdf5_read_keyword(group, '.', 'limb', s%limb_darkening)
+       call mp_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call mp_read_keyword(group, '.', 'peeloff', s%peeloff)
+       call mp_read_keyword(group, '.', 'x', s%position%x)
+       call mp_read_keyword(group, '.', 'y', s%position%y)
+       call mp_read_keyword(group, '.', 'z', s%position%z)
+       call mp_read_keyword(group, '.', 'r', s%radius)
+       call mp_read_keyword(group, '.', 'limb', s%limb_darkening)
 
        call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
 
@@ -155,10 +156,10 @@ contains
        ! Read in the spot parameters
        do i=1,s%n_spots
 
-          call hdf5_read_keyword(group, spot_names(i), 'luminosity', luminosity)
-          call hdf5_read_keyword(group, spot_names(i), 'longitude', lon)
-          call hdf5_read_keyword(group, spot_names(i), 'latitude', lat)
-          call hdf5_read_keyword(group, spot_names(i), 'radius', spot_size)
+          call mp_read_keyword(group, spot_names(i), 'luminosity', luminosity)
+          call mp_read_keyword(group, spot_names(i), 'longitude', lon)
+          call mp_read_keyword(group, spot_names(i), 'latitude', lat)
+          call mp_read_keyword(group, spot_names(i), 'radius', spot_size)
 
           s%spot_pdf%pdf(i) = luminosity
           s%luminosity = s%luminosity + luminosity
@@ -180,8 +181,8 @@ contains
 
        s%type = 4
 
-       call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
-       call hdf5_read_keyword(group, '.', 'peeloff', s%peeloff)
+       call mp_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call mp_read_keyword(group, '.', 'peeloff', s%peeloff)
 
        call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
 
@@ -191,12 +192,12 @@ contains
 
        s%type = 5
 
-       call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
-       call hdf5_read_keyword(group, '.', 'peeloff', s%peeloff)
-       call hdf5_read_keyword(group, '.', 'x', s%position%x)
-       call hdf5_read_keyword(group, '.', 'y', s%position%y)
-       call hdf5_read_keyword(group, '.', 'z', s%position%z)
-       call hdf5_read_keyword(group, '.', 'r', s%radius)
+       call mp_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call mp_read_keyword(group, '.', 'peeloff', s%peeloff)
+       call mp_read_keyword(group, '.', 'x', s%position%x)
+       call mp_read_keyword(group, '.', 'y', s%position%y)
+       call mp_read_keyword(group, '.', 'z', s%position%z)
+       call mp_read_keyword(group, '.', 'r', s%radius)
 
        call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
 
@@ -206,14 +207,14 @@ contains
 
        s%type = 6
 
-       call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
-       call hdf5_read_keyword(group, '.', 'peeloff', s%peeloff)
-       call hdf5_read_keyword(group, '.', 'xmin', s%xmin)
-       call hdf5_read_keyword(group, '.', 'xmax', s%xmax)
-       call hdf5_read_keyword(group, '.', 'ymin', s%ymin)
-       call hdf5_read_keyword(group, '.', 'ymax', s%ymax)
-       call hdf5_read_keyword(group, '.', 'zmin', s%zmin)
-       call hdf5_read_keyword(group, '.', 'zmax', s%zmax)
+       call mp_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call mp_read_keyword(group, '.', 'peeloff', s%peeloff)
+       call mp_read_keyword(group, '.', 'xmin', s%xmin)
+       call mp_read_keyword(group, '.', 'xmax', s%xmax)
+       call mp_read_keyword(group, '.', 'ymin', s%ymin)
+       call mp_read_keyword(group, '.', 'ymax', s%ymax)
+       call mp_read_keyword(group, '.', 'zmin', s%zmin)
+       call mp_read_keyword(group, '.', 'zmax', s%zmax)
 
        dx = s%xmax - s%xmin
        dy = s%ymax - s%ymin
@@ -229,14 +230,14 @@ contains
 
        s%type = 7
 
-       call hdf5_read_keyword(group, '.', 'luminosity', s%luminosity)
-       call hdf5_read_keyword(group, '.', 'peeloff', s%peeloff)
-       call hdf5_read_keyword(group, '.', 'x', s%position%x)
-       call hdf5_read_keyword(group, '.', 'y', s%position%y)
-       call hdf5_read_keyword(group, '.', 'z', s%position%z)
-       call hdf5_read_keyword(group, '.', 'r', s%radius)
-       call hdf5_read_keyword(group, '.', 'theta', theta)
-       call hdf5_read_keyword(group, '.', 'phi', phi)
+       call mp_read_keyword(group, '.', 'luminosity', s%luminosity)
+       call mp_read_keyword(group, '.', 'peeloff', s%peeloff)
+       call mp_read_keyword(group, '.', 'x', s%position%x)
+       call mp_read_keyword(group, '.', 'y', s%position%y)
+       call mp_read_keyword(group, '.', 'z', s%position%z)
+       call mp_read_keyword(group, '.', 'r', s%radius)
+       call mp_read_keyword(group, '.', 'theta', theta)
+       call mp_read_keyword(group, '.', 'phi', phi)
 
        s%direction = angle3d_deg(theta, phi)
 
@@ -264,16 +265,16 @@ contains
 
     real(dp),allocatable :: nu(:), fnu(:)
 
-    call hdf5_read_keyword(group, '.', 'spectrum', spec_type)
+    call mp_read_keyword(group, '.', 'spectrum', spec_type)
 
     select case(trim(spec_type))
     case('spectrum')
-       call hdf5_table_read_column_auto(group, 'Spectrum', 'nu', nu)
-       call hdf5_table_read_column_auto(group, 'Spectrum', 'fnu', fnu)
+       call mp_table_read_column_auto(group, 'Spectrum', 'nu', nu)
+       call mp_table_read_column_auto(group, 'Spectrum', 'fnu', fnu)
        call set_pdf(spectrum,nu,fnu,log=.true.)
        freq_type = 1
     case('temperature')
-       call hdf5_read_keyword(group, '.', 'temperature', temperature)
+       call mp_read_keyword(group, '.', 'temperature', temperature)
        freq_type = 2
     case('lte')
        freq_type = 3
@@ -773,7 +774,7 @@ contains
     a_local%cosp = cos(phi_local)
     a_local%sinp = sin(phi_local)
 
-    call random(xi) 
+    call random(xi)
     a_local%cost = sqrt(xi)
     a_local%sint = sqrt( 1._dp - a_local%cost * a_local%cost )
 
@@ -916,7 +917,7 @@ contains
     real(dp),parameter :: half  = 1._dp/2._dp
     real(dp),parameter :: third = 1._dp/3._dp
 
-    ! The CDF is 
+    ! The CDF is
     ! CDF = a/3 * mu**3 + b/2 * mu**2 = s*mu**3+t*mu**2
 
     s = a * third

@@ -44,7 +44,7 @@ contains
     ! Decide whether to absorb or scatter
     call random(xi)
     if(xi > albedo) then
-       call dust_emit(d(id),jnu_var_id(p%icell%ic,id),jnu_var_frac(p%icell%ic,id),p%nu,p%a,p%s,energy_scaling)       
+       call dust_emit(d(id),jnu_var_id(p%icell%ic,id),jnu_var_frac(p%icell%ic,id),p%nu,p%a,p%s,energy_scaling)
        p%energy = p%energy * energy_scaling
        call update_optconsts(p)
        p%scattered=.false.
@@ -52,7 +52,7 @@ contains
        p%last_isotropic = .true.
        p%dust_id = id
        p%last = 'de'
-    else  
+    else
        call dust_scatter(d(id),p%nu,p%a,p%s)
        p%scattered=.true.
        p%last_isotropic = .false.

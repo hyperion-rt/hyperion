@@ -2,6 +2,7 @@ module grid_geometry_specific
 
   use core_lib
   use mpi_core
+  use mpi_io
   use type_photon
   use type_grid_cell
   use type_grid
@@ -43,7 +44,7 @@ contains
     implicit none
     type(grid_cell),intent(in) :: cell
     integer,intent(in) :: idir
-    select case(idir)    
+    select case(idir)
     case(1)
        cell_width = geo%dr(cell%i1)
     case(2)
@@ -80,16 +81,16 @@ contains
     type(grid_cell) :: cell
 
     ! Read geometry file
-    call hdf5_read_keyword(group, '.', "geometry", geo%id)
-    call hdf5_read_keyword(group, '.', "grid_type", geo%type)
+    call mp_read_keyword(group, '.', "geometry", geo%id)
+    call mp_read_keyword(group, '.', "grid_type", geo%type)
 
     if(trim(geo%type).ne.'sph_pol') call error("setup_grid_geometry","grid is not spherical polar")
 
     if(main_process()) write(*,'(" [setup_grid_geometry] Reading spherical polar grid")')
 
-    call hdf5_table_read_column_auto(group, 'Walls 1', 'r', geo%w1)  
-    call hdf5_table_read_column_auto(group, 'Walls 2', 't', geo%w2)  
-    call hdf5_table_read_column_auto(group, 'Walls 3', 'p', geo%w3)  
+    call mp_table_read_column_auto(group, 'Walls 1', 'r', geo%w1)
+    call mp_table_read_column_auto(group, 'Walls 2', 't', geo%w2)
+    call mp_table_read_column_auto(group, 'Walls 3', 'p', geo%w3)
 
     if(any(geo%w1 < 0.)) then
        call error("setup_grid_geometry","r walls should be positive")
@@ -309,7 +310,7 @@ contains
           in_correct_cell = .false.
        end select
        in_correct_cell = abs(frac) < 1.e-3_dp .and. in_correct_cell
-    else      
+    else
        in_correct_cell = icell_actual == p%icell
     end if
   end function in_correct_cell
@@ -476,7 +477,7 @@ contains
     if(p%icell%i2 > 1) then
 
        if(p%icell%i2 == geo%midplane.and.p%v%z.ne.0) then
-          call insert_t(-p%r%z/p%v%z,3)           
+          call insert_t(-p%r%z/p%v%z,3)
        else
           pA=v2_xy-v2_z*geo%wtant2(p%icell%i2)
           pB=rv_xy-rv_z*geo%wtant2(p%icell%i2) ; pB = pB + pB
@@ -488,7 +489,7 @@ contains
              z2=p%r%z+p%v%z*t2
              if(z2 > 0._dp .eqv. geo%wtant(p%icell%i2) > 0._dp) call insert_t(t2,3)
           else if(pB.lt.0..or.pB.gt.0.) then
-             call insert_t(-pC/pB,3)          
+             call insert_t(-pC/pB,3)
           end if
        end if
 
@@ -510,7 +511,7 @@ contains
              z2=p%r%z+p%v%z*t2
              if(z2 > 0._dp .eqv. geo%wtant(p%icell%i2+1) > 0._dp) call insert_t(t2,4)
           else if(pB.lt.0..or.pB.gt.0.) then
-             call insert_t(-pC/pB,4)          
+             call insert_t(-pC/pB,4)
           end if
        end if
 

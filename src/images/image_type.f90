@@ -3,6 +3,7 @@
 module type_image
 
   use core_lib
+  use mpi_io
   use type_photon
 
   implicit none
@@ -81,7 +82,7 @@ module type_image
      ! spectra of the sources, binned to the image spectral resolution
 
      type(dust_helper),allocatable :: dust(:)
-     ! emissivity of the dust types, binned to the image spectral resolution 
+     ! emissivity of the dust types, binned to the image spectral resolution
 
      real(dp),allocatable :: tmp_spectrum(:)
 
@@ -172,42 +173,42 @@ contains
 
     img%n_view = n_view
 
-    call hdf5_read_keyword(handle, path, 'n_wav',img%n_nu)
+    call mp_read_keyword(handle, path, 'n_wav',img%n_nu)
 
-    call hdf5_read_keyword(handle, path, 'compute_image',img%compute_image)
+    call mp_read_keyword(handle, path, 'compute_image',img%compute_image)
     if(img%compute_image) then
-       call hdf5_read_keyword(handle, path, 'n_x',img%n_x)
-       call hdf5_read_keyword(handle, path, 'n_y',img%n_y)
-       call hdf5_read_keyword(handle, path, 'x_min',img%x_min)
-       call hdf5_read_keyword(handle, path, 'x_max',img%x_max)
-       call hdf5_read_keyword(handle, path, 'y_min',img%y_min)
-       call hdf5_read_keyword(handle, path, 'y_max',img%y_max)
+       call mp_read_keyword(handle, path, 'n_x',img%n_x)
+       call mp_read_keyword(handle, path, 'n_y',img%n_y)
+       call mp_read_keyword(handle, path, 'x_min',img%x_min)
+       call mp_read_keyword(handle, path, 'x_max',img%x_max)
+       call mp_read_keyword(handle, path, 'y_min',img%y_min)
+       call mp_read_keyword(handle, path, 'y_max',img%y_max)
     end if
 
-    call hdf5_read_keyword(handle, path, 'compute_sed',img%compute_sed)
+    call mp_read_keyword(handle, path, 'compute_sed',img%compute_sed)
     if(img%compute_sed) then
-       call hdf5_read_keyword(handle, path, 'n_ap',img%n_ap)
-       call hdf5_read_keyword(handle, path, 'ap_min',img%ap_min)
-       call hdf5_read_keyword(handle, path, 'ap_max',img%ap_max)
+       call mp_read_keyword(handle, path, 'n_ap',img%n_ap)
+       call mp_read_keyword(handle, path, 'ap_min',img%ap_min)
+       call mp_read_keyword(handle, path, 'ap_max',img%ap_max)
        img%log10_ap_min = log10(img%ap_min)
        img%log10_ap_max = log10(img%ap_max)
     end if
 
-    call hdf5_read_keyword(handle, path, 'track_origin',img%track_origin)
+    call mp_read_keyword(handle, path, 'track_origin',img%track_origin)
     if(img%track_origin) then
        img%n_orig = 4
     else
        img%n_orig = 1
     end if
 
-    call hdf5_read_keyword(handle, path, 'uncertainties',img%uncertainties)
+    call mp_read_keyword(handle, path, 'uncertainties',img%uncertainties)
 
     if(use_exact_nu) then
 
        img%use_exact_nu = .true.
 
-       call hdf5_read_keyword(handle, path, 'inu_min',img%inu_min)
-       call hdf5_read_keyword(handle, path, 'inu_max',img%inu_max)
+       call mp_read_keyword(handle, path, 'inu_min',img%inu_min)
+       call mp_read_keyword(handle, path, 'inu_max',img%inu_max)
 
        if(.not.present(frequencies)) call error('image_setup','frequencies should be given if use_exact_nu is .true.')
 
@@ -218,8 +219,8 @@ contains
 
        img%use_exact_nu = .false.
 
-       call hdf5_read_keyword(handle, path, 'wav_min',wav_min)
-       call hdf5_read_keyword(handle, path, 'wav_max',wav_max)
+       call mp_read_keyword(handle, path, 'wav_min',wav_min)
+       call mp_read_keyword(handle, path, 'wav_max',wav_max)
 
        img%nu_min = c_cgs / (wav_max * 1.e-4)
        img%nu_max = c_cgs / (wav_min * 1.e-4)
@@ -265,7 +266,7 @@ contains
        end if
     end if
 
-    call hdf5_read_keyword(handle, path, 'io_bytes',io_bytes)
+    call mp_read_keyword(handle, path, 'io_bytes',io_bytes)
 
     select case(io_bytes)
     case(4)
@@ -451,7 +452,7 @@ contains
     case(3)
        img%tmp_spectrum = (img%dust(p%dust_id)%log10_emissivity(:,p%emiss_var_id+1) - &
             &                   img%dust(p%dust_id)%log10_emissivity(:,p%emiss_var_id)) * p%emiss_var_frac + &
-            &                   img%dust(p%dust_id)%log10_emissivity(:,p%emiss_var_id)   
+            &                   img%dust(p%dust_id)%log10_emissivity(:,p%emiss_var_id)
        img%tmp_spectrum = 10._dp**(img%tmp_spectrum)
        where(img%tmp_spectrum.ne.img%tmp_spectrum)
           img%tmp_spectrum = 0.
@@ -681,7 +682,7 @@ contains
     integer :: inu
 
 
-    allocate(img%sources(source_id)%spectrum(img%n_nu))     
+    allocate(img%sources(source_id)%spectrum(img%n_nu))
 
     if(img%use_exact_nu) then
 
@@ -794,7 +795,7 @@ contains
 
     end if
 
-    allocate(img%dust(dust_id)%emissivity_var(size(emissivity_var)))     
+    allocate(img%dust(dust_id)%emissivity_var(size(emissivity_var)))
     img%dust(dust_id)%emissivity_var = emissivity_var
 
     allocate(img%dust(dust_id)%log10_emissivity(img%n_nu,size(emissivity_var)))
@@ -833,7 +834,7 @@ contains
 
     end if
 
-    allocate(img%dust(dust_id)%chi(img%n_nu))     
+    allocate(img%dust(dust_id)%chi(img%n_nu))
     img%dust(dust_id)%chi = chi_nu_new
 
   end subroutine image_raytracing_set_opacity

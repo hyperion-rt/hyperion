@@ -1,7 +1,8 @@
-! MD5 of template: dd0a6439c9247d88cbda7262e87fb5d5
+! MD5 of template: b90bc2c308f3780e9fe16c9103c6e5ba
 module grid_io
 
   use core_lib
+  use mpi_io
   use type_grid
 
   implicit none
@@ -65,11 +66,11 @@ contains
 
     character(len=32) :: geometry_id_check
 
-    call hdf5_read_keyword(group,path, 'geometry', geometry_id_check)
+    call mp_read_keyword(group,path, 'geometry', geometry_id_check)
     if(geometry_id_check.ne.geo%id) then
        call error("read_grid", "geometry IDs do not match")
     end if
-    call hdf5_read_array_auto(group,path, array4d)
+    call mp_read_array_auto(group,path, array4d)
 
     if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
 
@@ -93,11 +94,11 @@ contains
 
     character(len=32) :: geometry_id_check
 
-    call hdf5_read_keyword(group,path, 'geometry', geometry_id_check)
+    call mp_read_keyword(group,path, 'geometry', geometry_id_check)
     if(geometry_id_check.ne.geo%id) then
        call error("read_grid", "geometry IDs do not match")
     end if
-    call hdf5_read_array_auto(group,path, array3d)
+    call mp_read_array_auto(group,path, array3d)
 
     if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
 
@@ -107,7 +108,7 @@ contains
 
   end subroutine read_grid_3d_int8
 
-  subroutine write_grid_4d_int8(group, path, array, geo) 
+  subroutine write_grid_4d_int8(group, path, array, geo)
 
     implicit none
 
@@ -121,7 +122,7 @@ contains
 
   end subroutine write_grid_4d_int8
 
-  subroutine write_grid_3d_int8(group, path, array, geo) 
+  subroutine write_grid_3d_int8(group, path, array, geo)
 
     implicit none
 
@@ -149,11 +150,11 @@ contains
 
     character(len=32) :: geometry_id_check
 
-    call hdf5_read_keyword(group,path, 'geometry', geometry_id_check)
+    call mp_read_keyword(group,path, 'geometry', geometry_id_check)
     if(geometry_id_check.ne.geo%id) then
        call error("read_grid", "geometry IDs do not match")
     end if
-    call hdf5_read_array_auto(group,path, array4d)
+    call mp_read_array_auto(group,path, array4d)
 
     if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
 
@@ -177,11 +178,11 @@ contains
 
     character(len=32) :: geometry_id_check
 
-    call hdf5_read_keyword(group,path, 'geometry', geometry_id_check)
+    call mp_read_keyword(group,path, 'geometry', geometry_id_check)
     if(geometry_id_check.ne.geo%id) then
        call error("read_grid", "geometry IDs do not match")
     end if
-    call hdf5_read_array_auto(group,path, array3d)
+    call mp_read_array_auto(group,path, array3d)
 
     if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
 
@@ -191,7 +192,7 @@ contains
 
   end subroutine read_grid_3d_int
 
-  subroutine write_grid_4d_int(group, path, array, geo) 
+  subroutine write_grid_4d_int(group, path, array, geo)
 
     implicit none
 
@@ -205,7 +206,7 @@ contains
 
   end subroutine write_grid_4d_int
 
-  subroutine write_grid_3d_int(group, path, array, geo) 
+  subroutine write_grid_3d_int(group, path, array, geo)
 
     implicit none
 
@@ -233,11 +234,11 @@ contains
 
     character(len=32) :: geometry_id_check
 
-    call hdf5_read_keyword(group,path, 'geometry', geometry_id_check)
+    call mp_read_keyword(group,path, 'geometry', geometry_id_check)
     if(geometry_id_check.ne.geo%id) then
        call error("read_grid", "geometry IDs do not match")
     end if
-    call hdf5_read_array_auto(group,path, array4d)
+    call mp_read_array_auto(group,path, array4d)
 
     if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
 
@@ -261,11 +262,11 @@ contains
 
     character(len=32) :: geometry_id_check
 
-    call hdf5_read_keyword(group,path, 'geometry', geometry_id_check)
+    call mp_read_keyword(group,path, 'geometry', geometry_id_check)
     if(geometry_id_check.ne.geo%id) then
        call error("read_grid", "geometry IDs do not match")
     end if
-    call hdf5_read_array_auto(group,path, array3d)
+    call mp_read_array_auto(group,path, array3d)
 
     if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
 
@@ -275,7 +276,7 @@ contains
 
   end subroutine read_grid_3d_dp
 
-  subroutine write_grid_4d_dp(group, path, array, geo) 
+  subroutine write_grid_4d_dp(group, path, array, geo)
 
     implicit none
 
@@ -289,7 +290,7 @@ contains
 
   end subroutine write_grid_4d_dp
 
-  subroutine write_grid_3d_dp(group, path, array, geo) 
+  subroutine write_grid_3d_dp(group, path, array, geo)
 
     implicit none
 
@@ -317,11 +318,11 @@ contains
 
     character(len=32) :: geometry_id_check
 
-    call hdf5_read_keyword(group,path, 'geometry', geometry_id_check)
+    call mp_read_keyword(group,path, 'geometry', geometry_id_check)
     if(geometry_id_check.ne.geo%id) then
        call error("read_grid", "geometry IDs do not match")
     end if
-    call hdf5_read_array_auto(group,path, array4d)
+    call mp_read_array_auto(group,path, array4d)
 
     if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
 
@@ -345,11 +346,11 @@ contains
 
     character(len=32) :: geometry_id_check
 
-    call hdf5_read_keyword(group,path, 'geometry', geometry_id_check)
+    call mp_read_keyword(group,path, 'geometry', geometry_id_check)
     if(geometry_id_check.ne.geo%id) then
        call error("read_grid", "geometry IDs do not match")
     end if
-    call hdf5_read_array_auto(group,path, array3d)
+    call mp_read_array_auto(group,path, array3d)
 
     if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
 
@@ -359,7 +360,7 @@ contains
 
   end subroutine read_grid_3d_sp
 
-  subroutine write_grid_4d_sp(group, path, array, geo) 
+  subroutine write_grid_4d_sp(group, path, array, geo)
 
     implicit none
 
@@ -373,7 +374,7 @@ contains
 
   end subroutine write_grid_4d_sp
 
-  subroutine write_grid_3d_sp(group, path, array, geo) 
+  subroutine write_grid_3d_sp(group, path, array, geo)
 
     implicit none
 

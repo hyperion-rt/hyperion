@@ -2,6 +2,7 @@ module grid_geometry_specific
 
   use core_lib
   use mpi_core
+  use mpi_io
   use type_photon
   use type_grid_cell
   use type_grid
@@ -110,25 +111,25 @@ contains
     integer(hid_t),intent(in) :: group
     type(fab_desc),intent(out) :: fab
 
-    call hdf5_read_keyword(group, '.', 'n1', fab%n1)
-    call hdf5_read_keyword(group, '.', 'n2', fab%n2)
-    call hdf5_read_keyword(group, '.', 'n3', fab%n3)
+    call mp_read_keyword(group, '.', 'n1', fab%n1)
+    call mp_read_keyword(group, '.', 'n2', fab%n2)
+    call mp_read_keyword(group, '.', 'n3', fab%n3)
     fab%n_cells = fab%n1 * fab%n2 * fab%n3
     fab%n_dim = 3
 
     allocate(fab%w1(fab%n1+1))
-    call hdf5_read_keyword(group, '.', 'xmin', fab%xmin)
-    call hdf5_read_keyword(group, '.', 'xmax', fab%xmax)
+    call mp_read_keyword(group, '.', 'xmin', fab%xmin)
+    call mp_read_keyword(group, '.', 'xmax', fab%xmax)
     call linspace(fab%xmin, fab%xmax, fab%w1)
 
     allocate(fab%w2(fab%n2+1))
-    call hdf5_read_keyword(group, '.', 'ymin', fab%ymin)
-    call hdf5_read_keyword(group, '.', 'ymax', fab%ymax)
+    call mp_read_keyword(group, '.', 'ymin', fab%ymin)
+    call mp_read_keyword(group, '.', 'ymax', fab%ymax)
     call linspace(fab%ymin, fab%ymax, fab%w2)
 
     allocate(fab%w3(fab%n3+1))
-    call hdf5_read_keyword(group, '.', 'zmin', fab%zmin)
-    call hdf5_read_keyword(group, '.', 'zmax', fab%zmax)
+    call mp_read_keyword(group, '.', 'zmin', fab%zmin)
+    call mp_read_keyword(group, '.', 'zmax', fab%zmax)
     call linspace(fab%zmin, fab%zmax, fab%w3)
 
     fab%width(1) = (fab%xmax-fab%xmin)/real(fab%n1, dp)
@@ -159,7 +160,7 @@ contains
     integer(hid_t) :: g_fab
     character(len=100) :: fab_name
 
-    call hdf5_read_keyword(group, '.', 'nfabs', nfabs)
+    call mp_read_keyword(group, '.', 'nfabs', nfabs)
 
     allocate(level%fabs(nfabs))
 
@@ -194,15 +195,15 @@ contains
     real(dp) :: min_width
 
     ! Read geometry file
-    call hdf5_read_keyword(group, '.', "geometry", geo%id)
-    call hdf5_read_keyword(group, '.', "grid_type", geo%type)
+    call mp_read_keyword(group, '.', "geometry", geo%id)
+    call mp_read_keyword(group, '.', "grid_type", geo%type)
 
     if(trim(geo%type).ne.'amr') call error("setup_grid_geometry","grid is not AMR cartesian")
 
     if(main_process()) write(*,'(" [setup_grid_geometry] Reading AMR cartesian grid")')
 
     ! Read the number of levels
-    call hdf5_read_keyword(group, '.', 'nlevels', nlevels)
+    call mp_read_keyword(group, '.', 'nlevels', nlevels)
 
     ! Allocate the levels
     allocate(geo%levels(nlevels))
@@ -430,8 +431,8 @@ contains
   type(grid_cell) function find_cell(p) result(icell)
     implicit none
     type(photon),intent(in) :: p
-    if(debug) write(*,'(" [debug] find_cell")')    
-    icell = find_cell_position(p%r)    
+    if(debug) write(*,'(" [debug] find_cell")')
+    icell = find_cell_position(p%r)
   end function find_cell
 
   type(grid_cell) function find_cell_position(r) result(icell)
@@ -563,7 +564,7 @@ contains
           in_correct_cell = .false.
        end select
        in_correct_cell = abs(frac) < 1.e-3_dp .and. in_correct_cell
-    else      
+    else
        in_correct_cell = icell_actual == p%icell
     end if
   end function in_correct_cell

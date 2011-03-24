@@ -2,6 +2,7 @@ module grid_geometry_specific
 
   use core_lib
   use mpi_core
+  use mpi_io
   use type_photon
   use type_grid_cell
   use type_grid
@@ -43,7 +44,7 @@ contains
     implicit none
     type(grid_cell),intent(in) :: cell
     integer,intent(in) :: idir
-    select case(idir)    
+    select case(idir)
     case(1)
        cell_width = geo%dw(cell%i1)
     case(2)
@@ -78,16 +79,16 @@ contains
     type(grid_cell) :: cell
 
     ! Read geometry file
-    call hdf5_read_keyword(group, '.', "geometry", geo%id)
-    call hdf5_read_keyword(group, '.', "grid_type", geo%type)
+    call mp_read_keyword(group, '.', "geometry", geo%id)
+    call mp_read_keyword(group, '.', "grid_type", geo%type)
 
     if(trim(geo%type).ne.'cyl_pol') call error("setup_grid_geometry","grid is not cylindrical polar")
 
     if(main_process()) write(*,'(" [setup_grid_geometry] Reading cylindrical polar grid")')
 
-    call hdf5_table_read_column_auto(group, 'Walls 1', 'w', geo%w1)  
-    call hdf5_table_read_column_auto(group, 'Walls 2', 'z', geo%w2)  
-    call hdf5_table_read_column_auto(group, 'Walls 3', 'p', geo%w3)  
+    call mp_table_read_column_auto(group, 'Walls 1', 'w', geo%w1)
+    call mp_table_read_column_auto(group, 'Walls 2', 'z', geo%w2)
+    call mp_table_read_column_auto(group, 'Walls 3', 'p', geo%w3)
 
     if(any(geo%w1 < 0.)) then
        call error("setup_grid_geometry","w walls should be positive")
@@ -281,7 +282,7 @@ contains
           in_correct_cell = .false.
        end select
        in_correct_cell = abs(frac) < 1.e-3_dp .and. in_correct_cell
-    else      
+    else
        in_correct_cell = icell_actual == p%icell
     end if
   end function in_correct_cell

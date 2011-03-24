@@ -60,7 +60,7 @@ contains
     logical,intent(inout) :: converged
   end subroutine mp_broadcast_convergence
 
-  subroutine mp_sync_energy() 
+  subroutine mp_sync_energy()
   end subroutine mp_sync_energy
 
   subroutine mp_sync_cputime(cputime)

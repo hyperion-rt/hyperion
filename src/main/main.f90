@@ -20,7 +20,7 @@ program main
   real(dp) :: time1, time2, time
   logical :: converged
   character(len=30) :: datetime
-  
+
   character(len=5), parameter :: version = '0.7.5'
 
   call hdf5_set_compression(.true.)
@@ -68,7 +68,7 @@ program main
   call setup_initial(handle_in)
 
   ! Wait for all threads
-  call mp_join()  
+  call mp_join()
 
   ! Loop over Lucy iterations
   do iter=1,n_lucy_iter

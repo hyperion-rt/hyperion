@@ -2,6 +2,7 @@ module grid_geometry_specific
 
   use core_lib
   use mpi_core
+  use mpi_io
   use type_photon
   use type_grid_cell
   use type_grid
@@ -40,7 +41,7 @@ contains
     implicit none
     type(grid_cell),intent(in) :: cell
     integer,intent(in) :: idir
-    select case(idir)    
+    select case(idir)
     case(1)
        cell_width = geo%dx(cell%i1)
     case(2)
@@ -73,16 +74,16 @@ contains
     type(grid_cell) :: cell
 
     ! Read geometry file
-    call hdf5_read_keyword(group, '.', "geometry", geo%id)
-    call hdf5_read_keyword(group, '.', "grid_type", geo%type)
+    call mp_read_keyword(group, '.', "geometry", geo%id)
+    call mp_read_keyword(group, '.', "grid_type", geo%type)
 
     if(trim(geo%type).ne.'car') call error("setup_grid_geometry","grid is not cartesian")
 
     if(main_process()) write(*,'(" [setup_grid_geometry] Reading cartesian grid")')
 
-    call hdf5_table_read_column_auto(group, 'Walls 1', 'x', geo%w1)  
-    call hdf5_table_read_column_auto(group, 'Walls 2', 'y', geo%w2)  
-    call hdf5_table_read_column_auto(group, 'Walls 3', 'z', geo%w3)  
+    call mp_table_read_column_auto(group, 'Walls 1', 'x', geo%w1)
+    call mp_table_read_column_auto(group, 'Walls 2', 'y', geo%w2)
+    call mp_table_read_column_auto(group, 'Walls 3', 'z', geo%w3)
 
     geo%n1 = size(geo%w1) - 1
     geo%n2 = size(geo%w2) - 1
@@ -232,7 +233,7 @@ contains
           in_correct_cell = .false.
        end select
        in_correct_cell = abs(frac) < 1.e-3_dp .and. in_correct_cell
-    else      
+    else
        in_correct_cell = icell_actual == p%icell
     end if
   end function in_correct_cell

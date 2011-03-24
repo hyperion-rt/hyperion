@@ -21,7 +21,7 @@ module mpi_core
   integer,public :: nproc
 
   ! Rank of current process
-  integer,public :: rank 
+  integer,public :: rank
 
   ! The rank of the main process
   integer,parameter,public :: rank_main = 0

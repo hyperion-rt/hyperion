@@ -107,7 +107,7 @@ contains
     end if
 
     ! Tell multi-process routines that this is the start of an iteration
-    call mp_reset_first()    
+    call mp_reset_first()
 
     call mp_join()
 
@@ -219,7 +219,7 @@ contains
 
              ! Sample optical depth and travel
              call random_exp(tau)
-             call grid_integrate_noenergy(p,tau,tau_achieved) 
+             call grid_integrate_noenergy(p,tau,tau_achieved)
 
              ! If we haven't intersected another source, we can proceed
              if(.not.p%reabsorbed) exit

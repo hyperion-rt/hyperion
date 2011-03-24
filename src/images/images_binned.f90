@@ -1,10 +1,11 @@
 module binned_images
 
   use core_lib
+  use mpi_core
+  use mpi_io
 
   use type_image
   use type_photon
-  use mpi_core
 
   implicit none
 
@@ -40,8 +41,8 @@ contains
     integer(hid_t) :: handle
     character(len=*),intent(in) :: path
 
-    call hdf5_read_keyword(handle, path, 'n_phi', n_phi)
-    call hdf5_read_keyword(handle, path, 'n_theta', n_theta)
+    call mp_read_keyword(handle, path, 'n_phi', n_phi)
+    call mp_read_keyword(handle, path, 'n_theta', n_theta)
 
     if(main_process()) write(*,'(" [binned_images] setting up ",I0," binned images ")') n_theta*n_phi
 

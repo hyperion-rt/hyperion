@@ -1,6 +1,7 @@
 module dust_main
 
   use core_lib
+  use mpi_core
 
   use type_dust
   use type_photon
@@ -39,7 +40,7 @@ contains
 
     do id=1,n_dust
 
-       write(*,'(" [dust] reading ",A)') trim(dust_properties(id))
+       if(main_process()) write(*,'(" [dust] reading ",A)') trim(dust_properties(id))
 
        g_indiv = hdf5_open_group(group, dust_properties(id))
        call dust_setup(g_indiv,d(id),0._dp)

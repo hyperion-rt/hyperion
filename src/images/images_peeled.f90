@@ -2,6 +2,7 @@ module peeled_images
 
   use core_lib
   use mpi_core
+  use mpi_io
 
   use grid_propagate
 
@@ -100,7 +101,7 @@ contains
        else
           select case(p%last)
           case('sr')
-             call emit_peeloff(p, a_req)          
+             call emit_peeloff(p, a_req)
           case('ds','de')
              call interact_peeloff(p, a_req)
           case('me')
@@ -201,14 +202,14 @@ contains
     ! Find total number of viewing angles
     n_peeled = 0
     do ig=1,n_groups
-       call hdf5_read_keyword(handle, paths(ig), 'inside_observer', inside_observer(ig))
+       call mp_read_keyword(handle, paths(ig), 'inside_observer', inside_observer(ig))
        if(inside_observer(ig)) then
           n_view = 1
        else
-          call hdf5_read_keyword(handle, paths(ig), 'n_view', n_view)
+          call mp_read_keyword(handle, paths(ig), 'n_view', n_view)
        end if
-       call hdf5_read_keyword(handle, paths(ig), 'd_min', d_min(ig))
-       call hdf5_read_keyword(handle, paths(ig), 'd_max', d_max(ig))
+       call mp_read_keyword(handle, paths(ig), 'd_min', d_min(ig))
+       call mp_read_keyword(handle, paths(ig), 'd_max', d_max(ig))
        if(inside_observer(ig).and.d_min(ig) < 0.) then
           call warn("d_min cannot be < 0. for inside observer - resetting to 0", "peeled_images_setup")
           d_min(ig) = 0.
@@ -226,16 +227,16 @@ contains
 
        if(inside_observer(ig)) then
           n_view = 1
-          call hdf5_read_keyword(handle, paths(ig), 'observer_x', r_peeloff(ig)%x)
-          call hdf5_read_keyword(handle, paths(ig), 'observer_y', r_peeloff(ig)%y)
-          call hdf5_read_keyword(handle, paths(ig), 'observer_z', r_peeloff(ig)%z)
+          call mp_read_keyword(handle, paths(ig), 'observer_x', r_peeloff(ig)%x)
+          call mp_read_keyword(handle, paths(ig), 'observer_y', r_peeloff(ig)%y)
+          call mp_read_keyword(handle, paths(ig), 'observer_z', r_peeloff(ig)%z)
        else
-          call hdf5_read_keyword(handle, paths(ig), 'n_view', n_view)
-          call hdf5_table_read_column_auto(handle, trim(paths(ig))//'/Angles', 'theta', theta)
-          call hdf5_table_read_column_auto(handle, trim(paths(ig))//'/Angles', 'phi', phi)
-          call hdf5_read_keyword(handle, paths(ig), 'peeloff_x', r_peeloff(ig)%x)
-          call hdf5_read_keyword(handle, paths(ig), 'peeloff_y', r_peeloff(ig)%y)
-          call hdf5_read_keyword(handle, paths(ig), 'peeloff_z', r_peeloff(ig)%z)
+          call mp_read_keyword(handle, paths(ig), 'n_view', n_view)
+          call mp_table_read_column_auto(handle, trim(paths(ig))//'/Angles', 'theta', theta)
+          call mp_table_read_column_auto(handle, trim(paths(ig))//'/Angles', 'phi', phi)
+          call mp_read_keyword(handle, paths(ig), 'peeloff_x', r_peeloff(ig)%x)
+          call mp_read_keyword(handle, paths(ig), 'peeloff_y', r_peeloff(ig)%y)
+          call mp_read_keyword(handle, paths(ig), 'peeloff_z', r_peeloff(ig)%z)
        end if
 
        call image_setup(handle,paths(ig),peeled_image(ig),n_view,use_exact_nu,frequencies)
@@ -279,7 +280,7 @@ contains
 
     allocate(column_density(n_dust))
 
-    ! array_size = array_size + 8 * n_x * n_y * n_w / 1024.**2.   
+    ! array_size = array_size + 8 * n_x * n_y * n_w / 1024.**2.
     ! write(*,'(" [",F6.1,"Mb]")') array_size
 
   end subroutine peeled_images_setup
