@@ -205,7 +205,14 @@ three ways:
 
 * by specifying a spectrum using the ``spectrum=`` argument or ``spectrum``
   attribute. The spectrum should either be a tuple of (nu, fnu) or an instance
-  of an atpy.Table with two columns named 'nu' and 'fnu'.
+  of an atpy.Table with two columns named 'nu' and 'fnu'. For example, given a
+  file ``spectrum.txt`` with two columns listing frequency and flux, the
+  spectrum can be set using::
+
+    import numpy
+    spectrum = np.loadtxt('spectrum.txt', dtype=[('nu', float), ('fnu', float)])
+    source.spectrum = (spectrum['nu'], spectrum['fnu'])
+
 * by specifying a blackbody temperature using the ``temperature=`` argument or
   ``temperature`` attribute. This should be a floating point value.
 * by using the local dust emissivity if neither a spectrum or temperature are
