@@ -18,7 +18,7 @@ from the Python ``hyperion`` module::
 it is then easy to set up a generic model using::
 
     m = Model('example')
-    
+
 ``Model`` requires one argument, the name of the model (this is used later
 on as a prefix for the model filename). The model can then be set up using
 methods of the ``Model`` instance. These are described in the following
@@ -28,11 +28,11 @@ Once the model is set up, the user can write it out to the disk for use
 with the Fortran radiation transfer code::
 
     m.write()
-    
+
 If the model name was set to ``example``, the ``write`` method will write
 an HDF5 file named ``example.rtin`` that is ready for use in the Fortran
 code.
-    
+
 .. _grid:
 
 Grid
@@ -80,7 +80,7 @@ grid types
     z = np.linspace(-10*au, 10*au, 101)
     phi = np.linspace(0, 2*pi, 11)
     m.set_cylindrical_polar_grid(w, z, phi)
-    
+
 AMR grids
 ---------
 
@@ -123,11 +123,11 @@ For regular cartesian and polar grids, a 3D NumPy array containing
 the density array is required. A density grid is added with::
 
     m.add_density_grid(density_array, dust_file)
-    
+
 For example::
 
     m.add_density_grid(np.ones(100,100,10), 'kmh.hdf5')
-    
+
 This command can be called multiple times if multiple density arrays are
 needed (for example if different dust sizes have different spatial
 distributions).
@@ -137,7 +137,7 @@ array using the ``temperature=`` argument::
 
     m.add_density_grid(density_array, dust_file, temperature=temperature_array)
 
-.. note:: specifying a temperature distribution is only useful if the number 
+.. note:: specifying a temperature distribution is only useful if the number
           of temperature iterations for the RT code is set to zero (see
           `Temperature Calculation`_), otherwise the input temperature will be
           overwritten with the self-consistently computed dust temperature.
@@ -148,7 +148,7 @@ AMR grids
 The density can be added using an AMR object (as described in :ref:`grid`)::
 
     m.add_density_grid(amr_object, dust_file)
-    
+
 for example::
 
     m.add_density_grid(amr, 'kmh.hdf5')
@@ -168,7 +168,7 @@ Temperatures can be specified using the same kinds of objects and using the `tem
     for level in amr_temp.levels:
         for fab in level.fabs:
             fab.data[:, :, :] = 100.  # Set to 100K
-            
+
     m.add_density_grid(amr, 'kmh.hdf5', temperature=amr_temp)
 
 For more details on how to create or read in an AMR object, see :ref:`amr_indepth`.
@@ -189,14 +189,14 @@ Sources can be added to the model using methods of the form
 done with::
 
     m.add_point_source(luminosity=lsun, temperature=10000.)
-    
+
 These methods return a handle to the source object, which if captured allow
 the user to set and modify the source parameters. The following example is equivalent to the previous command::
 
     source = m.add_point_source()
     source.luminosity = lsun
     source.temperature = 10000.
-    
+
 In the rest of this section, the second notation will be used, as although it is not as concise, it is easier to read.
 
 All sources require a luminosity, given by the ``luminosity=`` argument or the
@@ -230,7 +230,7 @@ examples demonstrate adding different point sources:
     source = m.add_point_source()
     source.luminosity = lsun  # [ergs/s]
     source.temperature = 10000.  # [K]
-    
+
 * Set up two 0.1 solar luminosity 1,300K point sources at +/- 1 AU in the x direction::
 
     # Set up the first source
@@ -238,13 +238,13 @@ examples demonstrate adding different point sources:
     source1.luminosity = 0.1 * lsun  # [ergs/s]
     source1.position = (au, 0, 0)  # [cm]
     source1.temperature = 1300.  # [K]
-    
+
     # Set up the second source
     source2 = m.add_point_source()
     source2.luminosity = 0.1 * lsun  # [ergs/s]
     source2.position = (-au, 0, 0)  # [cm]
     source2.temperature = 1300.  # [K]
-    
+
 * Set up a 10 solar luminosity source at the origin with a Kurucz spectrum read in from a file with two columns giving wav (in microns) and fnu::
 
     # Use NumPy to read in the spectrum
@@ -284,14 +284,14 @@ Adding spots to a spherical source is straightforward. Spots behave the same as 
     source.luminosity = lsun  # [ergs/s]
     source.radius = rsun  # [cm]
     source.temperature = 10000.  # [K]
-    
+
     spot = source.add_spot()
     spot.luminosity = 0.1 * lsun  # [ergs/s]
     spot.longitude = 45.  # [degrees]
     spot.latitude = 30.  # [degrees]
     spot.radius = 5.  # [degrees]
     spot.temperature = 20000.  # [K]
-    
+
 Map Sources
 -----------
 
@@ -303,7 +303,7 @@ will add a source which emits photons from all cells equally::
     source = m.add_map_source()
     source.luminosity = lsun  # [ergs/s]
     source.map = np.ones((10, 10, 10))
-    
+
 .. note:: The ``map`` array does not need to be normalized.
 
 Configuration
@@ -318,7 +318,7 @@ The number of photons to run in various iterations is set using the
 following method::
 
     m.set_n_photons(...)
-    
+
 This method can take the following arguments, which depend on the type of radiation transfer calculations requested:
 
 * ``temperature=`` - number of photons per temperature iteration
@@ -358,7 +358,7 @@ Raytracing
 To enable raytracing, simply use::
 
     m.set_raytracing(True)
-    
+
 Diffusion
 ---------
 
@@ -373,11 +373,11 @@ to one. The following examples show how to enable the PDA and MRW respectively:
 * Enable the partial diffusion approximation::
 
     m.set_pda(True)
-    
+
 * Enable the modified random walk, and set the gamma parameter to 2::
 
     m.set_mrw(True, gamma=2)
-    
+
 Dust sublimation
 ----------------
 
@@ -393,20 +393,20 @@ Advanced
 Set the maximum number of photon interactions::
 
     m.set_max_interactions(100000)
-    
+
 Kill all photons as soon as they are absorbed, in the imaging/SED iteration
 (not in the temperature iterations)::
 
     m.set_kill_on_absorb(True)
-    
+
 Set a minimum temperature to which temperatures below this will be reset::
 
     m.set_minimum_temperature(10)
-    
+
 Set the number of output bytes per floating point value (4 = 32-bit, 8 = 64-bit)::
 
     m.set_output_bytes(4)
-    
+
 Images and SEDs
 ===============
 
@@ -427,7 +427,7 @@ Binned images
 To add a set of binned images/SEDs to the model, use::
 
     image = m.add_binned_images()
-    
+
 The number of bins in the theta and phi direction can be specified using::
 
     image.set_viewing_bins(10, 10)
@@ -438,16 +438,16 @@ Peeled images
 To add a set of peeled images/SEDs to the model, use::
 
     image = m.add_peeled_images()
-    
+
 The viewing angles can be specified as lists or arrays of theta and phi values, in degrees. For example, the following produces images from pole-on to edge-on at constant phi using 20 viewing angles::
 
     # Set number of viewing angles
     n_view = 20
-    
+
     # Generate the viewing angles
     theta = np.linspace(0., 90., n_view)
     phi = np.repeat(45., n_view)
-    
+
     # Set the viewing angles
     image.set_viewing_angles(theta, phi)
 
@@ -462,29 +462,29 @@ The image size in pixels and the extent of the images can be specified using::
 
     image.set_image_size(n_x, n_y)
     image.set_image_limits(xmin, xmax, ymin, ymax)
-    
+
 The apertures for the SEDs can be specified using::
 
     image.set_aperture_range(n_ap, ap_min, ap_max)
-    
+
 The default is to have one aperture with infinite size, i.e. measuring all the flux.
 
 Uncertainties can be computed for SEDs/images (doubling the memory/disk space required)::
 
     image.set_uncertainties(True)
-    
+
 SEDs/images can also be split into thermal/scattered components from sources/dust (4 combinations). To activate this, use::
 
     image.set_track_origin(True)
-    
+
 Finally, to save space, images can be written out as 32-bit floats instead of 64-bit floats. To write them out as 32-bit floats, use::
 
     image.set_output_bytes(4)
-    
+
 and to write them out as 64-bit floats, use::
 
     image.set_output_bytes(8)
-    
+
 Disabling SEDs or Images
 ------------------------
 
@@ -511,3 +511,31 @@ The following example creates two sets of peeled SEDs/images. The first is used 
     image2.set_wavelength_range(5, 10., 100.)
     image2.set_image_size(100, 100)
     image2.set_image_limits(-pc, +pc, -pc, +pc)
+
+Physical Arrays
+===============
+
+It is possible to write out a number of physical arrays for each iteration, or
+just the last iteration. To do this, you will need to set the parameters in
+``Models.conf.output``::
+
+    # Temperature
+    m.conf.output.output_temperature = 'all'
+
+    # Density
+    m.conf.output.output_density = 'last'
+
+    # Density difference (shows where dust was destroyed)
+    m.conf.output.output_density_diff = 'none'
+
+
+    # Energy absorbed (using pathlengths)
+    m.conf.output.output_specific_energy_abs = 'last'
+
+    # Number of unique photons that passed through the cell
+    m.conf.output.output_n_photons = 'last'
+
+Each value can be set to ``all`` (output all iterations), ``last`` (output
+only after last iteration), or ``none`` (do not output). The default is to
+output only the last iteration of the ``temperature`` and
+``specific_energy_abs``.
