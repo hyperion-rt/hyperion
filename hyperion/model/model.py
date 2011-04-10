@@ -893,7 +893,7 @@ class Model(FreezableClass):
 
             # Units here are not technically ergs/cm^2/s but ergs/s
 
-            scale = 1.
+            scale = np.repeat(1., len(nu))
 
         # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
         if images.dtype == np.float32:
