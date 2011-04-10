@@ -1,8 +1,44 @@
 .. _dustfile:
 
-=====================
-Dust file HDF5 format
-=====================
+==========
+Dust files
+==========
+
+Overview
+========
+
+Hyperion requires information on the dust properties, such as the albedo,
+opacity, mean opacities, and emissivities. These need to be packaged in an
+HDF5 format that is described in the :ref:`specification`. However, in most
+cases you do not need to create these files from scratch.
+
+Creating dust files
+===================
+
+Converting dust files from the ``ttsre`` code
+----------------------------------------------
+
+Converting a dust file from the format used by Barb Whitney's ``ttsre`` code
+is straightforward. Given for example the ``kmh.par`` file, you can create an
+HDF5 file in the format required for Hyperion using::
+
+    from hyperion.dust import SimpleSphericalDust
+    d = SimpleSphericalDust('kmh.par')
+    d.write('kmh.hdf5')
+
+This is a one-time operation for each dust type - once the HDF5 file has been
+created, you do not need to recreate it every time you want to set up a model.
+You will only need to run this again if explicitly asked to after a Hyperion
+update.
+
+In addition, you can plot an overview of the optical properties using::
+
+    d.plot('kmh.png')
+
+.. _specification:
+
+Dust file HDF5 format specification
+===================================
 
 An HDF5 dust file should contain 5 datasets. The root of the file should contain the following attributes:
 
