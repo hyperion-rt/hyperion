@@ -14,5 +14,6 @@ Contents:
    installation.rst
    model.rst
    analytical_yso_model.rst
+   howto_animations.rst
 ..   model_input.rst
 
