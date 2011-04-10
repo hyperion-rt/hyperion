@@ -6,14 +6,43 @@ import h5py
 import pyfits
 import numpy as np
 
+arguments = sys.argv[1:]
 
-for filename in sys.argv[1:]:
+if '--physics' in arguments:
+    physics = True
+    arguments.remove('--physics')
+else:
+    physics = False
 
-    f = h5py.File(filename)
-    n_groups = len(f['Peeled'])
-    for ig in range(n_groups):
-        group = f['Peeled/Group %05i' % (ig + 1)]
-        if 'images' in group:
-            image = group['images']
-            pyfits.writeto(filename.replace('.rtout', '_%05i_images.fits' % (ig + 1)),
-                           np.array(image), clobber=True)
+if '--images' in arguments:
+    images = True
+    arguments.remove('--images')
+else:
+    images = False
+
+if not physics and not images:
+    print "Need to specify at least one of --images or --physics"
+    sys.exit(0)
+
+for filename in arguments:
+
+    f = h5py.File(filename, 'r')
+
+    if images:
+        n_groups = len(f['Peeled'])
+        for ig in range(n_groups):
+            group = f['Peeled/Group %05i' % (ig + 1)]
+            if 'images' in group:
+                image = group['images']
+                pyfits.writeto(filename.replace('.rtout', '_%05i_images.fits' % (ig + 1)),
+                               np.array(image), clobber=True)
+
+    if physics:
+        for group_name in f:
+            if 'Iteration' in group_name:
+                iteration = int(group_name.split()[1])
+                for array_name in f[group_name]:
+                    pyfits.writeto(filename.replace('.rtout', '_%s_%05i_images.fits' % (array_name, iteration)),
+                                   np.array(f[group_name][array_name]), clobber=True)
+
+    f.close()
