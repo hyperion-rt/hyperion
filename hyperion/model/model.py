@@ -110,6 +110,7 @@ class Model(FreezableClass):
         self.reset_density()
         self.reset_sources()
         self.reset_images()
+        self.temperature = None
         self.set_monochromatic(False)
 
         self.conf = Configuration()
@@ -133,7 +134,6 @@ class Model(FreezableClass):
 
     def reset_density(self):
         self.density = []
-        self.temperature = []
         self.dust = []
 
     def reset_sources(self):
@@ -257,8 +257,20 @@ class Model(FreezableClass):
 
             self.grid.write_physical_array(g_physics, self.density, "Density", dust=True, compression=compression, physics_dtype=physics_dtype)
 
-            if self.temperature:
-                self.grid.write_physical_array(g_physics, self.temperature, "Temperature", dust=True, compression=compression, physics_dtype=physics_dtype)
+            if self.temperature is not None:
+                if type(self.temperature) is list:
+                    self.grid.write_physical_array(g_physics, self.temperature, "Temperature", dust=True, compression=compression, physics_dtype=physics_dtype)
+                elif type(self.temperature) is str:
+                    f = h5py.File(self.temperature, 'r')
+                    max_iteration = 0
+                    for group_name in f:
+                        if "Iteration" in group_name:
+                            iteration = int(group_name.split()[1])
+                            max_iteration = max(iteration, max_iteration)
+                    print "Retrieving temperature from iteration %i of %s" % (max_iteration, self.temperature)
+                    g_physics.create_dataset('Temperature', data=f['Iteration %05i' % max_iteration]['temperature'])
+                else:
+                    raise Exception("Unknown type %s for Model.temperature" % str(type(self.temperature)))
 
             # Output dust file
             present = {}
@@ -341,6 +353,8 @@ class Model(FreezableClass):
         self.density.append(density)
         self.dust.append(dust)
         if temperature is not None:
+            if self.temperature is None:
+                self.temperature = []
             self.temperature.append(temperature)
 
     def set_cartesian_grid(self, x_wall, y_wall, z_wall):
