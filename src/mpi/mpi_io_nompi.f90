@@ -4,6 +4,7 @@ module mpi_io
        &               mp_open_new => hdf5_open_new, &
        &               mp_open_read => hdf5_open_read, &
        &               mp_open_write => hdf5_open_write, &
+       &               mp_close => hdf5_close, &
        &               mp_path_exists => hdf5_path_exists, &
        &               mp_open_group => hdf5_open_group, &
        &               mp_create_group => hdf5_create_group, &
@@ -26,6 +27,7 @@ module mpi_io
   public :: mp_open_new
   public :: mp_open_read
   public :: mp_open_write
+  public :: mp_close
   public :: mp_path_exists
   public :: mp_open_group
   public :: mp_create_group

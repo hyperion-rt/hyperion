@@ -2,6 +2,7 @@ module grid_generic
 
   use core_lib
   use mpi_io
+  use mpi_core
 
   use grid_io
   use grid_geometry, only : geo
@@ -51,12 +52,18 @@ contains
     ! TEMPERATURE
 
     if(trim(output_temperature)=='all' .or. (trim(output_temperature)=='last'.and.iter==n_iter)) then
+
        allocate(temperature(geo%n_cells, n_dust))
-       do ic=1,geo%n_cells
-          do id=1,n_dust
-             temperature(ic, id) = specific_energy_abs2temperature(d(id), specific_energy_abs(ic, id))
+
+       ! In future, it might be more efficient to compute this using all nodes and reduce
+       if(main_process()) then
+          do ic=1,geo%n_cells
+             do id=1,n_dust
+                temperature(ic, id) = specific_energy_abs2temperature(d(id), specific_energy_abs(ic, id))
+             end do
           end do
-       end do
+       end if
+
        select case(physics_io_type)
        case(sp)
           call write_grid_4d(group, 'temperature', real(temperature, sp), geo)
@@ -65,6 +72,7 @@ contains
        case default
           call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
        end select
+
     end if
 
     ! ENERGY/PATH LENGTHS

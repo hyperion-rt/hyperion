@@ -1,4 +1,4 @@
-! MD5 of template: 535c52271ba7a16235d2b0f66b1a88da
+! MD5 of template: b6d391e6f5294277d77aa3f4b39d8aa7
 module mpi_io
 
   use core_lib
@@ -16,6 +16,7 @@ module mpi_io
   public :: mp_open_new
   public :: mp_open_read
   public :: mp_open_write
+  public :: mp_close
   public :: mp_path_exists
   public :: mp_open_group
   public :: mp_create_group
@@ -157,6 +158,11 @@ contains
     end if
   end function mp_open_write
 
+  subroutine mp_close(handle)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    if(main_process()) call hdf5_close(handle)
+  end subroutine mp_close
 
   logical function mp_path_exists(handle, path) result(exists)
     implicit none
@@ -457,7 +463,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     integer(idp),intent(in) :: array(:, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_2d_mpi_integer8
 
   subroutine mp_write_array_3d_mpi_integer8(handle,path,array)
@@ -465,7 +471,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     integer(idp),intent(in) :: array(:, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_3d_mpi_integer8
 
   subroutine mp_write_array_4d_mpi_integer8(handle,path,array)
@@ -473,7 +479,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     integer(idp),intent(in) :: array(:, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_4d_mpi_integer8
 
   subroutine mp_write_array_5d_mpi_integer8(handle,path,array)
@@ -481,7 +487,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     integer(idp),intent(in) :: array(:, :, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_5d_mpi_integer8
 
   subroutine mp_write_array_6d_mpi_integer8(handle,path,array)
@@ -489,7 +495,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     integer(idp),intent(in) :: array(:, :, :, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_6d_mpi_integer8
 
 
@@ -666,7 +672,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     integer,intent(in) :: array(:, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_2d_mpi_integer4
 
   subroutine mp_write_array_3d_mpi_integer4(handle,path,array)
@@ -674,7 +680,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     integer,intent(in) :: array(:, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_3d_mpi_integer4
 
   subroutine mp_write_array_4d_mpi_integer4(handle,path,array)
@@ -682,7 +688,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     integer,intent(in) :: array(:, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_4d_mpi_integer4
 
   subroutine mp_write_array_5d_mpi_integer4(handle,path,array)
@@ -690,7 +696,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     integer,intent(in) :: array(:, :, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_5d_mpi_integer4
 
   subroutine mp_write_array_6d_mpi_integer4(handle,path,array)
@@ -698,7 +704,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     integer,intent(in) :: array(:, :, :, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_6d_mpi_integer4
 
 
@@ -875,7 +881,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     real(dp),intent(in) :: array(:, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_2d_mpi_real8
 
   subroutine mp_write_array_3d_mpi_real8(handle,path,array)
@@ -883,7 +889,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     real(dp),intent(in) :: array(:, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_3d_mpi_real8
 
   subroutine mp_write_array_4d_mpi_real8(handle,path,array)
@@ -891,7 +897,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     real(dp),intent(in) :: array(:, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_4d_mpi_real8
 
   subroutine mp_write_array_5d_mpi_real8(handle,path,array)
@@ -899,7 +905,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     real(dp),intent(in) :: array(:, :, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_5d_mpi_real8
 
   subroutine mp_write_array_6d_mpi_real8(handle,path,array)
@@ -907,7 +913,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     real(dp),intent(in) :: array(:, :, :, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_6d_mpi_real8
 
 
@@ -1084,7 +1090,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     real(sp),intent(in) :: array(:, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_2d_mpi_real4
 
   subroutine mp_write_array_3d_mpi_real4(handle,path,array)
@@ -1092,7 +1098,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     real(sp),intent(in) :: array(:, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_3d_mpi_real4
 
   subroutine mp_write_array_4d_mpi_real4(handle,path,array)
@@ -1100,7 +1106,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     real(sp),intent(in) :: array(:, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_4d_mpi_real4
 
   subroutine mp_write_array_5d_mpi_real4(handle,path,array)
@@ -1108,7 +1114,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     real(sp),intent(in) :: array(:, :, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_5d_mpi_real4
 
   subroutine mp_write_array_6d_mpi_real4(handle,path,array)
@@ -1116,7 +1122,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     real(sp),intent(in) :: array(:, :, :, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_6d_mpi_real4
 
 

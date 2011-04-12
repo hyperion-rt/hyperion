@@ -111,8 +111,9 @@ program main
 
      end if
 
-     ! Output files
-     if(main_process()) call output_grid(handle_out, iter, n_lucy_iter)
+     ! Output files. The following needs to be executed on all ranks because
+     ! the MPI AMR version needs to sync during mp_path_exists.
+     call output_grid(handle_out, iter, n_lucy_iter)
 
   end do
 
@@ -185,6 +186,9 @@ program main
      call mp_write_keyword(handle_out, '/', 'date_ended', trim(datetime))
      write(*,*) repeat('-',60)
   end if
+
+  ! Close output file
+  call mp_close(handle_out)
 
   ! Stop multi-processing
   call mp_stop()

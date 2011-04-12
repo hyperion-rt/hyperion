@@ -15,6 +15,7 @@ module mpi_io
   public :: mp_open_new
   public :: mp_open_read
   public :: mp_open_write
+  public :: mp_close
   public :: mp_path_exists
   public :: mp_open_group
   public :: mp_create_group
@@ -156,6 +157,11 @@ contains
     end if
   end function mp_open_write
 
+  subroutine mp_close(handle)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    if(main_process()) call hdf5_close(handle)
+  end subroutine mp_close
 
   logical function mp_path_exists(handle, path) result(exists)
     implicit none
@@ -457,7 +463,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     @T,intent(in) :: array(:, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_2d_<T>
 
   subroutine mp_write_array_3d_<T>(handle,path,array)
@@ -465,7 +471,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     @T,intent(in) :: array(:, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_3d_<T>
 
   subroutine mp_write_array_4d_<T>(handle,path,array)
@@ -473,7 +479,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     @T,intent(in) :: array(:, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_4d_<T>
 
   subroutine mp_write_array_5d_<T>(handle,path,array)
@@ -481,7 +487,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     @T,intent(in) :: array(:, :, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_5d_<T>
 
   subroutine mp_write_array_6d_<T>(handle,path,array)
@@ -489,7 +495,7 @@ contains
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
     @T,intent(in) :: array(:, :, :, :, :, :)
-    call hdf5_write_array(handle,path,array)
+    if(main_process()) call hdf5_write_array(handle,path,array)
   end subroutine mp_write_array_6d_<T>
 
   !!@END FOR
