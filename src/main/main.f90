@@ -95,14 +95,12 @@ program main
         if(converged) then
 
            if(main_process()) then
-
               write(*,'("      ------ Temperature calculation converged -----")')
               write(*,*)
-
-              ! Output files (and signal that this is the last iteration)
-              call output_grid(handle_out, iter, iter)
-
            end if
+
+           ! Output files (and signal that this is the last iteration)
+           call output_grid(handle_out, iter, iter)
 
            ! Exit the temperature iteration
            exit
