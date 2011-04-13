@@ -21,7 +21,7 @@ program main
   logical :: converged
   character(len=30) :: datetime
 
-  character(len=5), parameter :: version = '0.7.6'
+  character(len=5), parameter :: version = '0.7.7'
 
   call mp_set_compression(.true.)
 
