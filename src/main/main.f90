@@ -100,7 +100,7 @@ program main
               write(*,*)
 
               ! Output files (and signal that this is the last iteration)
-              if(iter < n_lucy_iter) call output_grid(handle_out, iter, iter)
+              call output_grid(handle_out, iter, iter)
 
            end if
 
