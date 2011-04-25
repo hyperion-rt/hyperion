@@ -332,9 +332,11 @@ contains
 
     ! Check if photon would fall in image
     if(img%compute_image) then
-       if(x_image >= img%x_min .and. x_image <= img%x_max .and. y_image >= img%y_min .and. y_image <= img%y_max) then
-          in_image = .true.
-          return
+       if((x_image >= img%x_min .and. x_image <= img%x_max) .or. (x_image <= img%x_min .and. x_image >= img%x_max)) then
+          if((y_image >= img%y_min .and. y_image <= img%y_max) .or. (y_image <= img%y_min .and. y_image >= img%y_max)) then
+             in_image = .true.
+             return
+          end if
        end if
     end if
 

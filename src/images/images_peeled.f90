@@ -123,20 +123,22 @@ contains
        if(d < d_min(ig) .or. d > d_max(ig)) return
 
        if(inside_observer(ig)) then
+
           ! Convert to angles in degrees
-          x_image = atan2(p%a%sinp, p%a%cosp) * rad2deg + 180._dp
-          y_image = 90._dp - atan2(p%a%sint, p%a%cost) * rad2deg
-          if(y_image > 90._dp) then
-             y_image = 180._dp - y_image
-             x_image = x_image - 180._dp
-          end if
-          if(x_image < -180._dp) x_image = x_image + 360._dp
-          if(x_image > +180._dp) x_image = x_image - 360._dp
+          x_image = atan2(p%a%sinp, p%a%cosp) * rad2deg - 180._dp
+          y_image = atan2(p%a%sint, p%a%cost) * rad2deg - 90._dp
+
+          ! Make sure the photon falls inside the image (wrap angles around)
+          x_image = peeled_image(ig)%x_max + modulo(x_image - peeled_image(ig)%x_max, 360._dp)
+          y_image = peeled_image(ig)%y_min + modulo(y_image - peeled_image(ig)%y_min, 360._dp)
+
        else
+
           ! Project onto 2-D plane perpendicular to direction of peeling-off
           dr = p%r - r_peeloff(ig)
           x_image = dr%y * p%a%cosp - dr%x * p%a%sinp
           y_image = dr%z * p%a%sint - dr%y * p%a%cost * p%a%sinp - dr%x * p%a%cost * p%a%cosp
+
        end if
 
        if(in_image(peeled_image(ig),x_image, y_image)) then
@@ -240,6 +242,11 @@ contains
        end if
 
        call image_setup(handle,paths(ig),peeled_image(ig),n_view,use_exact_nu,frequencies)
+
+       ! If an inside observer, check that the longitudes are inverted
+       if(inside_observer(ig)) then
+           if(peeled_image(ig)%x_min < peeled_image(ig)%x_max) call error("peeled_images_setup", "longitudes should increase towards the left for inside observers")
+       end if
 
        do iv=1,n_view
           ip = ip + 1
