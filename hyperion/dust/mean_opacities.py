@@ -91,7 +91,7 @@ class MeanOpacities(FreezableClass):
 
         tmean = table_set['Mean opacities']
         self.var_name = tmean.keywords['var_name']
-        self.specific_energy_abs = tmean[self.var_name]
+        self.var = tmean[self.var_name]
         self.chi_planck = tmean['chi_planck']
         self.kappa_planck = tmean['kappa_planck']
         self.chi_rosseland = tmean['chi_rosseland']
