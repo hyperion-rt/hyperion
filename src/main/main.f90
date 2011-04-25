@@ -39,7 +39,7 @@ program main
 
   ! SETUP
 
-  call check_file_exists(input_file)
+  if(main_process()) call check_file_exists(input_file)
   handle_in = mp_open_read(input_file)
 
   ! Prepare output directory
