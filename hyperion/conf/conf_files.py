@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 from hyperion.util.functions import FreezableClass
 
@@ -624,14 +626,14 @@ class BinnedImageConf(ImageConf):
 
 class PeeledImageConf(ImageConf):
 
-    def __init__(self, viewing_angles=None, inside_observer=None, **kwargs):
+    def __init__(self, viewing_angles=None, inside_observer=None, peeloff_origin=None, **kwargs):
         if viewing_angles is not None:
             self.n_view = len(self.viewing_angles)
         else:
             self.n_view = 0
         self.viewing_angles = viewing_angles
         self.inside_observer = inside_observer
-        self.set_peeloff_origin((0., 0., 0.))
+        self.peeloff_origin = peeloff_origin
         self.set_depth(-np.inf, np.inf)
         ImageConf.__init__(self, **kwargs)
 
@@ -675,7 +677,7 @@ class PeeledImageConf(ImageConf):
         Parameters
         ----------
         position : tuple of 3 floats
-           The coordinates of the observer, in cm
+           The spatial coordinates of the observer, in cm
         '''
         self.inside_observer = position
 
@@ -727,17 +729,22 @@ class PeeledImageConf(ImageConf):
 
     def _write_viewing_info(self, group):
 
-        if self.viewing_angles and self.inside_observer:
-            raise Exception("Cannot specify inside observer and viewing angles at the same time")
+        if self.peeloff_origin and self.inside_observer:
+            raise Exception("Cannot specify inside observer and peeloff origin at the same time")
 
         if self.inside_observer is not None:
             group.attrs['inside_observer'] = 'yes'
             self._write_inside_observer(group)
+            if self.viewing_angles is None:
+                self.set_viewing_angles([90.], [0.])
         elif self.viewing_angles is not None:
             group.attrs['inside_observer'] = 'no'
-            self._write_viewing_angles(group)
+            if self.peeloff_origin is None:
+                self.set_peeloff_origin((0., 0., 0.))
             self._write_peeloff_origin(group)
         else:
             raise Exception("Need to specify either observer position, or viewing angles")
+
+        self._write_viewing_angles(group)
 
         self._write_depth(group)

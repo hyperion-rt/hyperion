@@ -36,7 +36,7 @@ module peeled_images
 
   logical,allocatable :: inside_observer(:)
   type(vector3d_dp), allocatable :: r_peeloff(:)
-  type(angle3d_dp), allocatable :: a_peeloff_fixed(:)
+  type(angle3d_dp), allocatable :: viewing_angles(:)
   ! angles in which to make peeled images
 
   type(image),allocatable,public :: peeled_image(:)
@@ -68,7 +68,7 @@ contains
     type(photon) :: p
     real(dp) :: tau
     integer :: ip,ig,iv
-    type(angle3d_dp) :: a_req
+    type(angle3d_dp) :: a_req, a_sky, a_diff
     type(vector3d_dp) :: v_req
     logical,intent(in) :: polychromatic
     real(dp) :: x_image, y_image
@@ -124,9 +124,16 @@ contains
 
        if(inside_observer(ig)) then
 
+          if(abs(viewing_angles(ip)%cost) .gt. 1.e-10) then
+             call rotate_angle3d(viewing_angles(ip), angle3d_deg(90._dp, 0._dp), a_diff)
+             call difference_angle3d(a_diff, -p%a, a_sky)
+          else
+             a_sky = p%a
+          end if
+
           ! Convert to angles in degrees
-          x_image = atan2(p%a%sinp, p%a%cosp) * rad2deg - 180._dp
-          y_image = atan2(p%a%sint, p%a%cost) * rad2deg - 90._dp
+          x_image = atan2(a_sky%sinp, a_sky%cosp) * rad2deg
+          y_image = atan2(a_sky%sint, a_sky%cost) * rad2deg - 90._dp
 
           ! Make sure the photon falls inside the image (wrap angles around)
           x_image = peeled_image(ig)%x_max + modulo(x_image - peeled_image(ig)%x_max, 360._dp)
@@ -205,11 +212,7 @@ contains
     n_peeled = 0
     do ig=1,n_groups
        call mp_read_keyword(handle, paths(ig), 'inside_observer', inside_observer(ig))
-       if(inside_observer(ig)) then
-          n_view = 1
-       else
-          call mp_read_keyword(handle, paths(ig), 'n_view', n_view)
-       end if
+       call mp_read_keyword(handle, paths(ig), 'n_view', n_view)
        call mp_read_keyword(handle, paths(ig), 'd_min', d_min(ig))
        call mp_read_keyword(handle, paths(ig), 'd_max', d_max(ig))
        if(inside_observer(ig).and.d_min(ig) < 0.) then
@@ -221,42 +224,38 @@ contains
 
     allocate(group_id(n_peeled))
     allocate(view_id(n_peeled))
-    allocate(a_peeloff_fixed(n_peeled))
+    allocate(viewing_angles(n_peeled))
 
     ip = 0
 
     do ig=1,n_groups
 
        if(inside_observer(ig)) then
-          n_view = 1
           call mp_read_keyword(handle, paths(ig), 'observer_x', r_peeloff(ig)%x)
           call mp_read_keyword(handle, paths(ig), 'observer_y', r_peeloff(ig)%y)
           call mp_read_keyword(handle, paths(ig), 'observer_z', r_peeloff(ig)%z)
        else
-          call mp_read_keyword(handle, paths(ig), 'n_view', n_view)
-          call mp_table_read_column_auto(handle, trim(paths(ig))//'/Angles', 'theta', theta)
-          call mp_table_read_column_auto(handle, trim(paths(ig))//'/Angles', 'phi', phi)
           call mp_read_keyword(handle, paths(ig), 'peeloff_x', r_peeloff(ig)%x)
           call mp_read_keyword(handle, paths(ig), 'peeloff_y', r_peeloff(ig)%y)
           call mp_read_keyword(handle, paths(ig), 'peeloff_z', r_peeloff(ig)%z)
        end if
 
+       call mp_read_keyword(handle, paths(ig), 'n_view', n_view)
+       call mp_table_read_column_auto(handle, trim(paths(ig))//'/Angles', 'theta', theta)
+       call mp_table_read_column_auto(handle, trim(paths(ig))//'/Angles', 'phi', phi)
+
        call image_setup(handle,paths(ig),peeled_image(ig),n_view,use_exact_nu,frequencies)
 
        ! If an inside observer, check that the longitudes are inverted
        if(inside_observer(ig)) then
-           if(peeled_image(ig)%x_min < peeled_image(ig)%x_max) call error("peeled_images_setup", "longitudes should increase towards the left for inside observers")
+          if(peeled_image(ig)%x_min < peeled_image(ig)%x_max) call error("peeled_images_setup", "longitudes should increase towards the left for inside observers")
        end if
 
        do iv=1,n_view
           ip = ip + 1
           group_id(ip) = ig
           view_id(ip) = iv
-          if(.not.inside_observer(ig)) then
-             a_peeloff_fixed(ip) = angle3d_deg(theta(iv), phi(iv))
-          else
-             a_peeloff_fixed(ip) = angle3d_deg(0._dp,0._dp)
-          end if
+          viewing_angles(ip) = angle3d_deg(theta(iv), phi(iv))
        end do
 
        ! Set up raytracing spectra
@@ -319,7 +318,7 @@ contains
     if(inside_observer(ig)) then
        call vector3d_to_angle3d(r_peeloff(ig)-r, a_peeloff)
     else
-       a_peeloff = a_peeloff_fixed(ip)
+       a_peeloff = viewing_angles(ip)
     end if
   end function a_peeloff
 
