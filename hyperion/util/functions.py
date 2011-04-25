@@ -34,6 +34,48 @@ class FreezableClass(object):
         object.__setattr__(self, key, value)
 
 
+def planck_nu_range(tmin, tmax=None):
+
+    # Set constant for Wien displacement law
+    alpha = 2.821439
+
+    # Find peak frequencies for lower and upper temperature
+    nu_peak_min = alpha / h * k * tmin
+    if tmax is None:
+        nu_peak_max = alpha / h * k * tmin
+    else:
+        nu_peak_max = alpha / h * k * tmax
+
+    # Find frequency range if we want to go below 1 thousandth of the Planck
+    # function peak
+
+    nu_min = np.log10(nu_peak_min / 100.)
+    nu_max = np.log10(nu_peak_max * 10.)
+
+    # If we use at least 250 frequencies per order of magnitude of frequency
+    # then we will achieve differences smaller than 1% flux-to-flux
+
+    n_nu = int((nu_max - nu_min) * 250.)
+
+    return np.logspace(nu_min, nu_max, n_nu)
+
+
+def nu_common(nu1, nu2):
+
+    # Combine frequency lists/arrays and sort
+    nu_common = np.hstack([nu1, nu2])
+    nu_common.sort()
+
+    # Remove unique elements (can't just use np.unique because also want
+    # to remove very close values)
+    keep = (nu_common[1:] - nu_common[:-1]) / nu_common[:-1] > 1.e-10
+    keep = np.hstack([keep, True])
+    nu_common = nu_common[keep]
+
+    # Return common frequency range
+    return nu_common
+
+
 class extrap1d_log10(object):
 
     def __init__(self, x, y):
