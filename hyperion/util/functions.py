@@ -52,10 +52,10 @@ def planck_nu_range(tmin, tmax=None):
     nu_min = np.log10(nu_peak_min / 100.)
     nu_max = np.log10(nu_peak_max * 10.)
 
-    # If we use at least 250 frequencies per order of magnitude of frequency
-    # then we will achieve differences smaller than 1% flux-to-flux
+    # If we use at least 100 frequencies per order of magnitude of frequency
+    # then we will achieve differences around 2% flux-to-flux
 
-    n_nu = int((nu_max - nu_min) * 250.)
+    n_nu = int((nu_max - nu_min) * 100.)
 
     return np.logspace(nu_min, nu_max, n_nu)
 
