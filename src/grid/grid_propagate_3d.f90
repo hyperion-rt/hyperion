@@ -220,7 +220,7 @@ contains
 
     radial = (p%r .dot. p%v) > 0.
 
-    if(debug) write(*,'(" [debug] start grid_integrate")')
+    if(debug) write(*,'(" [debug] start grid_integrate_noenergy")')
 
     ! Set tau achieved to zero
 
@@ -354,7 +354,7 @@ contains
 
     radial = (p%r .dot. p%v) > 0.
 
-    if(debug) write(*,'(" [debug] start grid_integrate")')
+    if(debug) write(*,'(" [debug] start grid_escape_tau")')
 
     ! Find what cell we are in if we don't know
 
@@ -460,7 +460,7 @@ contains
 
     radial = (p%r .dot. p%v) > 0.
 
-    if(debug) write(*,'(" [debug] start grid_integrate")')
+    if(debug) write(*,'(" [debug] start grid_escape_column_density")')
 
     ! Find what cell we are in if we don't know
 
