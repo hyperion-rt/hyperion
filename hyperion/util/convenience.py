@@ -21,8 +21,8 @@ class OptThinRadius(object):
         tstar = star.effective_temperature()
         nu, fnu = star.total_spectrum()
         x = (self.temperature / tstar) ** 4. \
-            * dust.kappa_planck_temperature(self.temperature) \
-            / dust.kappa_planck_spectrum(nu, fnu)
+            * dust.optical_properties.kappa_planck_temperature(self.temperature) \
+            / dust.optical_properties.kappa_planck_spectrum(nu, fnu)
         if x < 0.001:
             r = self.value * rstar / 2. / np.sqrt(x)
         else:

@@ -297,8 +297,10 @@ class OpticalProperties(FreezableClass):
         return integrate_loglog(nu, fnu) \
              / integrate_loglog(nu, fnu / kappa_nu)
 
-    def _temperature2specific_energy_abs(self, temperature):
+    def chi_planck_temperature(self, temperature):
+        "Find the Planck mean opacity to extinction for a temperature"
 
+        # Find range of frequencies for Planck function
         planck_nu = planck_nu_range(temperature)
         nu = nu_common(planck_nu, self.nu)
 
@@ -310,5 +312,61 @@ class OpticalProperties(FreezableClass):
             warnings.warn("Planck function for requested temperature not completely covered by opacity function")
             nu = nu[nu <= self.nu.max()]
 
-        kappa_planck = self.kappa_planck_spectrum(nu, B_nu(nu, temperature))
+        return self.chi_planck_spectrum(nu, B_nu(nu, temperature))
+
+    def kappa_planck_temperature(self, temperature):
+        "Find the Rosseland mean opacity to aborption for a temperature"
+
+        # Find range of frequencies for Planck function
+        planck_nu = planck_nu_range(temperature)
+        nu = nu_common(planck_nu, self.nu)
+
+        if planck_nu.min() < self.nu.min():
+            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            nu = nu[nu >= self.nu.min()]
+
+        if planck_nu.max() > self.nu.max():
+            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            nu = nu[nu <= self.nu.max()]
+
+        return self.kappa_planck_spectrum(nu, B_nu(nu, temperature))
+
+    def chi_rosseland_temperature(self, temperature):
+        "Find the Rosseland mean opacity to extinction for a temperature"
+
+        # Find range of frequencies for Planck function
+        planck_nu = planck_nu_range(temperature)
+        nu = nu_common(planck_nu, self.nu)
+
+        if planck_nu.min() < self.nu.min():
+            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            nu = nu[nu >= self.nu.min()]
+
+        if planck_nu.max() > self.nu.max():
+            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            nu = nu[nu <= self.nu.max()]
+
+        return self.chi_rosseland_spectrum(nu, B_nu(nu, temperature))
+
+    def kappa_rosseland_temperature(self, temperature):
+        "Find the Rosseland mean opacity to absorption for a temperature"
+
+        # Find range of frequencies for Planck function
+        planck_nu = planck_nu_range(temperature)
+        nu = nu_common(planck_nu, self.nu)
+
+        if planck_nu.min() < self.nu.min():
+            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            nu = nu[nu >= self.nu.min()]
+
+        if planck_nu.max() > self.nu.max():
+            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            nu = nu[nu <= self.nu.max()]
+
+        return self.kappa_rosseland_spectrum(nu, B_nu(nu, temperature))
+
+    def _temperature2specific_energy_abs(self, temperature):
+
+        kappa_planck = self.kappa_planck_temperature(temperature)
+
         return 4. * sigma * temperature ** 4. * kappa_planck

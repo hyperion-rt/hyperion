@@ -206,7 +206,7 @@ class AnalyticalYSOModel(Model):
                     raise Exception("Disk %i dust not set" % i)
                 nu, fnu = self.star.total_spectrum()
                 tau_midplane += disk.midplane_cumulative_density(r) \
-                              * disk.dust.chi_planck_spectrum(nu, fnu)
+                              * disk.dust.optical_properties.chi_planck_spectrum(nu, fnu)
 
         for i, envelope in enumerate(self.envelopes):
             if envelope.exists():
@@ -214,7 +214,7 @@ class AnalyticalYSOModel(Model):
                     raise Exception("envelope %i dust not set" % i)
                 nu, fnu = self.star.total_spectrum()
                 tau_midplane += envelope.midplane_cumulative_density(r) \
-                              * envelope.dust.chi_planck_spectrum(nu, fnu)
+                              * envelope.dust.optical_properties.chi_planck_spectrum(nu, fnu)
 
         return tau_midplane
 

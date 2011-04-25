@@ -110,7 +110,13 @@ class Emissivities(FreezableClass):
         temiss = atpy.Table(name='Emissivities')
         temiss.add_column('nu', self.nu)
         temiss.add_column('jnu', self.jnu)
-        temiss.add_keyword('lte', 'yes' if self.is_lte else 'no')
+        table_set.add_keyword('lte', 'yes' if self.is_lte else 'no')
+
+        # Write out the emissivity variable type
+        if self.var_name == 'specific_energy_abs':
+            table_set.add_keyword('emissvar', 'E')
+        else:
+            raise Exception("Unknown emissivity variable: %s" % self.var_name)
 
         # Create emissivity variable table
         temissvar = atpy.Table(name='Emissivity variable')
@@ -122,17 +128,18 @@ class Emissivities(FreezableClass):
 
     def from_table_set(self, table_set):
 
+        # Read emissivities
+        temiss = table_set['Emissivities']
+        self.nu = temiss['nu']
+        self.jnu = temiss['jnu']
+        self.is_lte = table_set.keywords['lte'] == 'yes'
+
         # Find the emissivity variable type
         if table_set.keywords['emissvar'] == 'E':
             self.var_name = 'specific_energy_abs'
         else:
             raise Exception("Unknown emissivity variable: %s" %
                             table_set.keywords['emissvar'])
-
-        # Read emissivities
-        temiss = table_set['Emissivities']
-        self.nu = temiss['nu']
-        self.jnu = temiss['jnu']
 
         # Read in emissivity variable
         temissvar = table_set['Emissivity variable']

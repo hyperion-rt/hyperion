@@ -202,7 +202,6 @@ contains
 
     path = 'Mean opacities'
     call mp_table_read_column_auto(group,path,'specific_energy_abs',d%specific_energy_abs)
-    call mp_table_read_column_auto(group,path,'temperature',d%temperature)
     call mp_table_read_column_auto(group,path,'chi_planck',d%chi_planck)
     call mp_table_read_column_auto(group,path,'kappa_planck',d%kappa_planck)
     call mp_table_read_column_auto(group,path,'chi_rosseland',d%chi_rosseland)
@@ -210,7 +209,6 @@ contains
 
     ! Check for NaN values
     if(any(d%specific_energy_abs.ne.d%specific_energy_abs)) call error("dust_setup","specific_energy_abs array contains NaN values")
-    if(any(d%temperature.ne.d%temperature)) call error("dust_setup","temperature array contains NaN values")
     if(any(d%chi_planck.ne.d%chi_planck)) call error("dust_setup","chi_planck array contains NaN values")
     if(any(d%kappa_planck.ne.d%kappa_planck)) call error("dust_setup","kappa_planck array contains NaN values")
     if(any(d%chi_rosseland.ne.d%chi_rosseland)) call error("dust_setup","chi_planck array contains NaN values")
@@ -228,6 +226,10 @@ contains
     end do
 
     ! need to check monotonically increases
+
+    ! Compute temperature from specific energy absorbed
+    allocate(d%temperature(d%n_e))
+    d%temperature = (d%specific_energy_abs / 4. / stef_boltz / d%kappa_planck)**0.25
 
     ! EMISSIVITIES
 
