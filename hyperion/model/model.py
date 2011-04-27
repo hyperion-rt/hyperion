@@ -237,18 +237,18 @@ class Model(FreezableClass):
         # Output sources
         for i, source in enumerate(self.sources):
             if isinstance(source, MapSource):
-                source.write(g_sources, 'Source %i' % i, self.grid, compression=compression, map_dtype=physics_dtype)
+                source.write(g_sources, 'Source %05i' % i, self.grid, compression=compression, map_dtype=physics_dtype)
             else:
-                source.write(g_sources, 'Source %i' % i)
+                source.write(g_sources, 'Source %05i' % i)
 
         # Output configuration files
         for i, peel in enumerate(self.peeled_output):
             if not self._frequencies is None:
                 if not peel._monochromatic:
                     raise Exception("Peeled images need to be set to monochromatic mode")
-            peel.write(g_peeled.create_group('Group %i' % (i + 1)))
+            peel.write(g_peeled.create_group('Group %05i' % (i + 1)))
         if self.binned_output is not None:
-            self.binned_output.write(g_binned.create_group('Group 1'))
+            self.binned_output.write(g_binned.create_group('Group 00001'))
 
         self._write_monochromatic(root, compression=compression)
         self.conf.run.write(root)
