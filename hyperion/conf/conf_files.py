@@ -360,6 +360,8 @@ class RunConf(FreezableClass):
         mode : str
             The dust sublimation mode, which can be:
                 * 'no'   - no sublimation
+                * 'cap'  - reset temperatures that exceed the sublimation
+                           temperature to the sublimation temperature
                 * 'fast' - remove all dust in cells exceeding the
                            sublimation temperature
                 * 'slow' - reduce the dust in cells exceeding the
