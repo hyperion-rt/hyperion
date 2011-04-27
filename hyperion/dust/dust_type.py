@@ -42,7 +42,8 @@ class SphericalDust(FreezableClass):
         self.emissivities = Emissivities()
         self.mean_opacities = MeanOpacities()
 
-        self.set_minimum_temperature(0.1)
+        self.set_minimum_energy(0.)
+
         self.set_sublimation('no')
 
         self._freeze()
@@ -109,6 +110,11 @@ class SphericalDust(FreezableClass):
         self.sublimation_mode = mode
         self.sublimation_temperature = temperature
 
+    def _write_dust_sublimation(self, table_set):
+        table_set.add_keyword('sublimation_mode', self.sublimation_mode)
+        if self.sublimation_mode in ['slow', 'fast', 'cap']:
+            table_set.add_keyword('sublimation_specific_energy', self.optical_properties._temperature2specific_energy_abs(self.sublimation_temperature))
+
     def set_minimum_temperature(self, temperature):
         '''
         Set the minimum dust temperature
@@ -121,7 +127,24 @@ class SphericalDust(FreezableClass):
         temperature : float
             The minimum temperature in K
         '''
-        self.minimum_temperature = temperature
+        self.minimum_specific_energy = self.optical_properties._temperature2specific_energy_abs(temperature)
+
+    def set_minimum_energy(self, energy):
+        '''
+        Set the minimum dust specific energy
+
+        Dust which has a specific energy that falls below this value will be
+        reset to the minimum at the end of each iteration.
+
+        Parameters
+        ----------
+        energy : float
+            The minimum specific energy in cgs
+        '''
+        self.minimum_specific_energy = energy
+
+    def _write_minimum_energy(self, table_set):
+        table_set.add_keyword('minimum_specific_energy', self.minimum_specific_energy)
 
     def write(self, filename, compression=True):
         '''
@@ -157,12 +180,10 @@ class SphericalDust(FreezableClass):
         self.emissivities.to_table_set(ts)
 
         # Dust sublimation parameters
-        ts.add_keyword('sublimation_mode', self.sublimation_mode)
-        if self.sublimation_mode != 'no':
-            ts.add_keyword('sublimation_specific_energy', self.optical_properties._temperature2specific_energy_abs(self.sublimation_temperature))
+        self._write_dust_sublimation(ts)
 
         # Minimum temperature parameter
-        ts.add_keyword('minimum_specific_energy', self.optical_properties._temperature2specific_energy_abs(self.minimum_temperature))
+        self._write_minimum_energy(ts)
 
         # Output dust file
         ts.write(filename, overwrite=True, compression=compression, type='hdf5')
