@@ -388,10 +388,19 @@ contains
        return
     end if
 
-    value = quantile(reshape(difference_ratio(specific_energy_abs_prev, specific_energy_abs), (/geo%n_cells*n_dust/)), &
-         &           convergence_percentile, &
-         &           mask=reshape(specific_energy_abs_prev > 0 .and. specific_energy_abs > 0. .and. &
-         &                        specific_energy_abs_prev .ne. specific_energy_abs, (/geo%n_cells*n_dust/)))
+    if(all(specific_energy_abs_prev .eq. specific_energy_abs)) then
+       value = 0._dp
+    else if(all(specific_energy_abs_prev .eq. specific_energy_abs .or. specific_energy_abs_prev == 0 .or. specific_energy_abs == 0.)) then
+       write(*,*)
+       write(*,'(" [specific_energy_abs_converged] could not check for convergence, as the only cells that changed had zero value before or after")')
+       converged = .false.
+       return
+    else
+       value = quantile(reshape(difference_ratio(specific_energy_abs_prev, specific_energy_abs), (/geo%n_cells*n_dust/)), &
+            &           convergence_percentile, &
+            &           mask=reshape(specific_energy_abs_prev > 0 .and. specific_energy_abs > 0. .and. &
+            &                        specific_energy_abs_prev .ne. specific_energy_abs, (/geo%n_cells*n_dust/)))
+    end if
 
     write(*,*)
     write(*,'("     -> Percentile: ",F7.2)') convergence_percentile
