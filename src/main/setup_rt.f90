@@ -55,6 +55,13 @@ contains
        sample_sources_evenly = .false.
     end if
 
+    ! ENERGY RANGE (needs to be set before running the physics set-up)
+    if(mp_exists_keyword(input_handle, '/', 'enforce_energy_range')) then
+       call mp_read_keyword(input_handle, '/', 'enforce_energy_range', enforce_energy_range)
+    else
+       enforce_energy_range = .true.
+    end if
+
     ! DUST
 
     g_dust = mp_open_group(input_handle, '/Dust')
@@ -178,13 +185,6 @@ contains
           call mp_read_keyword(input_handle, '/', 'convergence_relative', convergence_relative)
           call mp_read_keyword(input_handle, '/', 'convergence_percentile', convergence_percentile)
        end if
-    end if
-
-    ! ENERGY RANGE
-    if(mp_exists_keyword(input_handle, '/', 'enforce_energy_range')) then
-       call mp_read_keyword(input_handle, '/', 'enforce_energy_range', enforce_energy_range)
-    else
-       enforce_energy_range = .true.
     end if
 
   end subroutine setup_initial

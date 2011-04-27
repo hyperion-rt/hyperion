@@ -315,7 +315,7 @@ contains
     do id=1,n_dust
 
        if(any(specific_energy_abs(:,id) < d(id)%minimum_specific_energy)) then
-          call warn("update_energy_abs","specific_energy_abs below minimum requested in some cells - resetting")
+          if(main_process()) call warn("update_energy_abs","specific_energy_abs below minimum requested in some cells - resetting")
           where(specific_energy_abs(:,id) < d(id)%minimum_specific_energy)
              specific_energy_abs(:,id) = d(id)%minimum_specific_energy
           end where
@@ -323,23 +323,23 @@ contains
 
        if(any(specific_energy_abs(:,id) < d(id)%specific_energy_abs(1))) then
           if(enforce_energy_range) then
-             call warn("update_energy_abs","specific_energy_abs below minimum allowed in some cells - resetting")
+             if(main_process()) call warn("update_energy_abs","specific_energy_abs below minimum allowed in some cells - resetting")
              where(specific_energy_abs(:,id) < d(id)%specific_energy_abs(1))
                 specific_energy_abs(:,id) = d(id)%specific_energy_abs(1)
              end where
           else
-             call warn("update_energy_abs","specific_energy_abs below minimum allowed in some cells - will pick closest emissivities")
+             if(main_process()) call warn("update_energy_abs","specific_energy_abs below minimum allowed in some cells - will pick closest emissivities")
           end if
        end if
 
        if(any(specific_energy_abs(:,id) > d(id)%specific_energy_abs(d(id)%n_e))) then
           if(enforce_energy_range) then
-             call warn("update_energy_abs","specific_energy_abs above maximum allowed in some cells - resetting")
+             if(main_process()) call warn("update_energy_abs","specific_energy_abs above maximum allowed in some cells - resetting")
              where(specific_energy_abs(:,id) > d(id)%specific_energy_abs(d(id)%n_e))
                 specific_energy_abs(:,id) = d(id)%specific_energy_abs(d(id)%n_e)
              end where
           else
-             call warn("update_energy_abs","specific_energy_abs above maximum allowed in some cells - will pick closest emissivities")
+             if(main_process()) call warn("update_energy_abs","specific_energy_abs above maximum allowed in some cells - will pick closest emissivities")
           end if
        end if
 

@@ -275,7 +275,13 @@ contains
     implicit none
     type(dust), intent(in) :: d
     real(dp),intent(in) :: specific_energy_abs
-    temperature = interp1d_loglog(d%specific_energy_abs, d%temperature, specific_energy_abs)
+    if(specific_energy_abs < d%specific_energy_abs(1)) then
+       temperature = d%temperature(1)
+    else if(specific_energy_abs > d%specific_energy_abs(d%n_e)) then
+       temperature = d%temperature(d%n_e)
+    else
+       temperature = interp1d_loglog(d%specific_energy_abs, d%temperature, specific_energy_abs)
+    end if
   end function specific_energy_abs2temperature
 
   real(dp) function temperature2specific_energy_abs(d, temperature) result(specific_energy_abs)

@@ -59,7 +59,11 @@ contains
        if(main_process()) then
           do ic=1,geo%n_cells
              do id=1,n_dust
-                temperature(ic, id) = specific_energy_abs2temperature(d(id), specific_energy_abs(ic, id))
+                if(d(id)%is_lte) then
+                   temperature(ic, id) = specific_energy_abs2temperature(d(id), specific_energy_abs(ic, id))
+                else
+                   temperature(ic, id) = 0._dp
+                end if
              end do
           end do
        end if
