@@ -39,7 +39,7 @@ class RunConf(FreezableClass):
         Initialize default run configuration
         '''
         self.set_n_temperature_iterations(5)
-        self.set_n_photons()
+        self.n_photons = {}
         self.set_raytracing(False)
         self.set_max_interactions(1000000)
         self.set_max_reabsorptions(1000000)
@@ -52,6 +52,7 @@ class RunConf(FreezableClass):
         self.set_minimum_temperature(0.1)
         self.set_output_bytes(8)
         self.set_sample_sources_evenly(False)
+        self._monochromatic = False
         self._freeze()
 
     def set_n_temperature_iterations(self, n_iter):
@@ -69,8 +70,9 @@ class RunConf(FreezableClass):
         group.attrs['n_lucy_iter'] = self.n_iter
 
     def set_n_photons(self, temperature=None, imaging=None,
-                      imaging_mono_sources=None, imaging_mono_dust=None,
-                      raytracing_sources=None, raytracing_dust=None, stats=10000):
+                      imaging_sources=None, imaging_dust=None,
+                      raytracing_sources=None, raytracing_dust=None,
+                      stats=10000):
         '''
         Set the number of photons for the different iterations
 
@@ -84,10 +86,10 @@ class RunConf(FreezableClass):
         imaging : float, optional
             Number of photons for the main SED/image iteration. This argument
             is used in the case of non-monochromatic radiation transfer.
-        imaging_mono_sources : float, optional
+        imaging_sources : float, optional
             Number of photons emitted from sources during the main SED/image
             iteration in the case of monochromatic radiation transfer.
-        imaging_mono_dust : float, optional
+        imaging_dust : float, optional
             Number of photons emitted from dust during the main SED/image
             iteration in the case of monochromatic radiation transfer.
         raytracing_sources : float, optional
@@ -101,36 +103,72 @@ class RunConf(FreezableClass):
             photon chunk size for MPI.
         '''
 
-        if imaging is not None and imaging_mono_sources is not None:
-            raise Exception("imaging and imaging_mono_sources cannot both be set")
+        if self.n_iter == 0:
+            if temperature is not None:
+                raise Exception("temperature should not be set since no temperature is being computed")
+        else:
+            if temperature is None:
+                raise Exception("temperature should be set since the temperature is being computed")
+            else:
+                self.n_photons['lucy'] = temperature
 
-        if imaging is not None and imaging_mono_dust is not None:
-            raise Exception("imaging and imaging_mono_dust cannot both be set")
+        if self.raytracing:
+            if raytracing_sources is None:
+                raise Exception("raytracing_sources needs to be set in raytracing mode")
+            else:
+                self.n_photons['raytracing_sources'] = raytracing_sources
+            if raytracing_dust is None:
+                raise Exception("raytracing_dust needs to be set in raytracing mode")
+            else:
+                self.n_photons['raytracing_dust'] = raytracing_dust
+        else:
+            if raytracing_sources is not None:
+                raise Exception("raytracing_sources should not be set as raytracing is not being used")
+            if raytracing_dust is not None:
+                raise Exception("raytracing_dust should not be set as raytracing is not being used")
 
-        self.n_lucy_photons = temperature
-        self.n_last_photons = imaging
-        self.n_last_photons_sources = imaging_mono_sources
-        self.n_last_photons_dust = imaging_mono_dust
-        self.n_ray_photons_sources = raytracing_sources
-        self.n_ray_photons_dust = raytracing_dust
-        self.n_stats = stats
+        if self._monochromatic:
+            if imaging_sources is None:
+                raise Exception("imaging_sources needs to be set in monochromatic mode")
+            else:
+                self.n_photons['last_sources'] = imaging_sources
+            if imaging_dust is None:
+                raise Exception("imaging_dust needs to be set in monochromatic mode")
+            else:
+                self.n_photons['last_dust'] = imaging_dust
+            if imaging is not None:
+                raise Exception("imaging should not be set in monochromatic mode")
+        else:
+            if imaging_sources is not None:
+                raise Exception("imaging_sources should not be set as the monochromatic option is not being used")
+            if imaging_dust is not None:
+                raise Exception("imaging_dust should not be set as the monochromatic option is not being used")
+            if imaging is None:
+                raise Exception("imaging should bet set")
+            else:
+                self.n_photons['last'] = imaging
+
+        self.n_photons['stats'] = stats
 
     def _write_n_photons(self, group):
 
-        if self.n_lucy_photons is not None:
-            group.attrs['n_lucy_photons'] = self.n_lucy_photons
-        if self.n_last_photons is not None:
-            group.attrs['n_last_photons'] = self.n_last_photons
-        if self.n_last_photons_sources is not None:
-            group.attrs['n_last_photons_sources'] = self.n_last_photons_sources
-        if self.n_last_photons_dust is not None:
-            group.attrs['n_last_photons_dust'] = self.n_last_photons_dust
-        if self.n_ray_photons_sources is not None:
-            group.attrs['n_ray_photons_sources'] = self.n_ray_photons_sources
-        if self.n_ray_photons_dust is not None:
-            group.attrs['n_ray_photons_dust'] = self.n_ray_photons_dust
-        if self.n_stats is not None:
-            group.attrs['n_stats'] = self.n_stats
+        if self.n_photons == {}:
+            raise Exception("Photon numbers not set")
+
+        if 'lucy' in self.n_photons:
+            group.attrs['n_lucy_photons'] = self.n_photons['lucy']
+        if 'last' in self.n_photons:
+            group.attrs['n_last_photons'] = self.n_photons['last']
+        if 'last_sources' in self.n_photons:
+            group.attrs['n_last_photons_sources'] = self.n_photons['last_sources']
+        if 'last_dust' in self.n_photons:
+            group.attrs['n_last_photons_dust'] = self.n_photons['last_dust']
+        if 'raytracing_sources' in self.n_photons:
+            group.attrs['n_ray_photons_sources'] = self.n_photons['raytracing_sources']
+        if 'raytracing_dust' in self.n_photons:
+            group.attrs['n_ray_photons_dust'] = self.n_photons['raytracing_dust']
+
+        group.attrs['n_stats'] = self.n_photons['stats']
 
     def set_raytracing(self, raytracing):
         '''

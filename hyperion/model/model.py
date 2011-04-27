@@ -106,14 +106,14 @@ class Model(FreezableClass):
         if name[-6:] == '.rtout':
             name = name[:-6]
 
+        self.conf = Configuration()
+
         self.name = name
         self.reset_density()
         self.reset_sources()
         self.reset_images()
         self.temperature = None
         self.set_monochromatic(False)
-
-        self.conf = Configuration()
 
         self.grid = None
 
@@ -163,6 +163,7 @@ class Model(FreezableClass):
         '''
 
         self._monochromatic = monochromatic
+        self.conf.run._monochromatic = monochromatic
 
         if self._monochromatic:
             if wavelengths is not None and frequencies is not None:
