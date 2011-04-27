@@ -39,4 +39,6 @@ module settings
   real(dp) :: convergence_relative = 0._dp
   real(dp) :: convergence_percentile = 100._dp
 
+  logical :: enforce_energy_range
+
 end module settings

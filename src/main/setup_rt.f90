@@ -180,6 +180,13 @@ contains
        end if
     end if
 
+    ! ENERGY RANGE
+    if(mp_exists_keyword(input_handle, '/', 'enforce_energy_range')) then
+       call mp_read_keyword(input_handle, '/', 'enforce_energy_range', enforce_energy_range)
+    else
+       enforce_energy_range = .true.
+    end if
+
   end subroutine setup_initial
 
   subroutine setup_final_iteration(input_handle)

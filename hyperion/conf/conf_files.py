@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 from hyperion.util.functions import FreezableClass
 
@@ -52,6 +50,7 @@ class RunConf(FreezableClass):
         self.set_minimum_temperature(0.1)
         self.set_output_bytes(8)
         self.set_sample_sources_evenly(False)
+        self.set_enforce_energy_range(True)
         self._monochromatic = False
         self._freeze()
 
@@ -379,6 +378,31 @@ class RunConf(FreezableClass):
         if self.dust_sublimation_mode in ['slow', 'fast', 'cap']:
             group.attrs['dust_sublimation_temperature'] = self.dust_sublimation_temperature
 
+    def set_enforce_energy_range(self, enforce):
+        '''
+        Set how to deal with cells that have specific energy rates that are
+        below or above that provided in the mean opacities and emissivities.
+
+        Parameters
+        ----------
+        enforce : bool
+            Whether or not to reset specific energies that are above or below
+            the range of values used to specify the mean opacities and
+            emissivities to the maximum or minimum value of the range. Setting
+            this to True modifies the energy in the simulation, but ensures
+            that the emissivities are consistent with the energy in the cells.
+            Setting this to False means that the total energy in the grid will
+            be correct, but that the emissivities may be inconsistent with the
+            energy in the cells (if an energy is out of range, the code will
+            pick the closest available one). In both cases, warnings will be
+            displayed to notify the user whether this is happening.
+        '''
+
+        self.enforce_energy_range = enforce
+
+    def _write_enforce_energy_range(self, group):
+        group.attrs['enforce_energy_range'] = 'yes' if self.enforce_energy_range else 'no'
+
     def set_minimum_temperature(self, temperature):
         '''
         Set the minimum dust temperature
@@ -451,6 +475,7 @@ class RunConf(FreezableClass):
         self._write_minimum_temperature(group)
         self._write_output_bytes(group)
         self._write_sample_sources_evenly(group)
+        self._write_enforce_energy_range(group)
 
 
 class ImageConf(FreezableClass):

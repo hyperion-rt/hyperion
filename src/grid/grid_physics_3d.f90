@@ -322,17 +322,25 @@ contains
        end if
 
        if(any(specific_energy_abs(:,id) < d(id)%specific_energy_abs(1))) then
-          call warn("update_energy_abs","specific_energy_abs below minimum allowed in some cells - resetting")
-          where(specific_energy_abs(:,id) < d(id)%specific_energy_abs(1))
-             specific_energy_abs(:,id) = d(id)%specific_energy_abs(1)
-          end where
+          if(enforce_energy_range) then
+             call warn("update_energy_abs","specific_energy_abs below minimum allowed in some cells - resetting")
+             where(specific_energy_abs(:,id) < d(id)%specific_energy_abs(1))
+                specific_energy_abs(:,id) = d(id)%specific_energy_abs(1)
+             end where
+          else
+             call warn("update_energy_abs","specific_energy_abs below minimum allowed in some cells - will pick closest emissivities")
+          end if
        end if
 
        if(any(specific_energy_abs(:,id) > d(id)%specific_energy_abs(d(id)%n_e))) then
-          call warn("update_energy_abs","specific_energy_abs above maximum allowed in some cells - resetting")
-          where(specific_energy_abs(:,id) > d(id)%specific_energy_abs(d(id)%n_e))
-             specific_energy_abs(:,id) = d(id)%specific_energy_abs(d(id)%n_e)
-          end where
+          if(enforce_energy_range) then
+             call warn("update_energy_abs","specific_energy_abs above maximum allowed in some cells - resetting")
+             where(specific_energy_abs(:,id) > d(id)%specific_energy_abs(d(id)%n_e))
+                specific_energy_abs(:,id) = d(id)%specific_energy_abs(d(id)%n_e)
+             end where
+          else
+             call warn("update_energy_abs","specific_energy_abs above maximum allowed in some cells - will pick closest emissivities")
+          end if
        end if
 
     end do
