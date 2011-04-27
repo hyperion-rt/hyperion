@@ -42,7 +42,7 @@ for filename in arguments:
             if 'Iteration' in group_name:
                 iteration = int(group_name.split()[1])
                 for array_name in f[group_name]:
-                    pyfits.writeto(filename.replace('.rtout', '_%s_%05i_images.fits' % (array_name, iteration)),
+                    pyfits.writeto(filename.replace('.rtout', '_%s_%05i.fits' % (array_name, iteration)),
                                    np.array(f[group_name][array_name]), clobber=True)
 
     f.close()
