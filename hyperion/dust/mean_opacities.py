@@ -43,7 +43,7 @@ class MeanOpacities(FreezableClass):
         self.chi_rosseland = np.zeros(n_emiss)
         self.kappa_rosseland = np.zeros(n_emiss)
 
-        # Loop through the temperatures and compute mean opacities
+        # Loop through the emissivities and compute mean opacities
         for ivar in range(n_emiss):
 
             # Extract emissivity and interpolate to common frequency array

@@ -69,17 +69,17 @@ contains
     call mp_close_group(g_dust)
 
     if(n_dust==0) then
-       call warn("main", "no dust present, so skipping energy iterations")
-       n_lucy_iter=0
+       call warn("main", "no dust present, so skipping initial iterations")
+       n_initial_iter=0
        if(use_exact_nu) n_last_photons_dust = 0
        if(use_raytracing) n_raytracing_photons_dust = 0
     else
-       call mp_read_keyword(input_handle, '/', 'n_lucy_iter', n_lucy_iter)
-       if(n_lucy_iter > 0) then
-          call mp_read_keyword(input_handle, '/', 'n_lucy_photons', n_lucy_photons)
-          if(n_lucy_photons==0) call error("setup_initial", "Number of specific_energy iterations is non-zero, but number of specific_energy photons is zero")
+       call mp_read_keyword(input_handle, '/', 'n_initial_iter', n_initial_iter)
+       if(n_initial_iter > 0) then
+          call mp_read_keyword(input_handle, '/', 'n_initial_photons', n_initial_photons)
+          if(n_initial_photons==0) call error("setup_initial", "Number of initial iterations is non-zero, but number of specific_energy photons is zero")
        else
-          n_lucy_photons = 0
+          n_initial_photons = 0
        end if
        if(use_exact_nu) call mp_read_keyword(input_handle, '/', 'n_last_photons_dust', n_last_photons_dust)
        if(use_raytracing) call mp_read_keyword(input_handle, '/', 'n_ray_photons_dust', n_raytracing_photons_dust)
@@ -120,7 +120,7 @@ contains
 
     ! If no sources have been set up, give an error if we are not in raytracing only mode
     if(n_sources == 0) then
-       if(n_lucy_iter > 0) call error("setup_initial","no sources set up - need sources for specific_energy iteration(s)")
+       if(n_initial_iter > 0) call error("setup_initial","no sources set up - need sources for initial iteration(s)")
        if(use_exact_nu) then
           n_last_photons_sources = 0
        else
@@ -171,7 +171,7 @@ contains
     call mp_close_group(g_output)
 
     ! TEMPERATURE CONVERGENCE
-    if(n_lucy_iter > 0) then
+    if(n_initial_iter > 0) then
        call mp_read_keyword(input_handle, '/', 'check_convergence', check_convergence)
        if(check_convergence) then
           call mp_read_keyword(input_handle, '/', 'convergence_absolute', convergence_absolute)

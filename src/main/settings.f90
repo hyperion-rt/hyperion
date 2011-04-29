@@ -11,8 +11,8 @@ module settings
 
   integer(idp),public :: n_stats
   ! integer(idp),public :: n_lucy_check
-  integer,public :: n_lucy_iter
-  integer(idp),public :: n_lucy_photons
+  integer,public :: n_initial_iter
+  integer(idp),public :: n_initial_photons
   integer(idp),public :: n_last_photons = 0
   integer(idp),public :: n_last_photons_sources = 0
   integer(idp),public :: n_last_photons_dust = 0

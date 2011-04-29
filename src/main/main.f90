@@ -71,13 +71,13 @@ program main
   call mp_join()
 
   ! Loop over Lucy iterations
-  do iter=1,n_lucy_iter
+  do iter=1,n_initial_iter
 
      ! Display message
      if(main_process()) write(*,'(" [main] starting Lucy iteration ", I0)') iter
 
      ! Do the RT
-     call do_lucy(n_lucy_photons, n_stats)
+     call do_lucy(n_initial_photons, n_stats)
 
      ! Wait for all threads
      call mp_join()
@@ -111,7 +111,7 @@ program main
 
      ! Output files. The following needs to be executed on all ranks because
      ! the MPI AMR version needs to sync during mp_path_exists.
-     call output_grid(handle_out, iter, n_lucy_iter)
+     call output_grid(handle_out, iter, n_initial_iter)
 
   end do
 
@@ -120,7 +120,7 @@ program main
      if(converged) then
         call mp_write_keyword(handle_out, '/', 'iterations', iter)
      else
-        call mp_write_keyword(handle_out, '/', 'iterations', n_lucy_iter)
+        call mp_write_keyword(handle_out, '/', 'iterations', n_initial_iter)
      end if
   end if
 

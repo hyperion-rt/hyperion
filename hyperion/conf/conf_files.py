@@ -15,7 +15,6 @@ class OutputConf(FreezableClass):
         '''
         Initialize default output configuration
         '''
-        self.output_temperature = 'last'
         self.output_density = 'none'
         self.output_density_diff = 'none'
         self.output_specific_energy = 'last'
@@ -23,7 +22,6 @@ class OutputConf(FreezableClass):
         self._freeze()
 
     def write(self, group):
-        group.attrs['output_temperature'] = self.output_temperature
         group.attrs['output_density'] = self.output_density
         group.attrs['output_density_diff'] = self.output_density_diff
         group.attrs['output_specific_energy'] = self.output_specific_energy
@@ -36,7 +34,7 @@ class RunConf(FreezableClass):
         '''
         Initialize default run configuration
         '''
-        self.set_n_temperature_iterations(5)
+        self.set_n_initial_iterations(5)
         self.n_photons = {}
         self.set_raytracing(False)
         self.set_max_interactions(1000000)
@@ -46,29 +44,28 @@ class RunConf(FreezableClass):
         self.set_convergence(False)
         self.set_kill_on_absorb(False)
         self.set_forced_first_scattering(True)
-        self.set_dust_sublimation('no')
-        self.set_minimum_temperature(0.1)
         self.set_output_bytes(8)
         self.set_sample_sources_evenly(False)
         self.set_enforce_energy_range(True)
         self._monochromatic = False
         self._freeze()
 
-    def set_n_temperature_iterations(self, n_iter):
+    def set_n_initial_iterations(self, n_iter):
         '''
-        Set the number of temperature iterations
+        Set the number of initial iterations for computing the specific
+        energy in each cell.
 
         Parameters
         ----------
         n_iter : int
-            The number of temperature iterations
+            The number of initial iterations
         '''
         self.n_iter = n_iter
 
-    def _write_n_temperature_iterations(self, group):
-        group.attrs['n_lucy_iter'] = self.n_iter
+    def _write_n_initial_iterations(self, group):
+        group.attrs['n_initial_iter'] = self.n_iter
 
-    def set_n_photons(self, temperature=None, imaging=None,
+    def set_n_photons(self, initial=None, imaging=None,
                       imaging_sources=None, imaging_dust=None,
                       raytracing_sources=None, raytracing_dust=None,
                       stats=10000):
@@ -80,8 +77,8 @@ class RunConf(FreezableClass):
 
         Parameters
         ----------
-        temperature : float, optional
-            Number of photons for the temperature iterations
+        initial : float, optional
+            Number of photons for the initial specific energy iterations
         imaging : float, optional
             Number of photons for the main SED/image iteration. This argument
             is used in the case of non-monochromatic radiation transfer.
@@ -103,13 +100,13 @@ class RunConf(FreezableClass):
         '''
 
         if self.n_iter == 0:
-            if temperature is not None:
-                raise Exception("temperature should not be set since no temperature is being computed")
+            if initial is not None:
+                raise Exception("initial should not be set since no initial interations are being computed")
         else:
-            if temperature is None:
-                raise Exception("temperature should be set since the temperature is being computed")
+            if initial is None:
+                raise Exception("initial should be set since the initial iterations are being computed")
             else:
-                self.n_photons['lucy'] = temperature
+                self.n_photons['initial'] = initial
 
         if self.raytracing:
             if raytracing_sources is None:
@@ -154,8 +151,8 @@ class RunConf(FreezableClass):
         if self.n_photons == {}:
             raise Exception("Photon numbers not set")
 
-        if 'lucy' in self.n_photons:
-            group.attrs['n_lucy_photons'] = self.n_photons['lucy']
+        if 'initial' in self.n_photons:
+            group.attrs['n_initial_photons'] = self.n_photons['initial']
         if 'last' in self.n_photons:
             group.attrs['n_last_photons'] = self.n_photons['last']
         if 'last_sources' in self.n_photons:
@@ -174,7 +171,7 @@ class RunConf(FreezableClass):
         Set whether to use raytracing for the non-scattered flux
 
         If enabled, only scattered photons are peeled off in the iteration
-        following the temperature calculation, and an additional final
+        following the initial iterations, and an additional final
         iteration is carrried out, with raytracing of the remaining flux
         (sources and thermal and non-thermal dust emission).
 
@@ -224,9 +221,9 @@ class RunConf(FreezableClass):
         '''
         Set whether to use the Partial Diffusion Approximation (PDA)
 
-        If enabled, the PDA is used to compute the temperature in cells
+        If enabled, the PDA is used to compute the specific energy in cells
         which have seen few or no photons by formally solving the diffusion
-        equations, using the cells with valid temperatures as boundary
+        equations, using the cells with valid specific energies as boundary
         conditions.
 
         Parameters
@@ -350,34 +347,6 @@ class RunConf(FreezableClass):
     def _write_forced_first_scattering(self, group):
         group.attrs['forced_first_scattering'] = self.forced_first_scattering
 
-    def set_dust_sublimation(self, mode, temperature=1600):
-        '''
-        Set the dust sublimation parameters.
-
-        Parameters
-        ----------
-        mode : str
-            The dust sublimation mode, which can be:
-                * 'no'   - no sublimation
-                * 'cap'  - reset temperatures that exceed the sublimation
-                           temperature to the sublimation temperature
-                * 'fast' - remove all dust in cells exceeding the
-                           sublimation temperature
-                * 'slow' - reduce the dust in cells exceeding the
-                           sublimation temperature
-        temperature : float, optional
-            The dust sublimation temperature, in K
-        '''
-        if mode not in ['no', 'fast', 'slow', 'cap']:
-            raise Exception("mode should be one of no/fast/slow/cap")
-        self.dust_sublimation_mode = mode
-        self.dust_sublimation_temperature = temperature
-
-    def _write_dust_sublimation(self, group):
-        group.attrs['dust_sublimation_mode'] = self.dust_sublimation_mode
-        if self.dust_sublimation_mode in ['slow', 'fast', 'cap']:
-            group.attrs['dust_sublimation_temperature'] = self.dust_sublimation_temperature
-
     def set_enforce_energy_range(self, enforce):
         '''
         Set how to deal with cells that have specific energy rates that are
@@ -402,23 +371,6 @@ class RunConf(FreezableClass):
 
     def _write_enforce_energy_range(self, group):
         group.attrs['enforce_energy_range'] = 'yes' if self.enforce_energy_range else 'no'
-
-    def set_minimum_temperature(self, temperature):
-        '''
-        Set the minimum dust temperature
-
-        Dust which has a temperature that falls below this value will be
-        reset to the minimum at the end of each iteration.
-
-        Parameters
-        ----------
-        temperature : float
-            The minimum temperature in K
-        '''
-        self.minimum_temperature = temperature
-
-    def _write_minimum_temperature(self, group):
-        group.attrs['minimum_temperature'] = self.minimum_temperature
 
     def set_output_bytes(self, io_bytes):
         '''
@@ -461,7 +413,7 @@ class RunConf(FreezableClass):
         group : h5py.highlevel.File or h5py.highlevel.Group
             The HDF5 group to write the configuration to
         '''
-        self._write_n_temperature_iterations(group)
+        self._write_n_initial_iterations(group)
         self._write_n_photons(group)
         self._write_raytracing(group)
         self._write_max_interactions(group)
@@ -471,8 +423,6 @@ class RunConf(FreezableClass):
         self._write_convergence(group)
         self._write_kill_on_absorb(group)
         self._write_forced_first_scattering(group)
-        self._write_dust_sublimation(group)
-        self._write_minimum_temperature(group)
         self._write_output_bytes(group)
         self._write_sample_sources_evenly(group)
         self._write_enforce_energy_range(group)

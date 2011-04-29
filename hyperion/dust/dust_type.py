@@ -44,7 +44,7 @@ class SphericalDust(FreezableClass):
 
         self.set_minimum_energy(0.)
 
-        self.set_sublimation('no')
+        self.set_sublimation_specific_energy('no', 0.)
 
         self._freeze()
 
@@ -81,9 +81,9 @@ class SphericalDust(FreezableClass):
         # Save figure
         fig.savefig(filename)
 
-    def set_sublimation(self, mode, temperature=None):
+    def set_sublimation_temperature(self, mode, temperature=0.):
         '''
-        Set the dust sublimation parameters.
+        Set the dust sublimation mode and temperature.
 
         Parameters
         ----------
@@ -91,11 +91,12 @@ class SphericalDust(FreezableClass):
             The dust sublimation mode, which can be:
                 * 'no'   - no sublimation
                 * 'fast' - remove all dust in cells exceeding the
-                           sublimation temperature/energy
+                           sublimation temperature
                 * 'slow' - reduce the dust in cells exceeding the
-                           sublimation temperature/energy
-                * 'cap'  - any temperature/energy exceeding the sublimation
-                           value is reset to the sublimation value.
+                           sublimation temperature
+                * 'cap'  - any temperature exceeding the sublimation
+                           temperature is reset to the sublimation
+                           temperature.
 
         temperature : float, optional
             The dust sublimation temperature, in K
@@ -108,12 +109,42 @@ class SphericalDust(FreezableClass):
             raise Exception("Need to specify a sublimation temperature")
 
         self.sublimation_mode = mode
-        self.sublimation_temperature = temperature
+        self.sublimation_energy = self.optical_properties._temperature2specific_energy(temperature)
+
+    def set_sublimation_specific_energy(self, mode, specific_energy=0.):
+        '''
+        Set the dust sublimation mode and specific energy.
+
+        Parameters
+        ----------
+        mode : str
+            The dust sublimation mode, which can be:
+                * 'no'   - no sublimation
+                * 'fast' - remove all dust in cells exceeding the
+                           sublimation specific energy
+                * 'slow' - reduce the dust in cells exceeding the
+                           sublimation specific energy
+                * 'cap'  - any specific energy exceeding the sublimation
+                           specific energy is reset to the sublimation
+                           specific energy.
+
+        specific_energy : float, optional
+            The dust sublimation specific energy, in cgs
+        '''
+
+        if mode not in ['no', 'fast', 'slow', 'cap']:
+            raise Exception("mode should be one of no/fast/slow/cap")
+
+        if mode != 'no' and specific_energy is None:
+            raise Exception("Need to specify a sublimation specific_energy")
+
+        self.sublimation_mode = mode
+        self.sublimation_energy = specific_energy
 
     def _write_dust_sublimation(self, table_set):
         table_set.add_keyword('sublimation_mode', self.sublimation_mode)
         if self.sublimation_mode in ['slow', 'fast', 'cap']:
-            table_set.add_keyword('sublimation_specific_energy', self.optical_properties._temperature2specific_energy(self.sublimation_temperature))
+            table_set.add_keyword('sublimation_specific_energy', self.sublimation_energy)
 
     def set_minimum_temperature(self, temperature):
         '''
@@ -129,7 +160,7 @@ class SphericalDust(FreezableClass):
         '''
         self.minimum_specific_energy = self.optical_properties._temperature2specific_energy(temperature)
 
-    def set_minimum_energy(self, energy):
+    def set_minimum_specific_energy(self, specific_energy):
         '''
         Set the minimum dust specific energy
 
@@ -138,10 +169,10 @@ class SphericalDust(FreezableClass):
 
         Parameters
         ----------
-        energy : float
+        specific_energy : float
             The minimum specific energy in cgs
         '''
-        self.minimum_specific_energy = energy
+        self.minimum_specific_energy = specific_energy
 
     def _write_minimum_energy(self, table_set):
         table_set.add_keyword('minimum_specific_energy', self.minimum_specific_energy)
@@ -182,7 +213,7 @@ class SphericalDust(FreezableClass):
         # Dust sublimation parameters
         self._write_dust_sublimation(ts)
 
-        # Minimum temperature parameter
+        # Minimum specific energy parameter
         self._write_minimum_energy(ts)
 
         # Output dust file
