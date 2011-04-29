@@ -95,7 +95,7 @@ program main
         if(converged) then
 
            if(main_process()) then
-              write(*,'("      ------ Temperature calculation converged -----")')
+              write(*,'("      ------ Specific energy calculation converged -----")')
               write(*,*)
            end if
 

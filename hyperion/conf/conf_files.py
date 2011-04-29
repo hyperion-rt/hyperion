@@ -18,7 +18,7 @@ class OutputConf(FreezableClass):
         self.output_density = 'none'
         self.output_density_diff = 'none'
         self.output_specific_energy = 'last'
-        self.output_n_photons = 'last'
+        self.output_n_photons = 'none'
         self._freeze()
 
     def write(self, group):

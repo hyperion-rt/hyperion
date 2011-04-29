@@ -42,7 +42,7 @@ class SphericalDust(FreezableClass):
         self.emissivities = Emissivities()
         self.mean_opacities = MeanOpacities()
 
-        self.set_minimum_energy(0.)
+        self.set_minimum_specific_energy(0.)
 
         self.set_sublimation_specific_energy('no', 0.)
 
@@ -451,7 +451,7 @@ class MieXDust(SphericalDust):
         n_wav = len(self.optical_properties.wav)
         n_mu = (len(open('%s.f11' % model).readlines()) / n_wav) - 1
 
-        self.mu = np.zeros(n_mu)
+        self.optical_properties.mu = np.zeros(n_mu)
         self.optical_properties.initialize_scattering_matrix()
 
         # Read mu
@@ -475,13 +475,13 @@ class MieXDust(SphericalDust):
 
         for j in range(n_wav):
 
-            if float(f11.readline()) != self.wav[j]:
+            if float(f11.readline()) != self.optical_properties.wav[j]:
                 raise Exception("Incorrect wavelength in f11")
-            if float(f12.readline()) != self.wav[j]:
+            if float(f12.readline()) != self.optical_properties.wav[j]:
                 raise Exception("Incorrect wavelength in f12")
-            if float(f33.readline()) != self.wav[j]:
+            if float(f33.readline()) != self.optical_properties.wav[j]:
                 raise Exception("Incorrect wavelength in f33")
-            if float(f34.readline()) != self.wav[j]:
+            if float(f34.readline()) != self.optical_properties.wav[j]:
                 raise Exception("Incorrect wavelength in f34")
 
             for i in range(n_mu):
