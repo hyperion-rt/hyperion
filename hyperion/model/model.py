@@ -30,6 +30,15 @@ LABEL['linpol'] = "Total linear polarization fraction"
 LABEL['circpol'] = "Total circular polarization fraction"
 
 
+def find_last_iteration(file_handle):
+    max_iteration = 0
+    for group_name in file_handle:
+        if "Iteration" in group_name:
+            iteration = int(group_name.split()[1])
+            max_iteration = max(iteration, max_iteration)
+    return max_iteration
+
+
 def mc_linear_polarization(I, sigma_I, Q, sigma_Q, U, sigma_U):
     n = 1000
     if I > 0.:
@@ -113,6 +122,7 @@ class Model(FreezableClass):
         self.reset_sources()
         self.reset_images()
         self.temperature = None
+        self.specific_energy_abs = None
         self.set_monochromatic(False)
 
         self.grid = None
@@ -259,20 +269,38 @@ class Model(FreezableClass):
 
             self.grid.write_physical_array(g_physics, self.density, "Density", dust=True, compression=compression, physics_dtype=physics_dtype)
 
+            if self.temperature is not None and self.specific_energy_abs is not None:
+                raise Exception("Cannot specify both temperature and specific_energy_abs")
+
             if self.temperature is not None:
                 if type(self.temperature) is list:
                     self.grid.write_physical_array(g_physics, self.temperature, "Temperature", dust=True, compression=compression, physics_dtype=physics_dtype)
                 elif type(self.temperature) is str:
                     f = h5py.File(self.temperature, 'r')
-                    max_iteration = 0
-                    for group_name in f:
-                        if "Iteration" in group_name:
-                            iteration = int(group_name.split()[1])
-                            max_iteration = max(iteration, max_iteration)
+                    max_iteration = find_last_iteration(f)
                     print "Retrieving temperature from iteration %i of %s" % (max_iteration, self.temperature)
-                    g_physics.create_dataset('Temperature', data=f['Iteration %05i' % max_iteration]['temperature'])
+                    temperature = f['Iteration %05i' % max_iteration]['temperature']
+                    if temperature.shape != g_physics['Density'].shape:
+                        raise Exception("Temperature array is not the right dimensions")
+                    dset = g_physics.create_dataset('Temperature', data=temperature)
+                    dset.attrs['geometry'] = g_physics['Density'].attrs['geometry']
                 else:
                     raise Exception("Unknown type %s for Model.temperature" % str(type(self.temperature)))
+
+            if self.specific_energy_abs is not None:
+                if type(self.specific_energy_abs) is list:
+                    self.grid.write_physical_array(g_physics, self.specific_energy_abs, "Specific Energy", dust=True, compression=compression, physics_dtype=physics_dtype)
+                elif type(self.specific_energy_abs) is str:
+                    f = h5py.File(self.specific_energy_abs, 'r')
+                    max_iteration = find_last_iteration(f)
+                    print "Retrieving specific_energy_abs from iteration %i of %s" % (max_iteration, self.specific_energy_abs)
+                    specific_energy_abs = f['Iteration %05i' % max_iteration]['specific_energy_abs']
+                    if specific_energy_abs.shape != g_physics['Density'].shape:
+                        raise Exception("Specific energy array is not the right dimensions")
+                    dset = g_physics.create_dataset('Specific Energy', data=specific_energy_abs)
+                    dset.attrs['geometry'] = g_physics['Density'].attrs['geometry']
+                else:
+                    raise Exception("Unknown type %s for Model.specific_energy_abs" % str(type(self.specific_energy_abs)))
 
             # Output dust file
             present = {}
@@ -340,7 +368,7 @@ class Model(FreezableClass):
     def add_source(self, source):
         self.sources.append(source)
 
-    def add_density_grid(self, density, dust, temperature=None):
+    def add_density_grid(self, density, dust, temperature=None, specific_energy_abs=None):
         if not self.grid:
             raise Exception("Grid not defined")
         if not isinstance(self.grid, AMRGrid):
@@ -349,15 +377,24 @@ class Model(FreezableClass):
             if temperature is not None:
                 if not temperature.shape == self.grid.shape:
                     raise Exception("Temperature shape does not match that of grid")
+            if specific_energy_abs is not None:
+                if not specific_energy_abs.shape == self.grid.shape:
+                    raise Exception("Specific Energy shape does not match that of grid")
         if np.all(density == 0.):
             warnings.warn("All density values are zero - ignoring density grid")
             return
         self.density.append(density)
         self.dust.append(dust)
+        if self.temperature is not None and self.specific_energy_abs is not None:
+            raise Exception("Cannot specify both temperature and specific_energy_abs")
         if temperature is not None:
             if self.temperature is None:
                 self.temperature = []
             self.temperature.append(temperature)
+        if specific_energy_abs is not None:
+            if self.specific_energy_abs is None:
+                self.specific_energy_abs = []
+            self.specific_energy_abs.append(specific_energy_abs)
 
     def set_cartesian_grid(self, x_wall, y_wall, z_wall):
         self.grid = CartesianGrid(x_wall, y_wall, z_wall)
