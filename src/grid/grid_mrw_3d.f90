@@ -62,7 +62,6 @@ contains
     real(dp) :: e,y,ct
     type(vector3d_dp) :: dr
     integer :: id
-    real(dp) :: temperature
 
     ! Find distance to closest wall
     R0 = distance_to_closest_wall(p)
@@ -96,8 +95,7 @@ contains
     call angle3d_to_vector3d(p%a, p%v)
 
     id = select_dust_chi_rho(p)
-    temperature = specific_energy_abs2temperature(d(id), specific_energy_abs(p%icell%ic, id))
-    call random_planck_frequency(p%nu, temperature)
+    call dust_sample_b_nu(d(id), jnu_var_id(p%icell%ic, id), jnu_var_frac(p%icell%ic, id), p%nu)
 
     ! For peeloff, we are going to assume that the radiation is isotropic.
     ! This is not quite exact, but is not likely to matter much.
@@ -116,7 +114,6 @@ contains
     real(dp) :: R0
     type(vector3d_dp) :: dr
     integer :: id
-    real(dp) :: temperature
 
     ! Find distance to closest wall
     R0 = distance_to_closest_wall(p)
@@ -136,8 +133,7 @@ contains
     call angle3d_to_vector3d(p%a, p%v)
 
     id = select_dust_chi_rho(p)
-    temperature = specific_energy_abs2temperature(d(id), specific_energy_abs(p%icell%ic, id))
-    call random_planck_frequency(p%nu, temperature)
+    call dust_sample_b_nu(d(id), jnu_var_id(p%icell%ic, id), jnu_var_frac(p%icell%ic, id), p%nu)
 
     ! For peeloff, we are going to assume that the radiation is isotropic.
     ! This is not quite exact, but is not likely to matter much.

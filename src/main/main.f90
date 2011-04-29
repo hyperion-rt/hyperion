@@ -102,7 +102,7 @@ program main
            ! Output files (and signal that this is the last iteration)
            call output_grid(handle_out, iter, iter)
 
-           ! Exit the temperature iteration
+           ! Exit the energy iteration
            exit
 
         end if

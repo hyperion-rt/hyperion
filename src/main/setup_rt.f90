@@ -69,7 +69,7 @@ contains
     call mp_close_group(g_dust)
 
     if(n_dust==0) then
-       call warn("main", "no dust present, so skipping temperature iterations")
+       call warn("main", "no dust present, so skipping energy iterations")
        n_lucy_iter=0
        if(use_exact_nu) n_last_photons_dust = 0
        if(use_raytracing) n_raytracing_photons_dust = 0

@@ -18,8 +18,8 @@ module grid_pda
   private
   public :: solve_pda
 
-  real(dp), parameter :: tolerance_iter = 1.e-4 ! temperature calculation convergence criterion
-  real(dp), parameter :: tolerance_exact = 1.e-5 ! temperature calculation convergence criterion
+  real(dp), parameter :: tolerance_iter = 1.e-4 ! energy calculation convergence criterion
+  real(dp), parameter :: tolerance_exact = 1.e-5 ! energy calculation convergence criterion
   real(dp), parameter :: threshold_pda = 0.005 ! maximum number of photons required to use PDA
 
   real(dp), allocatable :: e_mean(:)
@@ -133,7 +133,7 @@ contains
 
        maxdiff = maxval(abs(specific_energy_abs - specific_energy_abs_prev) / specific_energy_abs_prev)
 
-       write(*,'(" [pda] maximum temperature difference: ", ES9.2)') maxdiff
+       write(*,'(" [pda] maximum energy difference: ", ES9.2)') maxdiff
 
        if(maxdiff < tolerance) exit
 
