@@ -45,7 +45,7 @@ contains
        total_alpha_rosseland = 0._dp
        do id=1,n_dust
           total_alpha_rosseland = total_alpha_rosseland + &
-               &density(ic, id) * chi_rosseland(id, specific_energy_abs(ic, id))
+               &density(ic, id) * chi_rosseland(id, specific_energy(ic, id))
        end do
        diff_coeff(ic) = 1./3./total_alpha_rosseland
     end do
@@ -76,8 +76,8 @@ contains
     do id=1,n_dust
        if(density(p%icell%ic, id) > 0._dp) then
           ! Insert ct into (9), get energy deposited for Lucy method
-          e = p%energy * ct * kappa_planck(id, specific_energy_abs(p%icell%ic, id))
-          specific_energy_abs_sum(p%icell%ic, id) = specific_energy_abs_sum(p%icell%ic, id) + e
+          e = p%energy * ct * kappa_planck(id, specific_energy(p%icell%ic, id))
+          specific_energy_sum(p%icell%ic, id) = specific_energy_sum(p%icell%ic, id) + e
        end if
     end do
 

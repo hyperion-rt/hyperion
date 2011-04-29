@@ -45,14 +45,14 @@ class Emissivities(FreezableClass):
         tev = atpy.Table(filename, table='Emissivity variable')
 
         # Only specific energy is considered a valid emissivity variable
-        if tev.names[0] != 'specific_energy_abs':
+        if tev.names[0] != 'specific_energy':
             raise Exception("Unknown emissivity variable: %s" % tev.names[0])
 
         # Set emissivity variable
         self.var_name = tev.names[0]
 
         # Find specific energy emissivity variable
-        self.var = tev.specific_energy_abs
+        self.var = tev.specific_energy
 
         # Indicate that emissivites have been set
         self.set = True
@@ -86,7 +86,7 @@ class Emissivities(FreezableClass):
                                         optical_properties.kappa, self.nu)
 
         # Compute LTE emissivities
-        self.var_name = 'specific_energy_abs'
+        self.var_name = 'specific_energy'
         self.var = np.zeros(temperatures.shape)
         self.jnu = np.zeros((len(self.nu), n_temp))
 
@@ -113,7 +113,7 @@ class Emissivities(FreezableClass):
         table_set.add_keyword('lte', 'yes' if self.is_lte else 'no')
 
         # Write out the emissivity variable type
-        if self.var_name == 'specific_energy_abs':
+        if self.var_name == 'specific_energy':
             table_set.add_keyword('emissvar', 'E')
         else:
             raise Exception("Unknown emissivity variable: %s" % self.var_name)
@@ -136,7 +136,7 @@ class Emissivities(FreezableClass):
 
         # Find the emissivity variable type
         if table_set.keywords['emissvar'] == 'E':
-            self.var_name = 'specific_energy_abs'
+            self.var_name = 'specific_energy'
         else:
             raise Exception("Unknown emissivity variable: %s" %
                             table_set.keywords['emissvar'])

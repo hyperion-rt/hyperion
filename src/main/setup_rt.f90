@@ -161,12 +161,12 @@ contains
          & .and.trim(output_density_diff).ne.'none') &
          & call error("setup_initial","output_density_diff should be one of all/last/none")
 
-    call mp_read_keyword(g_output, '.', 'output_specific_energy_abs', output_specific_energy_abs)
+    call mp_read_keyword(g_output, '.', 'output_specific_energy', output_specific_energy)
 
-    if(trim(output_specific_energy_abs).ne.'all' &
-         & .and.trim(output_specific_energy_abs).ne.'last' &
-         & .and.trim(output_specific_energy_abs).ne.'none') &
-         & call error("setup_initial","output_specific_energy_abs should be one of all/last/none")
+    if(trim(output_specific_energy).ne.'all' &
+         & .and.trim(output_specific_energy).ne.'last' &
+         & .and.trim(output_specific_energy).ne.'none') &
+         & call error("setup_initial","output_specific_energy should be one of all/last/none")
 
     call mp_read_keyword(g_output, '.', 'output_n_photons', output_n_photons)
 

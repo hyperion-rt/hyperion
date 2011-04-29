@@ -170,7 +170,7 @@ contains
     end if
 
     ! Broadcast specific energy out to processes
-    call mp_broadcast_specific_energy_abs()
+    call mp_broadcast_specific_energy()
 
     ! Sublimate dust if needed
     call sublimate_dust()

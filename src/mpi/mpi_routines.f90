@@ -30,7 +30,7 @@ module mpi_routines
   public :: mp_reset_first
   public :: mp_n_photons
   public :: mp_collect
-  public :: mp_broadcast_specific_energy_abs
+  public :: mp_broadcast_specific_energy
   public :: mp_collect_results
   public :: mp_broadcast_convergence
   public :: mp_sync_energy
@@ -260,12 +260,12 @@ contains
     energy_current = tmp
 
     if(main_process()) then
-       allocate(tmp_2d(size(specific_energy_abs_sum,1),size(specific_energy_abs_sum,2)))
-       call mpi_reduce(specific_energy_abs_sum, tmp_2d, size(specific_energy_abs_sum), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
-       specific_energy_abs_sum = tmp_2d
+       allocate(tmp_2d(size(specific_energy_sum,1),size(specific_energy_sum,2)))
+       call mpi_reduce(specific_energy_sum, tmp_2d, size(specific_energy_sum), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+       specific_energy_sum = tmp_2d
        deallocate(tmp_2d)
     else
-       call mpi_reduce(specific_energy_abs_sum, dummy_dp, size(specific_energy_abs_sum), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+       call mpi_reduce(specific_energy_sum, dummy_dp, size(specific_energy_sum), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
     end if
 
     if(allocated(n_photons)) then
@@ -281,14 +281,14 @@ contains
 
   end subroutine mp_collect
 
-  subroutine mp_broadcast_specific_energy_abs()
+  subroutine mp_broadcast_specific_energy()
 
     implicit none
 
-    call mpi_bcast(specific_energy_abs, size(specific_energy_abs), mpi_real8, rank_main, mpi_comm_world, ierr)
+    call mpi_bcast(specific_energy, size(specific_energy), mpi_real8, rank_main, mpi_comm_world, ierr)
     call mpi_bcast(energy_abs_tot, size(energy_abs_tot), mpi_real8, rank_main, mpi_comm_world, ierr)
 
-  end subroutine mp_broadcast_specific_energy_abs
+  end subroutine mp_broadcast_specific_energy
 
   subroutine mp_broadcast_convergence(converged)
     implicit none

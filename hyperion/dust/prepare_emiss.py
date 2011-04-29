@@ -5,7 +5,7 @@ from hyperion.util.constants import c
 
 variable = {}
 variable['T'] = 'temperature'
-variable['E'] = 'specific_energy_abs'
+variable['E'] = 'specific_energy'
 
 
 def prepare_emiss(files, values, emissvar, filename_out):
@@ -26,7 +26,7 @@ def prepare_emiss(files, values, emissvar, filename_out):
         *emissvar*: [ string ]
             Independent variable name. This can be:
                 - temperature
-                - specific_energy_abs
+                - specific_energy
 
         *filename_out*: [ string ]
             Filename for the output file

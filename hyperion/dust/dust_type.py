@@ -113,7 +113,7 @@ class SphericalDust(FreezableClass):
     def _write_dust_sublimation(self, table_set):
         table_set.add_keyword('sublimation_mode', self.sublimation_mode)
         if self.sublimation_mode in ['slow', 'fast', 'cap']:
-            table_set.add_keyword('sublimation_specific_energy', self.optical_properties._temperature2specific_energy_abs(self.sublimation_temperature))
+            table_set.add_keyword('sublimation_specific_energy', self.optical_properties._temperature2specific_energy(self.sublimation_temperature))
 
     def set_minimum_temperature(self, temperature):
         '''
@@ -127,7 +127,7 @@ class SphericalDust(FreezableClass):
         temperature : float
             The minimum temperature in K
         '''
-        self.minimum_specific_energy = self.optical_properties._temperature2specific_energy_abs(temperature)
+        self.minimum_specific_energy = self.optical_properties._temperature2specific_energy(temperature)
 
     def set_minimum_energy(self, energy):
         '''

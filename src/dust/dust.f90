@@ -77,32 +77,32 @@ contains
     end do
   end subroutine update_optconsts
 
-  real(dp) function chi_planck(id,specific_energy_abs)
+  real(dp) function chi_planck(id,specific_energy)
     implicit none
     integer,intent(in)  :: id ! dust type
-    real(dp),intent(in) :: specific_energy_abs ! specific energy
-    chi_planck = interp1d_loglog(d(id)%specific_energy_abs,d(id)%chi_planck,specific_energy_abs)
+    real(dp),intent(in) :: specific_energy ! specific energy
+    chi_planck = interp1d_loglog(d(id)%specific_energy,d(id)%chi_planck,specific_energy)
   end function chi_planck
 
-  real(dp) function kappa_planck(id,specific_energy_abs)
+  real(dp) function kappa_planck(id,specific_energy)
     implicit none
     integer,intent(in)  :: id ! dust type
-    real(dp),intent(in) :: specific_energy_abs ! specific energy
-    kappa_planck = interp1d_loglog(d(id)%specific_energy_abs,d(id)%kappa_planck,specific_energy_abs)
+    real(dp),intent(in) :: specific_energy ! specific energy
+    kappa_planck = interp1d_loglog(d(id)%specific_energy,d(id)%kappa_planck,specific_energy)
   end function kappa_planck
 
-  real(dp) function chi_rosseland(id,specific_energy_abs)
+  real(dp) function chi_rosseland(id,specific_energy)
     implicit none
     integer,intent(in)  :: id ! dust type
-    real(dp),intent(in) :: specific_energy_abs ! specific energy
-    chi_rosseland = interp1d_loglog(d(id)%specific_energy_abs,d(id)%chi_rosseland,specific_energy_abs)
+    real(dp),intent(in) :: specific_energy ! specific energy
+    chi_rosseland = interp1d_loglog(d(id)%specific_energy,d(id)%chi_rosseland,specific_energy)
   end function chi_rosseland
 
-  real(dp) function kappa_rosseland(id,specific_energy_abs)
+  real(dp) function kappa_rosseland(id,specific_energy)
     implicit none
     integer,intent(in)  :: id ! dust type
-    real(dp),intent(in) :: specific_energy_abs ! specific energy
-    kappa_rosseland = interp1d_loglog(d(id)%specific_energy_abs,d(id)%kappa_rosseland,specific_energy_abs)
+    real(dp),intent(in) :: specific_energy ! specific energy
+    kappa_rosseland = interp1d_loglog(d(id)%specific_energy,d(id)%kappa_rosseland,specific_energy)
   end function kappa_rosseland
 
 end module dust_main

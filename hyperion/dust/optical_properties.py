@@ -365,7 +365,7 @@ class OpticalProperties(FreezableClass):
 
         return self.kappa_rosseland_spectrum(nu, B_nu(nu, temperature))
 
-    def _temperature2specific_energy_abs(self, temperature):
+    def _temperature2specific_energy(self, temperature):
 
         kappa_planck = self.kappa_planck_temperature(temperature)
 

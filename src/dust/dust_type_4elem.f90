@@ -16,8 +16,8 @@ module type_dust
   public :: dust_sample_emit_probability
   public :: dust_sample_emit_frequency
   public :: dust_jnu_var_pos_frac
-  public :: specific_energy_abs2temperature
-  public :: temperature2specific_energy_abs
+  public :: specific_energy2temperature
+  public :: temperature2specific_energy
 
   type dust
 
@@ -45,8 +45,8 @@ module type_dust
 
      ! Mean opacities
      integer :: n_e                              ! Number of energies
-     real(dp),allocatable :: specific_energy_abs(:) ! Energy absorbed per unit mass
-     real(dp),allocatable :: log10_specific_energy_abs(:) ! Energy absorbed per unit mass [Log10]
+     real(dp),allocatable :: specific_energy(:) ! Energy absorbed per unit mass
+     real(dp),allocatable :: log10_specific_energy(:) ! Energy absorbed per unit mass [Log10]
      real(dp),allocatable :: chi_planck(:)       ! Planck mean opacity
      real(dp),allocatable :: kappa_planck(:)     ! Planck mean absoptive opacity
      real(dp),allocatable :: chi_rosseland(:)    ! Rosseland mean opacity
@@ -202,26 +202,26 @@ contains
     ! MEAN OPACITIES
 
     path = 'Mean opacities'
-    call mp_table_read_column_auto(group,path,'specific_energy_abs',d%specific_energy_abs)
+    call mp_table_read_column_auto(group,path,'specific_energy',d%specific_energy)
     call mp_table_read_column_auto(group,path,'chi_planck',d%chi_planck)
     call mp_table_read_column_auto(group,path,'kappa_planck',d%kappa_planck)
     call mp_table_read_column_auto(group,path,'chi_rosseland',d%chi_rosseland)
     call mp_table_read_column_auto(group,path,'kappa_rosseland',d%kappa_rosseland)
 
     ! Check for NaN values
-    if(any(d%specific_energy_abs.ne.d%specific_energy_abs)) call error("dust_setup","specific_energy_abs array contains NaN values")
+    if(any(d%specific_energy.ne.d%specific_energy)) call error("dust_setup","specific_energy array contains NaN values")
     if(any(d%chi_planck.ne.d%chi_planck)) call error("dust_setup","chi_planck array contains NaN values")
     if(any(d%kappa_planck.ne.d%kappa_planck)) call error("dust_setup","kappa_planck array contains NaN values")
     if(any(d%chi_rosseland.ne.d%chi_rosseland)) call error("dust_setup","chi_planck array contains NaN values")
     if(any(d%kappa_rosseland.ne.d%kappa_rosseland)) call error("dust_setup","kappa_rosseland array contains NaN values")
 
-    d%n_e = size(d%specific_energy_abs)
-    allocate(d%log10_specific_energy_abs(d%n_e))
-    d%log10_specific_energy_abs = log10(d%specific_energy_abs)
+    d%n_e = size(d%specific_energy)
+    allocate(d%log10_specific_energy(d%n_e))
+    d%log10_specific_energy = log10(d%specific_energy)
 
     ! Check that specific energy is monotically increasing (important for interpolation)
     do i=2,d%n_e
-       if(d%specific_energy_abs(i) < d%specific_energy_abs(i-1)) then
+       if(d%specific_energy(i) < d%specific_energy(i-1)) then
           call error("dust_setup","energy per unit mass is not monotonically increasing")
        end if
     end do
@@ -230,7 +230,7 @@ contains
 
     ! Compute temperature from specific energy absorbed
     allocate(d%temperature(d%n_e))
-    d%temperature = (d%specific_energy_abs / 4. / stef_boltz / d%kappa_planck)**0.25
+    d%temperature = (d%specific_energy / 4. / stef_boltz / d%kappa_planck)**0.25
 
     ! EMISSIVITIES
 
@@ -245,7 +245,7 @@ contains
     path = 'Emissivity variable'
     select case(d%emiss_var)
     case('E')
-       call mp_table_read_column_auto(group,path,'specific_energy_abs',d%j_nu_var)
+       call mp_table_read_column_auto(group,path,'specific_energy',d%j_nu_var)
        if(any(d%j_nu_var.ne.d%j_nu_var)) call error("dust_setup","emissivity variable array contains NaN values")
     end select
 
@@ -274,37 +274,37 @@ contains
 
   end subroutine dust_setup
 
-  real(dp) function specific_energy_abs2temperature(d, specific_energy_abs) result(temperature)
+  real(dp) function specific_energy2temperature(d, specific_energy) result(temperature)
     implicit none
     type(dust), intent(in) :: d
-    real(dp),intent(in) :: specific_energy_abs
-    if(specific_energy_abs < d%specific_energy_abs(1)) then
+    real(dp),intent(in) :: specific_energy
+    if(specific_energy < d%specific_energy(1)) then
        temperature = d%temperature(1)
-    else if(specific_energy_abs > d%specific_energy_abs(d%n_e)) then
+    else if(specific_energy > d%specific_energy(d%n_e)) then
        temperature = d%temperature(d%n_e)
     else
-       temperature = interp1d_loglog(d%specific_energy_abs, d%temperature, specific_energy_abs)
+       temperature = interp1d_loglog(d%specific_energy, d%temperature, specific_energy)
     end if
-  end function specific_energy_abs2temperature
+  end function specific_energy2temperature
 
-  real(dp) function temperature2specific_energy_abs(d, temperature) result(specific_energy_abs)
+  real(dp) function temperature2specific_energy(d, temperature) result(specific_energy)
     implicit none
     type(dust), intent(in) :: d
     real(dp),intent(in)  :: temperature
-    specific_energy_abs = interp1d_loglog(d%temperature, d%specific_energy_abs, temperature)
-  end function temperature2specific_energy_abs
+    specific_energy = interp1d_loglog(d%temperature, d%specific_energy, temperature)
+  end function temperature2specific_energy
 
-  subroutine dust_jnu_var_pos_frac(d,specific_energy_abs,jnu_var_id,jnu_var_frac)
+  subroutine dust_jnu_var_pos_frac(d,specific_energy,jnu_var_id,jnu_var_frac)
     implicit none
     type(dust),intent(in) :: d
-    real(dp),intent(in) :: specific_energy_abs
+    real(dp),intent(in) :: specific_energy
     integer,intent(out) :: jnu_var_id
     real(dp),intent(out) :: jnu_var_frac
     real(dp) :: jnu_var
 
     select case(d%emiss_var)
     case('E')
-       jnu_var = specific_energy_abs
+       jnu_var = specific_energy
     end select
 
     if(jnu_var < d%j_nu_var(1)) then

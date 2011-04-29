@@ -32,21 +32,21 @@ contains
     difference_ratio = max(a/b, b/a)
   end function difference_ratio
 
-  subroutine update_specific_energy_abs(ic)
+  subroutine update_specific_energy(ic)
     implicit none
     integer,intent(in) :: ic
     integer :: id
     real(dp) :: s_prev, s
     do id=1,n_dust
-       s = specific_energy_abs(ic, id)
+       s = specific_energy(ic, id)
        do
           s_prev = s
           s = e_mean(ic) * kappa_planck(id, s)
           if(difference_ratio(s, s_prev) - 1._dp < 1.e-5_dp) exit
        end do
-       specific_energy_abs(ic, id) = s
+       specific_energy(ic, id) = s
     end do
-  end subroutine update_specific_energy_abs
+  end subroutine update_specific_energy
 
   subroutine update_e_mean(ic)
     implicit none
@@ -55,7 +55,7 @@ contains
     e_mean(ic) = 0.
     if(sum(density(ic, :)) > 0._dp) then
        do id=1,n_dust
-          e_mean(ic) = e_mean(ic) + density(ic,id) * specific_energy_abs(ic,id) / kappa_planck(id, specific_energy_abs(ic,id))
+          e_mean(ic) = e_mean(ic) + density(ic,id) * specific_energy(ic,id) / kappa_planck(id, specific_energy(ic,id))
        end do
        e_mean(ic) = e_mean(ic) / sum(density(ic, :))
     end if
@@ -65,7 +65,7 @@ contains
 
     implicit none
 
-    real(dp),allocatable :: specific_energy_abs_prev(:,:)
+    real(dp),allocatable :: specific_energy_prev(:,:)
     logical,allocatable :: do_pda(:)
     real(dp) :: maxdiff
     real(dp) :: mean_n_photons
@@ -78,7 +78,7 @@ contains
 
     mean_n_photons = sum(n_photons) / size(n_photons)
 
-    allocate(specific_energy_abs_prev(geo%n_cells, n_dust))
+    allocate(specific_energy_prev(geo%n_cells, n_dust))
     allocate(do_pda(geo%n_cells))
 
     do_pda = n_photons < max(30,ceiling(threshold_pda*mean_n_photons)) .and. sum(density, dim=2) > 0.
@@ -119,11 +119,11 @@ contains
        end if
     end do
 
-    specific_energy_abs_prev = specific_energy_abs
+    specific_energy_prev = specific_energy
 
     do
 
-       specific_energy_abs_prev = specific_energy_abs
+       specific_energy_prev = specific_energy
 
        if(count(do_pda) < 10000) then
           call solve_pda_indiv_exact(pda_cells, id_pda_cell)
@@ -131,7 +131,7 @@ contains
           call solve_pda_indiv_iterative(pda_cells)
        end if
 
-       maxdiff = maxval(abs(specific_energy_abs - specific_energy_abs_prev) / specific_energy_abs_prev)
+       maxdiff = maxval(abs(specific_energy - specific_energy_prev) / specific_energy_prev)
 
        write(*,'(" [pda] maximum energy difference: ", ES9.2)') maxdiff
 
@@ -142,7 +142,7 @@ contains
     write(*,'(" [pda] converged")')
 
     deallocate(do_pda)
-    deallocate(specific_energy_abs_prev)
+    deallocate(specific_energy_prev)
     deallocate(e_mean)
 
     call update_energy_abs_tot()
@@ -158,7 +158,7 @@ contains
     integer :: id
     dtau_rosseland = 0._dp
     do id=1,n_dust
-       dtau_rosseland = dtau_rosseland + density(cell%ic,id) * chi_rosseland(id, specific_energy_abs(cell%ic,id)) * cell_width(cell,idir)
+       dtau_rosseland = dtau_rosseland + density(cell%ic,id) * chi_rosseland(id, specific_energy(cell%ic,id)) * cell_width(cell,idir)
     end do
   end function dtau_rosseland
 
@@ -222,7 +222,7 @@ contains
     do id_curr=1,size(pda_cells)
        ic = pda_cells(id_curr)%ic
        e_mean(ic) = b(id_curr)
-       call update_specific_energy_abs(ic)
+       call update_specific_energy(ic)
     end do
 
     deallocate(a, b)
@@ -293,7 +293,7 @@ contains
 
     do id_curr=1,size(pda_cells)
        ic = pda_cells(id_curr)%ic
-       call update_specific_energy_abs(ic)
+       call update_specific_energy(ic)
     end do
 
   end subroutine solve_pda_indiv_iterative

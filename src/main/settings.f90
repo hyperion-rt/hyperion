@@ -31,7 +31,7 @@ module settings
   character(len=4) :: output_temperature
   character(len=4) :: output_density
   character(len=4) :: output_density_diff
-  character(len=4) :: output_specific_energy_abs
+  character(len=4) :: output_specific_energy
   character(len=4) :: output_n_photons
 
   logical :: check_convergence = .false.

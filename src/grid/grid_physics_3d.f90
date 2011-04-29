@@ -21,11 +21,11 @@ module grid_physics
   public :: update_energy_abs
   public :: update_energy_abs_tot
   public :: select_dust_chi_rho
-  public :: select_dust_specific_energy_abs_rho
+  public :: select_dust_specific_energy_rho
   public :: emit_from_grid
   public :: precompute_jnu_var
   public :: tau_rosseland_to_closest_wall
-  public :: specific_energy_abs_converged
+  public :: specific_energy_converged
 
   ! Density (immutable)
   real(dp),allocatable,target, public :: density(:,:)
@@ -34,8 +34,8 @@ module grid_physics
   ! Variable quantities (made public for MPI)
   integer(idp),allocatable, public :: n_photons(:)
   integer(idp),allocatable, public :: last_photon_id(:)
-  real(dp),allocatable, public :: specific_energy_abs(:,:)
-  real(dp),allocatable, public :: specific_energy_abs_sum(:,:)
+  real(dp),allocatable, public :: specific_energy(:,:)
+  real(dp),allocatable, public :: specific_energy_sum(:,:)
   real(dp),allocatable, public :: energy_abs_tot(:)
 
   real(dp), allocatable,target, public :: alpha_rosseland(:)
@@ -76,15 +76,15 @@ contains
     end if
   end function select_dust_chi_rho
 
-  integer function select_dust_specific_energy_abs_rho(icell) result(id_select)
+  integer function select_dust_specific_energy_rho(icell) result(id_select)
     implicit none
     type(grid_cell),intent(in) :: icell
     do id=1,n_dust
-       absorption%pdf(id) = specific_energy_abs(icell%ic, id) * density(icell%ic, id)
+       absorption%pdf(id) = specific_energy(icell%ic, id) * density(icell%ic, id)
     end do
     call find_cdf(absorption)
     id_select = sample_pdf(absorption)
-  end function select_dust_specific_energy_abs_rho
+  end function select_dust_specific_energy_rho
 
   subroutine setup_grid_physics(group, use_mrw, use_pda)
 
@@ -99,7 +99,7 @@ contains
     ! Density
     allocate(density(geo%n_cells, n_dust))
     allocate(temperature(geo%n_cells, n_dust))
-    allocate(specific_energy_abs(geo%n_cells, n_dust))
+    allocate(specific_energy(geo%n_cells, n_dust))
 
     if(n_dust > 0) then
 
@@ -119,37 +119,37 @@ contains
 
        if(grid_exists(group, 'Specific Energy')) then
 
-          if(main_process()) write(*,'(" [grid_physics] reading specific_energy_abs grid")')
+          if(main_process()) write(*,'(" [grid_physics] reading specific_energy grid")')
 
-          ! Read in specific_energy_abs
-          call read_grid_4d(group, 'Specific Energy', specific_energy_abs, geo)
+          ! Read in specific_energy
+          call read_grid_4d(group, 'Specific Energy', specific_energy, geo)
 
-          ! Check number of dust types for specific_energy_abs
-          if(size(specific_energy_abs, 2).ne.n_dust) call error("setup_grid","specific_energy_abs array has wrong number of dust types")
+          ! Check number of dust types for specific_energy
+          if(size(specific_energy, 2).ne.n_dust) call error("setup_grid","specific_energy array has wrong number of dust types")
 
        else if(grid_exists(group, 'Temperature')) then
 
           if(main_process()) write(*,'(" [grid_physics] reading temperature grid")')
 
-          ! Read in specific_energy_abs
+          ! Read in specific_energy
           call read_grid_4d(group, 'Temperature', temperature, geo)
 
-          ! Check number of dust types for specific_energy_abs
+          ! Check number of dust types for specific_energy
           if(size(temperature, 2).ne.n_dust) call error("setup_grid","temperature array has wrong number of dust types")
 
           do ic=1,geo%n_cells
              do id=1,n_dust
                 if(density(ic, id) > 0._dp) then
-                   specific_energy_abs(ic, id) = temperature2specific_energy_abs(d(id), temperature(ic, id))
+                   specific_energy(ic, id) = temperature2specific_energy(d(id), temperature(ic, id))
                 end if
              end do
           end do
 
        else
 
-          ! Set all specific_energy_abs to minimum requested
+          ! Set all specific_energy to minimum requested
           do id=1,n_dust
-             specific_energy_abs(:,id) = d(id)%minimum_specific_energy
+             specific_energy(:,id) = d(id)%minimum_specific_energy
           end do
 
        end if
@@ -160,8 +160,8 @@ contains
     allocate(tmp_column_density(n_dust))
 
     ! Specific energy summation
-    allocate(specific_energy_abs_sum(geo%n_cells, n_dust))
-    specific_energy_abs_sum = 0._dp
+    allocate(specific_energy_sum(geo%n_cells, n_dust))
+    specific_energy_sum = 0._dp
 
     ! Total energy absorbed
     allocate(energy_abs_tot(n_dust))
@@ -215,7 +215,7 @@ contains
           if(density(ic, id) > 0._dp) then
              alpha_rosseland(ic) = alpha_rosseland(ic) &
                   & + density(ic,id) &
-                  & * chi_rosseland(id, specific_energy_abs(ic,id))
+                  & * chi_rosseland(id, specific_energy(ic,id))
           end if
        end do
     end do
@@ -236,9 +236,9 @@ contains
        case(1)
 
           do ic=1,geo%n_cells
-             if(specific_energy_abs(ic, id) > d(id)%sublimation_specific_energy) then
+             if(specific_energy(ic, id) > d(id)%sublimation_specific_energy) then
                 density(ic, id) = 0.
-                specific_energy_abs(ic, id) = d(id)%minimum_specific_energy
+                specific_energy(ic, id) = d(id)%minimum_specific_energy
                 reset = reset + 1
              end if
           end do
@@ -247,12 +247,12 @@ contains
        case(2)
 
           do ic=1,geo%n_cells
-             if (specific_energy_abs(ic,id) > d(id)%sublimation_specific_energy) then
+             if (specific_energy(ic,id) > d(id)%sublimation_specific_energy) then
                 density(ic,id) = density(ic,id) &
-                     & * d(id)%sublimation_specific_energy / specific_energy_abs(ic, id) &
-                     & * (chi_rosseland(id, specific_energy_abs(ic,id)) &
+                     & * d(id)%sublimation_specific_energy / specific_energy(ic, id) &
+                     & * (chi_rosseland(id, specific_energy(ic,id)) &
                      & / chi_rosseland(id, d(id)%sublimation_specific_energy))**2
-                specific_energy_abs(ic,id) = d(id)%sublimation_specific_energy
+                specific_energy(ic,id) = d(id)%sublimation_specific_energy
                 reset = reset + 1
              end if
           end do
@@ -262,13 +262,13 @@ contains
        case(3)
 
           do ic=1,geo%n_cells
-             if(specific_energy_abs(ic, id) > d(id)%sublimation_specific_energy) then
-                specific_energy_abs(ic, id) = d(id)%sublimation_specific_energy
+             if(specific_energy(ic, id) > d(id)%sublimation_specific_energy) then
+                specific_energy(ic, id) = d(id)%sublimation_specific_energy
                 reset = reset + 1
              end if
           end do
 
-          if(reset > 0) write(*,'(" [sublimate_dust] capping dust specific_energy_abs in ",I0," cells")') reset
+          if(reset > 0) write(*,'(" [sublimate_dust] capping dust specific_energy in ",I0," cells")') reset
 
        end select
 
@@ -291,11 +291,11 @@ contains
     if(main_process()) write(*,'(" [grid_physics] updating energy_abs")')
 
     do id=1,n_dust
-       specific_energy_abs(:,id) = specific_energy_abs_sum(:,id) * scale / geo%volume
+       specific_energy(:,id) = specific_energy_sum(:,id) * scale / geo%volume
     end do
 
-    if(count(specific_energy_abs==0.and.density>0.) > 0) then
-       write(*,'(" [update_energy_abs] ",I0," cells have no energy")') count(specific_energy_abs==0.and.density>0.)
+    if(count(specific_energy==0.and.density>0.) > 0) then
+       write(*,'(" [update_energy_abs] ",I0," cells have no energy")') count(specific_energy==0.and.density>0.)
     end if
 
     call update_energy_abs_tot()
@@ -314,32 +314,32 @@ contains
 
     do id=1,n_dust
 
-       if(any(specific_energy_abs(:,id) < d(id)%minimum_specific_energy)) then
-          if(main_process()) call warn("update_energy_abs","specific_energy_abs below minimum requested in some cells - resetting")
-          where(specific_energy_abs(:,id) < d(id)%minimum_specific_energy)
-             specific_energy_abs(:,id) = d(id)%minimum_specific_energy
+       if(any(specific_energy(:,id) < d(id)%minimum_specific_energy)) then
+          if(main_process()) call warn("update_energy_abs","specific_energy below minimum requested in some cells - resetting")
+          where(specific_energy(:,id) < d(id)%minimum_specific_energy)
+             specific_energy(:,id) = d(id)%minimum_specific_energy
           end where
        end if
 
-       if(any(specific_energy_abs(:,id) < d(id)%specific_energy_abs(1))) then
+       if(any(specific_energy(:,id) < d(id)%specific_energy(1))) then
           if(enforce_energy_range) then
-             if(main_process()) call warn("update_energy_abs","specific_energy_abs below minimum allowed in some cells - resetting")
-             where(specific_energy_abs(:,id) < d(id)%specific_energy_abs(1))
-                specific_energy_abs(:,id) = d(id)%specific_energy_abs(1)
+             if(main_process()) call warn("update_energy_abs","specific_energy below minimum allowed in some cells - resetting")
+             where(specific_energy(:,id) < d(id)%specific_energy(1))
+                specific_energy(:,id) = d(id)%specific_energy(1)
              end where
           else
-             if(main_process()) call warn("update_energy_abs","specific_energy_abs below minimum allowed in some cells - will pick closest emissivities")
+             if(main_process()) call warn("update_energy_abs","specific_energy below minimum allowed in some cells - will pick closest emissivities")
           end if
        end if
 
-       if(any(specific_energy_abs(:,id) > d(id)%specific_energy_abs(d(id)%n_e))) then
+       if(any(specific_energy(:,id) > d(id)%specific_energy(d(id)%n_e))) then
           if(enforce_energy_range) then
-             if(main_process()) call warn("update_energy_abs","specific_energy_abs above maximum allowed in some cells - resetting")
-             where(specific_energy_abs(:,id) > d(id)%specific_energy_abs(d(id)%n_e))
-                specific_energy_abs(:,id) = d(id)%specific_energy_abs(d(id)%n_e)
+             if(main_process()) call warn("update_energy_abs","specific_energy above maximum allowed in some cells - resetting")
+             where(specific_energy(:,id) > d(id)%specific_energy(d(id)%n_e))
+                specific_energy(:,id) = d(id)%specific_energy(d(id)%n_e)
              end where
           else
-             if(main_process()) call warn("update_energy_abs","specific_energy_abs above maximum allowed in some cells - will pick closest emissivities")
+             if(main_process()) call warn("update_energy_abs","specific_energy above maximum allowed in some cells - will pick closest emissivities")
           end if
        end if
 
@@ -353,7 +353,7 @@ contains
     implicit none
     if(main_process()) write(*,'(" [grid_physics] updating energy_abs_tot")')
     do id=1,n_dust
-       energy_abs_tot(id) = sum(specific_energy_abs(:,id)*density(:,id)*geo%volume)
+       energy_abs_tot(id) = sum(specific_energy(:,id)*density(:,id)*geo%volume)
     end do
   end subroutine update_energy_abs_tot
 
@@ -367,7 +367,7 @@ contains
 
     do ic=1,geo%n_cells
        do id=1,n_dust
-          call dust_jnu_var_pos_frac(d(id),specific_energy_abs(ic,id),jnu_var_id(ic,id),jnu_var_frac(ic,id))
+          call dust_jnu_var_pos_frac(d(id),specific_energy(ic,id),jnu_var_id(ic,id),jnu_var_frac(ic,id))
        end do
     end do
 
@@ -379,35 +379,35 @@ contains
     difference_ratio = max(a/b, b/a)
   end function difference_ratio
 
-  logical function specific_energy_abs_converged() result(converged)
+  logical function specific_energy_converged() result(converged)
 
     implicit none
 
     real(dp) :: value
     real(dp), save :: value_prev = huge(1._dp)
-    real(dp), allocatable, save :: specific_energy_abs_prev(:,:)
+    real(dp), allocatable, save :: specific_energy_prev(:,:)
 
-    write(*,'(" [specific_energy_abs_converged] checking convergence")')
+    write(*,'(" [specific_energy_converged] checking convergence")')
 
-    if(.not.allocated(specific_energy_abs_prev)) then
-       allocate(specific_energy_abs_prev(geo%n_cells, n_dust))
-       specific_energy_abs_prev = specific_energy_abs
+    if(.not.allocated(specific_energy_prev)) then
+       allocate(specific_energy_prev(geo%n_cells, n_dust))
+       specific_energy_prev = specific_energy
        converged = .false.
        return
     end if
 
-    if(all(specific_energy_abs_prev .eq. specific_energy_abs)) then
+    if(all(specific_energy_prev .eq. specific_energy)) then
        value = 0._dp
-    else if(all(specific_energy_abs_prev .eq. specific_energy_abs .or. specific_energy_abs_prev == 0 .or. specific_energy_abs == 0.)) then
+    else if(all(specific_energy_prev .eq. specific_energy .or. specific_energy_prev == 0 .or. specific_energy == 0.)) then
        write(*,*)
-       write(*,'(" [specific_energy_abs_converged] could not check for convergence, as the only cells that changed had zero value before or after")')
+       write(*,'(" [specific_energy_converged] could not check for convergence, as the only cells that changed had zero value before or after")')
        converged = .false.
        return
     else
-       value = quantile(reshape(difference_ratio(specific_energy_abs_prev, specific_energy_abs), (/geo%n_cells*n_dust/)), &
+       value = quantile(reshape(difference_ratio(specific_energy_prev, specific_energy), (/geo%n_cells*n_dust/)), &
             &           convergence_percentile, &
-            &           mask=reshape(specific_energy_abs_prev > 0 .and. specific_energy_abs > 0. .and. &
-            &                        specific_energy_abs_prev .ne. specific_energy_abs, (/geo%n_cells*n_dust/)))
+            &           mask=reshape(specific_energy_prev > 0 .and. specific_energy > 0. .and. &
+            &                        specific_energy_prev .ne. specific_energy, (/geo%n_cells*n_dust/)))
     end if
 
     write(*,*)
@@ -427,11 +427,11 @@ contains
     end if
     write(*,*)
 
-    specific_energy_abs_prev = specific_energy_abs
+    specific_energy_prev = specific_energy
 
     value_prev = value
 
-  end function specific_energy_abs_converged
+  end function specific_energy_converged
 
   type(photon) function emit_from_grid(inu) result(p)
 
@@ -473,7 +473,7 @@ contains
     ! Find the relative energy of the photon (relative to grid average energy)
     if(energy_abs_tot(p%dust_id) > 0._dp) then
        mass = density(p%icell%ic,p%dust_id) * geo%volume(p%icell%ic)
-       p%energy = specific_energy_abs(p%icell%ic,p%dust_id) &
+       p%energy = specific_energy(p%icell%ic,p%dust_id) &
             & * mass * dble(geo%n_cells) / energy_abs_tot(p%dust_id)
     else
        p%energy = 0._dp

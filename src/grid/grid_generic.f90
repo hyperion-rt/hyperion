@@ -20,7 +20,7 @@ contains
     implicit none
     if(allocated(n_photons)) n_photons = 0
     if(allocated(last_photon_id)) last_photon_id = 0
-    if(allocated(specific_energy_abs_sum)) specific_energy_abs_sum = 0._dp
+    if(allocated(specific_energy_sum)) specific_energy_sum = 0._dp
   end subroutine grid_reset_energy
 
   subroutine output_grid(handle, iter, n_iter)
@@ -60,7 +60,7 @@ contains
           do ic=1,geo%n_cells
              do id=1,n_dust
                 if(d(id)%is_lte) then
-                   temperature(ic, id) = specific_energy_abs2temperature(d(id), specific_energy_abs(ic, id))
+                   temperature(ic, id) = specific_energy2temperature(d(id), specific_energy(ic, id))
                 else
                    temperature(ic, id) = 0._dp
                 end if
@@ -81,18 +81,18 @@ contains
 
     ! ENERGY/PATH LENGTHS
 
-    if(trim(output_specific_energy_abs)=='all' .or. (trim(output_specific_energy_abs)=='last'.and.iter==n_iter)) then
-       if(allocated(specific_energy_abs)) then
+    if(trim(output_specific_energy)=='all' .or. (trim(output_specific_energy)=='last'.and.iter==n_iter)) then
+       if(allocated(specific_energy)) then
           select case(physics_io_type)
           case(sp)
-             call write_grid_4d(group, 'specific_energy_abs', real(specific_energy_abs, sp), geo)
+             call write_grid_4d(group, 'specific_energy', real(specific_energy, sp), geo)
           case(dp)
-             call write_grid_4d(group, 'specific_energy_abs', real(specific_energy_abs, dp), geo)
+             call write_grid_4d(group, 'specific_energy', real(specific_energy, dp), geo)
           case default
              call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
           end select
        else
-          call warn("output_grid","specific_energy_abs array is not allocated")
+          call warn("output_grid","specific_energy array is not allocated")
        end if
     end if
 

@@ -88,7 +88,7 @@ program main
      ! Check for convergence
      if(check_convergence) then
 
-        if(main_process()) converged = specific_energy_abs_converged()
+        if(main_process()) converged = specific_energy_converged()
 
         call mp_broadcast_convergence(converged)
 

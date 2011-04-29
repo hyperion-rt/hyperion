@@ -34,7 +34,7 @@ class MeanOpacities(FreezableClass):
         n_emiss = len(emissivities.var)
 
         # Set mean opacity variable
-        self.var_name = 'specific_energy_abs'
+        self.var_name = 'specific_energy'
         self.var = emissivities.var
 
         # Initialize mean opacity arrays
