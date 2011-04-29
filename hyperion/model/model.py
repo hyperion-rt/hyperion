@@ -129,6 +129,7 @@ class Model(FreezableClass):
         self.set_forced_first_scattering = self.conf.run.set_forced_first_scattering
         self.set_output_bytes = self.conf.run.set_output_bytes
         self.set_sample_sources_evenly = self.conf.run.set_sample_sources_evenly
+        self.set_enforce_energy_range = self.conf.run.set_enforce_energy_range
 
         self._freeze()
 
