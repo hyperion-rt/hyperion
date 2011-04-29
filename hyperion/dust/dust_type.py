@@ -226,14 +226,16 @@ class SphericalDust(FreezableClass):
         Read in from a standard dust file
         '''
 
-        # Check file exists
-        if not os.path.exists(filename):
-            raise Exception("File not found: %s" % filename)
+        if type(filename) is str:
 
-        self.filename = filename
+            # Check file exists
+            if not os.path.exists(filename):
+                raise Exception("File not found: %s" % filename)
+
+            self.filename = filename
 
         # Read in dust table set
-        ts = atpy.TableSet(filename, verbose=False)
+        ts = atpy.TableSet(filename, verbose=False, type='hdf5')
 
         # Check version and type
         if ts.keywords['version'] != 1:

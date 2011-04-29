@@ -4,6 +4,7 @@ import numpy as np
 from hyperion.util.integrate import integrate_loglog
 from hyperion.util.interpolate import interp1d_fast_loglog
 from hyperion.util.functions import FreezableClass, nu_common
+from hyperion.util.constants import sigma
 
 
 class MeanOpacities(FreezableClass):
@@ -72,6 +73,14 @@ class MeanOpacities(FreezableClass):
 
         # Indicate that mean opacities have been set
         self.set = True
+
+    def _temperature2specific_energy(self, temperature):
+        temperatures = np.sqrt(np.sqrt((self.var / (4. * sigma * self.kappa_planck))))
+        return interp1d_fast_loglog(temperatures, self.var, temperature)
+
+    def _specific_energy2temperature(self, specific_energy):
+        temperature = np.sqrt(np.sqrt((self.var / (4. * sigma * self.kappa_planck))))
+        return interp1d_fast_loglog(self.var, temperature, specific_energy)
 
     def to_table_set(self, table_set):
 

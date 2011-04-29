@@ -1,4 +1,5 @@
 import os
+import string
 import subprocess
 import warnings
 
@@ -1086,3 +1087,91 @@ class Model(FreezableClass):
             return fig
         else:
             return ax
+
+    def get_available_components(self, iteration=-1):
+        '''
+        Find out what physical components are available in the output file
+
+        Parameters
+        ----------
+
+        iteration : integer, optional
+            The iteration to retrieve the grid for. The default is to return the components for the last iteration
+        '''
+
+        # Open file
+        f = h5py.File('%s.rtout' % self.name, 'r')
+
+        # If iteration is last one, find iteration number
+        if iteration == -1:
+            iteration = find_last_iteration(f)
+
+        # Return components
+        components = f['Iteration %05i' % iteration].keys()
+        if 'specific_energy' in components:
+            components.append('temperature')
+        return components
+
+    def get_physical_grid(self, name, iteration=-1, dust_id='all'):
+        '''
+        Retrieve one of the physical grids for the model
+
+        Parameters
+        ----------
+
+        name : str
+            The component to retrieve. This should be one of:
+                'specific_energy'  The specific energy absorbed in each cell
+                'temperature'      The dust temperature in each cell (only
+                                   available for cells with LTE dust)
+                'density'          The density in each cell (after possible
+                                   dust sublimation)
+                'density_diff'     The difference in the final density
+                                   compared to the initial density
+                'n_photons'        The number of unique photons that went
+                                   through each cell
+
+        iteration : integer, optional
+            The iteration to retrieve the grid for. The default is to return the grid for the last iteration.
+
+        Returns
+        -------
+
+        array : numpy.array instance for regular grids
+            The physical grid in cgs.
+
+        Notes
+        -----
+
+        At the moment, this method only works on regular grids, not AMR or Oct-tree grids
+        '''
+
+        # Check name
+        available_components = self.get_available_components()
+        if name not in available_components:
+            raise Exception("name should be one of %s" % string.join(available_components, '/'))
+
+        # Open file
+        f_out = h5py.File('%s.rtout' % self.name, 'r')
+
+        # If iteration is last one, find iteration number
+        if iteration == -1:
+            iteration = find_last_iteration(f_out)
+
+        # Extract specific energy grid
+        if name == 'temperature':
+            array = np.array(f_out['Iteration %05i' % iteration]['specific_energy'])
+            f_in = h5py.File('%s.rtin' % self.name, 'r')
+            g_dust = f_in['Dust']
+            for i in range(array.shape[0]):
+                dust = g_dust['dust_%03i' % (i + 1)]
+                d = SphericalDust(dust)
+                array[i, :, :, :] = d.mean_opacities._specific_energy2temperature(array[i, :, :, :])
+        else:
+            array = np.array(f_out['Iteration %05i' % iteration][name])
+
+        # If required, extract grid for a specific dust type
+        if dust_id == 'all':
+            return [array[i, :, :, :] for i in range(array.shape[0])]
+        else:
+            return array[dust_id, :, :, :]
