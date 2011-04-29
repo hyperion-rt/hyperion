@@ -28,7 +28,7 @@ contains
     real(dp) :: xi,albedo
     real(dp) :: energy_scaling
 
-    ! given the density and temperature of each dust dust, process a photon
+    ! given the density and energy of each dust type, process a photon
     ! this means finding out whether to scatter or aborb the photon, and to do
     ! whatever needs doing
 
