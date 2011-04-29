@@ -80,8 +80,18 @@ contains
     real(dp) :: norm, dmu
     character(len=100) :: path
     character(len=4) :: sublimation
+    type(version) :: python_version
 
     ! Read dust file
+
+    if(mp_exists_keyword(group, '/', 'python_version')) then
+       call mp_read_keyword(group, '/', 'python_version', python_version%string)
+       if(python_version < version('0.7.8')) then
+          call error("setup_initial", "cannot read dust files made with the Python module before version 0.7.8")
+       end if
+    else
+       call error("setup_initial", "cannot read dust files made with the Python module before version 0.7.8")
+    end if
 
     call mp_read_keyword(group, '.', 'emissvar', d%emiss_var)
 

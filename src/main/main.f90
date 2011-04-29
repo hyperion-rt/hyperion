@@ -21,7 +21,7 @@ program main
   logical :: converged
   character(len=30) :: datetime
 
-  character(len=5), parameter :: version = '0.7.7'
+  character(len=5), parameter :: fortran_version = '0.7.8'
 
   call mp_set_compression(.true.)
 
@@ -45,7 +45,7 @@ program main
   ! Prepare output directory
   if(main_process()) then
      handle_out = mp_open_new(output_file)
-     call mp_write_keyword(handle_out, '/', 'fortran_version', version)
+     call mp_write_keyword(handle_out, '/', 'fortran_version', fortran_version)
   end if
 
   if(main_process()) then

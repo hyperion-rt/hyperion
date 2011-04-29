@@ -93,8 +93,6 @@ contains
     integer(hid_t),intent(in) :: group
     logical,intent(in) :: use_mrw, use_pda
 
-    integer :: ic, id
-
     ! Density
     allocate(density(geo%n_cells, n_dust))
     allocate(specific_energy(geo%n_cells, n_dust))

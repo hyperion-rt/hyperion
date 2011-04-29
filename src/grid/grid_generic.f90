@@ -31,7 +31,6 @@ contains
     integer,intent(in) :: iter, n_iter
     character(len=100) :: group_name
     integer(hid_t) :: group
-    integer :: id, ic
 
     write(*,'(" [output_grid] outputting grid arrays for iteration")')
 

@@ -5,6 +5,8 @@ import warnings
 import atpy
 import numpy as np
 
+import hyperion
+
 from hyperion.util.constants import c
 from hyperion.util.functions import FreezableClass
 from hyperion.util.interpolate import interp1d_fast_loglog
@@ -198,6 +200,7 @@ class SphericalDust(FreezableClass):
         # Add standard keywords to header
         ts.add_keyword('version', 1)
         ts.add_keyword('type', 1)
+        ts.add_keyword('python_version', hyperion.__version__)
         if self.md5:
             ts.add_keyword('asciimd5', self.md5)
 

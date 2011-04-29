@@ -4,6 +4,7 @@ FCMPI = @mpi_fc@ @extra_mpi@
 COMMON = 	fortranlib/src/base_types.f90 \
 		fortranlib/src/lib_messages.f90 \
 		fortranlib/src/lib_io.f90 \
+		fortranlib/src/lib_version.f90 \
 		fortranlib/src/lib_algebra.f90 \
 		fortranlib/src/lib_conf.f90 \
 		fortranlib/src/lib_array.f90 \

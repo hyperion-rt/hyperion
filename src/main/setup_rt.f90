@@ -29,6 +29,16 @@ contains
     integer(hid_t),intent(in) :: input_handle
     integer(hid_t) :: g_dust, g_geometry, g_physics, g_sources, g_output
     integer :: physics_io_bytes
+    type(version) :: python_version
+
+    if(mp_exists_keyword(input_handle, '/', 'python_version')) then
+       call mp_read_keyword(input_handle, '/', 'python_version', python_version%string)
+       if(python_version < version('0.7.8')) then
+          call error("setup_initial", "cannot read files made with the Python module before version 0.7.8")
+       end if
+    else
+       call error("setup_initial", "cannot read files made with the Python module before version 0.7.8")
+    end if
 
     call mp_read_keyword(input_handle, '/', 'monochromatic', use_exact_nu)
     call mp_read_keyword(input_handle, '/', 'raytracing', use_raytracing)
