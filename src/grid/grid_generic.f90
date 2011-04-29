@@ -31,7 +31,6 @@ contains
     integer,intent(in) :: iter, n_iter
     character(len=100) :: group_name
     integer(hid_t) :: group
-    real(dp),allocatable :: temperature(:,:)
     integer :: id, ic
 
     write(*,'(" [output_grid] outputting grid arrays for iteration")')
@@ -47,36 +46,6 @@ contains
        else
           call warn("output_grid","n_photons array is not allocated")
        end if
-    end if
-
-    ! TEMPERATURE
-
-    if(trim(output_temperature)=='all' .or. (trim(output_temperature)=='last'.and.iter==n_iter)) then
-
-       allocate(temperature(geo%n_cells, n_dust))
-
-       ! In future, it might be more efficient to compute this using all nodes and reduce
-       if(main_process()) then
-          do ic=1,geo%n_cells
-             do id=1,n_dust
-                if(d(id)%is_lte) then
-                   temperature(ic, id) = specific_energy2temperature(d(id), specific_energy(ic, id))
-                else
-                   temperature(ic, id) = 0._dp
-                end if
-             end do
-          end do
-       end if
-
-       select case(physics_io_type)
-       case(sp)
-          call write_grid_4d(group, 'temperature', real(temperature, sp), geo)
-       case(dp)
-          call write_grid_4d(group, 'temperature', real(temperature, dp), geo)
-       case default
-          call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
-       end select
-
     end if
 
     ! ENERGY/PATH LENGTHS

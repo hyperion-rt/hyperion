@@ -446,7 +446,7 @@ contains
              p%dust_id = select_dust_specific_energy_rho(icell)
              p%emiss_var_id = jnu_var_id(icell%ic, p%dust_id)
              p%emiss_var_frac = jnu_var_frac(icell%ic, p%dust_id)
-             call dust_sample_emit_frequency(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu)
+             call dust_sample_j_nu(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu)
           end select
        end if
 
@@ -459,7 +459,7 @@ contains
           p%dust_id = select_dust_specific_energy_rho(icell)
           p%emiss_var_id = jnu_var_id(icell%ic, p%dust_id)
           p%emiss_var_frac = jnu_var_frac(icell%ic, p%dust_id)
-          call dust_sample_emit_frequency(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu)
+          call dust_sample_j_nu(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu)
        end select
 
     end if

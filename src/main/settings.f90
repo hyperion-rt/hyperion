@@ -28,7 +28,6 @@ module settings
 
   integer :: physics_io_type
 
-  character(len=4) :: output_temperature
   character(len=4) :: output_density
   character(len=4) :: output_density_diff
   character(len=4) :: output_specific_energy

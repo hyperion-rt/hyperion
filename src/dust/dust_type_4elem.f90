@@ -14,10 +14,9 @@ module type_dust
   public :: dust_scatter
   public :: dust_scatter_peeloff
   public :: dust_sample_emit_probability
-  public :: dust_sample_emit_frequency
+  public :: dust_sample_j_nu
+  public :: dust_sample_b_nu
   public :: dust_jnu_var_pos_frac
-  public :: specific_energy2temperature
-  public :: temperature2specific_energy
 
   type dust
 
@@ -51,7 +50,6 @@ module type_dust
      real(dp),allocatable :: kappa_planck(:)     ! Planck mean absoptive opacity
      real(dp),allocatable :: chi_rosseland(:)    ! Rosseland mean opacity
      real(dp),allocatable :: kappa_rosseland(:)  ! Rosseland mean opacity
-     real(dp),allocatable :: temperature(:)      ! Corresponding temperature
 
      ! Emissivity
      integer :: n_jnu                             ! number of emissivities
@@ -228,10 +226,6 @@ contains
 
     ! need to check monotonically increases
 
-    ! Compute temperature from specific energy absorbed
-    allocate(d%temperature(d%n_e))
-    d%temperature = (d%specific_energy / 4. / stef_boltz / d%kappa_planck)**0.25
-
     ! EMISSIVITIES
 
     path = 'Emissivities'
@@ -273,26 +267,6 @@ contains
     ! end do
 
   end subroutine dust_setup
-
-  real(dp) function specific_energy2temperature(d, specific_energy) result(temperature)
-    implicit none
-    type(dust), intent(in) :: d
-    real(dp),intent(in) :: specific_energy
-    if(specific_energy < d%specific_energy(1)) then
-       temperature = d%temperature(1)
-    else if(specific_energy > d%specific_energy(d%n_e)) then
-       temperature = d%temperature(d%n_e)
-    else
-       temperature = interp1d_loglog(d%specific_energy, d%temperature, specific_energy)
-    end if
-  end function specific_energy2temperature
-
-  real(dp) function temperature2specific_energy(d, temperature) result(specific_energy)
-    implicit none
-    type(dust), intent(in) :: d
-    real(dp),intent(in)  :: temperature
-    specific_energy = interp1d_loglog(d%temperature, d%specific_energy, temperature)
-  end function temperature2specific_energy
 
   subroutine dust_jnu_var_pos_frac(d,specific_energy,jnu_var_id,jnu_var_frac)
     implicit none
@@ -345,7 +319,7 @@ contains
     real(dp),intent(out)           :: nu
     real(dp),intent(out)           :: energy_scaling
 
-    call dust_sample_emit_frequency(d,jnu_var_id,jnu_var_frac,nu)
+    call dust_sample_j_nu(d,jnu_var_id,jnu_var_frac,nu)
 
     s = stokes_dp(1._dp,0._dp,0._dp,0._dp)
 
@@ -379,7 +353,7 @@ contains
 
   end subroutine dust_sample_emit_probability
 
-  subroutine dust_sample_emit_frequency(d,jnu_var_id,jnu_var_frac,nu)
+  subroutine dust_sample_j_nu(d,jnu_var_id,jnu_var_frac,nu)
 
     implicit none
 
@@ -398,7 +372,7 @@ contains
     nu = log10(nu1) + jnu_var_frac * (log10(nu2) - log10(nu1))
     nu = 10._dp**nu
 
-  end subroutine dust_sample_emit_frequency
+  end subroutine dust_sample_j_nu
 
   subroutine dust_sample_b_nu(d,jnu_var_id,jnu_var_frac,nu)
 

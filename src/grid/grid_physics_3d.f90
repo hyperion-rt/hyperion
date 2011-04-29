@@ -94,11 +94,9 @@ contains
     logical,intent(in) :: use_mrw, use_pda
 
     integer :: ic, id
-    real(dp),allocatable :: temperature(:,:)
 
     ! Density
     allocate(density(geo%n_cells, n_dust))
-    allocate(temperature(geo%n_cells, n_dust))
     allocate(specific_energy(geo%n_cells, n_dust))
 
     if(n_dust > 0) then
@@ -126,24 +124,6 @@ contains
 
           ! Check number of dust types for specific_energy
           if(size(specific_energy, 2).ne.n_dust) call error("setup_grid","specific_energy array has wrong number of dust types")
-
-       else if(grid_exists(group, 'Temperature')) then
-
-          if(main_process()) write(*,'(" [grid_physics] reading temperature grid")')
-
-          ! Read in specific_energy
-          call read_grid_4d(group, 'Temperature', temperature, geo)
-
-          ! Check number of dust types for specific_energy
-          if(size(temperature, 2).ne.n_dust) call error("setup_grid","temperature array has wrong number of dust types")
-
-          do ic=1,geo%n_cells
-             do id=1,n_dust
-                if(density(ic, id) > 0._dp) then
-                   specific_energy(ic, id) = temperature2specific_energy(d(id), temperature(ic, id))
-                end if
-             end do
-          end do
 
        else
 

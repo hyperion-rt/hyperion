@@ -46,7 +46,7 @@ module type_photon
      ! The emissivity type:
      ! 1 - spectrum from a source (use source_id)
      ! 2 - blackbody (use temperature)
-     ! 3 - dust emission (use temperature and dust_id)
+     ! 3 - dust emission (use specific_energy and dust_id)
      integer :: emiss_type = 0
 
      integer :: source_id = 0

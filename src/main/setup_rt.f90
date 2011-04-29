@@ -77,7 +77,7 @@ contains
        call mp_read_keyword(input_handle, '/', 'n_lucy_iter', n_lucy_iter)
        if(n_lucy_iter > 0) then
           call mp_read_keyword(input_handle, '/', 'n_lucy_photons', n_lucy_photons)
-          if(n_lucy_photons==0) call error("setup_initial", "Number of temperature iterations is non-zero, but number of temperature photons is zero")
+          if(n_lucy_photons==0) call error("setup_initial", "Number of specific_energy iterations is non-zero, but number of specific_energy photons is zero")
        else
           n_lucy_photons = 0
        end if
@@ -120,7 +120,7 @@ contains
 
     ! If no sources have been set up, give an error if we are not in raytracing only mode
     if(n_sources == 0) then
-       if(n_lucy_iter > 0) call error("setup_initial","no sources set up - need sources for temperature iteration")
+       if(n_lucy_iter > 0) call error("setup_initial","no sources set up - need sources for specific_energy iteration(s)")
        if(use_exact_nu) then
           n_last_photons_sources = 0
        else
@@ -139,13 +139,6 @@ contains
     ! OUTPUT
 
     g_output = mp_open_group(input_handle, '/Output')
-
-    call mp_read_keyword(g_output, '.', 'output_temperature', output_temperature)
-
-    if(trim(output_temperature).ne.'all' &
-         & .and.trim(output_temperature).ne.'last' &
-         & .and.trim(output_temperature).ne.'none') &
-         & call error("setup_initial", "output_temperature should be one of all/last/none")
 
     call mp_read_keyword(g_output, '.', 'output_density', output_density)
 
