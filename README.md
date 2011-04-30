@@ -29,3 +29,5 @@ Updating
 To update, type:
 
     git pull
+    git submodule update
+
