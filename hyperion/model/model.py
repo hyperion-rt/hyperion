@@ -123,6 +123,7 @@ class Model(FreezableClass):
         self.reset_sources()
         self.reset_images()
         self.specific_energy = None
+        self.minimum_specific_energy = []
         self.set_monochromatic(False)
 
         self.grid = None
@@ -268,6 +269,7 @@ class Model(FreezableClass):
         if len(self.density) > 0:
 
             self.grid.write_physical_array(g_physics, self.density, "Density", dust=True, compression=compression, physics_dtype=physics_dtype)
+            g_physics.create_dataset("Minimum Specific Energy", data=self.minimum_specific_energy)
 
             if self.specific_energy is not None:
                 if type(self.specific_energy) is list:
@@ -350,24 +352,45 @@ class Model(FreezableClass):
     def add_source(self, source):
         self.sources.append(source)
 
-    def add_density_grid(self, density, dust, specific_energy=None):
+    def add_density_grid(self, density, dust, specific_energy=None, minimum_specific_energy=0.):
+
+        # Check that grid has been previously defined
         if not self.grid:
             raise Exception("Grid not defined")
+
+        # Check whether grid dimensions are the same
         if not isinstance(self.grid, AMRGrid):
             if not density.shape == self.grid.shape:
                 raise Exception("Density shape does not match that of grid")
             if specific_energy is not None:
                 if not specific_energy.shape == self.grid.shape:
                     raise Exception("Specific Energy shape does not match that of grid")
+
+        # Check whether all densities are zero
         if np.all(density == 0.):
             warnings.warn("All density values are zero - ignoring density grid")
             return
+
+        # Check consistency between density list size and specific energy list size
+        if len(density) > 0:
+            if specific_energy is not None and self.specific_energy is None:
+                raise Exception("Cannot add specific energy as it was not added for previous density arrays")
+            if specific_energy is None and self.specific_energy is not None:
+                raise Exception("Specific energy was added for previous density arrays, so should be added for all arrays")
+        else:
+            if specific_energy is not None:
+                self.specific_energy = []
+
+        # Set the density and dust
         self.density.append(density)
         self.dust.append(dust)
+
+        # Set specific energy if specified
         if specific_energy is not None:
-            if self.specific_energy is None:
-                self.specific_energy = []
             self.specific_energy.append(specific_energy)
+
+        # Set minimum specific energy
+        self.minimum_specific_energy.append(minimum_specific_energy)
 
     def set_cartesian_grid(self, x_wall, y_wall, z_wall):
         self.grid = CartesianGrid(x_wall, y_wall, z_wall)

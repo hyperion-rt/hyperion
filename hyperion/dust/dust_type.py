@@ -44,8 +44,6 @@ class SphericalDust(FreezableClass):
         self.emissivities = Emissivities()
         self.mean_opacities = MeanOpacities()
 
-        self.set_minimum_specific_energy(0.)
-
         self.set_sublimation_specific_energy('no', 0.)
 
         self._freeze()
@@ -148,37 +146,6 @@ class SphericalDust(FreezableClass):
         if self.sublimation_mode in ['slow', 'fast', 'cap']:
             table_set.add_keyword('sublimation_specific_energy', self.sublimation_energy)
 
-    def set_minimum_temperature(self, temperature):
-        '''
-        Set the minimum dust temperature
-
-        Dust which has a temperature that falls below this value will be
-        reset to the minimum at the end of each iteration.
-
-        Parameters
-        ----------
-        temperature : float
-            The minimum temperature in K
-        '''
-        self.minimum_specific_energy = self.optical_properties._temperature2specific_energy(temperature)
-
-    def set_minimum_specific_energy(self, specific_energy):
-        '''
-        Set the minimum dust specific energy
-
-        Dust which has a specific energy that falls below this value will be
-        reset to the minimum at the end of each iteration.
-
-        Parameters
-        ----------
-        specific_energy : float
-            The minimum specific energy in cgs
-        '''
-        self.minimum_specific_energy = specific_energy
-
-    def _write_minimum_energy(self, table_set):
-        table_set.add_keyword('minimum_specific_energy', self.minimum_specific_energy)
-
     def write(self, filename, compression=True):
         '''
         Write out to a standard dust file, including calculations of the mean
@@ -215,9 +182,6 @@ class SphericalDust(FreezableClass):
 
         # Dust sublimation parameters
         self._write_dust_sublimation(ts)
-
-        # Minimum specific energy parameter
-        self._write_minimum_energy(ts)
 
         # Output dust file
         ts.write(filename, overwrite=True, compression=compression, type='hdf5')

@@ -24,9 +24,6 @@ module type_dust
      integer :: sublimation_mode = 0 ! 0=no, 1=fast, 2=slow, 3=capped
      real(dp) :: sublimation_specific_energy
 
-     ! Minimum energy
-     real(dp) :: minimum_specific_energy
-
      ! Optical properties
      integer :: n_nu                              ! number of frequencies
      real(dp),allocatable :: nu(:),log_nu(:)      ! Frequency
@@ -118,10 +115,6 @@ contains
     case default
        call error('setup_initial','Unknown dust sublimation mode: '//trim(sublimation))
     end select
-
-    ! MINIMUM ENERGY
-
-    call mp_read_keyword(group, '.', 'minimum_specific_energy', d%minimum_specific_energy)
 
     ! OPTICAL PROPERTIES
 

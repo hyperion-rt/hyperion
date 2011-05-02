@@ -9,6 +9,7 @@ module grid_physics
   use grid_geometry
   use settings
   use mpi_core
+  use mpi_io
 
   implicit none
   save
@@ -37,6 +38,7 @@ module grid_physics
   real(dp),allocatable, public :: specific_energy(:,:)
   real(dp),allocatable, public :: specific_energy_sum(:,:)
   real(dp),allocatable, public :: energy_abs_tot(:)
+  real(dp),allocatable, public :: minimum_specific_energy(:)
 
   real(dp), allocatable,target, public :: alpha_rosseland(:)
 
@@ -127,10 +129,13 @@ contains
 
           ! Set all specific_energy to minimum requested
           do id=1,n_dust
-             specific_energy(:,id) = d(id)%minimum_specific_energy
+             specific_energy(:,id) = minimum_specific_energy(id)
           end do
 
        end if
+
+       ! Read in minimum specific energy
+       call mp_read_array_auto(group, 'Minimum Specific Energy', minimum_specific_energy)
 
     end if
 
@@ -216,7 +221,7 @@ contains
           do ic=1,geo%n_cells
              if(specific_energy(ic, id) > d(id)%sublimation_specific_energy) then
                 density(ic, id) = 0.
-                specific_energy(ic, id) = d(id)%minimum_specific_energy
+                specific_energy(ic, id) = minimum_specific_energy(id)
                 reset = reset + 1
              end if
           end do
@@ -292,10 +297,10 @@ contains
 
     do id=1,n_dust
 
-       if(any(specific_energy(:,id) < d(id)%minimum_specific_energy)) then
+       if(any(specific_energy(:,id) < minimum_specific_energy(id))) then
           if(main_process()) call warn("update_energy_abs","specific_energy below minimum requested in some cells - resetting")
-          where(specific_energy(:,id) < d(id)%minimum_specific_energy)
-             specific_energy(:,id) = d(id)%minimum_specific_energy
+          where(specific_energy(:,id) < minimum_specific_energy(id))
+             specific_energy(:,id) = minimum_specific_energy(id)
           end where
        end if
 
