@@ -72,6 +72,10 @@ module mpi_io
 
   public :: mp_read_array_auto
   interface mp_read_array_auto
+     module procedure mp_read_array_auto_1d_mpi_real4
+     module procedure mp_read_array_auto_1d_mpi_real8
+     module procedure mp_read_array_auto_1d_mpi_integer4
+     module procedure mp_read_array_auto_1d_mpi_integer8
      module procedure mp_read_array_auto_2d_mpi_real4
      module procedure mp_read_array_auto_2d_mpi_real8
      module procedure mp_read_array_auto_2d_mpi_integer4
@@ -96,6 +100,10 @@ module mpi_io
 
   public :: mp_write_array
   interface mp_write_array
+     module procedure mp_write_array_1d_mpi_real4
+     module procedure mp_write_array_1d_mpi_real8
+     module procedure mp_write_array_1d_mpi_integer4
+     module procedure mp_write_array_1d_mpi_integer8
      module procedure mp_write_array_2d_mpi_real4
      module procedure mp_write_array_2d_mpi_real8
      module procedure mp_write_array_2d_mpi_integer4
@@ -353,6 +361,21 @@ contains
     if(main_process()) call hdf5_table_write_column(handle, path, name, array)
   end subroutine mp_table_write_column_2d_<T>
 
+  subroutine mp_read_array_auto_1d_<T>(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    @T,allocatable,intent(out) :: array(:)
+    integer :: n1
+    if(main_process()) then
+       call hdf5_read_array_auto(handle,path,array)
+       n1 = size(array, 1)
+    end if
+    call mpi_bcast(n1, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
+    if(.not. main_process()) allocate(array(n1))
+    call mpi_bcast(array, n1, <T>, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_auto_1d_<T>
+
   subroutine mp_read_array_auto_2d_<T>(handle,path,array)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -457,6 +480,14 @@ contains
     if(.not. main_process()) allocate(array(n1, n2, n3, n4, n5, n6))
     call mpi_bcast(array, n1*n2*n3*n4*n5*n6, <T>, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_array_auto_6d_<T>
+
+  subroutine mp_write_array_1d_<T>(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    @T,intent(in) :: array(:)
+    if(main_process()) call hdf5_write_array(handle,path,array)
+  end subroutine mp_write_array_1d_<T>
 
   subroutine mp_write_array_2d_<T>(handle,path,array)
     implicit none

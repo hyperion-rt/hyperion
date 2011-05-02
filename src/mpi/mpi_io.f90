@@ -1,4 +1,4 @@
-! MD5 of template: b6d391e6f5294277d77aa3f4b39d8aa7
+! MD5 of template: 505f593f3e8d6c1148b75eb48dfece4f
 module mpi_io
 
   use core_lib
@@ -73,6 +73,10 @@ module mpi_io
 
   public :: mp_read_array_auto
   interface mp_read_array_auto
+     module procedure mp_read_array_auto_1d_mpi_real4
+     module procedure mp_read_array_auto_1d_mpi_real8
+     module procedure mp_read_array_auto_1d_mpi_integer4
+     module procedure mp_read_array_auto_1d_mpi_integer8
      module procedure mp_read_array_auto_2d_mpi_real4
      module procedure mp_read_array_auto_2d_mpi_real8
      module procedure mp_read_array_auto_2d_mpi_integer4
@@ -97,6 +101,10 @@ module mpi_io
 
   public :: mp_write_array
   interface mp_write_array
+     module procedure mp_write_array_1d_mpi_real4
+     module procedure mp_write_array_1d_mpi_real8
+     module procedure mp_write_array_1d_mpi_integer4
+     module procedure mp_write_array_1d_mpi_integer8
      module procedure mp_write_array_2d_mpi_real4
      module procedure mp_write_array_2d_mpi_real8
      module procedure mp_write_array_2d_mpi_integer4
@@ -353,6 +361,21 @@ contains
     if(main_process()) call hdf5_table_write_column(handle, path, name, array)
   end subroutine mp_table_write_column_2d_mpi_integer8
 
+  subroutine mp_read_array_auto_1d_mpi_integer8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer(idp),allocatable,intent(out) :: array(:)
+    integer :: n1
+    if(main_process()) then
+       call hdf5_read_array_auto(handle,path,array)
+       n1 = size(array, 1)
+    end if
+    call mpi_bcast(n1, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
+    if(.not. main_process()) allocate(array(n1))
+    call mpi_bcast(array, n1, mpi_integer8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_auto_1d_mpi_integer8
+
   subroutine mp_read_array_auto_2d_mpi_integer8(handle,path,array)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -458,6 +481,14 @@ contains
     call mpi_bcast(array, n1*n2*n3*n4*n5*n6, mpi_integer8, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_array_auto_6d_mpi_integer8
 
+  subroutine mp_write_array_1d_mpi_integer8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer(idp),intent(in) :: array(:)
+    if(main_process()) call hdf5_write_array(handle,path,array)
+  end subroutine mp_write_array_1d_mpi_integer8
+
   subroutine mp_write_array_2d_mpi_integer8(handle,path,array)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -561,6 +592,21 @@ contains
     integer,intent(in) :: array(:, :)
     if(main_process()) call hdf5_table_write_column(handle, path, name, array)
   end subroutine mp_table_write_column_2d_mpi_integer4
+
+  subroutine mp_read_array_auto_1d_mpi_integer4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer,allocatable,intent(out) :: array(:)
+    integer :: n1
+    if(main_process()) then
+       call hdf5_read_array_auto(handle,path,array)
+       n1 = size(array, 1)
+    end if
+    call mpi_bcast(n1, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
+    if(.not. main_process()) allocate(array(n1))
+    call mpi_bcast(array, n1, mpi_integer4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_auto_1d_mpi_integer4
 
   subroutine mp_read_array_auto_2d_mpi_integer4(handle,path,array)
     implicit none
@@ -667,6 +713,14 @@ contains
     call mpi_bcast(array, n1*n2*n3*n4*n5*n6, mpi_integer4, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_array_auto_6d_mpi_integer4
 
+  subroutine mp_write_array_1d_mpi_integer4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer,intent(in) :: array(:)
+    if(main_process()) call hdf5_write_array(handle,path,array)
+  end subroutine mp_write_array_1d_mpi_integer4
+
   subroutine mp_write_array_2d_mpi_integer4(handle,path,array)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -770,6 +824,21 @@ contains
     real(dp),intent(in) :: array(:, :)
     if(main_process()) call hdf5_table_write_column(handle, path, name, array)
   end subroutine mp_table_write_column_2d_mpi_real8
+
+  subroutine mp_read_array_auto_1d_mpi_real8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(dp),allocatable,intent(out) :: array(:)
+    integer :: n1
+    if(main_process()) then
+       call hdf5_read_array_auto(handle,path,array)
+       n1 = size(array, 1)
+    end if
+    call mpi_bcast(n1, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
+    if(.not. main_process()) allocate(array(n1))
+    call mpi_bcast(array, n1, mpi_real8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_auto_1d_mpi_real8
 
   subroutine mp_read_array_auto_2d_mpi_real8(handle,path,array)
     implicit none
@@ -876,6 +945,14 @@ contains
     call mpi_bcast(array, n1*n2*n3*n4*n5*n6, mpi_real8, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_array_auto_6d_mpi_real8
 
+  subroutine mp_write_array_1d_mpi_real8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(dp),intent(in) :: array(:)
+    if(main_process()) call hdf5_write_array(handle,path,array)
+  end subroutine mp_write_array_1d_mpi_real8
+
   subroutine mp_write_array_2d_mpi_real8(handle,path,array)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -979,6 +1056,21 @@ contains
     real(sp),intent(in) :: array(:, :)
     if(main_process()) call hdf5_table_write_column(handle, path, name, array)
   end subroutine mp_table_write_column_2d_mpi_real4
+
+  subroutine mp_read_array_auto_1d_mpi_real4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(sp),allocatable,intent(out) :: array(:)
+    integer :: n1
+    if(main_process()) then
+       call hdf5_read_array_auto(handle,path,array)
+       n1 = size(array, 1)
+    end if
+    call mpi_bcast(n1, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
+    if(.not. main_process()) allocate(array(n1))
+    call mpi_bcast(array, n1, mpi_real4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_auto_1d_mpi_real4
 
   subroutine mp_read_array_auto_2d_mpi_real4(handle,path,array)
     implicit none
@@ -1084,6 +1176,14 @@ contains
     if(.not. main_process()) allocate(array(n1, n2, n3, n4, n5, n6))
     call mpi_bcast(array, n1*n2*n3*n4*n5*n6, mpi_real4, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_array_auto_6d_mpi_real4
+
+  subroutine mp_write_array_1d_mpi_real4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(sp),intent(in) :: array(:)
+    if(main_process()) call hdf5_write_array(handle,path,array)
+  end subroutine mp_write_array_1d_mpi_real4
 
   subroutine mp_write_array_2d_mpi_real4(handle,path,array)
     implicit none
