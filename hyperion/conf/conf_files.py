@@ -68,7 +68,7 @@ class RunConf(FreezableClass):
     def set_n_photons(self, initial=None, imaging=None,
                       imaging_sources=None, imaging_dust=None,
                       raytracing_sources=None, raytracing_dust=None,
-                      stats=10000):
+                      stats=0):
         '''
         Set the number of photons for the different iterations
 

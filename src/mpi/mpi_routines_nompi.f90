@@ -9,18 +9,21 @@ module mpi_routines
 
   real(dp) :: time_curr
 
+  integer(idp) :: n_photons_chunk
+
 contains
 
   subroutine mp_reset_first()
     implicit none
     time_curr = 0._dp
+    n_photons_chunk = 0
   end subroutine mp_reset_first
 
-  subroutine mp_n_photons(n_photons_tot, n_photons_curr, n_photons_chunk, n_photons)
+  subroutine mp_n_photons(n_photons_tot, n_photons_curr, n_photons_stats, n_photons)
     implicit none
 
     ! Total number of photons, and size of a chunk
-    integer(idp),intent(in) :: n_photons_tot, n_photons_chunk
+    integer(idp),intent(in) :: n_photons_tot, n_photons_stats
 
     ! Number of photons requested so far
     integer(idp),intent(inout) :: n_photons_curr
@@ -30,6 +33,15 @@ contains
 
     real(dp),save :: time1 = -1._dp
     real(dp) :: time2
+
+    ! Find the number of photons per chunk
+    if(n_photons_chunk == 0) then
+       if(n_photons_stats > 0) then
+          n_photons_chunk = n_photons_stats
+       else
+          n_photons_chunk = max(nint(real(n_photons_tot, dp) / 10._dp), 1)
+       end if
+    end if
 
     if(time1 < 0._dp) call cpu_time(time1)
     call cpu_time(time2)
