@@ -103,6 +103,8 @@ class AnalyticalYSOModel(Model):
 
         self.ambient = None
 
+        self.minimum_temperature = None
+
         Model.__init__(self, name=name)
 
     def __setattr__(self, attribute, value):
@@ -477,6 +479,9 @@ class AnalyticalYSOModel(Model):
 
     # OUTPUT
 
+    def set_minimum_temperature(self, temperature):
+        self.minimum_temperature = temperature
+
     def write(self, **kwargs):
 
         self.reset_density()
@@ -491,7 +496,8 @@ class AnalyticalYSOModel(Model):
 
                 if not disk.dust:
                     raise Exception("Disk %i dust not set" % (i + 1))
-                self.add_density_grid(disk.density(self.grid), disk.dust)
+                self.add_density_grid(disk.density(self.grid), disk.dust,
+                                      minimum_temperature=self.minimum_temperature)
 
         for i, envelope in enumerate(self.envelopes):
 
@@ -505,8 +511,8 @@ class AnalyticalYSOModel(Model):
 
                 if not envelope.dust:
                     raise Exception("Envelope dust not set")
-                self.add_density_grid(envelope.density(self.grid),
-                                      envelope.dust)
+                self.add_density_grid(envelope.density(self.grid), envelope.dust,
+                                      minimum_temperature=self.minimum_temperature)
 
                 if envelope.cavity is not None:
                     if envelope.cavity.theta_0 == 0.:
@@ -516,8 +522,8 @@ class AnalyticalYSOModel(Model):
                     else:
                         if not envelope.cavity.dust:
                             raise Exception("Cavity dust not set")
-                        self.add_density_grid(envelope.cavity.density(self.grid),
-                                              envelope.cavity.dust)
+                        self.add_density_grid(envelope.cavity.density(self.grid), envelope.cavity.dust,
+                                              minimum_temperature=self.minimum_temperature)
 
         # AMBIENT MEDIUM
 
@@ -545,7 +551,8 @@ class AnalyticalYSOModel(Model):
                     density_amb -= density_sum
                     density_amb[density_amb < 0.] = 0.
 
-                self.add_density_grid(density_amb, ambient.dust)
+                self.add_density_grid(density_amb, ambient.dust,
+                                      minimum_temperature=self.minimum_temperature)
 
         # SOURCES
 

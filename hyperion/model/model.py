@@ -352,7 +352,7 @@ class Model(FreezableClass):
     def add_source(self, source):
         self.sources.append(source)
 
-    def add_density_grid(self, density, dust, specific_energy=None, minimum_specific_energy=0.):
+    def add_density_grid(self, density, dust, specific_energy=None, minimum_specific_energy=None, minimum_temperature=None):
 
         # Check that grid has been previously defined
         if not self.grid:
@@ -390,7 +390,16 @@ class Model(FreezableClass):
             self.specific_energy.append(specific_energy)
 
         # Set minimum specific energy
-        self.minimum_specific_energy.append(minimum_specific_energy)
+        if minimum_specific_energy is not None and minimum_temperature is not None:
+            raise Exception("Cannot specify both the minimum specific energy and temperature")
+        elif minimum_specific_energy is not None:
+            self.minimum_specific_energy.append(minimum_specific_energy)
+        elif minimum_temperature is not None:
+            d = SphericalDust(dust) if type(dust) == str else dust
+            minimum_specific_energy = d.mean_opacities._temperature2specific_energy(minimum_temperature)
+            self.minimum_specific_energy.append(minimum_specific_energy)
+        else:
+            self.minimum_specific_energy.append(0.)
 
     def set_cartesian_grid(self, x_wall, y_wall, z_wall):
         self.grid = CartesianGrid(x_wall, y_wall, z_wall)
