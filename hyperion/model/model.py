@@ -793,6 +793,7 @@ class Model(FreezableClass):
 
         if filename:
             fig.savefig(filename)
+            plt.close(fig)
             return
         elif axes is None:
             return fig
@@ -1114,6 +1115,7 @@ class Model(FreezableClass):
 
         if filename:
             fig.savefig(filename)
+            plt.close(fig)
             return
         elif axes is None:
             return fig
