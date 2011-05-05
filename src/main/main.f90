@@ -22,7 +22,7 @@ program main
   logical :: converged
   character(len=30) :: datetime
 
-  character(len=5), parameter :: fortran_version = '0.7.8'
+  character(len=5), parameter :: fortran_version = '0.8.0'
 
   call mp_set_compression(.true.)
 

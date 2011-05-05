@@ -83,11 +83,11 @@ contains
 
     if(mp_exists_keyword(group, '/', 'python_version')) then
        call mp_read_keyword(group, '/', 'python_version', python_version%string)
-       if(python_version < version('0.7.8')) then
-          call error("setup_initial", "cannot read dust files made with the Python module before version 0.7.8")
+       if(python_version < version('0.8.0')) then
+          call error("setup_initial", "cannot read dust files made with the Python module before version 0.8.0")
        end if
     else
-       call error("setup_initial", "cannot read dust files made with the Python module before version 0.7.8")
+       call error("setup_initial", "cannot read dust files made with the Python module before version 0.8.0")
     end if
 
     call mp_read_keyword(group, '.', 'emissvar', d%emiss_var)

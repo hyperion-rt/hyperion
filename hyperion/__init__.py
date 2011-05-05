@@ -4,7 +4,7 @@ import hyperion.util
 import hyperion.atmos
 import hyperion.model
 
-__version__ = '0.7.8'
+__version__ = '0.8.0'
 
 data_dir = __path__[0] + '/data/'
 
