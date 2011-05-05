@@ -167,7 +167,7 @@ contains
     end if
 
     ! Partial Diffusion Approximation
-    if(use_pda) then
+    if(use_pda .or. trim(output_n_photons) .ne. 'none') then
 
        ! Number of photons in each cell
        allocate(n_photons(geo%n_cells))
