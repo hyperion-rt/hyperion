@@ -29,7 +29,11 @@ contains
     implicit none
     integer(idp),intent(in) :: count
     real(dp),intent(in) :: time
-    write(*,'(1X,3X,I12,3X,4X,F10.1,4X,4X,F9.2,4X)') count,time,real(count)/(time+1.e-30)
+    if(time < tiny(1._dp)) then
+       write(*,'(1X,3X,I12,3X,4X,F10.1,4X,4X,"   ...   ")') count,time
+    else
+       write(*,'(1X,3X,I12,3X,4X,F10.1,4X,4X,F9.2,4X)') count,time,real(count)/(time)
+    end if
   end subroutine perf_numbers
 
 end module performance
