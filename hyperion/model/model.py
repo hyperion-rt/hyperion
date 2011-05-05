@@ -352,7 +352,7 @@ class Model(FreezableClass):
     def add_source(self, source):
         self.sources.append(source)
 
-    def add_density_grid(self, density, dust, specific_energy=None, minimum_specific_energy=None, minimum_temperature=None):
+    def add_density_grid(self, density, dust, specific_energy=None, minimum_specific_energy=None, minimum_temperature=None, merge_if_possible=True):
 
         # Check that grid has been previously defined
         if not self.grid:
@@ -381,6 +381,39 @@ class Model(FreezableClass):
             if specific_energy is not None:
                 self.specific_energy = []
 
+        if minimum_specific_energy is not None and minimum_temperature is not None:
+            raise Exception("Cannot specify both the minimum specific energy and temperature")
+        elif minimum_temperature is not None:
+            d = SphericalDust(dust) if type(dust) == str else dust
+            minimum_specific_energy = d.mean_opacities._temperature2specific_energy(minimum_temperature)
+
+        # Check whether the density can be added to an existing one
+        if merge_if_possible:
+
+            # Only consider this if the specific energy is not specified
+            if specific_energy is None:
+
+                # Only do it if the dust type already exists
+                if dust in self.dust:
+
+                    ip = self.dust.index(dust)
+
+                    # Check whether the minimum_specific_energy values differ
+                    if minimum_specific_energy is not None:
+                        if self.minimum_specific_energy[ip] != minimum_specific_energy:
+                            warnings.warn("Cannot merge density grids because minimum_specific_energy values differ")
+                            merge = False
+                        else:
+                            merge = True
+                    else:
+                        merge = True
+
+                    # Merge the densities
+                    if merge:
+                        warnings.warn("Merging densities")
+                        self.density[ip] += density
+                        return
+
         # Set the density and dust
         self.density.append(density)
         self.dust.append(dust)
@@ -390,13 +423,7 @@ class Model(FreezableClass):
             self.specific_energy.append(specific_energy)
 
         # Set minimum specific energy
-        if minimum_specific_energy is not None and minimum_temperature is not None:
-            raise Exception("Cannot specify both the minimum specific energy and temperature")
-        elif minimum_specific_energy is not None:
-            self.minimum_specific_energy.append(minimum_specific_energy)
-        elif minimum_temperature is not None:
-            d = SphericalDust(dust) if type(dust) == str else dust
-            minimum_specific_energy = d.mean_opacities._temperature2specific_energy(minimum_temperature)
+        if minimum_specific_energy is not None:
             self.minimum_specific_energy.append(minimum_specific_energy)
         else:
             self.minimum_specific_energy.append(0.)
