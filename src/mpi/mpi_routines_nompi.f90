@@ -7,9 +7,26 @@ module mpi_routines
   implicit none
   save
 
-  real(dp) :: time_curr
+  private
 
+  public :: mp_reset_first
+  public :: mp_n_photons
+  public :: mp_collect_physical_arrays
+  public :: mp_broadcast_specific_energy
+  public :: mp_collect_images
+  public :: mp_broadcast_convergence
+  public :: mp_set_random_seed
+
+  real(dp) :: time_curr
   integer(idp) :: n_photons_chunk
+
+  public :: mp_sync
+  interface mp_sync
+     module procedure mp_sync_integer4
+     module procedure mp_sync_integer8
+     module procedure mp_sync_real4
+     module procedure mp_sync_real8
+  end interface mp_sync
 
 contains
 
@@ -61,8 +78,8 @@ contains
     call set_seed(-124902+rank)
   end subroutine mp_set_random_seed
 
-  subroutine mp_collect()
-  end subroutine mp_collect
+  subroutine mp_collect_physical_arrays()
+  end subroutine mp_collect_physical_arrays
 
   subroutine mp_broadcast_specific_energy()
   end subroutine mp_broadcast_specific_energy
@@ -72,16 +89,28 @@ contains
     logical,intent(inout) :: converged
   end subroutine mp_broadcast_convergence
 
-  subroutine mp_sync_energy()
-  end subroutine mp_sync_energy
-
-  subroutine mp_sync_cputime(cputime)
+  subroutine mp_sync_integer4(value)
     implicit none
-    real(dp),intent(inout) :: cputime
-  end subroutine mp_sync_cputime
+    integer,intent(in) :: value
+  end subroutine mp_sync_integer4
 
-  subroutine mp_collect_results()
-  end subroutine mp_collect_results
+  subroutine mp_sync_integer8(value)
+    implicit none
+    integer(idp),intent(in) :: value
+  end subroutine mp_sync_integer8
+
+  subroutine mp_sync_real4(value)
+    implicit none
+    real(sp),intent(in) :: value
+  end subroutine mp_sync_real4
+
+  subroutine mp_sync_real8(value)
+    implicit none
+    real(dp),intent(in) :: value
+  end subroutine mp_sync_real8
+
+  subroutine mp_collect_images()
+  end subroutine mp_collect_images
 
 
 end module mpi_routines

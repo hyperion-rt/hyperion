@@ -46,6 +46,7 @@ OBJECTS_CAR_SER =	src/mpi/mpi_core_nompi.f90 \
 			fortranlib/src/@posix_module_serial@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
+			src/main/counters.f90 \
 			src/mpi/mpi_io_nompi.f90 \
 			src/grid/type_grid_cartesian_3d.f90 \
 			src/core/type_cell_id_3d.f90 \
@@ -62,7 +63,8 @@ OBJECTS_CAR_MPI =	src/mpi/mpi_core.f90 \
 			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
-            src/mpi/mpi_io.f90 \
+			src/main/counters.f90 \
+			src/mpi/mpi_io.f90 \
 			src/grid/type_grid_cartesian_3d.f90 \
 			src/core/type_cell_id_3d.f90 \
 			$(OBJECTS1) \
@@ -78,6 +80,7 @@ OBJECTS_AMR_SER =	src/mpi/mpi_core_nompi.f90 \
 			fortranlib/src/@posix_module_serial@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
+			src/main/counters.f90 \
 			src/mpi/mpi_io_nompi.f90 \
 			src/grid/type_grid_amr.f90 \
 			src/core/type_cell_id_amr.f90 \
@@ -94,6 +97,7 @@ OBJECTS_AMR_MPI =	src/mpi/mpi_core.f90 \
 			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
+			src/main/counters.f90 \
 			src/mpi/mpi_io.f90 \
 			src/grid/type_grid_amr.f90 \
 			src/core/type_cell_id_amr.f90 \
@@ -110,6 +114,7 @@ OBJECTS_OCT_SER =	src/mpi/mpi_core_nompi.f90 \
 			fortranlib/src/@posix_module_serial@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
+			src/main/counters.f90 \
 			src/mpi/mpi_io_nompi.f90 \
 			src/grid/type_grid_octree.f90 \
 			src/core/type_cell_id_octtree.f90 \
@@ -126,6 +131,7 @@ OBJECTS_OCT_MPI =	src/mpi/mpi_core.f90 \
 			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
+			src/main/counters.f90 \
 			src/mpi/mpi_io.f90 \
 			src/grid/type_grid_octree.f90 \
 			src/core/type_cell_id_octtree.f90 \
@@ -142,6 +148,7 @@ OBJECTS_SPH_SER =	src/mpi/mpi_core_nompi.f90 \
 			fortranlib/src/@posix_module_serial@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
+			src/main/counters.f90 \
 			src/mpi/mpi_io_nompi.f90 \
 			src/grid/type_grid_spherical_3d.f90 \
 			src/core/type_cell_id_3d.f90 \
@@ -158,6 +165,7 @@ OBJECTS_SPH_MPI =	src/mpi/mpi_core.f90 \
 			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
+			src/main/counters.f90 \
 			src/mpi/mpi_io.f90 \
 			src/grid/type_grid_spherical_3d.f90 \
 			src/core/type_cell_id_3d.f90 \
@@ -174,6 +182,7 @@ OBJECTS_CYL_SER =	src/mpi/mpi_core_nompi.f90 \
 			fortranlib/src/@posix_module_serial@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
+			src/main/counters.f90 \
 			src/mpi/mpi_io_nompi.f90 \
 			src/grid/type_grid_cylindrical_3d.f90 \
 			src/core/type_cell_id_3d.f90 \
@@ -190,6 +199,7 @@ OBJECTS_CYL_MPI =	src/mpi/mpi_core.f90 \
 			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
 			src/core/core_lib.f90 \
+			src/main/counters.f90 \
 			src/mpi/mpi_io.f90 \
 			src/grid/type_grid_cylindrical_3d.f90 \
 			src/core/type_cell_id_3d.f90 \

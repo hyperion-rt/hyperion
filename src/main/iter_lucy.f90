@@ -16,6 +16,7 @@ module iteration_lucy
   use grid_pda
   use settings
   use performance
+  use counters
 
   implicit none
   save
@@ -102,7 +103,12 @@ contains
                       exit
                    end if
                 end do
-                if(mrw_steps == n_mrw_max + 1) call error('do_lucy', 'maximum number of MRW steps exceeded')
+                if(mrw_steps == n_mrw_max + 1) then
+                   call warn("do_lucy","maximum number of MRW steps exceeded - killing")
+                   killed_photons_int = killed_photons_int + 1
+                   p%killed = .true.
+                   exit
+                end if
              end if
 
              ! Sample a random optical depth and propagate that optical depth
@@ -129,7 +135,12 @@ contains
                 end do
 
                 ! Check that we haven't reached the maximum number of successive reabsorptions
-                if(ia == n_reabs_max + 1) call error('do_lucy', 'maximum number of successive re-absorptions exceeded')
+                if(ia == n_reabs_max + 1) then
+                   call warn('do_lucy', 'maximum number of successive re-absorptions exceeded')
+                   killed_photons_int = killed_photons_int + 1
+                   p%killed = .true.
+                   exit
+                end if
 
              end if
 
@@ -144,7 +155,8 @@ contains
           end do
 
           if(interactions==n_inter_max+1) then
-             call warn("main","photon exceeded maximum number of interactions - killing")
+             call warn("do_lucy","photon exceeded maximum number of interactions - killing")
+             killed_photons_int = killed_photons_int + 1
              p%killed = .true.
           end if
 
@@ -156,8 +168,11 @@ contains
 
     if(main_process()) call perf_footer()
 
-    ! Collect all summation variables in main process
-    call mp_collect()
+    ! Collect all summation arrays in main process
+    call mp_collect_physical_arrays()
+
+    ! Sync energy emitted
+    call mp_sync(energy_current)
 
     if(main_process()) then
 

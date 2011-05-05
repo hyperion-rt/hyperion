@@ -6,6 +6,7 @@ module grid_propagate
   use grid_geometry, only : escaped, find_wall, place_in_cell, in_correct_cell, next_cell, opposite_wall
   use grid_physics, only : specific_energy_sum, density, n_photons, last_photon_id
   use sources
+  use counters
 
   implicit none
   save
@@ -90,6 +91,7 @@ contains
        if(xi < frac_check) then
           if(.not.in_correct_cell(p)) then
              call warn("grid_integrate","not in correct cell - killing")
+             killed_photons_geo = killed_photons_geo + 1
              p%killed = .true.
              return
           end if
@@ -102,6 +104,7 @@ contains
 
        if(id_min == 0) then
           call warn("grid_integrate","cannot find next wall - killing")
+          killed_photons_geo = killed_photons_geo + 1
           p%killed = .true.
           return
        end if
@@ -248,6 +251,7 @@ contains
        if(xi < frac_check) then
           if(.not.in_correct_cell(p)) then
              call warn("grid_integrate","not in correct cell - killing")
+             killed_photons_geo = killed_photons_geo + 1
              p%killed = .true.
              return
           end if
@@ -261,6 +265,7 @@ contains
 
        if(id_min == 0) then
           call warn("grid_integrate","cannot find next wall - killing")
+          killed_photons_geo = killed_photons_geo + 1
           p%killed = .true.
           return
        end if

@@ -7,6 +7,7 @@ module grid_geometry_specific
   use type_grid_cell
   use type_grid
   use grid_io
+  use counters
 
   implicit none
   save
@@ -450,6 +451,7 @@ contains
     p%icell = find_cell(p)
     if(p%icell == invalid_cell.or.p%icell == outside_cell) then
        call warn("place_in_cell","place_in_cell failed - killing")
+       killed_photons_geo = killed_photons_geo + 1
        p%killed = .true.
     else
        p%in_cell = .true.

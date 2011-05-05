@@ -11,6 +11,7 @@ program main
   use iteration_raytracing
   use grid_generic
   use settings
+  use counters
 
   implicit none
 
@@ -115,14 +116,35 @@ program main
 
   end do
 
+  ! CONVERGENCE INFORMATION
+
   if(main_process()) then
+
+     ! Write out convergence information
      call mp_write_keyword(handle_out, '/', 'converged', converged)
      if(converged) then
         call mp_write_keyword(handle_out, '/', 'iterations', iter)
      else
         call mp_write_keyword(handle_out, '/', 'iterations', n_initial_iter)
      end if
+
   end if
+
+  ! KILLED PHOTON INFORMATION
+
+  ! Sync killed photon counters
+  call mp_sync(killed_photons_geo)
+  call mp_sync(killed_photons_int)
+
+  ! Write out killed photon information
+  call mp_write_keyword(handle_out, '/', 'killed_photons_geo_initial', killed_photons_geo)
+  call mp_write_keyword(handle_out, '/', 'killed_photons_int_initial', killed_photons_int)
+
+  ! Reset killed photon counters to zero
+  killed_photons_geo = 0
+  killed_photons_int = 0
+
+  ! FINAL ITERATION
 
   ! Set up image-related variables
   call setup_final_iteration(handle_in)
@@ -146,6 +168,22 @@ program main
   ! Display message
   if(main_process()) write(*,'(" [main] exiting final iteration")')
 
+  ! KILLED PHOTON INFORMATION
+
+  ! Sync killed photon counters
+  call mp_sync(killed_photons_geo)
+  call mp_sync(killed_photons_int)
+
+  ! Write out killed photon information
+  call mp_write_keyword(handle_out, '/', 'killed_photons_geo_final', killed_photons_geo)
+  call mp_write_keyword(handle_out, '/', 'killed_photons_int_final', killed_photons_int)
+
+  ! Reset killed photon counters to zero
+  killed_photons_geo = 0
+  killed_photons_int = 0
+
+  ! RAYTRACING ITERATION
+
   if(use_raytracing) then
 
      ! Display message
@@ -159,7 +197,20 @@ program main
 
   end if
 
-  call mp_collect_results()
+  ! KILLED PHOTON INFORMATION
+
+  ! Sync killed photon counters
+  call mp_sync(killed_photons_geo)
+  call mp_sync(killed_photons_int)
+
+  ! Write out killed photon information
+  call mp_write_keyword(handle_out, '/', 'killed_photons_geo_raytracing', killed_photons_geo)
+  call mp_write_keyword(handle_out, '/', 'killed_photons_int_raytracing', killed_photons_int)
+
+  ! OUTPUT
+
+  ! Collect images (and SEDs) to the main process
+  call mp_collect_images()
 
   ! Write out images
   if(main_process()) then
@@ -171,7 +222,7 @@ program main
 
   time = time2 - time1
 
-  call mp_sync_cputime(time)
+  call mp_sync(time)
 
   call mp_join()
 

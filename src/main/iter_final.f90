@@ -15,6 +15,7 @@ module iteration_final
   use grid_mrw
   use settings
   use performance
+  use counters
 
   implicit none
   save
@@ -103,7 +104,8 @@ contains
 
     if(main_process()) call perf_footer()
 
-    call mp_sync_energy()
+    ! Sync energy emitted
+    call mp_sync(energy_current)
 
     if(make_binned_images) call binned_images_adjust_scale(energy_total/energy_current)
     if(make_peeled_images) call peeled_images_adjust_scale(energy_total/energy_current)
@@ -204,6 +206,7 @@ contains
 
     if(interactions==n_inter_max+1) then
        call warn("main","photon exceeded maximum number of interactions - killing")
+       killed_photons_int = killed_photons_int + 1
        p%killed = .true.
     end if
 

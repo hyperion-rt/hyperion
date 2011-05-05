@@ -14,6 +14,7 @@ module iteration_final_mono
   use grid_geometry, only : escaped
   use settings, only : frequencies, n_inter_max, forced_first_scattering, n_reabs_max
   use performance
+  use counters
 
   implicit none
   save
@@ -244,6 +245,7 @@ contains
 
     if(interactions==n_inter_max+1) then
        call warn("main","photon exceeded maximum number of interactions - killing")
+       killed_photons_int = killed_photons_int + 1
        p%killed = .true.
     end if
 

@@ -4,7 +4,6 @@ module mpi_routines
   use mpi_core
   use core_lib
   use grid_physics
-  use sources, only : energy_current
   use setup
   use performance
 
@@ -29,18 +28,24 @@ module mpi_routines
 
   public :: mp_reset_first
   public :: mp_n_photons
-  public :: mp_collect
+  public :: mp_collect_physical_arrays
   public :: mp_broadcast_specific_energy
-  public :: mp_collect_results
+  public :: mp_collect_images
   public :: mp_broadcast_convergence
-  public :: mp_sync_energy
-  public :: mp_sync_cputime
   public :: mp_set_random_seed
 
   real(dp) :: time_curr
   integer(idp) :: n_completed, n_photons_chunk
   integer(idp) :: n_steps = 10
   integer(idp) :: n_stats_last
+
+  public :: mp_sync
+  interface mp_sync
+     module procedure mp_sync_integer4
+     module procedure mp_sync_integer8
+     module procedure mp_sync_real4
+     module procedure mp_sync_real8
+  end interface mp_sync
 
 contains
 
@@ -254,7 +259,7 @@ contains
     call set_seed(-124902+rank)
   end subroutine mp_set_random_seed
 
-  subroutine mp_collect()
+  subroutine mp_collect_physical_arrays()
 
     implicit none
     real(dp) :: tmp
@@ -262,9 +267,6 @@ contains
     integer(idp) :: dummy_idp
     real(dp),allocatable :: tmp_2d(:,:)
     integer(idp),allocatable :: tmp_int_1d(:)
-
-    call mpi_reduce(energy_current, tmp, 1, mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
-    energy_current = tmp
 
     if(main_process()) then
        allocate(tmp_2d(size(specific_energy_sum,1),size(specific_energy_sum,2)))
@@ -286,7 +288,7 @@ contains
        end if
     end if
 
-  end subroutine mp_collect
+  end subroutine mp_collect_physical_arrays
 
   subroutine mp_broadcast_specific_energy()
 
@@ -303,22 +305,39 @@ contains
     call mpi_bcast(converged, 1, mpi_logical, rank_main, mpi_comm_world, ierr)
   end subroutine mp_broadcast_convergence
 
-  subroutine mp_sync_energy()
+  subroutine mp_sync_integer4(value)
     implicit none
-    real(dp) :: tmp
-    call mpi_allreduce(energy_current, tmp, 1, mpi_real8, mpi_sum, mpi_comm_world, ierr)
-    energy_current = tmp
-  end subroutine mp_sync_energy
+    integer,intent(inout) :: value
+    integer :: tmp
+    call mpi_allreduce(value, tmp, 1, mpi_integer4, mpi_sum, mpi_comm_world, ierr)
+    value = tmp
+  end subroutine mp_sync_integer4
 
-  subroutine mp_sync_cputime(cputime)
+  subroutine mp_sync_integer8(value)
     implicit none
-    real(dp),intent(inout) :: cputime
-    real(dp) :: tmp
-    call mpi_allreduce(cputime, tmp, 1, mpi_real8, mpi_sum, mpi_comm_world, ierr)
-    cputime = tmp
-  end subroutine mp_sync_cputime
+    integer(idp),intent(inout) :: value
+    integer(idp) :: tmp
+    call mpi_allreduce(value, tmp, 1, mpi_integer8, mpi_sum, mpi_comm_world, ierr)
+    value = tmp
+  end subroutine mp_sync_integer8
 
-  subroutine mp_collect_results()
+  subroutine mp_sync_real4(value)
+    implicit none
+    real(sp),intent(inout) :: value
+    real(sp) :: tmp
+    call mpi_allreduce(value, tmp, 1, mpi_real4, mpi_sum, mpi_comm_world, ierr)
+    value = tmp
+  end subroutine mp_sync_real4
+
+  subroutine mp_sync_real8(value)
+    implicit none
+    real(dp),intent(inout) :: value
+    real(dp) :: tmp
+    call mpi_allreduce(value, tmp, 1, mpi_real8, mpi_sum, mpi_comm_world, ierr)
+    value = tmp
+  end subroutine mp_sync_real8
+
+  subroutine mp_collect_images()
 
     use binned_images
     use peeled_images
@@ -329,8 +348,6 @@ contains
 
     real(dp),allocatable :: cube4d(:,:,:,:)
     real(dp),allocatable :: cube5d(:,:,:,:,:)
-
-    call mp_sync_energy()
 
     if(make_binned_images) then
 
@@ -436,6 +453,6 @@ contains
 
     end if
 
-  end subroutine mp_collect_results
+  end subroutine mp_collect_images
 
 end module mpi_routines
