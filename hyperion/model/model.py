@@ -373,9 +373,9 @@ class Model(FreezableClass):
 
         # Check consistency between density list size and specific energy list size
         if len(density) > 0:
-            if specific_energy is not None and self.specific_energy is None:
+            if specific_energy is not None and type(self.specific_energy) is not list:
                 raise Exception("Cannot add specific energy as it was not added for previous density arrays")
-            if specific_energy is None and self.specific_energy is not None:
+            if specific_energy is None and type(self.specific_energy) is list:
                 raise Exception("Specific energy was added for previous density arrays, so should be added for all arrays")
         else:
             if specific_energy is not None:
