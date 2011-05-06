@@ -334,6 +334,9 @@ class AnalyticalYSOModel(Model):
         # Pick the smallest
         rnext = min(r_next_real, r_next_tau)
 
+        # Make sure rnext isn't too small
+        rnext = max(rnext, rmin * (1. + 1.e-12))
+
         # Define wall positions
         r_wall = np.hstack([0., np.logspace(np.log10(rnext / rmin), np.log10((rmax - rmin) / rmin), n_r - 1)]) * rmin + rmin
         r_wall = np.hstack([0., r_wall])
