@@ -101,46 +101,46 @@ class RunConf(FreezableClass):
 
         if self.n_iter == 0:
             if initial is not None:
-                raise Exception("initial should not be set since no initial interations are being computed")
+                raise Exception("[n_photons] initial should not be set since no initial interations are being computed")
         else:
             if initial is None:
-                raise Exception("initial should be set since the initial iterations are being computed")
+                raise Exception("[n_photons] initial should be set since the initial iterations are being computed")
             else:
                 self.n_photons['initial'] = initial
 
         if self.raytracing:
             if raytracing_sources is None:
-                raise Exception("raytracing_sources needs to be set in raytracing mode")
+                raise Exception("[n_photons] raytracing_sources needs to be set in raytracing mode")
             else:
                 self.n_photons['raytracing_sources'] = raytracing_sources
             if raytracing_dust is None:
-                raise Exception("raytracing_dust needs to be set in raytracing mode")
+                raise Exception("[n_photons] raytracing_dust needs to be set in raytracing mode")
             else:
                 self.n_photons['raytracing_dust'] = raytracing_dust
         else:
             if raytracing_sources is not None:
-                raise Exception("raytracing_sources should not be set as raytracing is not being used")
+                raise Exception("[n_photons] raytracing_sources should not be set as raytracing is not being used")
             if raytracing_dust is not None:
-                raise Exception("raytracing_dust should not be set as raytracing is not being used")
+                raise Exception("[n_photons] raytracing_dust should not be set as raytracing is not being used")
 
         if self._monochromatic:
             if imaging_sources is None:
-                raise Exception("imaging_sources needs to be set in monochromatic mode")
+                raise Exception("[n_photons] imaging_sources needs to be set in monochromatic mode")
             else:
                 self.n_photons['last_sources'] = imaging_sources
             if imaging_dust is None:
-                raise Exception("imaging_dust needs to be set in monochromatic mode")
+                raise Exception("[n_photons] imaging_dust needs to be set in monochromatic mode")
             else:
                 self.n_photons['last_dust'] = imaging_dust
             if imaging is not None:
-                raise Exception("imaging should not be set in monochromatic mode")
+                raise Exception("[n_photons] imaging should not be set in monochromatic mode")
         else:
             if imaging_sources is not None:
-                raise Exception("imaging_sources should not be set as the monochromatic option is not being used")
+                raise Exception("[n_photons] imaging_sources should not be set as the monochromatic option is not being used")
             if imaging_dust is not None:
-                raise Exception("imaging_dust should not be set as the monochromatic option is not being used")
+                raise Exception("[n_photons] imaging_dust should not be set as the monochromatic option is not being used")
             if imaging is None:
-                raise Exception("imaging should bet set")
+                raise Exception("[n_photons] imaging should bet set")
             else:
                 self.n_photons['last'] = imaging
 
@@ -151,18 +151,51 @@ class RunConf(FreezableClass):
         if self.n_photons == {}:
             raise Exception("Photon numbers not set")
 
-        if 'initial' in self.n_photons:
-            group.attrs['n_initial_photons'] = self.n_photons['initial']
-        if 'last' in self.n_photons:
-            group.attrs['n_last_photons'] = self.n_photons['last']
-        if 'last_sources' in self.n_photons:
-            group.attrs['n_last_photons_sources'] = self.n_photons['last_sources']
-        if 'last_dust' in self.n_photons:
-            group.attrs['n_last_photons_dust'] = self.n_photons['last_dust']
-        if 'raytracing_sources' in self.n_photons:
-            group.attrs['n_ray_photons_sources'] = self.n_photons['raytracing_sources']
-        if 'raytracing_dust' in self.n_photons:
-            group.attrs['n_ray_photons_dust'] = self.n_photons['raytracing_dust']
+        if self.n_iter == 0:
+            if 'initial' in self.n_photons:
+                raise Exception("[n_photons] initial should not be set since no initial interations are being computed")
+        else:
+            if 'initial' in self.n_photons:
+                group.attrs['n_initial_photons'] = self.n_photons['initial']
+            else:
+                raise Exception("[n_photons] initial should be set since the initial iterations are being computed")
+
+        if self._monochromatic:
+            if 'last_sources' in self.n_photons:
+                group.attrs['n_last_photons_sources'] = self.n_photons['last_sources']
+            else:
+                raise Exception("[n_photons] imaging_sources needs to be set in monochromatic mode")
+            if 'last_dust' in self.n_photons:
+                group.attrs['n_last_photons_dust'] = self.n_photons['last_dust']
+            else:
+                raise Exception("[n_photons] imaging_dust needs to be set in monochromatic mode")
+            if 'last' in self.n_photons:
+                raise Exception("[n_photons] imaging should not be set in monochromatic mode")
+        else:
+            if 'last_sources' in self.n_photons:
+                raise Exception("[n_photons] imaging_sources should not be set as the monochromatic option is not being used")
+            if 'last_dust' in self.n_photons:
+                raise Exception("[n_photons] imaging_dust should not be set as the monochromatic option is not being used")
+            if 'last' in self.n_photons:
+                group.attrs['n_last_photons'] = self.n_photons['last']
+            else:
+                raise Exception("[n_photons] imaging should bet set")
+
+        if self.raytracing:
+            if 'raytracing_sources' in self.n_photons:
+                group.attrs['n_ray_photons_sources'] = self.n_photons['raytracing_sources']
+            else:
+                raise Exception("[n_photons] raytracing_sources needs to be set in raytracing mode")
+            if 'raytracing_dust' in self.n_photons:
+                group.attrs['n_ray_photons_dust'] = self.n_photons['raytracing_dust']
+            else:
+                raise Exception("[n_photons] raytracing_dust needs to be set in raytracing mode")
+        else:
+            if 'raytracing_sources' in self.n_photons:
+                raise Exception("[n_photons] raytracing_sources should not be set as raytracing is not being used")
+            if 'raytracing_dust' in self.n_photons:
+                raise Exception("[n_photons] raytracing_dust should not be set as raytracing is not being used")
+
 
         group.attrs['n_stats'] = self.n_photons['stats']
 
