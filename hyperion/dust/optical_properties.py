@@ -17,7 +17,6 @@ class OpticalProperties(FreezableClass):
     def __init__(self):
 
         # Wavelengths
-        self.wav = None
         self.nu = None
 
         # Opacity to extinction
@@ -41,6 +40,8 @@ class OpticalProperties(FreezableClass):
     def __getattr__(self, attribute):
         if attribute == 'kappa':
             return self.chi * (1. - self.albedo)
+        elif attribute == 'wav':
+            return c / self.nu * 1.e4
         else:
             raise AttributeError(attribute)
 
@@ -74,7 +75,7 @@ class OpticalProperties(FreezableClass):
 
     def normalize_scattering_matrix(self):
 
-        for iw in range(len(self.wav)):
+        for iw in range(len(self.nu)):
 
             norm = interp1d_fast_linlog(self.mu, self.P1[iw, :], 0.)
 

@@ -234,7 +234,6 @@ class IsotropicSphericalDust(SphericalDust):
         self.optical_properties.mu = np.linspace(-1., 1., 2)
 
         # Set optical properties
-        self.optical_properties.wav = wav
         self.optical_properties.nu = c / wav * 1.e4
         self.optical_properties.albedo = albedo
         self.optical_properties.chi = chi
@@ -264,7 +263,6 @@ class SimpleSphericalDust(SphericalDust):
                               ('c_sca', float), ('chi', float), ('g', float), \
                               ('p_lin_max', float)], usecols=[0, 1, 2, 3, 4, 5])
 
-        self.optical_properties.wav = dustfile['wav']
         self.optical_properties.nu = c / dustfile['wav'] * 1.e4
         self.optical_properties.albedo = dustfile['c_sca'] / dustfile['c_ext']
         self.optical_properties.chi = dustfile['chi']
@@ -314,7 +312,6 @@ class CoatsphSingle(SphericalDust):
 
         n_wav = len(dustfile)
 
-        self.optical_properties.wav = dustfile['wav']
         self.optical_properties.nu = c / dustfile['wav'] * 1.e4
         self.optical_properties.albedo = dustfile['q_sca'] / dustfile['q_ext']
         self.optical_properties.chi = 0.75 * dustfile['q_ext'] / size / density
@@ -366,7 +363,6 @@ class CoatsphMultiple(SphericalDust):
                     ('thetmax', float)])
 
         n_wav = len(dustfile)
-        self.optical_properties.wav = dustfile['wav']
         self.optical_properties.nu = c / dustfile['wav'] * 1.e4
         self.optical_properties.albedo = dustfile['c_sca'] / dustfile['c_ext']
         self.optical_properties.chi = dustfile['chi']
@@ -398,7 +394,7 @@ class MieXDust(SphericalDust):
 
         SphericalDust.__init__(self)
 
-        self.optical_properties.wav = np.loadtxt('%s.alb' % model, usecols=[0])
+        wav = np.loadtxt('%s.alb' % model, usecols=[0])
         self.optical_properties.albedo = np.loadtxt('%s.alb' % model, usecols=[1])
         kappa = np.loadtxt('%s.k_abs' % model, usecols=[1])
         self.optical_properties.chi = kappa / (1 - self.optical_properties.albedo)
@@ -411,13 +407,13 @@ class MieXDust(SphericalDust):
             if np.any(np.isnan(values)):
                 warnings.warn("NaN values found inside MieX %s file - interpolating" % quantity)
                 invalid = np.isnan(values)
-                values[invalid] = interp1d_fast_loglog(self.optical_properties.wav[~invalid], values[~invalid], self.optical_properties.wav[invalid])
+                values[invalid] = interp1d_fast_loglog(wav[~invalid], values[~invalid], wav[invalid])
                 if np.any(np.isnan(values)):
                     raise Exception("Did not manage to fix NaN values in MieX %s" % quantity)
 
-        self.optical_properties.nu = c / self.optical_properties.wav * 1.e4
+        self.optical_properties.nu = c / wav * 1.e4
 
-        n_wav = len(self.optical_properties.wav)
+        n_wav = len(wav)
         n_mu = (len(open('%s.f11' % model).readlines()) / n_wav) - 1
 
         self.optical_properties.mu = np.zeros(n_mu)
@@ -444,13 +440,13 @@ class MieXDust(SphericalDust):
 
         for j in range(n_wav):
 
-            if float(f11.readline()) != self.optical_properties.wav[j]:
+            if float(f11.readline()) != wav[j]:
                 raise Exception("Incorrect wavelength in f11")
-            if float(f12.readline()) != self.optical_properties.wav[j]:
+            if float(f12.readline()) != wav[j]:
                 raise Exception("Incorrect wavelength in f12")
-            if float(f33.readline()) != self.optical_properties.wav[j]:
+            if float(f33.readline()) != wav[j]:
                 raise Exception("Incorrect wavelength in f33")
-            if float(f34.readline()) != self.optical_properties.wav[j]:
+            if float(f34.readline()) != wav[j]:
                 raise Exception("Incorrect wavelength in f34")
 
             for i in range(n_mu):
@@ -469,7 +465,7 @@ class MieXDust(SphericalDust):
                 if np.any(np.isnan(values[:, i])):
                     warnings.warn("NaN values found inside MieX %s file - interpolating" % quantity)
                     invalid = np.isnan(values[:, i])
-                    values[:, i][invalid] = interp1d_fast_loglog(self.optical_properties.wav[~invalid], values[:, i][~invalid], self.optical_properties.wav[invalid])
+                    values[:, i][invalid] = interp1d_fast_loglog(wav[~invalid], values[:, i][~invalid], wav[invalid])
                     if np.any(np.isnan(values[:, i])):
                         raise Exception("Did not manage to fix NaN values in MieX %s" % quantity)
 
@@ -480,12 +476,10 @@ class BHDust(SphericalDust):
 
         SphericalDust.__init__(self)
 
-        self.optical_properties.wav = np.loadtxt('%s.wav' % model)
+        self.optical_properties.nu = c / np.loadtxt('%s.wav' % model) * 1.e4
         self.optical_properties.mu = np.loadtxt('%s.mu' % model)
         self.optical_properties.albedo = np.loadtxt('%s.alb' % model)
         self.optical_properties.chi = np.loadtxt('%s.chi' % model)
-
-        self.optical_properties.nu = c / self.optical_properties.wav * 1.e4
 
         self.optical_properties.initialize_scattering_matrix()
 
