@@ -1,4 +1,4 @@
-! MD5 of template: a75403343f32a6227283db329a1a88b1
+! MD5 of template: 94734171a9bc229d71285fe717001eff
 module grid_io
 
   use core_lib
@@ -99,6 +99,13 @@ contains
        end do
     end do
 
+    ! The following three lines provide a workaround for the PGI Fortran
+    ! compiler, which otherwise crashes with the following error:
+    ! 0: RESHAPE: result type != SOURCE type
+  contains
+    subroutine test()
+    end subroutine test
+
   end subroutine read_grid_4d_int8
 
   subroutine read_grid_3d_int8(group, path, array, geo)
@@ -129,6 +136,13 @@ contains
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
        end do
     end do
+
+    ! The following three lines provide a workaround for the PGI Fortran
+    ! compiler, which otherwise crashes with the following error:
+    ! 0: RESHAPE: result type != SOURCE type
+  contains
+    subroutine test()
+    end subroutine test
 
   end subroutine read_grid_3d_int8
 
@@ -243,6 +257,13 @@ contains
        end do
     end do
 
+    ! The following three lines provide a workaround for the PGI Fortran
+    ! compiler, which otherwise crashes with the following error:
+    ! 0: RESHAPE: result type != SOURCE type
+  contains
+    subroutine test()
+    end subroutine test
+
   end subroutine read_grid_4d_int
 
   subroutine read_grid_3d_int(group, path, array, geo)
@@ -273,6 +294,13 @@ contains
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
        end do
     end do
+
+    ! The following three lines provide a workaround for the PGI Fortran
+    ! compiler, which otherwise crashes with the following error:
+    ! 0: RESHAPE: result type != SOURCE type
+  contains
+    subroutine test()
+    end subroutine test
 
   end subroutine read_grid_3d_int
 
@@ -387,6 +415,13 @@ contains
        end do
     end do
 
+    ! The following three lines provide a workaround for the PGI Fortran
+    ! compiler, which otherwise crashes with the following error:
+    ! 0: RESHAPE: result type != SOURCE type
+  contains
+    subroutine test()
+    end subroutine test
+
   end subroutine read_grid_4d_dp
 
   subroutine read_grid_3d_dp(group, path, array, geo)
@@ -417,6 +452,13 @@ contains
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
        end do
     end do
+
+    ! The following three lines provide a workaround for the PGI Fortran
+    ! compiler, which otherwise crashes with the following error:
+    ! 0: RESHAPE: result type != SOURCE type
+  contains
+    subroutine test()
+    end subroutine test
 
   end subroutine read_grid_3d_dp
 
@@ -531,6 +573,13 @@ contains
        end do
     end do
 
+    ! The following three lines provide a workaround for the PGI Fortran
+    ! compiler, which otherwise crashes with the following error:
+    ! 0: RESHAPE: result type != SOURCE type
+  contains
+    subroutine test()
+    end subroutine test
+
   end subroutine read_grid_4d_sp
 
   subroutine read_grid_3d_sp(group, path, array, geo)
@@ -561,6 +610,13 @@ contains
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
        end do
     end do
+
+    ! The following three lines provide a workaround for the PGI Fortran
+    ! compiler, which otherwise crashes with the following error:
+    ! 0: RESHAPE: result type != SOURCE type
+  contains
+    subroutine test()
+    end subroutine test
 
   end subroutine read_grid_3d_sp
 

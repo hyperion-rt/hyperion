@@ -99,6 +99,13 @@ contains
        end do
     end do
 
+    ! The following three lines provide a workaround for the PGI Fortran
+    ! compiler, which otherwise crashes with the following error:
+    ! 0: RESHAPE: result type != SOURCE type
+  contains
+    subroutine test()
+    end subroutine test
+
   end subroutine read_grid_4d_<T>
 
   subroutine read_grid_3d_<T>(group, path, array, geo)
@@ -129,6 +136,13 @@ contains
           array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
        end do
     end do
+
+    ! The following three lines provide a workaround for the PGI Fortran
+    ! compiler, which otherwise crashes with the following error:
+    ! 0: RESHAPE: result type != SOURCE type
+  contains
+    subroutine test()
+    end subroutine test
 
   end subroutine read_grid_3d_<T>
 
