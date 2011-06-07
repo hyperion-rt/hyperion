@@ -15,14 +15,14 @@ from hyperion.dust.optical_properties import OpticalProperties
 from hyperion.dust.emissivities import Emissivities
 from hyperion.dust.mean_opacities import MeanOpacities
 
-import matplotlib.pyplot as mpl
+import matplotlib.pyplot as plt
 
-mpl.rc('axes', titlesize='x-small')
-mpl.rc('axes', labelsize='x-small')
-mpl.rc('xtick', labelsize='xx-small')
-mpl.rc('ytick', labelsize='xx-small')
-mpl.rc('axes', linewidth=0.5)
-mpl.rc('patch', linewidth=0.5)
+plt.rc('axes', titlesize='x-small')
+plt.rc('axes', labelsize='x-small')
+plt.rc('xtick', labelsize='xx-small')
+plt.rc('ytick', labelsize='xx-small')
+plt.rc('axes', linewidth=0.5)
+plt.rc('patch', linewidth=0.5)
 
 
 def henyey_greenstein(mu, g, p_lin_max):
@@ -67,7 +67,7 @@ class SphericalDust(FreezableClass):
             self.mean_opacities.compute(self.emissivities, self.optical_properties)
 
         # Initialize figure
-        fig = mpl.figure(figsize=(8, 8))
+        fig = plt.figure(figsize=(8, 8))
 
         # Plot optical properties
         fig = self.optical_properties.plot(fig, [421, 423, 424, 425, 426])
@@ -80,6 +80,9 @@ class SphericalDust(FreezableClass):
 
         # Save figure
         fig.savefig(filename)
+
+        # Close figure to save RAM
+        plt.close(fig)
 
     def set_sublimation_temperature(self, mode, temperature=0.):
         '''
