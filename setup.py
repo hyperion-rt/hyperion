@@ -5,7 +5,7 @@ from distutils.core import setup
 scripts = ['ttsre2rtin', 'ttsre2rtin_auto', 'hyperion', 'hyperion2fits']
 
 setup(name='hyperion',
-      version='0.8.0',
+      version='0.8.1',
       packages=['hyperion', 'hyperion.model', 'hyperion.conf', 'hyperion.densities',
                 'hyperion.dust', 'hyperion.util', 'hyperion.atmos',
                 'hyperion.grid', 'hyperion.sources', 'hyperion.importers'],
