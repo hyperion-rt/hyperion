@@ -309,7 +309,7 @@ class AnalyticalYSOModel(Model):
         r_wall = [self.star.radius / 2., rmin]
 
         # Define a radial grid to compute the midplane column density on
-        r = np.logspace(-20., np.log10(rmax / rmin), 100000) * rmin + rmin
+        r = np.logspace(-20., np.log10((rmax - rmin) / rmin), 100000) * rmin + rmin
 
         # We need the first point to be exactly at the inner radius
         r[0] = rmin
@@ -327,7 +327,7 @@ class AnalyticalYSOModel(Model):
 
         # Find where the second wall would be if we put it at tau=0.1
         if tau_midplane[-1] <= 0.1:
-            r_next_tau = rmax
+            r_next_tau = rmax - rmin
         else:
             r_next_tau = r_interp(0.1) - rmin
 
@@ -335,7 +335,8 @@ class AnalyticalYSOModel(Model):
         rnext = min(r_next_real, r_next_tau)
 
         # Make sure rnext isn't too small
-        rnext = max(rnext, rmin * (1. + 1.e-12))
+        if rmin * (1. + 1.e-12) > rnext + rmin:
+            rnext = rmin * 1.e-12
 
         # Define wall positions
         r_wall = np.hstack([0., np.logspace(np.log10(rnext / rmin), np.log10((rmax - rmin) / rmin), n_r - 1)]) * rmin + rmin
