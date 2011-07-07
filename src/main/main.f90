@@ -30,13 +30,15 @@ program main
   call get_command_argument(1, input_file)
   call get_command_argument(2, output_file)
 
-  ! Check that both arguments were given
-  if(trim(input_file)=="".or.trim(output_file)=="") then
-     stop "Usage: bin/rt input_file output_file"
-  end if
-
   ! Start up multi-processing if needed
   call mp_initialize()
+
+  ! Check that both arguments were given
+  if(trim(input_file)=="".or.trim(output_file)=="") then
+     if(main_process()) print *,"Usage: bin/rt input_file output_file"
+     call mp_stop()
+     stop
+  end if
 
   ! SETUP
 
