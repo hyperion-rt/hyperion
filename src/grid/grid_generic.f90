@@ -32,7 +32,7 @@ contains
     character(len=100) :: group_name
     integer(hid_t) :: group
 
-    write(*,'(" [output_grid] outputting grid arrays for iteration")')
+    if(main_process()) write(*,'(" [output_grid] outputting grid arrays for iteration")')
 
     write(group_name, '("Iteration ",I5.5)') iter
     group = mp_create_group(handle, group_name)
