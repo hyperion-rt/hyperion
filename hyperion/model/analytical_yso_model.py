@@ -6,9 +6,9 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as mpl
 
 from hyperion.model import Model
-from hyperion.densities import FlaredDisk, AlphaDisk, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
+from hyperion.densities import FlaredDisk, AlphaDiskWhitney, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
 from hyperion.util.interpolate import interp1d_fast_loglog
-from hyperion.util.constants import pi, sigma, c
+from hyperion.util.constants import pi, sigma, c, G
 from hyperion.sources import SphericalSource, SpotSource
 from hyperion.util.functions import FreezableClass
 from hyperion.util.convenience import OptThinRadius
@@ -31,6 +31,7 @@ class Star(FreezableClass):
         self.sources['star'] = SphericalSource(name='star')
         self.mass = None
         self.radius = None
+        self.limb = False
         self._freeze()
 
     def add_spot(self, *args, **kwargs):
@@ -42,7 +43,7 @@ class Star(FreezableClass):
         if attribute in ['luminosity', 'temperature', 'spectrum']:
             self.sources['star'].__setattr__(attribute, value)
             return
-        elif attribute == 'radius':
+        elif attribute in ['radius', 'limb']:
             for source in self.sources:
                 self.sources[source].radius = value
         FreezableClass.__setattr__(self, attribute, value)
@@ -135,10 +136,13 @@ class AnalyticalYSOModel(Model):
         self.disks.append(disk)
         return disk
 
-    def add_alpha_disk(self):
+    def add_alpha_disk(self, definition='whitney'):
         "Add an alpha disk to the geometry"
-        disk = AlphaDisk()
-        disk.star = self.star
+        if definition == 'whitney':
+            disk = AlphaDiskWhitney()
+            disk.star = self.star
+        else:
+            raise Exception("Unknown alpha disk definition: %s" % definition)
         self.disks.append(disk)
         return disk
 
@@ -384,20 +388,18 @@ class AnalyticalYSOModel(Model):
 
     # ACCRETION
 
-    def setup_magnetospheric_accretion(self, lacc, rtrunc, fspot, disk):
+    def setup_magnetospheric_accretion(self, mdot, rtrunc, fspot):
         '''
         Set up the model for magnetospheric accretion
 
         Parameters
         ----------
-        lacc : float
-            The total luminosity to be released via accretion
-        rtrunc : float
-            The magnetospheric truncation radius
+        mdot : float
+            The accretion rate onto the star in cgs
+        rtrunc:
+            The magnetospheric truncation radius of the disk in cgs
         fspot : float
             The spot coverage fraction
-        disk : FlaredDisk
-            The disk that will emit the viscously dissipated accretion energy
 
         Notes
         -----
@@ -420,14 +422,11 @@ class AnalyticalYSOModel(Model):
         lstar = self.star.sources['star'].luminosity
 
         # Tell the model that we are including accretion
-        self.accretion = True
-
-        # Find the total luminosity of accretion shock on star
-        frac_shock = 1 / self.star.radius - 1 / rtrunc
-        frac_disk = 0.5 / rtrunc - 0.5 / disk.rmax
+        if not self.accretion:
+            self.accretion = True
 
         # Find the luminosity dissipated in the shock
-        lshock = lacc * frac_shock / (frac_shock + frac_disk)
+        lshock = G * self.star.mass * mdot * (1 / self.star.radius - 1 / rtrunc)
 
         # Hot spot parameters
         fluxratio = 0.5 * lshock / lstar / fspot
@@ -449,16 +448,6 @@ class AnalyticalYSOModel(Model):
 
         # Reduce the total luminosity from the original source
         self.star.sources['star'].luminosity *= 1 - fspot
-
-        # Prevent any further modifiations to the star
-        self.star._finalize()
-
-        # Resolve any sublimation radii in envelopes/disks
-        self._resolve_optically_thin_radii()
-
-        # Set luminosity from viscous dissipation in disk
-        # For this, only find the part that is inside the dust disk
-        disk.lvisc = lacc  # WRONG!!
 
     # RESOLVERS
 
