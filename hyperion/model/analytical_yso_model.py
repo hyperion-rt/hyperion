@@ -45,7 +45,7 @@ class Star(FreezableClass):
             return
         elif attribute in ['radius', 'limb']:
             for source in self.sources:
-                self.sources[source].radius = value
+                self.sources[source].__setattr__(attribute, value)
         FreezableClass.__setattr__(self, attribute, value)
 
     def total_luminosity(self):
