@@ -26,16 +26,23 @@ if not physics and not images:
 
 for filename in arguments:
 
-    f = h5py.File(filename, 'r')
+    try:
+        f = h5py.File(filename, 'r')
+    except IOError:
+        print "Reading %s failed" % filename
+        continue
 
     if images:
-        n_groups = len(f['Peeled'])
-        for ig in range(n_groups):
-            group = f['Peeled/Group %05i' % (ig + 1)]
-            if 'images' in group:
-                image = group['images']
-                pyfits.writeto(filename.replace('.rtout', '_%05i_images.fits' % (ig + 1)),
-                               np.array(image), clobber=True)
+        if 'Peeled' in f:
+            n_groups = len(f['Peeled'])
+            for ig in range(n_groups):
+                group = f['Peeled/Group %05i' % (ig + 1)]
+                if 'images' in group:
+                    image = group['images']
+                    pyfits.writeto(filename.replace('.rtout', '_%05i_images.fits' % (ig + 1)),
+                                   np.array(image), clobber=True)
+        else:
+            print "No peeled images in %s" % filename
 
     if physics:
         for group_name in f:
@@ -45,4 +52,7 @@ for filename in arguments:
                     pyfits.writeto(filename.replace('.rtout', '_%s_%05i.fits' % (array_name, iteration)),
                                    np.array(f[group_name][array_name]), clobber=True)
 
-    f.close()
+    try:
+        f.close()
+    except:
+        print "Error closing %s" % filename
