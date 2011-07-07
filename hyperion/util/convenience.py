@@ -3,9 +3,10 @@ import numpy as np
 
 class OptThinRadius(object):
 
-    def __init__(self, temperature, value=1.):
+    def __init__(self, temperature, value=1., min=0.):
         self.temperature = temperature
         self.value = value
+        self.min = 0.
 
     def __mul__(self, value):
         return OptThinRadius(self.temperature, value=self.value * value)
@@ -29,4 +30,4 @@ class OptThinRadius(object):
             r = self.value * rstar / np.sqrt(1. - (1. - 2. * x) ** 2.)
         if np.isnan(r):
             raise Exception("Optically thin radius is NaN")
-        return r
+        return max(r, self.min)
