@@ -83,6 +83,15 @@ class Source(FreezableClass):
     def has_lte_spectrum(self):
         return self.spectrum is None and self.temperature is None
 
+    def __setattr__(self, attribute, value):
+        if attribute == 'spectrum' and type(value) in (tuple, list) and len(value) == 2:
+            nu, fnu = value
+            if nu[-1] < nu[0]:
+                nu = nu[::-1]
+                fnu = fnu[::-1]
+            object.__setattr__(self, attribute, (nu, fnu))
+        else:
+            object.__setattr__(self, attribute, value)
 
 class SpotSource(Source):
 
