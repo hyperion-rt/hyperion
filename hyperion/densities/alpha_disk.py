@@ -7,14 +7,23 @@ from hyperion.util.functions import FreezableClass
 from hyperion.util.convenience import OptThinRadius
 from hyperion.util.integrate import integrate_powerlaw
 from hyperion.dust import SphericalDust
-from hyperion.densities.flared_disk import FlaredDisk
 
 
-class AlphaDisk(FlaredDisk):
+class AlphaDiskWhitney(FreezableClass):
 
-    def __init__(self, mdot=None, lvisc=None, star=None, **kwargs):
+    def __init__(self):
         '''
-        Initialize a flared disk instance. The required parameters are:
+        Initialize an alpha disk instance.
+
+        The available attributes are:
+
+            mass: mass (g)
+            rmin: inner radius (cm)
+            rmax: outer radius (cm)
+            p: surface density exponent
+            beta: flaring exponent
+            h_0: scaleheight at r_0 (cm)
+            r_0: radius at which scaleheight is defined (cm)
 
             mdot: accretion rate (g/cm)
                 or
@@ -24,31 +33,64 @@ class AlphaDisk(FlaredDisk):
 
         '''
 
+        # Basic disk parameters
+        self.mass = 0.
+        self.rmin = None
+        self.rmax = None
+        self.p = -1.
+        self.beta = 1.25
+        self.h_0 = None
+        self.r_0 = None
+
+        # Fine control over density distribution
+        self.cylindrical_inner_rim = True
+        self.cylindrical_outer_rim = True
+
         # Disk Accretion
-        if mdot is not None and lvisc is not None:
-            raise Exception("Cannot specify both mdot and lvisc")
-        elif mdot is not None:
-            self.mdot = mdot
-        elif lvisc is not None:
-            self.lvisc = lvisc
-        else:
-            self.mdot = 0.
+        self.mdot = 0.
 
         # Central star
-        self.star = star
+        self.star = None
 
-        FlaredDisk.__init__(self, **kwargs)
+        # Dust
+        self.dust = None
+
+        self._freeze()
 
     def __str__(self):
-        string = FlaredDisk.__str__(self)
-        string = string.replace('Flared', 'Alpha')
+        string = "= Alpha disk (Whitney definition)=\n"
+        string += " - M_disk: %.3e\n" % self.mass
+        string += " - R_min: %.3e\n" % self.rmin
+        string += " - R_min: %.3e\n" % self.rmax
+        string += " - p: %.3f\n" % self.p
+        string += " - beta: %.3f\n" % self.beta
+        string += " - h_0: %.3e\n" % self.h_0
+        string += " - r_0: %.3e\n" % self.r_0
         string += " - Mdot: %.3e\n" % self.mdot
         string += " - Lvisc: %.3e\n" % self.lvisc
         return string
 
     def _check_all_set(self):
 
-        FlaredDisk._check_all_set(self)
+        if self.mass is None:
+            raise Exception("mass is not set")
+        if self.rmin is None:
+            raise Exception("rmin is not set")
+        if self.rmax is None:
+            raise Exception("rmax is not set")
+        if self.p is None:
+            raise Exception("p is not set")
+        if self.beta is None:
+            raise Exception("beta is not set")
+        if self.h_0 is None:
+            raise Exception("h_0 is not set")
+        if self.r_0 is None:
+            raise Exception("r_0 is not set")
+
+        if isinstance(self.rmin, OptThinRadius):
+            raise Exception("Inner disk radius needs to be computed first")
+        if isinstance(self.rmax, OptThinRadius):
+            raise Exception("Outer disk radius needs to be computed first")
 
         if self.star is None:
             raise Exception("star is not set")
@@ -117,7 +159,7 @@ class AlphaDisk(FlaredDisk):
 
         norm = self.mass / np.sum(rho * grid.volumes)
 
-        print "Normalization factor for disk mass (should ideally be 1): %16.10f" % norm
+        print "Normalization factor for disk mass: %5.2f" % norm
 
         # Normalize to total disk mass
         rho = rho * norm

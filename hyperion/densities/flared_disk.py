@@ -11,11 +11,11 @@ from hyperion.dust import SphericalDust
 
 class FlaredDisk(FreezableClass):
 
-    def __init__(self, mass=0., rmin=None, rmax=None, p=-1., beta=1.25,
-                 h_0=None, r_0=None,
-                 cylindrical_inner_rim=True, cylindrical_outer_rim=True):
+    def __init__(self):
         '''
-        Initialize a flared disk instance. The required parameters are:
+        Initialize a flared disk instance.
+
+        The available attributes are:
 
             mass: mass (g)
             rmin: inner radius (cm)
@@ -28,17 +28,17 @@ class FlaredDisk(FreezableClass):
         '''
 
         # Basic disk parameters
-        self.mass = mass
-        self.rmin = rmin
-        self.rmax = rmax
-        self.p = p
-        self.beta = beta
-        self.h_0 = h_0
-        self.r_0 = r_0
+        self.mass = 0.
+        self.rmin = None
+        self.rmax = None
+        self.p = -1.
+        self.beta = 1.25
+        self.h_0 = None
+        self.r_0 = None
 
         # Fine control over density distribution
-        self.cylindrical_inner_rim = cylindrical_inner_rim
-        self.cylindrical_outer_rim = cylindrical_outer_rim
+        self.cylindrical_inner_rim = True
+        self.cylindrical_outer_rim = True
 
         # Dust
         self.dust = None
