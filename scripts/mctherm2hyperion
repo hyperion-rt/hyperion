@@ -1,0 +1,336 @@
+#!/usr/bin/env python
+
+# Needs implementing:
+# - ambient density
+
+import os
+import sys
+
+from hyperion.util.parfile import parse
+from hyperion.util.constants import pi, sigma, tsun
+from hyperion.util.functions import filename2hdf5
+from hyperion.dust import SimpleSphericalDust
+
+def _usage(*args):
+    print 'Usage: ttsre2rtin mctherm_file model_name'
+    sys.exit(0)
+
+if len(sys.argv) != 3:
+    _usage()
+
+mctherm_file, model_name = sys.argv[1:]
+
+convert_dust_files = True
+
+# Parse input file
+par = parse(mctherm_file)
+
+# Set sublimation temperature
+par['tsub'] = 1600
+
+# Set model name
+par['name'] = model_name
+
+# Set defaults
+if not 'cplanckst' in par:
+    par['cplanckst'] = False
+if not 'pardir' in par:
+    par['pardir'] = './'
+if not 'nrg' in par:
+    par['nrg'] = 400
+if not 'ntg' in par:
+    par['ntg'] = 300
+if not 'npg' in par:
+    par['npg'] = 2
+if not 'imcube' in par:
+    par['imcube'] = False
+if not 'nfreq' in par:
+    par['nfreq'] = 250
+if not 'phie' in par:
+    par['phie'] = 30.
+if par['imcube']:
+    par['imsize'] = 200
+else:
+    par['imsize'] = 1
+if not 'diffusion' in par:
+    par['diffusion'] = True
+if not 'nimin' in par:
+    par['nimin'] = 5
+if not 'npmin' in par:
+    par['npmin'] = par['np']
+
+# Complete spectrum filename
+par['atname'] = par['pardir'] + "/" + par['atname']
+
+# Stellar luminosity
+par['lstar'] = par['rstar'] ** 2 * (par['tstar'] / tsun) ** 4
+
+# Disk mass fraction
+par['fmassd2'] = 1. - par['fmassd1']
+
+# Disk flaring and power-laws
+par['p1'] = par['a(1)'] - par['b(1)']
+par['p2'] = par['a(2)'] - par['b(2)']
+par['b1'] = par['b(1)']
+par['b2'] = par['b(2)']
+par['zscale1'] = par['zscale(1)']
+par['zscale2'] = par['zscale(2)']
+
+# Prepare dust files
+if convert_dust_files:
+    dust_files = list(set([par['pardir'] + "/" + par['dustname(%i)' % i] for i in range(1, 9)]))
+    for filename in dust_files:
+        output_filename = filename2hdf5(filename)
+        if os.path.exists(output_filename):
+            print "%s already exists - skipping" % output_filename
+        else:
+            d = SimpleSphericalDust(filename)
+            d.optical_properties._extrapolate(1.e-3, 1.e7)
+            d.write(output_filename)
+        for i in range(1, 9):
+            if par['dustname(%i)' % i] == os.path.basename(filename):
+                par['dustname_%i' % i] = output_filename
+else:
+    for i in range(1, 9):
+        par['dustname_%i' % i] = par['pardir'] + "/" + par['dustname(%i)' % i]
+
+# Remove one from number of grid cells (actually number of walls)
+par['nrg'] -= 1
+par['ntg'] -= 1
+par['npg'] -= 1
+
+
+# START SCRIPT
+
+script = '''
+import numpy as np
+
+from hyperion.model import AnalyticalYSOModel
+from hyperion.util.convenience import OptThinRadius
+from hyperion.util.constants import au, rsun, msun, lsun, c, year
+
+# Initialize model
+
+m = AnalyticalYSOModel('%(name)s')
+''' % par
+
+# SOURCE
+
+script += '''
+# Central source
+
+m.star.mass = %(massc)g * msun
+m.star.radius = %(rstar)g * rsun
+m.star.luminosity = %(lstar)g * lsun
+m.star.limb = %(climb)s
+''' % par
+
+if par['cplanckst']:
+
+    script += "m.star.temperature = %(tstar)" % par
+
+else:
+
+    script += '''
+spectrum = np.loadtxt('%(atname)s', usecols=[0, 2])
+wav, fnu = spectrum[:, 0], spectrum[:, 1]
+nu = c / (wav * 1.e-7)
+m.star.spectrum = nu, fnu
+''' % par
+
+# DISKS
+
+# Prepare inner radius
+if par['crminsub']:
+    par['rmind'] = "OptThinRadius(%(tsub)g, min=%(rtrunc)g * %(rstar)g * rsun)" % par
+    par['rmine'] = "OptThinRadius(%(tsub)g, min=%(rtrunc)g * %(rstar)g * rsun)" % par
+else:
+    par['rmind'] = "%g * %g * rsun" % (max(par['rtrunc'], par['rmind']), par['rstar'])
+    par['rmine'] = "%g * %g * rsun" % (max(par['rtrunc'], par['rmine']), par['rstar'])
+
+# Prepare scaleheight
+
+if par['czmin'].lower() == 'rstar':
+
+    par['scaleheight_r'] = '%g * rsun' % par['rstar']
+
+elif par['czmin'].lower() == 'rsub':
+
+    par['scaleheight_r'] = "OptThinRadius(%(tsub)g, min=%(rtrunc)g * %(rstar)g * rsun)" % par
+
+elif par['czmin'].lower() == 'r100':
+
+    # Scale by AU
+    par['scaleheight_r'] = "100 * au"
+
+else:
+
+    raise Exception("Unknown CZMIN: %s" % par['czmin'])
+
+script += '''
+# Disk 1
+
+disk1 = m.add_alpha_disk()
+
+disk1.mass = %(massd)g * msun * %(fmassd1)g
+disk1.rmin = %(rmind)s
+disk1.rmax = %(rmaxd)g * au
+disk1.p = %(p1)g
+disk1.beta = %(b1)g
+disk1.h_0 = %(zscale1)g * m.star.radius
+disk1.r_0 = %(scaleheight_r)s
+disk1.cylindrical_inner_rim = False
+disk1.cylindrical_outer_rim = False
+disk1.dust = '%(dustname_1)s'
+''' % par
+
+script += '''
+# Disk 2
+
+disk2 = m.add_alpha_disk()
+
+disk2.mass = %(massd)g * msun * %(fmassd2)g
+disk2.rmin = %(rmind)s
+disk2.rmax = %(rmaxd)g * au
+disk2.p = %(p2)g
+disk2.beta = %(b2)g
+disk2.h_0 = %(zscale2)g * m.star.radius
+disk2.r_0 = %(scaleheight_r)s
+disk2.cylindrical_inner_rim = False
+disk2.cylindrical_outer_rim = False
+disk2.dust = '%(dustname_2)s'
+''' % par
+
+# ACCRETION
+
+if par['cdiskacc']:
+
+    if not par['calpha']:
+        par['mdotdisk_1'] = par['alpha'] * par['fmassd1']
+        par['mdotdisk_2'] = par['alpha'] * par['fmassd2']
+    else:
+        par['mdotdisk_1'] = np.sqrt(18 * pi **3) * par['alpha'] * np.sqrt(G * mstar / rstar) * disk1.rho_0() * disk1.h_star ** 3 / rstar / msun * year
+        par['mdotdisk_2'] = np.sqrt(18 * pi **3) * par['alpha'] * np.sqrt(G * mstar / rstar) * disk2.rho_0() * disk2.h_star ** 3 / rstar / msun * year
+
+    par['mdotdisk'] = par['mdotdisk_1'] + par['mdotdisk_2']
+
+    if par['cspot']:
+        raise Exception("Spots not supported at this time")
+
+    script += '''
+# Viscous accretion
+
+m.accretion = True
+
+disk1.mdot = %(mdotdisk_1)g * msun / year
+disk2.mdot = %(mdotdisk_2)g * msun / year
+
+# Magnetospheric accretion
+
+m.setup_magnetospheric_accretion(%(mdotdisk)g * msun / year, %(rtrunc)g * m.star.radius, %(fspot)g)
+''' % par
+
+# ENVELOPE
+
+script += '''
+# Ulrich envelope
+
+envelope = m.add_ulrich_envelope()
+
+envelope.mdot = %(rate)g * msun / year
+envelope.rmin = %(rmine)s
+envelope.rmax = %(rmax)g * au
+envelope.rc = %(rc)g * au
+envelope.dust = '%(dustname_3)s'
+''' % par
+
+# BIPOLAR CAVITY
+
+if par['chole']:
+
+    if par['cshape'].lower() != 'polyn':
+        raise Exception("Cavity shape not supported: %s" % par['cshape'])
+
+    script += '''
+# Bipolar cavity
+
+cavity = envelope.add_bipolar_cavity()
+
+cavity.theta_0 = %(thet1)g
+cavity.r_0 = envelope.rmax
+cavity.power = %(ex1)g
+cavity.rho_0 = %(rhoconst1)g
+cavity.rho_exp = %(exf)g
+cavity.dust = '%(dustname_4)s'
+''' % par
+
+# BINNED IMAGES
+
+script += '''
+# Binned images
+
+image = m.add_binned_images()
+
+image.set_viewing_bins(10, 1)
+image.set_image_size(%(imsize)i, %(imsize)i)
+image.set_image_limits(-%(rmaxi)g * au, %(rmaxi)g * au, -%(rmaxi)g * au, %(rmaxi)g * au)
+image.set_aperture_range(%(nap)i, %(apmin)g * au, %(apmax)g * au)
+image.set_wavelength_range(%(nfreq)i, 0.01, 5000.)
+''' % par
+
+if par['cpeel']:
+
+    if type(par['thete']) == str:
+        par['thete'] = str(np.array(par['thete'].split(), dtype=float).tolist())
+        par['phie'] = str(np.array(par['phie'].split(), dtype=float).tolist())
+    else:
+        par['thete'] = "[%g]" % par['thete']
+        par['phie'] = "[%g]" % par['phie']
+
+    script += '''
+# Peeled images
+
+theta = %(thete)s
+phi = %(phie)s
+
+image = m.add_peeled_images()
+
+image.set_viewing_angles(theta, phi)
+image.set_image_size(%(imsize)i, %(imsize)i)
+image.set_image_limits(-%(rmaxi)g * au, %(rmaxi)g * au, -%(rmaxi)g * au, %(rmaxi)g * au)
+image.set_aperture_range(%(nap)i, %(apmin)g * au, %(apmax)g * au)
+image.set_wavelength_range(%(nfreq)i, 0.01, 5000.)
+''' % par
+
+# GRID
+
+script += "m.set_spherical_polar_grid_auto(%(nrg)i, %(ntg)i, %(npg)i)\n\n" % par
+
+# ITERATION
+
+script += "m.set_convergence(True, percentile=99., absolute=2., relative=1.02)\n"
+script += "m.set_n_initial_iterations(%(nimax)i)\n\n" % par
+
+# SPEEDUP
+
+script += "m.set_raytracing(True)\n\n"
+
+if par['diffusion']:
+    script += "m.set_pda(True)\n"
+    script += "m.set_mrw(True, gamma=1.)\n\n"
+
+script += "m.set_forced_first_scattering(False)\n"
+
+# NUMBER OF PHOTONS
+
+script += '''
+m.set_n_photons(initial=%(np)i, imaging=%(np)i,
+                raytracing_dust=%(np)i, raytracing_sources=%(np)i,
+                stats=%(iwrite)i)\n
+''' % par
+
+# OUTPUT
+
+script += 'm.write()\n'
+
+open('%s.py' % model_name, 'wb').write(script)

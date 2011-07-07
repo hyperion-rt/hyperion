@@ -2,7 +2,7 @@
 
 from distutils.core import setup
 
-scripts = ['ttsre2rtin', 'ttsre2rtin_auto', 'hyperion', 'hyperion2fits']
+scripts = ['ttsre2rtin', 'ttsre2rtin_auto', 'hyperion', 'hyperion2fits', 'mctherm2hyperion']
 
 setup(name='hyperion',
       version='0.8.1',
