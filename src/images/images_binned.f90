@@ -7,6 +7,9 @@ module binned_images
   use type_image
   use type_photon
 
+  use sources, only : n_sources
+  use dust_main, only : n_dust
+
   implicit none
 
   private
@@ -46,7 +49,7 @@ contains
 
     if(main_process()) write(*,'(" [binned_images] setting up ",I0," binned images ")') n_theta*n_phi
 
-    call image_setup(handle, path ,binned_image,n_theta*n_phi,.false.)
+    call image_setup(handle, path ,binned_image,n_theta*n_phi,n_sources,n_dust,.false.)
 
     ! array_size = 8 * n_phi * n_theta * n_x * n_y * n_w / 1024.**2.
     ! write(*,'(" [",F6.1,"Mb]")') array_size

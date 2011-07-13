@@ -465,7 +465,7 @@ class Model(FreezableClass):
 
     def get_sed(self, stokes='I', technique='peeled', group=1, distance=None,
                      component='total', aperture='all', inclination='all',
-                     uncertainties=False):
+                     uncertainties=False, source_id=None, dust_id=None):
         '''
         Retrieve SEDs for a specific image group and Stokes component
 
@@ -518,6 +518,12 @@ class Model(FreezableClass):
         uncertainties : bool, optional
             Whether to compute and return uncertainties
 
+        source_id, dust_id : int, optional
+            If the output file was made with track_origin='detailed', a
+            specific source and dust component can be specified. If
+            these are not specified, then the total component requested
+            for all sources or dust types is returned.
+
         Returns
         -------
 
@@ -559,6 +565,52 @@ class Model(FreezableClass):
         if uncertainties and not 'seds_unc' in g:
             raise Exception("Uncertainties requested but not present in file")
 
+        if 'track_origin' in g['seds'].attrs:
+
+            track_origin = g['seds'].attrs['track_origin']
+
+            if track_origin == 'no' and component != 'total':
+                raise Exception("cannot extract component=%s - file only contains total flux" % component)
+
+            if track_origin != 'detailed':
+                if source_id is not None:
+                    raise Exception("cannot specify source_id, as SEDs were not computed with track_origin='detailed'")
+                if dust_id is not None:
+                    raise Exception("cannot specify dust_id, as SEDs were not computed with track_origin='detailed'")
+
+            if component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat']:
+
+                if component == 'source_emit':
+                    io = 0
+                elif component == 'dust_emit':
+                    io = 1
+                elif component == 'source_scat':
+                    io = 2
+                elif component == 'dust_scat':
+                    io = 3
+
+                if track_origin == 'detailed':
+
+                    ns = g['seds'].attrs['n_sources']
+                    nd = g['seds'].attrs['n_dust']
+
+                    io = ((io - io % 2) * ns + (io - (io + 1) % 2 - 1) * nd) / 2
+
+                    if component.startswith('source'):
+                        if source_id is None:
+                            io = (io, io + ns)
+                        else:
+                            if source_id < 1 or source_id > ns:
+                                raise Exception("source_id should be between 1 and %i" % ns)
+                            io = io + (source_id - 1)
+                    else:
+                        if dust_id is None:
+                            io = (io, io + nd)
+                        else:
+                            if dust_id < 1 or dust_id > nd:
+                                raise Exception("dust_id should be between 1 and %i" % nd)
+                            io = io + (dust_id - 1)
+
         # Set up wavelength space
         if 'numin' in g['seds'].attrs:
             numin = g['seds'].attrs['numin']
@@ -590,22 +642,16 @@ class Model(FreezableClass):
             flux = np.sum(seds[:, :, :, :, :], axis=1)
             if uncertainties:
                 unc = np.sqrt(np.sum(seds_unc[:, :, :, :, :] ** 2, axis=1))
-        elif component == 'source_emit':
-            flux = seds[:, 0, :, :, :]
-            if uncertainties:
-                unc = seds_unc[:, 0, :, :, :]
-        elif component == 'dust_emit':
-            flux = seds[:, 1, :, :, :]
-            if uncertainties:
-                unc = seds_unc[:, 1, :, :, :]
-        elif component == 'source_scat':
-            flux = seds[:, 2, :, :, :]
-            if uncertainties:
-                unc = seds_unc[:, 2, :, :, :]
-        elif component == 'dust_scat':
-            flux = seds[:, 3, :, :, :]
-            if uncertainties:
-                unc = seds_unc[:, 3, :, :, :]
+        elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat']:
+            if type(io) is tuple:
+                start, end = io
+                flux = np.sum(seds[:, start:end, :, :, :], axis=1)
+                if uncertainties:
+                    unc = np.sqrt(np.sum(seds_unc[:, start:end, :, :, :] ** 2, axis=1))
+            else:
+                flux = seds[:, io, :, :, :]
+                if uncertainties:
+                    unc = seds_unc[:, io, :, :, :]
         else:
             raise Exception("Unknown component: %s" % component)
 
@@ -661,7 +707,7 @@ class Model(FreezableClass):
                      component='total', aperture=-1, inclination='all',
                      wmin=0.01, wmax=5000., fmin=None, fmax=None,
                      color='black', labels=True, uncertainties=False,
-                     **kwargs):
+                     source_id=None, dust_id=None, **kwargs):
         '''
         Plot an SED or polarization spectrum
 
@@ -735,6 +781,12 @@ class Model(FreezableClass):
         uncertainties : bool, optional
             Whether or not to show the uncertainties
 
+        source_id, dust_id : int, optional
+            If the output file was made with track_origin='detailed', a
+            specific source and dust component can be specified. If
+            these are not specified, then the total component requested
+            for all sources or dust types is returned.
+
         Returns
         -------
 
@@ -762,7 +814,7 @@ class Model(FreezableClass):
         if type(aperture) is not str and np.isscalar(aperture):
             aperture = [aperture]
 
-        seds = self.get_sed(stokes=stokes, technique=technique, group=group, distance=distance, component=component, aperture=aperture, inclination=inclination, uncertainties=uncertainties)
+        seds = self.get_sed(stokes=stokes, technique=technique, group=group, distance=distance, component=component, aperture=aperture, inclination=inclination, uncertainties=uncertainties, source_id=source_id, dust_id=dust_id)
 
         if uncertainties:
             wav, nufnu, nufnu_unc = seds
@@ -829,7 +881,8 @@ class Model(FreezableClass):
 
     def get_image(self, stokes='I', group=1, technique='peeled',
                   distance=None, component='total', inclination='all',
-                  uncertainties=False, units='ergs/cm^2/s'):
+                  uncertainties=False, units='ergs/cm^2/s',
+                  source_id=None, dust_id=None):
         '''
         Retrieve images for a specific image group and Stokes component
 
@@ -881,6 +934,12 @@ class Model(FreezableClass):
         units : str, optional
             The output units for the image(s). The default is ergs/cm^2/s.
 
+        source_id, dust_id : int, optional
+            If the output file was made with track_origin='detailed', a
+            specific source and dust component can be specified. If
+            these are not specified, then the total component requested
+            for all sources or dust types is returned.
+
         Returns
         -------
 
@@ -922,6 +981,52 @@ class Model(FreezableClass):
         if uncertainties and not 'images_unc' in g:
             raise Exception("Uncertainties requested but not present in file")
 
+        if 'track_origin' in g['images'].attrs:
+
+            track_origin = g['images'].attrs['track_origin']
+
+            if track_origin == 'no' and component != 'total':
+                raise Exception("cannot extract component=%s - file only contains total flux" % component)
+
+            if track_origin != 'detailed':
+                if source_id is not None:
+                    raise Exception("cannot specify source_id, as images were not computed with track_origin='detailed'")
+                if dust_id is not None:
+                    raise Exception("cannot specify dust_id, as images were not computed with track_origin='detailed'")
+
+            if component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat']:
+
+                if component == 'source_emit':
+                    io = 0
+                elif component == 'dust_emit':
+                    io = 1
+                elif component == 'source_scat':
+                    io = 2
+                elif component == 'dust_scat':
+                    io = 3
+
+                if track_origin == 'detailed':
+
+                    ns = g['images'].attrs['n_sources']
+                    nd = g['images'].attrs['n_dust']
+
+                    io = ((io - (io + 1) % 2 + 1) * ns + (io - io % 2) * nd) / 2
+
+                    if component.startswith('source'):
+                        if source_id is None:
+                            io = (io, io + ns)
+                        else:
+                            if source_id < 1 or source_id > ns:
+                                raise Exception("source_id should be between 1 and %i" % ns)
+                            io = io + (source_id - 1)
+                    else:
+                        if dust_id is None:
+                            io = (io, io + nd)
+                        else:
+                            if dust_id < 1 or dust_id > nd:
+                                raise Exception("dust_id should be between 1 and %i" % nd)
+                            io = io + (dust_id - 1)
+
         # Set up wavelength space
         if 'numin' in g['images'].attrs:
             numin = g['images'].attrs['numin']
@@ -937,26 +1042,13 @@ class Model(FreezableClass):
         if uncertainties:
             images_unc = g['images_unc'].value
 
+        try:
+            inside_observer = g.attrs['inside_observer']
+        except:
+            inside_observer = False
+
         # Optionally scale by distance
-        if distance:
-
-            # Find spatial extent of the image
-            xmin = g['images'].attrs['xmin']
-            xmax = g['images'].attrs['xmax']
-            ymin = g['images'].attrs['ymin']
-            ymax = g['images'].attrs['ymax']
-
-            # Find pixel dimensions of image
-            ny, nx = images.shape[-2:]
-
-            # The following will all be incorrect for inside observer, as pixel dimensions will already be an angle
-
-            # Find pixel resolution in radians/pixel
-            pix_dx = np.arctan((xmax - xmin) / float(nx) / distance)
-            pix_dy = np.arctan((ymax - ymin) / float(ny) / distance)
-
-            # Find pixel area in steradians
-            pix_area = pix_dx * pix_dy
+        if distance or inside_observer:
 
             # Convert to the correct units
             if units == 'ergs/cm^2/s':
@@ -968,12 +1060,35 @@ class Model(FreezableClass):
             elif units == 'mJy':
                 scale = 1.e26 / nu
             elif units == 'MJy/sr':
+
+                # Find spatial extent of the image
+                xmin = g['images'].attrs['xmin']
+                xmax = g['images'].attrs['xmax']
+                ymin = g['images'].attrs['ymin']
+                ymax = g['images'].attrs['ymax']
+
+                # Find pixel dimensions of image
+                ny, nx = images.shape[-2:]
+
+                # Find pixel resolution in radians/pixel
+                if inside_observer:
+                    pix_dx = abs(np.radians(xmax - xmin)  / float(nx))
+                    pix_dy = abs(np.radians(ymax - ymin)  / float(ny))
+                else:
+                    pix_dx = abs(np.arctan((xmax - xmin) / float(nx) / distance))
+                    pix_dy = abs(np.arctan((ymax - ymin) / float(ny) / distance))
+
+                # Find pixel area in steradians
+                pix_area = pix_dx * pix_dy
+
                 scale = 1.e17 / nu / pix_area
+
             else:
                 raise Exception("Unknown units: %s" % scale)
 
             # Scale by distance
-            scale *= 1. / (4. * pi * distance ** 2)
+            if distance:
+                scale *= 1. / (4. * pi * distance ** 2)
 
         else:
 
@@ -989,25 +1104,19 @@ class Model(FreezableClass):
 
         # Select correct origin component
         if component == 'total':
-            flux = np.sum(images[:, :, :, :, :], axis=1)
+            flux = np.sum(images[:, :, :, :, :, :], axis=1)
             if uncertainties:
-                unc = np.sqrt(np.sum(images_unc[:, :, :, :, :] ** 2, axis=1))
-        elif component == 'source_emit':
-            flux = images[:, 0, :, :, :, :]
-            if uncertainties:
-                unc = images_unc[:, 0, :, :, :, :]
-        elif component == 'dust_emit':
-            flux = images[:, 1, :, :, :, :]
-            if uncertainties:
-                unc = images_unc[:, 1, :, :, :, :]
-        elif component == 'source_scat':
-            flux = images[:, 2, :, :, :, :]
-            if uncertainties:
-                unc = images_unc[:, 2, :, :, :, :]
-        elif component == 'dust_scat':
-            flux = images[:, 3, :, :, :, :]
-            if uncertainties:
-                unc = images_unc[:, 3, :, :, :, :]
+                unc = np.sqrt(np.sum(images_unc[:, :, :, :, :, :] ** 2, axis=1))
+        elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat']:
+            if type(io) is tuple:
+                start, end = io
+                flux = np.sum(images[:, start:end, :, :, :, :], axis=1)
+                if uncertainties:
+                    unc = np.sqrt(np.sum(images_unc[:, start:end, :, :, :, :] ** 2, axis=1))
+            else:
+                flux = images[:, io, :, :, :, :]
+                if uncertainties:
+                    unc = images_unc[:, io, :, :, :, :]
         else:
             raise Exception("Unknown component: %s" % component)
 
@@ -1053,7 +1162,7 @@ class Model(FreezableClass):
     def plot_image(self, wavelength, axes=None, filename=None, stokes='I', group=1,
                    technique='peeled', distance=None, component='total',
                    inclination=0, vmin=None, vmax=None, cmap=None,
-                   labels=True, **kwargs):
+                   labels=True, source_id=None, dust_id=None, **kwargs):
         '''
         Plot an image
 
@@ -1116,6 +1225,12 @@ class Model(FreezableClass):
 
         labels : bool, optional
             Whether or not to show the axis labels
+
+        source_id, dust_id : int, optional
+            If the output file was made with track_origin='detailed', a
+            specific source and dust component can be specified. If
+            these are not specified, then the total component requested
+            for all sources or dust types is returned.
 
         Returns
         -------

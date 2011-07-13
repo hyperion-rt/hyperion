@@ -244,7 +244,7 @@ contains
        call mp_table_read_column_auto(handle, trim(paths(ig))//'/Angles', 'theta', theta)
        call mp_table_read_column_auto(handle, trim(paths(ig))//'/Angles', 'phi', phi)
 
-       call image_setup(handle,paths(ig),peeled_image(ig),n_view,use_exact_nu,frequencies)
+       call image_setup(handle,paths(ig),peeled_image(ig),n_view,n_sources,n_dust,use_exact_nu,frequencies)
 
        ! If an inside observer, check that the longitudes are inverted
        if(inside_observer(ig)) then
@@ -304,6 +304,7 @@ contains
        write(group_name, '("Group ",I5.5)') ig
        g_indiv = mp_create_group(group, group_name)
        call image_write(peeled_image(ig),g_indiv)
+       call mp_write_keyword(g_indiv, '.', 'inside_observer', inside_observer(ig))
        call mp_close_group(g_indiv)
     end do
 

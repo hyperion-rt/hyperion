@@ -476,7 +476,7 @@ class ImageConf(FreezableClass):
             self.set_image_limits(-np.inf, np.inf, -np.inf, np.inf)
         self.set_wavelength_range(250, 0.01, 5000.)
         self.set_output_bytes(8)
-        self.set_track_origin(False)
+        self.set_track_origin('no')
         self.set_uncertainties(False)
         self._monochromatic = False
         self._freeze()
@@ -587,27 +587,41 @@ class ImageConf(FreezableClass):
 
     def set_track_origin(self, track_origin):
         '''
-        Set whether to track the origin of the photons. This splits them up
-        into:
+        Set whether to track the origin of the photons. The options are:
 
-          * The photons were last emitted from a source and did not undergo
+        'no' - does not split up the images/SEDs by origin
+
+        'basic' - this splits up the images/SEDs into:
+
+          * The photons last emitted from a source and did not undergo
             any subsequent interactions.
-          * The photons were last emitted dust and did not undergo any
+          * The photons last emitted from dust and did not undergo any
             subsequent interactions
-          * The photons were last emitted from a source and were
-            subsequently scattered
-          * The photons were last emitted from dust and were subsequently
+          * The photons last emitted from a source and subsequently
             scattered
+          * The photons last emitted from dust and subsequently
+            scattered
+
+        'detailed' - as above, but in each category, the origin is further
+                     refined into each individual source and dust type.
 
         Parameters
         ----------
         track_origin : bool
             Whether to track the origin of the photons as described above.
         '''
+
+        if track_origin is True:
+            track_origin = 'basic'
+        elif track_origin is False:
+            track_origin = 'no'
+        elif track_origin not in ['no', 'basic', 'detailed']:
+            raise Exception("track_origin should be one of no/basic/detailed")
+
         self.track_origin = track_origin
 
     def _write_track_origin(self, group):
-        group.attrs['track_origin'] = bool2str(self.track_origin)
+        group.attrs['track_origin'] = self.track_origin
 
     def set_uncertainties(self, uncertainties):
         '''

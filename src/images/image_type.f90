@@ -86,12 +86,15 @@ module type_image
 
      real(dp),allocatable :: tmp_spectrum(:)
 
-     logical :: track_origin
+     character(len=10) :: track_origin
      logical :: uncertainties
 
      integer :: io_type
 
      integer :: n_orig
+
+    integer :: n_sources
+    integer :: n_dust
 
   end type image
 
@@ -158,21 +161,23 @@ contains
 
   end subroutine image_scale
 
-  subroutine image_setup(handle,path,img,n_view,use_exact_nu,frequencies)
+  subroutine image_setup(handle,path,img,n_view,n_sources,n_dust,use_exact_nu,frequencies)
 
     implicit none
     integer(hid_t),intent(in) :: handle
     character(len=*),intent(in) :: path
 
     type(image),intent(out) :: img
-    integer,intent(in) :: n_view
+    integer,intent(in) :: n_view, n_sources, n_dust
     logical,intent(in) :: use_exact_nu
     real(dp),intent(in),optional :: frequencies(:)
     real(dp) :: wav_min, wav_max
     integer :: io_bytes
 
     img%n_view = n_view
-
+    img%n_sources = n_sources
+    img%n_dust = n_dust
+    
     call mp_read_keyword(handle, path, 'n_wav',img%n_nu)
 
     call mp_read_keyword(handle, path, 'compute_image',img%compute_image)
@@ -195,11 +200,17 @@ contains
     end if
 
     call mp_read_keyword(handle, path, 'track_origin',img%track_origin)
-    if(img%track_origin) then
+    
+    select case(trim(img%track_origin))
+    case('detailed')
+       img%n_orig = 2 * (img%n_sources + img%n_dust)
+    case('basic', 'yes')
        img%n_orig = 4
-    else
+    case('no')
        img%n_orig = 1
-    end if
+    case default
+       call error("image_setup", "unknown track_origin flag: "//trim(img%track_origin))
+    end select
 
     call mp_read_keyword(handle, path, 'uncertainties',img%uncertainties)
 
@@ -383,7 +394,14 @@ contains
     end if
 
     ! Find origin flag
-    if(img%track_origin) then
+    if(trim(img%track_origin) == 'detailed') then 
+        io = ((orig(p) - mod(orig(p),2)) * img%n_sources + (orig(p) - mod(orig(p)+1,2) - 1) * img%n_dust) / 2
+        if(mod(orig(p),2)==0) then
+            io = io + p%dust_id
+        else
+            io = io + p%source_id
+        end if
+    else if(trim(img%track_origin) == 'basic') then
        io = orig(p)
     else
        io = 1
@@ -441,7 +459,14 @@ contains
     end if
 
     ! Find origin flag
-    if(img%track_origin) then
+    if(trim(img%track_origin) == 'detailed') then 
+        io = ((orig(p) - mod(orig(p),2)) * img%n_sources + (orig(p) - mod(orig(p)+1,2) - 1) * img%n_dust) / 2
+        if(mod(orig(p),2)==0) then
+            io = io + p%dust_id
+        else
+            io = io + p%source_id
+        end if
+    else if(trim(img%track_origin) == 'basic') then
        io = orig(p)
     else
        io = 1
@@ -580,6 +605,12 @@ contains
        call mp_write_keyword(group, 'seds','apmin',img%ap_min)
        call mp_write_keyword(group, 'seds','apmax',img%ap_max)
 
+       call mp_write_keyword(group, 'seds', 'track_origin', img%track_origin)
+       if(trim(img%track_origin) == 'detailed') then
+        call mp_write_keyword(group, 'seds', 'n_sources', img%n_sources)
+        call mp_write_keyword(group, 'seds', 'n_dust', img%n_dust)
+       end if
+
     end if
 
     if(img%compute_image) then
@@ -637,6 +668,12 @@ contains
        call mp_write_keyword(group, 'images','xmax',img%x_max)
        call mp_write_keyword(group, 'images','ymin',img%y_min)
        call mp_write_keyword(group, 'images','ymax',img%y_max)
+
+       call mp_write_keyword(group, 'images', 'track_origin', img%track_origin)
+       if(trim(img%track_origin) == 'detailed') then
+        call mp_write_keyword(group, 'images', 'n_sources', img%n_sources)
+        call mp_write_keyword(group, 'images', 'n_dust', img%n_dust)
+       end if
 
     end if
 
