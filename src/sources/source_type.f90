@@ -374,7 +374,6 @@ contains
     type(photon),intent(inout) :: p
     ! the position and direction of the emitted photon
 
-    type(grid_cell) :: icell
     integer :: ispot
 
     select case(src%type)
@@ -391,7 +390,7 @@ contains
        end if
        ! Need to change ispot if sphere and falls inside spot
     case(4)
-       call emit_from_map(src,p,icell)
+       call emit_from_map(src,p)
     case(5)
        call emit_from_extern_sph(src,p)
     case(6)
@@ -413,9 +412,9 @@ contains
           case(2)
              p%energy = normalized_B_nu(nu, src%spot(ispot)%temperature)
           case(3)
-             p%dust_id = select_dust_specific_energy_rho(icell)
-             p%emiss_var_id = jnu_var_id(icell%ic, p%dust_id)
-             p%emiss_var_frac = jnu_var_frac(icell%ic, p%dust_id)
+             p%dust_id = select_dust_specific_energy_rho(p%icell)
+             p%emiss_var_id = jnu_var_id(p%icell%ic, p%dust_id)
+             p%emiss_var_frac = jnu_var_frac(p%icell%ic, p%dust_id)
              call dust_sample_emit_probability(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,nu,p%energy)
           end select
        end if
@@ -426,9 +425,9 @@ contains
        case(2)
           p%energy = normalized_B_nu(nu, src%temperature)
        case(3)
-          p%dust_id = select_dust_specific_energy_rho(icell)
-          p%emiss_var_id = jnu_var_id(icell%ic, p%dust_id)
-          p%emiss_var_frac = jnu_var_frac(icell%ic, p%dust_id)
+          p%dust_id = select_dust_specific_energy_rho(p%icell)
+          p%emiss_var_id = jnu_var_id(p%icell%ic, p%dust_id)
+          p%emiss_var_frac = jnu_var_frac(p%icell%ic, p%dust_id)
           call dust_sample_emit_probability(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,nu,p%energy)
        end select
 
@@ -443,9 +442,9 @@ contains
           case(2)
              call random_planck_frequency(p%nu, src%spot(ispot)%temperature)
           case(3)
-             p%dust_id = select_dust_specific_energy_rho(icell)
-             p%emiss_var_id = jnu_var_id(icell%ic, p%dust_id)
-             p%emiss_var_frac = jnu_var_frac(icell%ic, p%dust_id)
+             p%dust_id = select_dust_specific_energy_rho(p%icell)
+             p%emiss_var_id = jnu_var_id(p%icell%ic, p%dust_id)
+             p%emiss_var_frac = jnu_var_frac(p%icell%ic, p%dust_id)
              call dust_sample_j_nu(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu)
           end select
        end if
@@ -456,9 +455,9 @@ contains
        case(2)
           call random_planck_frequency(p%nu, src%temperature)
        case(3)
-          p%dust_id = select_dust_specific_energy_rho(icell)
-          p%emiss_var_id = jnu_var_id(icell%ic, p%dust_id)
-          p%emiss_var_frac = jnu_var_frac(icell%ic, p%dust_id)
+          p%dust_id = select_dust_specific_energy_rho(p%icell)
+          p%emiss_var_id = jnu_var_id(p%icell%ic, p%dust_id)
+          p%emiss_var_frac = jnu_var_frac(p%icell%ic, p%dust_id)
           call dust_sample_j_nu(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu)
        end select
 
@@ -632,7 +631,7 @@ contains
   ! emit_from_map : emit a photon from a luminosity map
   !**********************************************************************!
 
-  subroutine emit_from_map(src,p,icell)
+  subroutine emit_from_map(src,p)
 
     implicit none
 
@@ -646,11 +645,12 @@ contains
     type(photon),intent(inout) :: p
     ! the emitted photon
 
-    type(grid_cell),intent(out) :: icell
-
     ! Sample position in map
-    call grid_sample_pdf_map(src%luminosity_map, icell)
-    call random_position_cell(icell, p%r)
+    call grid_sample_pdf_map(src%luminosity_map, p%icell)
+    p%in_cell = .true.
+    
+    ! Find random position inside cell
+    call random_position_cell(p%icell, p%r)
 
     ! Sample isotropic angle
     call random_sphere_angle3d(p%a)
