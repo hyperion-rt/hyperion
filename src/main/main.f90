@@ -42,23 +42,24 @@ program main
 
   ! SETUP
 
+  if(main_process()) then
+     write(*,*) repeat('-',60)
+     datetime = now()
+     write(*,'(" Hyperion v",A)') fortran_version
+     write(*,'(" Started on ",A)') trim(datetime)
+     write(*,'(" Input:  ", A)') trim(input_file)
+     write(*,'(" Output: ", A)') trim(output_file)
+     write(*,*) repeat('-',60)
+  end if
+
   if(main_process()) call check_file_exists(input_file)
   handle_in = mp_open_read(input_file)
 
   ! Prepare output directory
   if(main_process()) then
      handle_out = mp_open_new(output_file)
-     call mp_write_keyword(handle_out, '/', 'fortran_version', fortran_version)
-  end if
-
-  if(main_process()) then
-     write(*,*) repeat('-',60)
-     datetime = now()
-     write(*,'(" Started on ",A)') trim(datetime)
      call mp_write_keyword(handle_out, '/', 'date_started', trim(datetime))
-     write(*,'(" Input:  ", A)') trim(input_file)
-     write(*,'(" Output: ", A)') trim(output_file)
-     write(*,*) repeat('-',60)
+     call mp_write_keyword(handle_out, '/', 'fortran_version', fortran_version)
   end if
 
   ! Wait for all threads

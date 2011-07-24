@@ -1,6 +1,7 @@
 module setup
 
   use core_lib
+  use mpi_core
   use mpi_io
 
   use grid_physics, only : setup_grid_physics
@@ -31,14 +32,18 @@ contains
     integer :: physics_io_bytes
     type(version) :: python_version
 
-    if(mp_exists_keyword(input_handle, '/', 'python_version')) then
-       call mp_read_keyword(input_handle, '/', 'python_version', python_version%string)
-       if(python_version < version('0.8.0')) then
-          call error("setup_initial", "cannot read files made with the Python module before version 0.8.0")
-       end if
-    else
-       call error("setup_initial", "cannot read files made with the Python module before version 0.8.0")
+    if(main_process()) then
+        if(mp_exists_keyword(input_handle, '/', 'python_version')) then
+           call mp_read_keyword(input_handle, '/', 'python_version', python_version%string)
+           if(python_version < version('0.8.0')) then
+              call error("setup_initial", "cannot read files made with the Python module before version 0.8.0")
+           end if
+        else
+           call error("setup_initial", "cannot read files made with the Python module before version 0.8.0")
+        end if
     end if
+
+    call mp_join()
 
     call mp_read_keyword(input_handle, '/', 'monochromatic', use_exact_nu)
     call mp_read_keyword(input_handle, '/', 'raytracing', use_raytracing)
