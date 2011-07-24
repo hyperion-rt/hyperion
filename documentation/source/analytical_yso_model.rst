@@ -107,9 +107,9 @@ Grid
 
 The gridding of the density is done automatically, but the user needs to specify a grid size. Either a spherical polar or cylindrical polar grid can be used. To use the spherical polar grid::
 
-    y.set_spherical_polar_grid(n_r, n_theta, n_phi)
+    y.set_spherical_polar_grid_auto(n_r, n_theta, n_phi)
     
 and to use the cylindrical polar grid::
 
-    y.set_cylindrical_polar_grid(n_w, n_z, n_phi)
+    y.set_cylindrical_polar_grid_auto(n_w, n_z, n_phi)
     
