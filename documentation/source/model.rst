@@ -110,8 +110,8 @@ Octree grids
 
 Coming soon...
 
-Density and Temperature
-=======================
+Density and Specific Energy
+===========================
 
 Once a regular grid is set up, it is straightforward to add one or more density grids. In this step, a dust file in HDF5 format is also required. See :ref:`dustfile` for more details about creating and using dust files in HDF5
 format.
@@ -132,15 +132,15 @@ This command can be called multiple times if multiple density arrays are
 needed (for example if different dust sizes have different spatial
 distributions).
 
-Optionally, a temperature distribution can also be specified using a 3D NumPy
-array using the ``temperature=`` argument::
+Optionally, a specific energy distribution can also be specified using a 3D NumPy
+array using the ``specific_energy=`` argument::
 
-    m.add_density_grid(density_array, dust_file, temperature=temperature_array)
+    m.add_density_grid(density_array, dust_file, specific_energy=specific_energy_array)
 
-.. note:: specifying a temperature distribution is only useful if the number
-          of temperature iterations for the RT code is set to zero (see
-          `Temperature Calculation`_), otherwise the input temperature will be
-          overwritten with the self-consistently computed dust temperature.
+.. note:: Specifying a specific energy distribution is only useful if the
+          number of initial iterations for the RT code is set to zero (see
+          `Specific Energy Calculation`_), otherwise the input specific energy
+          will be overwritten with the self-consistently computed one.
 
 AMR grids
 ---------
@@ -153,23 +153,23 @@ for example::
 
     m.add_density_grid(amr, 'kmh.hdf5')
 
-Temperatures can be specified using the same kinds of objects and using the `temperature` argument::
+Specific energies can be specified using the same kinds of objects and using the `specific_energy` argument::
 
-    m.add_density_grid(amr, dust_file, temperature=amr_temperature)
+    m.add_density_grid(amr, dust_file, specific_energy=amr_specific_energy)
 
-. If one wants to set a preliminary temperature based e.g. on density or a constant temperature, then one can do for example::
+If one wants to set a preliminary specific energy based e.g. on density or a constant temperature, then one can do for example::
 
     # Set the AMR object
     amr = ...
 
     # Create a constant temperature grid
     from copy import deepcopy
-    amr_temp = deepcopy(amr)
-    for level in amr_temp.levels:
+    amr_specific_energy = deepcopy(amr)
+    for level in amr_specific_energy.levels:
         for fab in level.fabs:
             fab.data[:, :, :] = 100.  # Set to 100K
 
-    m.add_density_grid(amr, 'kmh.hdf5', temperature=amr_temp)
+    m.add_density_grid(amr, 'kmh.hdf5', specific_energy=amr_specific_energy)
 
 For more details on how to create or read in an AMR object, see :ref:`amr_indepth`.
 
@@ -215,6 +215,7 @@ three ways:
 
 * by specifying a blackbody temperature using the ``temperature=`` argument or
   ``temperature`` attribute. This should be a floating point value.
+
 * by using the local dust emissivity if neither a spectrum or temperature are
   specified.
 
@@ -321,14 +322,14 @@ following method::
 
 This method can take the following arguments, which depend on the type of radiation transfer calculations requested:
 
-* ``temperature=`` - number of photons per temperature iteration
+* ``initial=`` - number of photons per initial iteration to compute the
+  specific energy of the dust
 * ``imaging=`` - number of photons emitted in the SED/image iteration.
 * ``raytracing_sources=`` - number of photons emitted from sources in the
   raytracing iteration
 * ``raytracing_dust=`` - number of photons emitted from dust in the raytracing
   iteration
-* ``stats=`` - used to determine how often to print out statistics, or the
-  size of the photon chunks (if MPI is used).
+* ``stats=`` - used to determine how often to print out statistics
 
 If computing the radiation transfer in monochromatic mode, the ``imaging`` argument should be replaced by:
 
@@ -345,12 +346,13 @@ If computing the radiation transfer in monochromatic mode, the ``imaging`` argum
 .. note:: All the required arguments have to be specified in a single call to
           ``set_n_photons``.
 
-Temperature calculation
------------------------
+Specific Energy calculation
+---------------------------
 
-To set the number of iterations used to compute the dust temperature, use::
+To set the number of initial iterations used to compute the dust specific
+energy, use::
 
-    m.set_n_temperature_iterations(10)
+    m.set_n_initial_iterations(10)
 
 Raytracing
 ----------
@@ -381,11 +383,16 @@ to one. The following examples show how to enable the PDA and MRW respectively:
 Dust sublimation
 ----------------
 
-To set whether and how to sublimate dust, the following method can be used::
+To set whether and how to sublimate dust, first the dust file needs to be read in, the sublimation parameters should be set, and the dust object should be passed directly to add_density::
 
-    m.set_dust_sublimation('fast', temperature=1600)
+    from hyperion.dust import SphericalDust
 
-The first argument can be ``none`` (dust sublimation does not occur), ``cap`` (temperatures in excess of the one specified will be reset to the one given), ``slow`` (dust with temperatures in excess of the one specified will be gradually destroyed), or ``fast`` (dust with temperatures in excess of the one specified will be immediately destroyed).
+    dust = SphericalDust('kmh.hdf5')
+    dust.set_sublimation_temperature('fast', temperature=1600)
+
+    m.add_density_grid(density, dust)
+
+The first argument of ``set_sublimation_temperature`` can be ``none`` (dust sublimation does not occur), ``cap`` (temperatures in excess of the one specified will be reset to the one given), ``slow`` (dust with temperatures in excess of the one specified will be gradually destroyed), or ``fast`` (dust with temperatures in excess of the one specified will be immediately destroyed).
 
 Advanced
 --------
@@ -401,7 +408,11 @@ Kill all photons as soon as they are absorbed, in the imaging/SED iteration
 
 Set a minimum temperature to which temperatures below this will be reset::
 
-    m.set_minimum_temperature(10)
+    m.add_density_grid(density, dust, minimum_temperature=100.)
+
+and in terms of specific energy::
+
+    m.add_density_grid(density, dust, minimum_specific_energy=100.)
 
 Set the number of output bytes per floating point value (4 = 32-bit, 8 = 64-bit)::
 
@@ -519,23 +530,18 @@ It is possible to write out a number of physical arrays for each iteration, or
 just the last iteration. To do this, you will need to set the parameters in
 ``Models.conf.output``::
 
-    # Temperature
-    m.conf.output.output_temperature = 'all'
-
     # Density
     m.conf.output.output_density = 'last'
 
     # Density difference (shows where dust was destroyed)
     m.conf.output.output_density_diff = 'none'
 
-
     # Energy absorbed (using pathlengths)
-    m.conf.output.output_specific_energy_abs = 'last'
+    m.conf.output.output_specific_energy = 'last'
 
     # Number of unique photons that passed through the cell
     m.conf.output.output_n_photons = 'last'
 
 Each value can be set to ``all`` (output all iterations), ``last`` (output
 only after last iteration), or ``none`` (do not output). The default is to
-output only the last iteration of the ``temperature`` and
-``specific_energy_abs``.
+output only the last iteration of ``specific_energy``.

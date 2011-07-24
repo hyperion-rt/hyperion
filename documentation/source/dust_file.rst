@@ -31,6 +31,18 @@ created, you do not need to recreate it every time you want to set up a model.
 You will only need to run this again if explicitly asked to after a Hyperion
 update.
 
+.. note:: If you get an error that looks like::
+
+              Exception: x values are out of interpolation bounds
+
+          this means that the optical properties are not defined for a wide
+          enough range of wavelengths. You can extrapolate the existing values
+          using::
+
+              d.optical_properties._extrapolate(1.e-3, 1.e7)
+
+          before the ``d.write`` command.
+
 In addition, you can plot an overview of the optical properties using::
 
     d.plot('kmh.png')
@@ -44,16 +56,16 @@ An HDF5 dust file should contain 5 datasets. The root of the file should contain
 
 * ``emissvar``: whether the emissivity is specified as a function of
   temperature (``T``) or specific energy absorbed in each cell (``E``).
-  
+
 * ``version``: this should be set to ``1`` - the version described in this
   section.
-  
+
 * ``type``: the dust file type. At the moment, the only kind of dust file
   supported is one giving the four unique elements of the scattering matrix
   of dust as a function of scattering angle (``1``). In future, other types
   of dust, such as aligned grains, which require the full 16 elements, will
   be implemented.
-  
+
 The datasets present should be the following:
 
 Optical properties
@@ -87,18 +99,18 @@ the dust. The columns should be:
 
 * ``temperature``: The temperature for which the mean opacities are given
 
-* ``chi_planck``: The Plank mean opacity to extinction, in cm^2/g 
+* ``chi_planck``: The Plank mean opacity to extinction, in cm^2/g
 
-* ``chi_rosseland``: The Rosseland mean opacity to extinction, in cm^2/g 
+* ``chi_rosseland``: The Rosseland mean opacity to extinction, in cm^2/g
 
-* ``kappa_planck``: The Plank mean opacity to absorption, in cm^2/g 
+* ``kappa_planck``: The Plank mean opacity to absorption, in cm^2/g
 
 * ``kappa_rosseland``: The Rosseland mean opacity to absorption, in cm^2/g
 
 The temperatures specified should range from 0.1K (or less) to a
 temperature safely above the maximum temperature expected for the dust in
 the system.
- 
+
 Emissivities
 ------------
 
