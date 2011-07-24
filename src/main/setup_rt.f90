@@ -32,15 +32,13 @@ contains
     integer :: physics_io_bytes
     type(version) :: python_version
 
-    if(main_process()) then
-        if(mp_exists_keyword(input_handle, '/', 'python_version')) then
-           call mp_read_keyword(input_handle, '/', 'python_version', python_version%string)
-           if(python_version < version('0.8.0')) then
-              call error("setup_initial", "cannot read files made with the Python module before version 0.8.0")
-           end if
-        else
-           call error("setup_initial", "cannot read files made with the Python module before version 0.8.0")
-        end if
+    if(mp_exists_keyword(input_handle, '/', 'python_version')) then
+       call mp_read_keyword(input_handle, '/', 'python_version', python_version%string)
+       if(python_version < version('0.8.0')) then
+          if(main_process()) call error("setup_initial", "cannot read files made with the Python module before version 0.8.0")
+       end if
+    else
+       if(main_process()) call error("setup_initial", "cannot read files made with the Python module before version 0.8.0")
     end if
 
     call mp_join()
