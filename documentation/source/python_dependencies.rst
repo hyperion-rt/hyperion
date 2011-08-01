@@ -20,7 +20,7 @@ How you install these depends on your operating system, whether you are an exist
     import scipy
     import matplotlib
     import h5py
-    
+
 If you see this::
 
     >>> import numpy
@@ -32,7 +32,7 @@ If you see this::
 then the module is not installed. If you see this
 
     >>> import numpy
-    >>> 
+    >>>
 
 then the module is already installed.
 
@@ -69,13 +69,13 @@ these from source, but this is beyond the scope of this documentation.
 Check that the packages import correctly::
 
     $ python
-    Python 2.6.1 (r261:67515, Feb 11 2010, 00:51:29) 
+    Python 2.6.1 (r261:67515, Feb 11 2010, 00:51:29)
     [GCC 4.2.1 (Apple Inc. build 5646)] on darwin
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import numpy
     >>> import scipy
     >>> import matplotlib
-    >>> 
+    >>>
 
 If any of the packages are incorrectly installed, they will not import cleanly
 as above. Once the three main packages are installed, you will need to install
@@ -103,17 +103,17 @@ Now, download the latest ``tar.gz`` package from the ``h5py`` `website <http://c
     cd h5py-x.x.x
     python setup.py build --api=18 --hdf5=/usr/local/hdf5
     python setup.py install
-    
+
 Now, go back to your home directory, and check that ``h5py`` imports cleanly::
 
     $ python
-    Python 2.6.1 (r261:67515, Feb 11 2010, 00:51:29) 
+    Python 2.6.1 (r261:67515, Feb 11 2010, 00:51:29)
     [GCC 4.2.1 (Apple Inc. build 5646)] on darwin
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import h5py
-    >>> 
-    
-    
+    >>>
+
+
 MacPorts Python
 ---------------
 
@@ -122,7 +122,7 @@ instructions in this section. To find out if you are using the MacPorts Python
 version, type::
 
     which python
-    
+
 If the result is::
 
     $ which python

@@ -100,12 +100,12 @@ Dust list
 
 The ``dust/`` directory should contain a file named ``dust.txt`` that lists the dust to use for each dust index, and the dust files themselves. The ``dust.txt`` file should contain two columns::
 
-    001 www003.fits          
-    002 kmh.fits             
-    003 r400_ice095.fits     
-    004 kmh.fits             
+    001 www003.fits
+    002 kmh.fits
+    003 r400_ice095.fits
+    004 kmh.fits
     ...
-    
+
 The first column is the dust index, and should be in the correct order. This is redundant because it is equal to the line number, but is included for safety. The second column is the filename of the dust file. All files listed here should be included in the ``dust/`` directory, and should be in FITS format with the layout specified below.
 
 Grid parameters
@@ -192,7 +192,7 @@ The columns should be:
 * Column ``8``: The filename of the spectrum to use, prefixed by ``spec:``
   (e.g. ``spec:xray.fits``), or the temperature of a blackbody, prefixed by
   ``temp:`` (e.g. ``temp:10000``).
-  
+
 .. note::
     It is possible to add spots to a spherical source. These should be listed
     on the lines immediately following their parent spherical source, and
@@ -254,7 +254,7 @@ Binned images/SEDs
 For a configuration file used for binned images/SEDs, the ``n_theta`` and
 ``n_phi`` parameters is also required. These give the number of
 theta/phi angle bins for the binned images/SEDs
-  
+
 Peeling-off images/SEDs
 -----------------------
 
@@ -262,7 +262,7 @@ For a configuration file used for peeling-off images/SEDs, the ``n_view`` parame
 
     theta = 10. 20. 30. 40.
     phi   =  0.  0.  0.  0.
-    
+
 The number of viewing angles specified should match ``n_view``
 
 

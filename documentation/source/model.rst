@@ -1,8 +1,8 @@
 .. _model:
 
-=====
-Model
-=====
+===============
+Arbitrary Model
+===============
 
 .. note:: The current document only shows example use of some methods, and
           does not discuss all the options available. To see these, do not

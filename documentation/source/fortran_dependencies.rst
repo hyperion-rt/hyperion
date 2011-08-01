@@ -55,7 +55,7 @@ the MPI library::
 If the build is successful, then you can install the library into place using::
 
     sudo make install
-    
+
 Finally, you will need to add the MPICH2 ``/usr/local/mpich2/bin`` directory to your ``$PATH``.
 To check that the installation was successful, type::
 
@@ -64,7 +64,7 @@ To check that the installation was successful, type::
 and you should get::
 
     /usr/local/mpich2/bin/mpif90
-    
+
 If this is not the case, then the installation was unsuccessful.
 
 .. _mpitrouble:
@@ -87,7 +87,7 @@ the 32-bit Intel Fortran Compiler. First, clean up the installation so far
 with::
 
     make clean
-    
+
 Then, rerun configure and build using::
 
     ./configure F77="ifort -m32" FC="ifort -m32" --enable-fc --prefix=/usr/local/mpich2
@@ -143,11 +143,11 @@ and you should get::
 
 If this is not the case, then the installation was unsuccessful.
 
-.. note:: The reason we install HDF5 in ``hdf5_fortran`` as opposed to simply 
+.. note:: The reason we install HDF5 in ``hdf5_fortran`` as opposed to simply
           ``hdf5`` is so as not to conflict with a possible installation of
           the library without the Fortran bindings.
 
-    
+
 .. _hdftrouble:
 
 Troubleshooting
@@ -187,7 +187,7 @@ Then, rerun configure and build using::
 If this does not work, try cleaning again, and setup the 32-bit ifort using the scripts provided with ifort. For example, if you are using ifort 11.x, you can do::
 
     make clean
-    source /opt/intel/Compiler/11.0/056/bin/ia32/ifortvars_ia32.sh 
+    source /opt/intel/Compiler/11.0/056/bin/ia32/ifortvars_ia32.sh
     ./configure --enable-fortran --enable-hl --prefix=/usr/local/hdf5_fortran FC=ifort
     make
     sudo make install

@@ -12,7 +12,7 @@ First, create a file called ``.pydistutils.cfg`` in your home directory, with th
     install_lib = ~/usr/python/$py_version_short/site-packages
     install_scripts = ~/usr/bin
     install_data = ~/usr/share
-    
+
 Then, add::
 
     export PYTHONPATH=$HOME/usr/python/2.6/site-packages/:$PYTHONPATH

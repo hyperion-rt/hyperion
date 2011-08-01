@@ -1,3 +1,4 @@
 hyperion/data/*
 build
 documentation/build
+*.pyc

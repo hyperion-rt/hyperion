@@ -23,17 +23,17 @@ Hyperion
 Go into the ``hyperion-x.x.x`` directory, and type::
 
     python setup.py install
-    
+
 to install the Python module, and then::
 
     ./configure
     make
     make install
-    
+
 to install the Fortran code. By default, the binaries will be written to ``/usr/local/bin``, but you can change this using the ``--prefix`` option to configure, for example::
 
     ./configure --prefix=$HOME/usr
-    
+
 To check that the Fortran binaries are correctly installed, try typing::
 
     $ hyperion_sph
@@ -48,4 +48,4 @@ then something went wrong in the installation, or the directory to which you
 installed the binaries is not in your ``$PATH``.
 
 
-    
+

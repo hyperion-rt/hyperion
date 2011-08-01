@@ -6,14 +6,15 @@
 Hyperion documentation
 ======================
 
-Contents:
+Hyperion is a three-dimensional dust continuum Monte-Carlo radiative transfer
+code. Models are set up via a Python script, and are then run using a compiled fortran code, optionally making use of the Message Passing Interface (MPI) for parallel computing.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    installation.rst
-   model.rst
-   analytical_yso_model.rst
-   howto_animations.rst
+   model_setup.rst
+   model_run.rst
+   model_postprocess.rst
 ..   model_input.rst
 

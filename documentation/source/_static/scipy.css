@@ -1,0 +1,6 @@
+@import "sphinxdoc.css";
+
+.field-list th {
+  white-space: nowrap;
+  background-color: #ebfaf8;
+}

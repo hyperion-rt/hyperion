@@ -56,5 +56,5 @@ The following script describes how to generate PNG frames for an animation::
 The frames can then be combined into a GIF animation using ImageMagick::
 
     $ convert -delay 10 -adjoin frames/*.png movie.gif
-    
+
 The delay value is the delay between frames in milliseconds.

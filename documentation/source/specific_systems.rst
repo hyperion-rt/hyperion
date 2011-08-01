@@ -33,7 +33,7 @@ Note that since you do not have access to a display on Odyssey, you will need to
      import matplotlib
      matplotlib.use('Agg')
      import hyperion
-    
+
 If you do not do this, you will get the following error::
 
     RuntimeError: could not create GdkCursor object
