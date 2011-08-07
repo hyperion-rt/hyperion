@@ -250,6 +250,9 @@ class IsotropicSphericalDust(SphericalDust):
         self.optical_properties.P3[:, :] = 1.
         self.optical_properties.P4[:, :] = 0.
 
+        # Sort optical properties
+        self.optical_properties._sort()
+
 
 class SimpleSphericalDust(SphericalDust):
 
