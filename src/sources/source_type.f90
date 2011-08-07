@@ -725,6 +725,7 @@ contains
     p%r = p%r + src%position
 
     p%last_isotropic = .false.
+    p%source_a = -a_coord
 
   end subroutine emit_from_extern_sph
 
