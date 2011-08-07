@@ -2,6 +2,8 @@
 Model Input HDF5 Format
 =======================
 
+.. warning:: This page is out of date - the current file format has changed!
+
 .. _input_intro:
 
 Introduction
