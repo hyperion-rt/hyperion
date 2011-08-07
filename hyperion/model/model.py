@@ -1340,7 +1340,7 @@ class Model(FreezableClass):
             f_in = h5py.File('%s.rtin' % self.name, 'r')
             g_dust = f_in['Dust']
             for i in range(array.shape[0]):
-                dust = g_dust['dust_%03i' % (i + 1)]
+                dust = g_dust['dust_%03i' % (i + 1)].file
                 d = SphericalDust(dust)
                 array[i, :, :, :] = d.mean_opacities._specific_energy2temperature(array[i, :, :, :])
         else:
