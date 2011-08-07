@@ -463,9 +463,10 @@ class Model(FreezableClass):
         else:
             p = subprocess.call('hyperion %s %s' % (input, output), shell=True)
 
-    def get_sed(self, stokes='I', technique='peeled', group=1, distance=None,
-                     component='total', aperture='all', inclination='all',
-                     uncertainties=False, source_id=None, dust_id=None):
+    def get_sed(self, stokes='I', group=1, technique='peeled',
+                distance=None, component='total', inclination='all',
+                aperture='all', uncertainties=False, units='ergs/cm^2/s',
+                source_id=None, dust_id=None):
         '''
         Retrieve SEDs for a specific image group and Stokes component
 
@@ -474,12 +475,12 @@ class Model(FreezableClass):
 
         stokes : str, optional
             The Stokes component to return. This can be:
-                'I'       Total intensity [default]
-                'Q'       Q Stokes parameter (linear polarization)
-                'U'       U Stokes parameter (linear polarization)
-                'V'       V Stokes parameter (circular polarization)
-                'linpol'  Total linear polarization fraction
-                'circpol' Total circular polariation fraction
+                * 'I': Total intensity [default]
+                * 'Q': Q Stokes parameter (linear polarization)
+                * 'U': U Stokes parameter (linear polarization)
+                * 'V': V Stokes parameter (circular polarization)
+                * 'linpol':  Total linear polarization fraction
+                * 'circpol': Total circular polariation fraction
 
         technique : str, optional
             Whether to retrieve SED(s) computed with photon peeling-off
@@ -496,16 +497,20 @@ class Model(FreezableClass):
         component : str, optional
             The component to return based on origin and last interaction.
             This can be:
-                'total'       Total SED
-                'source_emit' The photons were last emitted from a
-                              source and did not undergo any subsequent
-                              interactions.
-                'dust_emit'   The photons were last emitted dust and did
-                              not undergo any subsequent interactions
-                'source_scat' The photons were last emitted from a
-                              source and were subsequently scattered
-                'dust_scat'   The photons were last emitted from dust and
-                              were subsequently scattered
+
+                * 'total': Total flux
+
+                * 'source_emit': The photons were last emitted from a source
+                  and did not undergo any subsequent interactions.
+
+                * 'dust_emit': The photons were last emitted dust and did not
+                  undergo any subsequent interactions
+
+                * 'source_scat': The photons were last emitted from a source
+                  and were subsequently scattered
+
+                * 'dust_scat': The photons were last emitted from dust and
+                  were subsequently scattered
 
         aperture : int, optional
             The number of the aperture to plot (zero-based). Use 'all' to
@@ -517,6 +522,17 @@ class Model(FreezableClass):
 
         uncertainties : bool, optional
             Whether to compute and return uncertainties
+
+        units : str, optional
+            The output units for the SED(s). Valid options if a distance is
+            specified are:
+                * ``'ergs/cm^2/s'``
+                * ``'ergs/cm^2/s/Hz'``
+                * ``'Jy'``
+                * ``'mJy'``
+                * ``'MJy/sr'``
+            The default is ``'ergs/cm^2/s'``. If a distance is not specified,
+            then this option is ignored, and the output units are ergs/s.
 
         source_id, dust_id : int, optional
             If the output file was made with track_origin='detailed', a
@@ -531,13 +547,15 @@ class Model(FreezableClass):
             The wavelengths for which the SEDs are defined, in microns
 
         flux or degree of polarization : numpy.ndarray
-            The flux or degree of polarization. This is a data cube which
-            has dimensions (n_inclinations, n_apertures, n_wavelengths). If
-            `stokes` is one of 'I', 'Q', 'U', or 'V', the flux is either
-            returned in ergs/s (if distance is not specified) or in
-            ergs/cm^2/s (if distance is specified). If `stokes` is one of
-            'linpol' or 'circpol', the degree of polarization is returned
-            as a fraction in the range 0 to 1.
+            The flux or degree of polarization. This is a data cube which has
+            at most three dimensions (n_inclinations, n_apertures,
+            n_wavelengths). If an aperture or inclination is specified, this
+            reduces the number of dimensions in the flux cube. If `stokes` is
+            one of 'I', 'Q', 'U', or 'V', the flux is either returned in
+            ergs/s (if distance is not specified) or in the units specified by
+            units= (if distance is specified). If `stokes` is one of 'linpol'
+            or 'circpol', the degree of polarization is returned as a fraction
+            in the range 0 to 1.
 
         uncertainty : numpy.ndarray (if `uncertainties`=True)
             The uncertainties on the flux or degree of polarization. This
@@ -617,6 +635,7 @@ class Model(FreezableClass):
             numax = g['seds'].attrs['numax']
             wavmin, wavmax = c / numax * 1.e4, c / numin * 1.e4
             wav = np.logspace(np.log10(wavmax), np.log10(wavmin), g['seds'].shape[4] * 2 + 1)[1::2]
+            nu = c / wav * 1.e4
         else:
             nu = g['frequencies']['nu']
             wav = c / nu * 1.e4
@@ -630,6 +649,59 @@ class Model(FreezableClass):
         seds = g['seds'].value
         if uncertainties:
             seds_unc = g['seds_unc'].value
+
+        try:
+            inside_observer = g.attrs['inside_observer']
+        except:
+            inside_observer = False
+
+        # Optionally scale by distance
+        if distance or inside_observer:
+
+            # Convert to the correct units
+            if units == 'ergs/cm^2/s':
+                scale = np.repeat(1., len(nu))
+            elif units == 'ergs/cm^2/s/Hz':
+                scale = 1. / nu
+            elif units == 'Jy':
+                scale = 1.e23 / nu
+            elif units == 'mJy':
+                scale = 1.e26 / nu
+            elif units == 'MJy/sr':
+
+                # Find spatial extent of the image
+                xmin = g['images'].attrs['xmin']
+                xmax = g['images'].attrs['xmax']
+                ymin = g['images'].attrs['ymin']
+                ymax = g['images'].attrs['ymax']
+
+                # Find pixel dimensions of image
+                ny, nx = images.shape[-2:]
+
+                # Find pixel resolution in radians/pixel
+                if inside_observer:
+                    pix_dx = abs(np.radians(xmax - xmin)  / float(nx))
+                    pix_dy = abs(np.radians(ymax - ymin)  / float(ny))
+                else:
+                    pix_dx = abs(np.arctan((xmax - xmin) / float(nx) / distance))
+                    pix_dy = abs(np.arctan((ymax - ymin) / float(ny) / distance))
+
+                # Find pixel area in steradians
+                pix_area = pix_dx * pix_dy
+
+                scale = 1.e17 / nu / pix_area
+
+            else:
+                raise Exception("Unknown units: %s" % scale)
+
+            # Scale by distance
+            if distance:
+                scale *= 1. / (4. * pi * distance ** 2)
+
+        else:
+
+            # Units here are not technically ergs/cm^2/s but ergs/s
+            scale = np.repeat(1., len(nu))
 
         # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
         if seds.dtype == np.float32:
@@ -660,9 +732,9 @@ class Model(FreezableClass):
 
         # Select correct Stokes component
         if stokes in STOKESD:
-            y = flux[STOKESD[stokes], :, :, :] * scale
+            y = flux[STOKESD[stokes], :, :, :] * scale[np.newaxis, np.newaxis, :]
             if uncertainties:
-                yerr = unc[STOKESD[stokes], :, :, :] * scale
+                yerr = unc[STOKESD[stokes], :, :, :] * scale[np.newaxis, np.newaxis, :]
             else:
                 yerr = np.zeros(y.shape)
         elif stokes == 'linpol':
@@ -891,12 +963,12 @@ class Model(FreezableClass):
 
         stokes : str, optional
             The Stokes component to return. This can be:
-                'I'       Total intensity [default]
-                'Q'       Q Stokes parameter (linear polarization)
-                'U'       U Stokes parameter (linear polarization)
-                'V'       V Stokes parameter (circular polarization)
-                'linpol'  Total linear polarization fraction
-                'circpol' Total circular polariation fraction
+                * 'I': Total intensity [default]
+                * 'Q': Q Stokes parameter (linear polarization)
+                * 'U': U Stokes parameter (linear polarization)
+                * 'V': V Stokes parameter (circular polarization)
+                * 'linpol':  Total linear polarization fraction
+                * 'circpol': Total circular polariation fraction
 
         technique : str, optional
             Whether to retrieve an image computed with photon peeling-off
@@ -913,16 +985,20 @@ class Model(FreezableClass):
         component : str, optional
             The component to return based on origin and last interaction.
             This can be:
-                'total'       Total SED
-                'source_emit' The photons were last emitted from a
-                              source and did not undergo any subsequent
-                              interactions.
-                'dust_emit'   The photons were last emitted dust and did
-                              not undergo any subsequent interactions
-                'source_scat' The photons were last emitted from a
-                              source and were subsequently scattered
-                'dust_scat'   The photons were last emitted from dust and
-                              were subsequently scattered
+
+                * 'total': Total flux
+
+                * 'source_emit': The photons were last emitted from a source
+                  and did not undergo any subsequent interactions.
+
+                * 'dust_emit': The photons were last emitted dust and did not
+                  undergo any subsequent interactions
+
+                * 'source_scat': The photons were last emitted from a source
+                  and were subsequently scattered
+
+                * 'dust_scat': The photons were last emitted from dust and
+                  were subsequently scattered
 
         inclination : int, optional
             The number of the viewing angle to plot (zero-based). Use 'all'
@@ -932,7 +1008,15 @@ class Model(FreezableClass):
             Whether to compute and return uncertainties
 
         units : str, optional
-            The output units for the image(s). The default is ergs/cm^2/s.
+            The output units for the image(s). Valid options if a distance is
+            specified are:
+                * ``'ergs/cm^2/s'``
+                * ``'ergs/cm^2/s/Hz'``
+                * ``'Jy'``
+                * ``'mJy'``
+                * ``'MJy/sr'``
+            The default is ``'ergs/cm^2/s'``. If a distance is not specified,
+            then this option is ignored, and the output units are ergs/s.
 
         source_id, dust_id : int, optional
             If the output file was made with track_origin='detailed', a
@@ -947,13 +1031,15 @@ class Model(FreezableClass):
             The wavelengths for which the SEDs are defined, in microns
 
         flux or degree of polarization : numpy.ndarray
-            The flux or degree of polarization. This is a data cube which
-            has dimensions (n_inclinations, n_apertures, n_wavelengths). If
-            `stokes` is one of 'I', 'Q', 'U', or 'V', the flux is either
-            returned in ergs/s (if distance is not specified) or in
-            ergs/cm^2/s (if distance is specified). If `stokes` is one of
-            'linpol' or 'circpol', the degree of polarization is returned
-            as a fraction in the range 0 to 1.
+            The flux or degree of polarization. This is a data cube which has
+            at most three dimensions (n_inclinations, n_wavelengths). If an
+            aperture or inclination is specified, this reduces the number of
+            dimensions in the flux cube. If `stokes` is one of 'I', 'Q', 'U',
+            or 'V', the flux is either returned in ergs/s (if distance is not
+            specified) or in the units specified by units= (if distance is
+            specified). If `stokes` is one of 'linpol' or 'circpol', the
+            degree of polarization is returned as a fraction in the range 0 to
+            1.
 
         uncertainty : numpy.ndarray (if `uncertainties`=True)
             The uncertainties on the flux or degree of polarization. This
@@ -1093,7 +1179,6 @@ class Model(FreezableClass):
         else:
 
             # Units here are not technically ergs/cm^2/s but ergs/s
-
             scale = np.repeat(1., len(nu))
 
         # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
@@ -1152,7 +1237,7 @@ class Model(FreezableClass):
         if inclination == 'all':
             pass
         else:
-            y, yerr = y[inclination, :, :], yerr[inclination, :, :]
+            y, yerr = y[inclination, :, :, :], yerr[inclination, :, :, :]
 
         if uncertainties:
             return wav, y, yerr
