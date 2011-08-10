@@ -292,7 +292,7 @@ class Model(FreezableClass):
 
                 short_name = 'dust_%03i' % (i + 1)
 
-                if copy_dust:
+                if copy_dust or (type(dust) != str and dust.filename is None):
 
                     if type(dust) == str:
                         dust = SphericalDust(dust)
