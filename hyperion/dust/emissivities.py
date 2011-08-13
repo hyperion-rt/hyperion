@@ -57,12 +57,9 @@ class Emissivities(FreezableClass):
         # Indicate that emissivites have been set
         self.set = True
 
-    def set_lte(self, optical_properties):
+    def set_lte(self, optical_properties, n_temp=1200, temp_min=0.1, temp_max=100000.):
 
         # Set temperatures to compute LTE emissivities for
-        n_temp = 1200
-        temp_min = 0.1
-        temp_max = 100000.
         temperatures = np.logspace(np.log10(temp_min),
                                    np.log10(temp_max), n_temp)
 
