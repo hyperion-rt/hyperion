@@ -1,8 +1,17 @@
-==========================
-Plotting Tutorial - Part 1
-==========================
+========================
+Plotting Tutorial - SEDs
+========================
 
-So you've run a model with SEDs and/or images and you now want to plot them. As part of the cool club, you now want to make plots of these from Python. The plotting library used in this tutorial is `matplotlib <http://matplotlib.sourceforge.net>`_ but there is no reason why you can't use another. The examples below get you to write Python scripts, but you can also run these interactively in python or ipython if you like.
+.. _Matplotlib: http://matplotlib.sourceforge.net
+
+So you've run a model with SEDs and/or images and you now want to plot
+them. You now want to make plots of these from Python. The plotting
+library used in this tutorial is `Matplotlib`_ but there is no reason why you
+can't use another. The examples below get you to write Python scripts,
+but you can also run these interactively in python or ipython if you
+like.
+
+The tutorial here assumes that you are using the :ref:`tutorial-model`.
 
 An introduction to Matplotlib
 =============================
@@ -44,15 +53,16 @@ The basic arguments are the x and y coordinates of the vertices::
 
 Now we can simply save the plot to a figure. A number of file types are
 supported, including PNG, JPG, EPS, and PDF. Let's write our masterpiece out
-in PNG::
+to a PNG file::
 
     fig.savefig('line_plot.png')
 
 .. note:: If you are using a Mac, then writing out in PNG while you are
           working on the plot is a good idea, because if you open it in
-          Preview.app, it will update automatically whenever you run the
-          script (you need to click on the plot window to make it update).
-          When you are happy with your plot, you can always switch to EPS.
+          Preview.app, it will update automatically whenever you run
+          the script (you just need to click on the plot window to make
+          it update). When you are happy with your plot, you can always
+          switch to EPS.
 
 Our script now looks like::
 
@@ -70,7 +80,7 @@ Plotting SEDs
 
 We are now ready to make a simple SED plot. The first step is to extract the
 SED from the output file from the radiation transfer code. This step is
-described in detail in :ref:`postprocessing`. Combining this with what we
+described in detail in :ref:`post-processing`. Combining this with what we
 learned above about making plots, we can write scripts that will fetch SEDs and plot them. For
 example, if we want to plot an SED for the first inclination and the largest
 aperture, we can do::
@@ -83,11 +93,11 @@ aperture, we can do::
     from hyperion.util.constants import pc
 
     # Open the model - we specify the name without the .rtout extension
-    m = Model('simple_model')
+    m = Model('tutorial_model')
 
     # Create the plot
     fig = plt.figure()
-    ax = fig.add_subplot(1,1,1)
+    ax = fig.add_subplot(1, 1, 1)
 
     # Extract the SED for the smallest inclination and largest aperture, and
     # scale to 300pc. In Python, negative indices can be used for lists and
@@ -99,24 +109,62 @@ aperture, we can do::
     # sets the x and y axes to be on a log scale.
     ax.loglog(wav, nufnu)
 
-    # Add some axis labels
-    ax.set_xlabel("Wavelength (microns)")
-    ax.set_ylabel("Flux (ergs/cm^2/s)")
+    # Add some axis labels (we are using LaTeX here)
+    ax.set_xlabel(r'$\lambda$ [$\mu$m]')
+    ax.set_ylabel(r'$\lambda F_\lambda$ [ergs/s/cm$^2$]')
+
+    # Set view limits
+    ax.set_xlim(0.1, 5000.)
+    ax.set_ylim(1.e-12, 2.e-6)
 
     # Write out the plot
-    fig.savefig('sed_plot.png')
+    fig.savefig('sed.png')
+
+This script produces the following plot:
+
+.. image:: sed.png
+   :scale: 75 %
+   :alt: Simple SED plot
+   :align: center
 
 Now let's say that we want to plot the SED for all inclinations. We can either call get_sed and loglog once for each inclination, or call it once with ``inclination='all'`` and then call only loglog once for each inclination::
 
+    import matplotlib as mpl
+    mpl.use('Agg')
+    import matplotlib.pyplot as plt
+
+    from hyperion.model import Model
+    from hyperion.util.constants import pc
+
+    m = Model('tutorial_model')
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+
+    # Extract all SEDs
     wav, nufnu = m.get_sed(inclination='all', aperture=-1, distance=300 * pc)
 
+    # Plot SED for each inclination
     for i in range(nufnu.shape[0]):
-        ax.loglog(wav, nufnu[i, :])
+        ax.loglog(wav, nufnu[i, :], color='black')
+
+    ax.set_xlabel(r'$\lambda$ [$\mu$m]')
+    ax.set_ylabel(r'$\lambda F_\lambda$ [ergs/s/cm$^2$]')
+    ax.set_xlim(0.1, 5000.)
+    ax.set_ylim(1.e-12, 2.e-6)
+    fig.savefig('sed_incl.png')
+
+This script produces the following plot:
+
+.. image:: sed_incl.png
+   :scale: 75 %
+   :alt: Simple SED plot with inclination dependence
+   :align: center
 
 Now let's do something a little more fancy. Assuming that you set up the SEDs with photon tracking::
 
     sed.set_track_photon_origin('basic')
-    
+
 or::
 
     sed.set_track_photon_origin('detailed')
@@ -130,12 +178,10 @@ you can plot the individual components. The following example retrieves each sep
     from hyperion.model import Model
     from hyperion.util.constants import pc
 
-    # Open the model - we specify the name without the .rtout extension
-    m = Model('simple_model')
+    m = Model('tutorial_model')
 
-    # Create the plot
     fig = plt.figure()
-    ax = fig.add_subplot(1,1,1)
+    ax = fig.add_subplot(1, 1, 1)
 
     # Direct stellar photons
     wav, nufnu = m.get_sed(inclination=0, aperture=-1, distance=300 * pc,
@@ -157,7 +203,15 @@ you can plot the individual components. The following example retrieves each sep
                            component='dust_scat')
     ax.loglog(wav, nufnu, color='orange')
 
-    ax.set_xlabel("Wavelength (microns)")
-    ax.set_ylabel("Flux (ergs/cm^2/s)")
-    fig.savefig('sed_plot.png')
+    ax.set_xlabel(r'$\lambda$ [$\mu$m]')
+    ax.set_ylabel(r'$\lambda F_\lambda$ [ergs/s/cm$^2$]')
+    ax.set_xlim(0.1, 5000.)
+    ax.set_ylim(1.e-12, 2.e-6)
+    fig.savefig('sed_origin.png')
 
+This script produces the following plot:
+
+.. image:: sed_origin.png
+   :scale: 75 %
+   :alt: Simple SED plot with origin tracking
+   :align: center

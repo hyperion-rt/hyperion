@@ -16,5 +16,5 @@ code. Models are set up via a Python script, and are then run using a compiled f
    model_setup.rst
    model_run.rst
    model_postprocess.rst
-   tutorials.rst
+   tutorials/index.rst
 

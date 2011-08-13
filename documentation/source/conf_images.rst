@@ -95,7 +95,7 @@ components in total: five for photons emitted from sources, two for photons
 emitted from dust, five for photons emitted from sources and subsequently
 scattered, and two for photons emitted from dust and subsequently scattered.
 
-See :ref:`postprocessing` for information on how to extract this information
+See :ref:`post-processing` for information on how to extract this information
 from the output files.
 
 Disabling SEDs or Images

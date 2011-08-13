@@ -1,4 +1,4 @@
-.. _postprocessing:
+.. _post-processing:
 
 ======================
 Post-processing models
@@ -27,7 +27,7 @@ Extracting Information
 The first step to extracting information from the models is to create an instance of the ``Model`` class, giving it the name of the output file minus the extension::
 
     from hyperion.model import Model
-    m = Model('model')
+    m = Model('simple_model')
 
 SEDs
 ----
