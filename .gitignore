@@ -2,3 +2,5 @@ hyperion/data/*
 build
 documentation/build
 *.pyc
+*.o
+*.mod
