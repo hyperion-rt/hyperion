@@ -579,6 +579,9 @@ class Model(FreezableClass):
         else:
             g = f['Binned']
 
+        if not 'seds' in g:
+            raise Exception("Group %i does not contain any SEDs" % group)
+
         # Check that uncertainties are present if requested
         if uncertainties and not 'seds_unc' in g:
             raise Exception("Uncertainties requested but not present in file")
@@ -1062,6 +1065,9 @@ class Model(FreezableClass):
             g = f['Peeled/Group %05i' % group]
         else:
             g = f['Binned']
+
+        if not 'images' in g:
+            raise Exception("Group %i does not contain any images" % group)
 
         # Check that uncertainties are present if requested
         if uncertainties and not 'images_unc' in g:
