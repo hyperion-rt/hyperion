@@ -8,6 +8,7 @@ module iteration_final_mono
   use peeled_images, only : make_peeled_images, peeloff_photon
   use dust_main, only : n_dust
   use grid_physics, only : energy_abs_tot, emit_from_grid, precompute_jnu_var
+  use grid_monochromatic
   use grid_propagate, only : grid_integrate_noenergy, grid_escape_tau
   use dust_interact, only : interact
 
@@ -43,9 +44,6 @@ contains
 
     integer :: inu
 
-    ! Tell multi-process routines that this is the start of an iteration
-    call mp_reset_first()
-
     ! Precompute emissivity variable locator for each cell
     call precompute_jnu_var()
 
@@ -53,26 +51,32 @@ contains
 
     if(n_photons_sources > 0) then
 
-       if(main_process()) call perf_header()
+       ! Loop over monochromatic frequencies
+       do inu=1,size(frequencies)
 
-       call mp_join()
+          if(main_process()) write(*,'(" [mono] computing source photons for nu =",ES11.4," Hz")') frequencies(inu)
 
-       ! Initialize the number of completed photons
-       n_photons_curr = 0
+          ! Tell multi-process routines that this is the start of an iteration
+          call mp_reset_first()
 
-       ! Start loop over chunks of photons
-       do
+          ! Print performance header
+          if(main_process()) call perf_header()
 
-          ! Find out how many photons to run
-          call mp_n_photons(n_photons_sources, n_photons_curr, n_photons_chunk, n_photons)
+          call mp_join()
 
-          if(n_photons==0) exit
+          ! Initialize the number of completed photons
+          n_photons_curr = 0
 
-          ! Compute all photons in chunk
-          do ip=1,n_photons
+          ! Start loop over chunks of photons
+          do
 
-             ! Loop over monochromatic frequencies
-             do inu=1,size(frequencies)
+             ! Find out how many photons to run
+             call mp_n_photons(n_photons_sources, n_photons_curr, n_photons_chunk, n_photons)
+
+             if(n_photons==0) exit
+
+             ! Compute all photons in chunk
+             do ip=1,n_photons
 
                 ! Emit photon from a source
                 call emit(p,inu=inu)
@@ -92,12 +96,12 @@ contains
 
           end do
 
+          call mp_join()
+
+          ! Print performance footer
+          if(main_process()) call perf_footer()
+
        end do
-
-       ! Wait for all processes
-       call mp_join()
-
-       if(main_process()) call perf_footer()
 
     else
        if(main_process()) then
@@ -107,34 +111,43 @@ contains
        end if
     end if
 
-    ! Tell multi-process routines that this is the start of an iteration
-    call mp_reset_first()
-
     call mp_join()
 
     if(n_photons_thermal > 0) then
 
-       if(main_process()) call perf_header()
+       ! Allocate emissivity PDFs
+       call allocate_monochromatic_grid_pdfs()
 
-       call mp_join()
+       ! Loop over monochromatic frequencies
+       do inu=1,size(frequencies)
 
-       n_photons_curr = 0
+          ! Pre-compute emissivity grids for each dust type
+          call setup_monochromatic_grid_pdfs(inu)
 
-       ! Start loop over chunks of photons
-       do
+          if(main_process()) write(*,'(" [mono] computing dust photons for nu =",ES11.4," Hz")') frequencies(inu)
 
-          ! Find out how many photons to run
-          call mp_n_photons(n_photons_thermal, n_photons_curr, n_photons_chunk, n_photons)
+          ! Tell multi-process routines that this is the start of an iteration
+          call mp_reset_first()
 
-          if(n_photons==0) exit
+          if(main_process()) call perf_header()
 
-          ! Compute all photons in chunk
-          do ip=1,n_photons
+          call mp_join()
 
-             ! Loop over monochromatic frequencies
-             do inu=1,size(frequencies)
+          ! Initialize the number of completed photons
+          n_photons_curr = 0
 
-                p = emit_from_grid(inu=inu)
+          ! Start loop over chunks of photons
+          do
+
+             ! Find out how many photons to run
+             call mp_n_photons(n_photons_thermal, n_photons_curr, n_photons_chunk, n_photons)
+
+             if(n_photons==0) exit
+
+             ! Compute all photons in chunk
+             do ip=1,n_photons
+
+                p = emit_from_monochromatic_grid_pdf(inu)
 
                 if(p%energy > 0._dp) then
 
@@ -155,11 +168,14 @@ contains
 
           end do
 
+          call mp_join()
+
+          if(main_process()) call perf_footer()
+
        end do
 
-       call mp_join()
-
-       if(main_process()) call perf_footer()
+       ! Deallocate emissivity PDFs
+       call deallocate_monochromatic_grid_pdfs()
 
     else
        if(main_process()) then
