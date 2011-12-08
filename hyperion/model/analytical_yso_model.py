@@ -388,7 +388,7 @@ class AnalyticalYSOModel(Model):
 
     # ACCRETION
 
-    def setup_magnetospheric_accretion(self, mdot, rtrunc, fspot):
+    def setup_magnetospheric_accretion(self, mdot, rtrunc, fspot, xwav_min=0.001, xwav_max=0.01):
         '''
         Set up the model for magnetospheric accretion
 
@@ -425,6 +425,9 @@ class AnalyticalYSOModel(Model):
         if not self.accretion:
             self.accretion = True
 
+        if self.star.mass is None:
+            raise Exception("Stellar mass is not set")
+
         # Find the luminosity dissipated in the shock
         lshock = G * self.star.mass * mdot * (1 / self.star.radius - 1 / rtrunc)
 
@@ -438,7 +441,7 @@ class AnalyticalYSOModel(Model):
         self.star.sources['uv'].temperature = tshock
 
         # X-rays from 0.1 to 10nm
-        wav = np.logspace(-3., -2., 100)[::-1]
+        wav = np.logspace(np.log10(xwav_min), np.log10(xwav_max), 100)[::-1]
         nu = c * 1.e4 / wav
         fnu = np.repeat(1., nu.shape)
 
