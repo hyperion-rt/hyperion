@@ -4,3 +4,7 @@ documentation/_build
 *.pyc
 *.o
 *.mod
+Makefile
+bin/*
+config.log
+config.status
