@@ -2,20 +2,76 @@
 
 import sys
 import subprocess
+import os
+from ConfigParser import SafeConfigParser
+
 import h5py
 
-input = sys.argv[1]
-output = sys.argv[2]
+if sys.version_info[0] == 2 and sys.version_info[1] < 7:
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option("-m", dest="n_cores",
+                      help="use MPI code on n_cores cores",
+                      metavar="n_cores")
+    options, args = parser.parse_args()
+    n_cores = options.n_cores
+    input, output = args[0], args[1]
+else:
+    from argparse import ArgumentParser
+    parser = ArgumentParser(description="Run the Hyperion code")
+    parser.add_argument("-m", type=int, dest="n_cores",
+                       help="use MPI code on multiple cores",
+                       metavar="n_cores")
+    parser.add_argument('input', help='The input HDF5 file')
+    parser.add_argument('output', help='The output HDF5 file')
+    args = parser.parse_args()
+    n_cores = args.n_cores
+    input, output = args.input, args.output
 
 f = h5py.File(input, 'r')
 coord_type = f['Grid']['Geometry']['Walls 1'].dtype.names[0]
 
+# Determine grid type
 if coord_type == 'w':
-    p = subprocess.call('hyperion_cyl %s %s' % (input, output), shell=True)
+    suffix = 'cyl'
 elif coord_type == 'r':
-    p = subprocess.call('hyperion_sph %s %s' % (input, output), shell=True)
+    suffix = 'sph'
 elif coord_type == 'x':
-    p = subprocess.call('hyperion_car %s %s' % (input, output), shell=True)
+    suffix = 'car'
 else:
     raise Exception("Unexpected coordinate type: %s" % coord_type)
-    
+
+
+# Determine binary command
+if n_cores is None:
+    command = 'hyperion_' + suffix
+else:
+
+    filename = os.path.expanduser('~/.hyperionrc')
+    config = SafeConfigParser()
+    config.read(filename)
+
+    if config.has_option('mpi', 'command'):
+
+        mpi_command = config.get('mpi', 'command')
+
+    else:
+
+        mpi_command = None
+
+        # Check whether mpirun or mpiexec are available
+        for dir in os.environ['PATH'].split(':'):
+            if os.path.exists(dir + '/mpirun'):
+                mpi_command = 'mpirun'
+                break
+            if os.path.exists(dir + '/mpiexec'):
+                mpi_command = 'mpiexec'
+                break
+
+        if mpi_command is None:
+            raise Exception("Cannot find mpirun or mpiexec")
+
+    command = '{0} -n {1} hyperion_{2}_mpi'.format(mpi_command,
+                                                   n_cores, suffix)
+
+p = subprocess.call('{0} {1} {2}'.format(command, input, output), shell=True)

@@ -2,6 +2,7 @@ import os
 import string
 import subprocess
 import warnings
+import multiprocessing
 
 import h5py
 import numpy as np
@@ -462,18 +463,22 @@ class Model(FreezableClass):
             self.binned_output = BinnedImageConf(**kwargs)
             return self.binned_output
 
-    def run(self, logfile=None):
+    def run(self, logfile=None, mpi=False, n_cores=multiprocessing.cpu_count()):
+        if mpi:
+            option = '-m {0}'.format(n_cores)
+        else:
+            option = ''
         input = "%s.rtin" % self.name
         output = "%s.rtout" % self.name
         if logfile:
             flog = file(logfile, 'wb')
-            p = subprocess.call('hyperion %s %s' % (input, output), stdout=flog, stderr=flog, shell=True)
+            p = subprocess.call('hyperion %s %s %s' % (option, input, output), stdout=flog, stderr=flog, shell=True)
         else:
-            p = subprocess.call('hyperion %s %s' % (input, output), shell=True)
+            p = subprocess.call('hyperion %s %s %s' % (option, input, output), shell=True)
 
     def get_sed(self, stokes='I', group=1, technique='peeled',
                 distance=None, component='total', inclination='all',
-                aperture='all', uncertainties=False, units='ergs/cm^2/s',
+                aperture='all', uncertainties=False, units=None,
                 source_id=None, dust_id=None):
         '''
         Retrieve SEDs for a specific image group and Stokes component
