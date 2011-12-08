@@ -136,11 +136,7 @@ def filename2hdf5(filename):
 
 
 def random_id(length=32):
-    chars = string.letters + string.digits
-    s = ""
-    for i in range(length):
-        s += random.choice(chars)
-    return s
+    return string.join(random.sample(string.letters + string.digits, length),'')
 
 
 def create_dir(dir_name):
