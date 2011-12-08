@@ -23,12 +23,20 @@ STOKESD['U'] = 2
 STOKESD['V'] = 3
 
 LABEL = {}
-LABEL['I'] = '$\lambda\, F_\lambda$ (ergs/cm$^2$/s)'
-LABEL['Q'] = '$\lambda\, F_\lambda$ [stokes=Q] (ergs/cm$^2$/s)'
-LABEL['U'] = '$\lambda\, F_\lambda$ [stokes=U] (ergs/cm$^2$/s)'
-LABEL['V'] = '$\lambda\, F_\lambda$ [stokes=V] (ergs/cm$^2$/s)'
+LABEL['I'] = '$\lambda\, F_\lambda$'
+LABEL['Q'] = '$\lambda\, F_\lambda$ [stokes=Q]'
+LABEL['U'] = '$\lambda\, F_\lambda$ [stokes=U]'
+LABEL['V'] = '$\lambda\, F_\lambda$ [stokes=V]'
 LABEL['linpol'] = "Total linear polarization fraction"
 LABEL['circpol'] = "Total circular polarization fraction"
+
+UNITS_LABEL = {}
+UNITS_LABEL['ergs/s'] = '(ergs/s)'
+UNITS_LABEL['ergs/cm^2/s'] = '(ergs/cm$^2$/s)'
+UNITS_LABEL['ergs/cm^2/s/Hz'] = '(ergs/cm$^2$/s/Hz)'
+UNITS_LABEL['Jy'] = 'Jy'
+UNITS_LABEL['mJy'] = 'mJy'
+UNITS_LABEL['MJy/sr'] = 'MJy/sr'
 
 
 def find_last_iteration(file_handle):
@@ -530,7 +538,6 @@ class Model(FreezableClass):
                 * ``'ergs/cm^2/s/Hz'``
                 * ``'Jy'``
                 * ``'mJy'``
-                * ``'MJy/sr'``
             The default is ``'ergs/cm^2/s'``. If a distance is not specified,
             then this option is ignored, and the output units are ergs/s.
 
@@ -562,6 +569,12 @@ class Model(FreezableClass):
             has the same dimensions as the flux or degree of polarization
             array.
         '''
+
+        if units is None:
+            if distance is None:
+                units = 'ergs/s'
+            else:
+                units = 'ergs/cm^2/s'
 
         # Check for inconsistent parameters
         if distance is not None and stokes in ['linpol', 'circpol']:
@@ -644,7 +657,7 @@ class Model(FreezableClass):
             wav = c / nu * 1.e4
 
         # Optionally scale by distance
-        if distance:
+        if distance is not None:
             scale = 1. / (4. * pi * distance ** 2)
         else:
             scale = 1.
@@ -659,7 +672,7 @@ class Model(FreezableClass):
             inside_observer = False
 
         # Optionally scale by distance
-        if distance or inside_observer:
+        if distance is not None or inside_observer is 'yes':
 
             # Convert to the correct units
             if units == 'ergs/cm^2/s':
@@ -670,38 +683,17 @@ class Model(FreezableClass):
                 scale = 1.e23 / nu
             elif units == 'mJy':
                 scale = 1.e26 / nu
-            elif units == 'MJy/sr':
-
-                # Find spatial extent of the image
-                xmin = g['images'].attrs['xmin']
-                xmax = g['images'].attrs['xmax']
-                ymin = g['images'].attrs['ymin']
-                ymax = g['images'].attrs['ymax']
-
-                # Find pixel dimensions of image
-                ny, nx = images.shape[-2:]
-
-                # Find pixel resolution in radians/pixel
-                if inside_observer:
-                    pix_dx = abs(np.radians(xmax - xmin)  / float(nx))
-                    pix_dy = abs(np.radians(ymax - ymin)  / float(ny))
-                else:
-                    pix_dx = abs(np.arctan((xmax - xmin) / float(nx) / distance))
-                    pix_dy = abs(np.arctan((ymax - ymin) / float(ny) / distance))
-
-                # Find pixel area in steradians
-                pix_area = pix_dx * pix_dy
-
-                scale = 1.e17 / nu / pix_area
-
             else:
-                raise Exception("Unknown units: %s" % scale)
+                raise Exception("Unknown units: %s" % units)
 
             # Scale by distance
             if distance:
                 scale *= 1. / (4. * pi * distance ** 2)
 
         else:
+
+            if units != 'ergs/s':
+                raise Exception("Since distance= is not specified, units should be set to ergs/s")
 
             # Units here are not technically ergs/cm^2/s but ergs/s
             scale = np.repeat(1., len(nu))
@@ -777,12 +769,9 @@ class Model(FreezableClass):
         else:
             return wav, y
 
-    def plot_sed(self, axes=None, filename=None, stokes='I',
-                     technique='peeled', group=1, distance=None,
-                     component='total', aperture=-1, inclination='all',
-                     wmin=0.01, wmax=5000., fmin=None, fmax=None,
-                     color='black', labels=True, uncertainties=False,
-                     source_id=None, dust_id=None, **kwargs):
+    def plot_sed(self, axes=None, filename=None,
+                 wmin=0.01, wmax=5000., fmin=None, fmax=None,
+                 color='black', labels=True, **kwargs):
         '''
         Plot an SED or polarization spectrum
 
@@ -797,49 +786,6 @@ class Model(FreezableClass):
             The file to write the plot to (incompatible with the `ax`
             option).
 
-        stokes : str, optional
-            The Stokes component to plot. This can be:
-                'I'       Total intensity [default]
-                'Q'       Q Stokes parameter (linear polarization)
-                'U'       U Stokes parameter (linear polarization)
-                'V'       V Stokes parameter (circular polarization)
-                'linpol'  Total linear polarization fraction
-                'circpol' Total circular polariation fraction
-
-        technique : str, optional
-            Whether to plot SED(s) computed with photon peeling-off
-            ('peeled') or binning ('binned'). Default is 'peeled'.
-
-        group : int, optional
-            The peeloff group. If multiple peeloff image groups were required,
-            this can be used to select between them. The default is to return
-            the first group. This option is only used if technique='peeled'.
-
-        distance : float, optional
-            The distance to the observer, in cm.
-
-        component : str, optional
-            The component to plot based on origin and last interaction.
-            This can be:
-                'total'       Total SED
-                'source_emit' The photons were last emitted from a
-                              source and did not undergo any subsequent
-                              interactions.
-                'dust_emit'   The photons were last emitted dust and did
-                              not undergo any subsequent interactions
-                'source_scat' The photons were last emitted from a
-                              source and were subsequently scattered
-                'dust_scat'   The photons were last emitted from dust and
-                              were subsequently scattered
-
-        aperture : int
-            The number of the aperture to plot (zero-based). Use 'all' to
-            show all apertures, and -1 to show the largest aperture.
-
-        inclination : int, optional
-            The number of the viewing angle to plot (zero-based). Use 'all'
-            to show all viewing angles.
-
         wmin, wmax : float, optional
             The range in wavelengths to show (in microns).
 
@@ -853,14 +799,9 @@ class Model(FreezableClass):
         labels : bool, optional
             Whether or not to show the axis labels
 
-        uncertainties : bool, optional
-            Whether or not to show the uncertainties
-
-        source_id, dust_id : int, optional
-            If the output file was made with track_origin='detailed', a
-            specific source and dust component can be specified. If
-            these are not specified, then the total component requested
-            for all sources or dust types is returned.
+        All additional parameters are passed to get_sed, and any remaining
+        parameters are passed to Axes.plot, Axes.loglog, or Axes.errorbar
+        (depending on which one is used)
 
         Returns
         -------
@@ -883,13 +824,32 @@ class Model(FreezableClass):
         else:
             ax = axes
 
+        # Store a few of the kwargs into local variables
+        if 'inclination' in kwargs:
+            inclination = kwargs['inclination']
+        else:
+            inclination = 'all'
+
+        if 'aperture' in kwargs:
+            aperture = kwargs['aperture']
+        else:
+            aperture = 'all'
+
+        if 'uncertainties' in kwargs:
+            uncertainties = kwargs['uncertainties']
+        else:
+            uncertainties = False
+
+        if 'stokes' not in kwargs:
+            kwargs['stokes'] = 'I'
+
         # Make sure that SED cube always has three dimensions, so need to request inclinations and apertures in a list
         if type(inclination) is not str and np.isscalar(inclination):
             inclination = [inclination]
         if type(aperture) is not str and np.isscalar(aperture):
             aperture = [aperture]
 
-        seds = self.get_sed(stokes=stokes, technique=technique, group=group, distance=distance, component=component, aperture=aperture, inclination=inclination, uncertainties=uncertainties, source_id=source_id, dust_id=dust_id)
+        seds = self.get_sed(**kwargs)
 
         if uncertainties:
             wav, nufnu, nufnu_unc = seds
@@ -910,11 +870,11 @@ class Model(FreezableClass):
                 else:
 
                     # Plot main SED
-                    if stokes in ['Q', 'U', 'V']:
-                        ax.plot(wav, nufnu[ii, ia, :], color=color, **kwargs)
+                    if kwargs['stokes'] in ['Q', 'U', 'V']:
+                        ax.plot(wav, nufnu[ii, ia, :], color=color)
                         ax.set_xscale('log')
                     else:
-                        ax.loglog(wav, nufnu[ii, ia, :], color=color, **kwargs)
+                        ax.loglog(wav, nufnu[ii, ia, :], color=color)
 
                     # Check whether the maximum flux needs to be changed
                     maxflux = max(maxflux, np.nanmax(nufnu))
@@ -925,15 +885,15 @@ class Model(FreezableClass):
                         ax.errorbar(wav, nufnu[ii, ia, :], yerr=[nufnu_unc_lower, nufnu_unc[ii, ia, :]], fmt=None, ecolor=color, **kwargs)
 
         if not fmax:
-            if stokes in ['Q', 'U', 'V']:
+            if kwargs['stokes'] in ['Q', 'U', 'V']:
                 fmax = maxflux * 1.5
-            elif stokes in ['linpol', 'circpol']:
+            elif kwargs['stokes'] in ['linpol', 'circpol']:
                 fmax = 1.
             else:
                 fmax = maxflux * 10.
 
         if not fmin:
-            if stokes in ['Q', 'U', 'V']:
+            if kwargs['stokes'] in ['Q', 'U', 'V']:
                 fmin = -fmax
             else:
                 fmin = fmax * 1.e-6
@@ -943,7 +903,16 @@ class Model(FreezableClass):
 
         if labels:
             ax.set_xlabel('$\lambda$ ($\mu$m)')
-            ax.set_ylabel(LABEL[stokes])
+            if kwargs['stokes'] in ['I', 'Q', 'U', 'V']:
+                if kwargs['units'] is None:
+                    if kwargs['distance'] is None:
+                        ax.set_ylabel(LABEL[kwargs['stokes']] + " " + UNITS_LABEL['ergs/s'])
+                    else:
+                        ax.set_ylabel(LABEL[kwargs['stokes']] + " " + UNITS_LABEL['ergs/cm^2/s'])
+                else:
+                    ax.set_ylabel(LABEL[kwargs['stokes']] + " " + UNITS_LABEL[kwargs['units']])
+            else:
+                ax.set_ylabel(LABEL[kwargs['stokes']])
 
         if filename:
             fig.savefig(filename)
@@ -1431,7 +1400,7 @@ class Model(FreezableClass):
             f_in = h5py.File('%s.rtin' % self.name, 'r')
             g_dust = f_in['Dust']
             for i in range(array.shape[0]):
-                dust = g_dust['dust_%03i' % (i + 1)].file
+                dust = g_dust['dust_%03i' % (i + 1)].file  # .file because of bug in h5py, fixed in adf1be35b0f6
                 d = SphericalDust(dust)
                 array[i, :, :, :] = d.mean_opacities._specific_energy2temperature(array[i, :, :, :])
         else:
