@@ -233,7 +233,7 @@ class UlrichEnvelope(FreezableClass):
         x1, _, _ = cubic(np.array([p]), np.array([q]))
         x1 = x1.real[0] - b / 3. / a
         return x1 * self.rc
-        
+
     def midplane_cumulative_density(self, r):
         '''
         Find the cumulative column density as a function of radius from the

@@ -75,11 +75,11 @@ for p in polyhedra:
         if v[0] == 0.:
             if v[1] == 0.:
                 phi.append(0.)
-            else:                
+            else:
                 phi.append(degrees(atan2(v[1] / r, 0.)))
         elif v[1] == 0.:
             phi.append(degrees(atan2(0., v[0] / r)))
         else:
             phi.append(degrees(atan2(v[1] / r, v[0] / r)))
-        
+
     regular_viewing_angles[p] = (theta, phi)
