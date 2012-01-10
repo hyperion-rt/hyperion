@@ -15,11 +15,13 @@ then
   static_ifort='--static'
   static_nag=''
   static_gfortran=''
+  static_g95=''
   static_pgi='-Bstatic'
 else
   static_ifort=''
   static_nag=''
   static_gfortran=''
+  static_g95=''
   static_pgi=''
 fi
 
@@ -30,11 +32,13 @@ then
   profiling_ifort='-g -save-temps'
   profiling_nag=''
   profiling_gfortran=''
+  profiling_g95=''
   profiling_pgi=''
 else
   profiling_ifort=''
   profiling_nag=''
   profiling_gfortran=''
+  profiling_g95=''
   profiling_pgi=''
 fi
 
@@ -45,17 +49,20 @@ then
   debug_nag='-C=all -gline -nan'
   debug_ifort='-check all -warn all -warn nodec -warn interfaces -gen_interfaces -traceback -g'
   debug_gfortran='-Wall -fbounds-check -g'
+  debug_g95='-Wall -fbounds-check -g'
   debug_pgi='-Mbounds -traceback -g'
 else
   debug_nag=''
   debug_ifort=''
   debug_gfortran=''
+  debug_g95=''
   debug_pgi=''
 fi
 
 extra_nag="-Isrc/modules -mdir src/modules -f2003 -colour -ieee=full $debug_nag $profiling_nag $static_nag"
 extra_ifort="-module src/modules -heap-arrays -L/usr/lib -lgcc -error-limit 1 $debug_ifort $profiling_ifort $static_ifort"
 extra_gfortran="-Jsrc/modules -Isrc/modules -g -ffree-line-length-none $debug_gfortran $profiling_gfortran $static_gfortran"
+extra_g95="-fmod=src/modules -Isrc/modules -g -ffree-line-length-huge $debug_g95 $profiling_g95 $static_g95"
 extra_pgi="$debug_pgi $profiling_pgi $static_pgi"
 
 # SERIAL CODE
@@ -112,6 +119,10 @@ elif test "$hdf_compiler" == gfortran
 then
   AC_SUBST(posix_module_serial, posix_default)
   AC_SUBST(extra_serial, "$extra_gfortran")
+elif test "$hdf_compiler" == g95
+then
+  AC_SUBST(posix_module_serial, posix_default)
+  AC_SUBST(extra_serial, "$extra_g95")
 fi
 
 # MPI CODE
@@ -166,6 +177,10 @@ elif test "$mpi_compiler" == gfortran
 then
   AC_SUBST(posix_module_mpi, posix_default)
   AC_SUBST(extra_mpi, "$extra_gfortran")
+elif test "$mpi_compiler" == g95
+then
+  AC_SUBST(posix_module_mpi, posix_default)
+  AC_SUBST(extra_mpi, "$extra_g95")
 fi
 
 # Output final Makefile
