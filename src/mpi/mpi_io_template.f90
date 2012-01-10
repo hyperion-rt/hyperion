@@ -1,4 +1,4 @@
-module mpi_io
+module mpi_hdf5_io
 
   use core_lib
   use mpi
@@ -531,5 +531,5 @@ contains
 
   !!@END FOR
 
-end module mpi_io
+end module mpi_hdf5_io
 

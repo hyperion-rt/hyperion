@@ -1,5 +1,5 @@
 ! MD5 of template: 505f593f3e8d6c1148b75eb48dfece4f
-module mpi_io
+module mpi_hdf5_io
 
   use core_lib
   use mpi
@@ -1226,5 +1226,5 @@ contains
   end subroutine mp_write_array_6d_mpi_real4
 
 
-end module mpi_io
+end module mpi_hdf5_io
 

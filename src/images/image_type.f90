@@ -3,7 +3,7 @@
 module type_image
 
   use core_lib
-  use mpi_io
+  use mpi_hdf5_io
   use type_photon
 
   implicit none

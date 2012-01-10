@@ -1,7 +1,7 @@
 module type_source
 
   use core_lib
-  use mpi_io
+  use mpi_hdf5_io
   use type_grid_cell
   use type_photon
   use grid_geometry

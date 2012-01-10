@@ -2,7 +2,7 @@
 module grid_io
 
   use core_lib
-  use mpi_io
+  use mpi_hdf5_io
   use type_grid
 
   implicit none

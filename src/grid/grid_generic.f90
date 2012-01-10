@@ -1,7 +1,7 @@
 module grid_generic
 
   use core_lib
-  use mpi_io
+  use mpi_hdf5_io
   use mpi_core
 
   use grid_io

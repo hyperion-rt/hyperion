@@ -1,4 +1,4 @@
-module mpi_io
+module mpi_hdf5_io
 
   use core_lib, only : mp_set_compression => hdf5_set_compression, &
        &               mp_open_new => hdf5_open_new, &
@@ -42,5 +42,5 @@ module mpi_io
   public :: mp_read_array_auto
   public :: mp_write_array
 
-end module mpi_io
+end module mpi_hdf5_io
 

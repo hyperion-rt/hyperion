@@ -2,7 +2,7 @@ module sources
 
   use core_lib
   use mpi_core
-  use mpi_io
+  use mpi_hdf5_io
 
   use type_source
   use type_photon

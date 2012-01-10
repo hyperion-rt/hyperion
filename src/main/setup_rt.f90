@@ -2,7 +2,7 @@ module setup
 
   use core_lib
   use mpi_core
-  use mpi_io
+  use mpi_hdf5_io
 
   use grid_physics, only : setup_grid_physics
   use grid_geometry, only : setup_grid_geometry

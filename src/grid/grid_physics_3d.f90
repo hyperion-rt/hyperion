@@ -9,7 +9,7 @@ module grid_physics
   use grid_geometry
   use settings
   use mpi_core
-  use mpi_io
+  use mpi_hdf5_io
 
   implicit none
   save

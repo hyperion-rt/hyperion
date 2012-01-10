@@ -2,7 +2,7 @@ module grid_geometry
 
   use core_lib
   use mpi_core
-  use mpi_io
+  use mpi_hdf5_io
   use type_grid_cell
   use grid_io, only : read_grid_3d
   use grid_geometry_specific

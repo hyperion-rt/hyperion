@@ -2,7 +2,7 @@ module peeled_images
 
   use core_lib
   use mpi_core
-  use mpi_io
+  use mpi_hdf5_io
 
   use grid_propagate
 
