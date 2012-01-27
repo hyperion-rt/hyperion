@@ -505,6 +505,10 @@ class ImageConf(FreezableClass):
         n_x, n_y : int
             The number of pixels in the x and y directions
         '''
+        if type(n_x) != int:
+            raise Exception("n_x should be an integer")
+        if type(n_y) != int:
+            raise Exception("n_y should be an integer")
         self.n_x = n_x
         self.n_y = n_y
 
