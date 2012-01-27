@@ -216,7 +216,7 @@ contains
        call mp_read_keyword(handle, paths(ig), 'd_min', d_min(ig))
        call mp_read_keyword(handle, paths(ig), 'd_max', d_max(ig))
        if(inside_observer(ig).and.d_min(ig) < 0.) then
-          call warn("d_min cannot be < 0. for inside observer - resetting to 0", "peeled_images_setup")
+          if(main_process()) call warn("d_min cannot be < 0. for inside observer - resetting to 0", "peeled_images_setup")
           d_min(ig) = 0.
        end if
        n_peeled = n_peeled + n_view
