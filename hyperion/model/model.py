@@ -546,11 +546,12 @@ class Model(FreezableClass):
             The default is ``'ergs/cm^2/s'``. If a distance is not specified,
             then this option is ignored, and the output units are ergs/s.
 
-        source_id, dust_id : int, optional
+        source_id, dust_id : int or str, optional
             If the output file was made with track_origin='detailed', a
-            specific source and dust component can be specified. If
-            these are not specified, then the total component requested
-            for all sources or dust types is returned.
+            specific source and dust component can be specified. If 'all' is
+            specified, then all components are returned individually. If
+            neither of these are not specified, then the total component
+            requested for all sources or dust types is returned.
 
         Returns
         -------
@@ -633,17 +634,17 @@ class Model(FreezableClass):
                     ns = g['seds'].attrs['n_sources']
                     nd = g['seds'].attrs['n_dust']
 
-                    io = ((io - io % 2) * ns + (io - (io + 1) % 2 - 1) * nd) / 2
+                    io = ((io - (io + 1) % 2 + 1) * ns + (io - io % 2) * nd) / 2
 
                     if component.startswith('source'):
-                        if source_id is None:
+                        if source_id is None or source_id == 'all':
                             io = (io, io + ns)
                         else:
                             if source_id < 1 or source_id > ns:
                                 raise Exception("source_id should be between 1 and %i" % ns)
                             io = io + (source_id - 1)
                     else:
-                        if dust_id is None:
+                        if dust_id is None or dust_id == 'all':
                             io = (io, io + nd)
                         else:
                             if dust_id < 1 or dust_id > nd:
@@ -661,15 +662,9 @@ class Model(FreezableClass):
             nu = g['frequencies']['nu']
             wav = c / nu * 1.e4
 
-        # Optionally scale by distance
-        if distance is not None:
-            scale = 1. / (4. * pi * distance ** 2)
-        else:
-            scale = 1.
-
-        seds = g['seds'].value
+        flux = g['seds'].value
         if uncertainties:
-            seds_unc = g['seds_unc'].value
+            unc = g['seds_unc'].value
 
         try:
             inside_observer = g.attrs['inside_observer']
@@ -703,76 +698,101 @@ class Model(FreezableClass):
             # Units here are not technically ergs/cm^2/s but ergs/s
             scale = np.repeat(1., len(nu))
 
-        # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
-        if seds.dtype == np.float32:
-            seds = seds.astype(np.float64)
-        if uncertainties and seds_unc.dtype == np.float32:
-            seds_unc = seds_unc.astype(np.float64)
-
-        # Select correct origin component
-        if component == 'total':
-            flux = np.sum(seds[:, :, :, :, :], axis=1)
-            if uncertainties:
-                unc = np.sqrt(np.sum(seds_unc[:, :, :, :, :] ** 2, axis=1))
-        elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat']:
-            if type(io) is tuple:
-                start, end = io
-                flux = np.sum(seds[:, start:end, :, :, :], axis=1)
-                if uncertainties:
-                    unc = np.sqrt(np.sum(seds_unc[:, start:end, :, :, :] ** 2, axis=1))
-            else:
-                flux = seds[:, io, :, :, :]
-                if uncertainties:
-                    unc = seds_unc[:, io, :, :, :]
-        else:
-            raise Exception("Unknown component: %s" % component)
-
         # Close HDF5 file
         f.close()
 
-        # Select correct Stokes component
+        # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
+        if flux.dtype == np.float32:
+            flux = flux.astype(np.float64)
+        if uncertainties and unc.dtype == np.float32:
+            unc = unc.astype(np.float64)
+
+        # If a stokes component is requested, scale the SED. Frequency is
+        # the third dimension. We might be able to make the following code
+        # simpler by making it the last dimension.
+
         if stokes in STOKESD:
-            y = flux[STOKESD[stokes], :, :, :] * scale[np.newaxis, np.newaxis, :]
+            flux *= scale[np.newaxis, np.newaxis, np.newaxis, np.newaxis, :]
             if uncertainties:
-                yerr = unc[STOKESD[stokes], :, :, :] * scale[np.newaxis, np.newaxis, :]
+                unc *= scale[np.newaxis, np.newaxis, np.newaxis, np.newaxis, :]
+
+        # We now slice the SED array to end up with what the user requested.
+        # Note that we slice from the last to the first dimension to ensure that
+        # we always know what the slices are. In this section, we make use of
+        # the fact that when writing array[i] with a multi-dimensional array,
+        # the index i applies only to the first dimension. So flux[1] really
+        # means flux[1, :, :, :, :].
+
+        if aperture == 'all':
+            pass
+        else:
+            flux = flux[:, :, :, aperture]
+            if uncertainties:
+                unc = unc[:, :, :, aperture]
+
+        if inclination == 'all':
+            pass
+        else:
+            flux = flux[:, :, inclination]
+            if uncertainties:
+                unc = unc[:, :, inclination]
+
+        # Select correct origin component
+
+        if component == 'total':
+            flux = np.sum(flux, axis=1)
+            if uncertainties:
+                unc = np.sqrt(np.sum(unc ** 2, axis=1))
+        elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat']:
+            if type(io) is tuple:
+                start, end = io
+                flux = flux[:, start:end]
+                if uncertainties:
+                    unc = unc[:, start:end]
+                if (component.startswith('source') and source_id is None) or \
+                   (component.startswith('dust') and dust_id is None):
+                    flux = np.sum(flux, axis=1)
+                    if uncertainties:
+                        unc = np.sqrt(np.sum(unc ** 2, axis=1))
             else:
-                yerr = np.zeros(y.shape)
+                flux = flux[:, io]
+                if uncertainties:
+                    unc = unc[:, io]
+        else:
+            raise Exception("Unknown component: %s" % component)
+
+        # Select correct Stokes component
+
+        if stokes in STOKESD:
+            flux = flux[STOKESD[stokes]]
+            if uncertainties:
+                unc = unc[STOKESD[stokes]]
+            else:
+                unc = np.zeros(flux.shape)
         elif stokes == 'linpol':
             if uncertainties:
                 f = np.vectorize(mc_linear_polarization)
-                y, yerr = f(flux[0, :, :, :], unc[0, :, :, :], flux[1, :, :, :], unc[1, :, :, :], flux[2, :, :, :], unc[2, :, :, :])
+                flux, unc = f(flux[0], unc[0], flux[1], unc[1], flux[2], unc[2])
             else:
-                y = np.sqrt((flux[1, :, :, :] ** 2 + flux[2, :, :, :] ** 2) / flux[0, :, :, :] ** 2)
-                y[np.isnan(y)] = 0.
-                yerr = np.zeros(y.shape)
+                flux = np.sqrt((flux[1] ** 2 + flux[2] ** 2) / flux[0] ** 2)
+                flux[np.isnan(flux)] = 0.
+                unc = np.zeros(unc.shape)
         elif stokes == 'circpol':
             if uncertainties:
                 f = np.vectorize(mc_circular_polarization)
-                y, yerr = f(flux[0, :, :, :], unc[0, :, :, :], flux[3, :, :, :], unc[3, :, :, :])
+                flux, unc = f(flux[0], unc[0], flux[3], unc[3])
             else:
-                y = np.abs(flux[3, :, :, :] / flux[0, :, :, :])
-                y[np.isnan(y)] = 0.
-                yerr = np.zeros(y.shape)
+                flux = np.abs(flux[3] / flux[0])
+                flux[np.isnan(flux)] = 0.
+                unc = np.zeros(flux.shape)
         else:
             raise Exception("Unknown Stokes parameter: %s" % stokes)
 
-        if inclination == 'all' and aperture == 'all':
-            pass
-        elif inclination == 'all':
-            y, yerr = y[:, aperture, :], yerr[:, aperture, :]
-        elif aperture == 'all':
-            y, yerr = y[inclination, :, :], yerr[inclination, :, :]
-        else:
-            y, yerr = y[inclination, :, :], yerr[:, aperture, :]
-            if np.isscalar(inclination):
-                y, yerr = y[aperture, :], yerr[aperture, :]
-            else:
-                y, yerr = y[:, aperture, :], yerr[:, aperture, :]
-
         if uncertainties:
-            return wav, y, yerr
+            return wav, flux, unc
         else:
-            return wav, y
+            return wav, flux
+
 
     def plot_sed(self, axes=None, filename=None,
                  wmin=0.01, wmax=5000., fmin=None, fmax=None,
@@ -995,11 +1015,12 @@ class Model(FreezableClass):
             The default is ``'ergs/cm^2/s'``. If a distance is not specified,
             then this option is ignored, and the output units are ergs/s.
 
-        source_id, dust_id : int, optional
+        source_id, dust_id : int or str, optional
             If the output file was made with track_origin='detailed', a
-            specific source and dust component can be specified. If
-            these are not specified, then the total component requested
-            for all sources or dust types is returned.
+            specific source and dust component can be specified. If 'all' is
+            specified, then all components are returned individually. If
+            neither of these are not specified, then the total component
+            requested for all sources or dust types is returned.
 
         Returns
         -------
@@ -1079,14 +1100,14 @@ class Model(FreezableClass):
                     io = ((io - (io + 1) % 2 + 1) * ns + (io - io % 2) * nd) / 2
 
                     if component.startswith('source'):
-                        if source_id is None:
+                        if source_id is None or source_id == 'all':
                             io = (io, io + ns)
                         else:
                             if source_id < 1 or source_id > ns:
                                 raise Exception("source_id should be between 1 and %i" % ns)
                             io = io + (source_id - 1)
                     else:
-                        if dust_id is None:
+                        if dust_id is None or dust_id == 'all':
                             io = (io, io + nd)
                         else:
                             if dust_id < 1 or dust_id > nd:
@@ -1104,9 +1125,9 @@ class Model(FreezableClass):
             nu = g['frequencies']['nu']
             wav = c / nu * 1.e4
 
-        images = g['images'].value
+        flux = g['images'].value
         if uncertainties:
-            images_unc = g['images_unc'].value
+            unc = g['images_unc'].value
 
         try:
             inside_observer = g.attrs['inside_observer']
@@ -1134,7 +1155,7 @@ class Model(FreezableClass):
                 ymax = g['images'].attrs['ymax']
 
                 # Find pixel dimensions of image
-                ny, nx = images.shape[-2:]
+                ny, nx = flux.shape[-2:]
 
                 # Find pixel resolution in radians/pixel
                 if inside_observer:
@@ -1150,7 +1171,7 @@ class Model(FreezableClass):
                 scale = 1.e17 / nu / pix_area
 
             else:
-                raise Exception("Unknown units: %s" % scale)
+                raise Exception("Unknown units: %s" % units)
 
             # Scale by distance
             if distance:
@@ -1161,68 +1182,93 @@ class Model(FreezableClass):
             # Units here are not technically ergs/cm^2/s but ergs/s
             scale = np.repeat(1., len(nu))
 
-        # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
-        if images.dtype == np.float32:
-            images = images.astype(np.float64)
-        if uncertainties and images_unc.dtype == np.float32:
-            images_unc = images_unc.astype(np.float64)
-
-        # Select correct origin component
-        if component == 'total':
-            flux = np.sum(images[:, :, :, :, :, :], axis=1)
-            if uncertainties:
-                unc = np.sqrt(np.sum(images_unc[:, :, :, :, :, :] ** 2, axis=1))
-        elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat']:
-            if type(io) is tuple:
-                start, end = io
-                flux = np.sum(images[:, start:end, :, :, :, :], axis=1)
-                if uncertainties:
-                    unc = np.sqrt(np.sum(images_unc[:, start:end, :, :, :, :] ** 2, axis=1))
-            else:
-                flux = images[:, io, :, :, :, :]
-                if uncertainties:
-                    unc = images_unc[:, io, :, :, :, :]
-        else:
-            raise Exception("Unknown component: %s" % component)
-
         # Close HDF5 file
         f.close()
 
-        # Select correct Stokes component
+        # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
+        if flux.dtype == np.float32:
+            flux = flux.astype(np.float64)
+        if uncertainties and unc.dtype == np.float32:
+            unc = unc.astype(np.float64)
+
+        # If a stokes component is requested, scale the images. Frequency is
+        # the third dimension. We might be able to make the following code
+        # simpler by making it the last dimension.
+
         if stokes in STOKESD:
-            y = flux[STOKESD[stokes], :, :, :, :] * scale[np.newaxis, :, np.newaxis, np.newaxis]
+            flux *= scale[np.newaxis, np.newaxis, np.newaxis, :, np.newaxis, np.newaxis]
             if uncertainties:
-                yerr = unc[STOKESD[stokes], :, :, :, :] * scale[np.newaxis, :, np.newaxis, np.newaxis]
-            else:
-                yerr = np.zeros(y.shape)
-        elif stokes == 'linpol':
-            if uncertainties:
-                f = np.vectorize(mc_linear_polarization)
-                y, yerr = f(flux[0, :, :, :, :], unc[0, :, :, :, :], flux[1, :, :, :, :], unc[1, :, :, :, :], flux[2, :, :, :, :], unc[2, :, :, :, :])
-            else:
-                y = np.sqrt((flux[1, :, :, :, :] ** 2 + flux[2, :, :, :, :] ** 2) / flux[0, :, :, :, :] ** 2)
-                y[np.isnan(y)] = 0.
-                yerr = np.zeros(y.shape)
-        elif stokes == 'circpol':
-            if uncertainties:
-                f = np.vectorize(mc_circular_polarization)
-                y, yerr = f(flux[0, :, :, :, :], unc[0, :, :, :, :], flux[3, :, :, :, :], unc[3, :, :, :, :])
-            else:
-                y = np.abs(flux[3, :, :, :, :] / flux[0, :, :, :, :])
-                y[np.isnan(y)] = 0.
-                yerr = np.zeros(y.shape)
-        else:
-            raise Exception("Unknown Stokes parameter: %s" % stokes)
+                unc *= scale[np.newaxis, np.newaxis, np.newaxis, :, np.newaxis, np.newaxis]
+
+        # We now slice the image array to end up with what the user requested.
+        # Note that we slice from the last to the first dimension to ensure that
+        # we always know what the slices are. In this section, we make use of
+        # the fact that when writing array[i] with a multi-dimensional array,
+        # the index i applies only to the first dimension. So flux[1] really
+        # means flux[1, :, :, :, :].
 
         if inclination == 'all':
             pass
         else:
-            y, yerr = y[inclination, :, :, :], yerr[inclination, :, :, :]
+            flux = flux[:, :, inclination]
+            if uncertainties:
+                unc = unc[:, :, inclination]
+
+        # Select correct origin component
+
+        if component == 'total':
+            flux = np.sum(flux, axis=1)
+            if uncertainties:
+                unc = np.sqrt(np.sum(unc ** 2, axis=1))
+        elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat']:
+            if type(io) is tuple:
+                start, end = io
+                flux = flux[:, start:end]
+                if uncertainties:
+                    unc = unc[:, start:end]
+                if (component.startswith('source') and source_id is None) or \
+                   (component.startswith('dust') and dust_id is None):
+                    flux = np.sum(flux, axis=1)
+                    if uncertainties:
+                        unc = np.sqrt(np.sum(unc ** 2, axis=1))
+            else:
+                flux = flux[:, io]
+                if uncertainties:
+                    unc = unc[:, io]
+        else:
+            raise Exception("Unknown component: %s" % component)
+
+        # Select correct Stokes component
+
+        if stokes in STOKESD:
+            flux = flux[STOKESD[stokes]]
+            if uncertainties:
+                unc = unc[STOKESD[stokes]]
+            else:
+                unc = np.zeros(flux.shape)
+        elif stokes == 'linpol':
+            if uncertainties:
+                f = np.vectorize(mc_linear_polarization)
+                flux, unc = f(flux[0], unc[0], flux[1], unc[1], flux[2], unc[2])
+            else:
+                flux = np.sqrt((flux[1] ** 2 + flux[2] ** 2) / flux[0] ** 2)
+                flux[np.isnan(flux)] = 0.
+                unc = np.zeros(unc.shape)
+        elif stokes == 'circpol':
+            if uncertainties:
+                f = np.vectorize(mc_circular_polarization)
+                flux, unc = f(flux[0], unc[0], flux[3], unc[3])
+            else:
+                flux = np.abs(flux[3] / flux[0])
+                flux[np.isnan(flux)] = 0.
+                unc = np.zeros(flux.shape)
+        else:
+            raise Exception("Unknown Stokes parameter: %s" % stokes)
 
         if uncertainties:
-            return wav, y, yerr
+            return wav, flux, unc
         else:
-            return wav, y
+            return wav, flux
 
     def plot_image(self, wavelength, axes=None, filename=None, stokes='I', group=1,
                    technique='peeled', distance=None, component='total',
