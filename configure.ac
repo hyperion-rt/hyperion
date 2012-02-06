@@ -88,6 +88,9 @@ else
   fi
 fi
 
+# Remove any leading path from the compiler
+hdf_compiler=`basename $hdf_compiler`
+
 # gfortran sometimes includes version number, so check whether this is the case
 hdf_compiler_short=`echo $hdf_compiler | cut -c1-8`
 if test "$hdf_compiler_short" == gfortran
@@ -149,6 +152,9 @@ then
 else
   AC_ERROR(["h5pfc or mpif90 need to be present"])
 fi
+
+# Remove any leading path from the compiler
+mpi_compiler=`basename $mpi_compiler`
 
 # gfortran sometimes includes version number, so check whether this is the case
 mpi_compiler_short=`echo $mpi_compiler | cut -c1-8`
