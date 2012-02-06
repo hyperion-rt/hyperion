@@ -130,6 +130,8 @@ elif test "$hdf_compiler" == g95
 then
   AC_SUBST(posix_module_serial, posix_default)
   AC_SUBST(extra_serial, "$extra_g95")
+else
+  AC_MSG_ERROR([Could not determine HDF5 compiler: $hdf_compiler])
 fi
 
 # MPI CODE
@@ -195,6 +197,8 @@ elif test "$mpi_compiler" == g95
 then
   AC_SUBST(posix_module_mpi, posix_default)
   AC_SUBST(extra_mpi, "$extra_g95")
+else
+  AC_MSG_ERROR([Could not determine MPI compiler: $mpi_compiler])
 fi
 
 # Output final Makefile

@@ -1862,6 +1862,8 @@ then
 
   extra_serial="$extra_g95"
 
+else
+  as_fn_error $? "Could not determine HDF5 compiler: $hdf_compiler" "$LINENO" 5
 fi
 
 # MPI CODE
@@ -1986,6 +1988,8 @@ then
 
   extra_mpi="$extra_g95"
 
+else
+  as_fn_error $? "Could not determine MPI compiler: $mpi_compiler" "$LINENO" 5
 fi
 
 # Output final Makefile
