@@ -767,8 +767,6 @@ class Model(FreezableClass):
             flux = flux[STOKESD[stokes]]
             if uncertainties:
                 unc = unc[STOKESD[stokes]]
-            else:
-                unc = np.zeros(flux.shape)
         elif stokes == 'linpol':
             if uncertainties:
                 f = np.vectorize(mc_linear_polarization)
@@ -776,7 +774,6 @@ class Model(FreezableClass):
             else:
                 flux = np.sqrt((flux[1] ** 2 + flux[2] ** 2) / flux[0] ** 2)
                 flux[np.isnan(flux)] = 0.
-                unc = np.zeros(unc.shape)
         elif stokes == 'circpol':
             if uncertainties:
                 f = np.vectorize(mc_circular_polarization)
@@ -784,7 +781,6 @@ class Model(FreezableClass):
             else:
                 flux = np.abs(flux[3] / flux[0])
                 flux[np.isnan(flux)] = 0.
-                unc = np.zeros(flux.shape)
         else:
             raise Exception("Unknown Stokes parameter: %s" % stokes)
 
@@ -1244,8 +1240,6 @@ class Model(FreezableClass):
             flux = flux[STOKESD[stokes]]
             if uncertainties:
                 unc = unc[STOKESD[stokes]]
-            else:
-                unc = np.zeros(flux.shape)
         elif stokes == 'linpol':
             if uncertainties:
                 f = np.vectorize(mc_linear_polarization)
@@ -1253,7 +1247,6 @@ class Model(FreezableClass):
             else:
                 flux = np.sqrt((flux[1] ** 2 + flux[2] ** 2) / flux[0] ** 2)
                 flux[np.isnan(flux)] = 0.
-                unc = np.zeros(unc.shape)
         elif stokes == 'circpol':
             if uncertainties:
                 f = np.vectorize(mc_circular_polarization)
@@ -1261,7 +1254,6 @@ class Model(FreezableClass):
             else:
                 flux = np.abs(flux[3] / flux[0])
                 flux[np.isnan(flux)] = 0.
-                unc = np.zeros(flux.shape)
         else:
             raise Exception("Unknown Stokes parameter: %s" % stokes)
 
