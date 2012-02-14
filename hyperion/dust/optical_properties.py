@@ -272,12 +272,18 @@ class OpticalProperties(FreezableClass):
 
     def chi_planck_spectrum(self, nu, fnu):
         "Find the Planck mean opacity to extinction for a spectrum"
+        if nu.max() > self.nu.max() or nu.min() < self.nu.min():
+            raise Exception("Opacity to extinction is not defined at all "
+                            "spectrum frequencies")
         chi_nu = interp1d_fast_loglog(self.nu, self.chi, nu)
         return integrate_loglog(nu, fnu * chi_nu) \
              / integrate_loglog(nu, fnu)
 
     def kappa_planck_spectrum(self, nu, fnu):
         "Find the Planck mean opacity to absorption for a spectrum"
+        if nu.max() > self.nu.max() or nu.min() < self.nu.min():
+            raise Exception("Opacity to absorption is not defined at all "
+                            "spectrum frequencies")
         chi_nu = interp1d_fast_loglog(self.nu, self.chi, nu)
         albedo_nu = interp1d_fast_loglog(self.nu, self.albedo, nu)
         kappa_nu = chi_nu * (1. - albedo_nu)
@@ -286,12 +292,18 @@ class OpticalProperties(FreezableClass):
 
     def chi_rosseland_spectrum(self, nu, fnu):
         "Find the Rosseland mean opacity to extinction for a spectrum"
+        if nu.max() > self.nu.max() or nu.min() < self.nu.min():
+            raise Exception("Opacity to extinction is not defined at all "
+                            "spectrum frequencies")
         chi_nu = interp1d_fast_loglog(self.nu, self.chi, nu)
         return integrate_loglog(nu, fnu) \
              / integrate_loglog(nu, fnu / chi_nu)
 
     def kappa_rosseland_spectrum(self, nu, fnu):
         "Find the Rosseland mean opacity to absorption for a spectrum"
+        if nu.max() > self.nu.max() or nu.min() < self.nu.min():
+            raise Exception("Opacity to absorption is not defined at all "
+                            "spectrum frequencies")
         chi_nu = interp1d_fast_loglog(self.nu, self.chi, nu)
         albedo_nu = interp1d_fast_loglog(self.nu, self.albedo, nu)
         kappa_nu = chi_nu * (1. - albedo_nu)
