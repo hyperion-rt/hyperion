@@ -254,7 +254,7 @@ examples demonstrate adding different point sources:
 
     # Convert to nu, fnu
     nu = c / (data['wav'] * 1.e-4)
-    fnu = data['nu']
+    fnu = data['fnu']
 
     # Set up the source
     source = m.add_point_source()
