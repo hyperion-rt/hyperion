@@ -153,6 +153,7 @@ class Source(FreezableClass):
 
             object.__setattr__(self, attribute, value)
 
+
 class SpotSource(Source):
 
     def __init__(self, luminosity=None, longitude=None, latitude=None,
@@ -166,13 +167,13 @@ class SpotSource(Source):
 
     def _check_all_set(self):
         if self.longitude is None:
-            raise Exception("longitude is not set")
+            raise ValueError("longitude is not set")
         if self.latitude is None:
-            raise Exception("latitude is not set")
+            raise ValueError("latitude is not set")
         if self.radius is None:
-            raise Exception("radius is not set")
+            raise ValueError("radius is not set")
         if self.has_lte_spectrum():
-            raise Exception("Spot source cannot have LTE spectrum")
+            raise ValueError("Spot source cannot have LTE spectrum")
         Source._check_all_set(self)
 
     def write(self, handle, name):
@@ -183,6 +184,37 @@ class SpotSource(Source):
         g.attrs['latitude'] = self.latitude
         g.attrs['radius'] = self.radius
         Source.write(self, g)
+
+    def __setattr__(self, attribute, value):
+
+        if attribute == 'longitude' and value is not None:
+
+            if not np.isscalar(value):
+                raise ValueError("longitude should be a scalar value")
+            if not np.isreal(value):
+                raise ValueError("longitude should be a numerical value")
+            if value < 0. or value > 360.:
+                raise ValueError("longitude should be in the range [0:360]")
+
+        elif attribute == 'latitude' and value is not None:
+
+            if not np.isscalar(value):
+                raise ValueError("latitude should be a scalar value")
+            if not np.isreal(value):
+                raise ValueError("latitude should be a numerical value")
+            if value < -90. or value > 90.:
+                raise ValueError("latitude should be in the range [-90:90]")
+
+        elif attribute == 'radius' and value is not None:
+
+            if not np.isscalar(value):
+                raise ValueError("radius should be a scalar value")
+            if not np.isreal(value):
+                raise ValueError("radius should be a numerical value")
+            if value < 0.:
+                raise ValueError("radius should be positive")
+
+        Source.__setattr__(self, attribute, value)
 
 
 class PointSource(Source):
@@ -228,6 +260,7 @@ class PointSource(Source):
 
             Source.__setattr__(self, attribute, value)
 
+
 class SphericalSource(Source):
 
     def __init__(self, luminosity=None, position=(0., 0., 0.), radius=None,
@@ -242,13 +275,13 @@ class SphericalSource(Source):
 
     def _check_all_set(self):
         if self.position is None:
-            raise Exception("position is not set")
+            raise ValueError("position is not set")
         if self.radius is None:
-            raise Exception("radius is not set")
+            raise ValueError("radius is not set")
         if self.limb is None:
-            raise Exception("limb is not set")
+            raise ValueError("limb is not set")
         if self.has_lte_spectrum():
-            raise Exception("Spherical source cannot have LTE spectrum")
+            raise ValueError("Spherical source cannot have LTE spectrum")
         Source._check_all_set(self)
 
     def write(self, handle, name):
@@ -272,6 +305,37 @@ class SphericalSource(Source):
 
     def add_spot(self, *args, **kwargs):
         self.spots.append(SpotSource(*args, **kwargs))
+
+    def __setattr__(self, attribute, value):
+
+        if attribute == 'position' and value is not None:
+
+            if type(value) in [tuple, list]:
+                if len(value) != 3:
+                    raise ValueError("position should be a sequence of 3 values")
+            elif is_numpy_array(value):
+                if value.ndim != 1:
+                    raise ValueError("position should be a 1-D sequence")
+                if len(value) != 3:
+                    raise ValueError("position should be a sequence of 3 values")
+            else:
+                raise ValueError("position should be a tuple, list, or Numpy array")
+
+        elif attribute == 'radius' and value is not None:
+
+            if not np.isscalar(value):
+                raise ValueError("radius should be a scalar value")
+            if not np.isreal(value):
+                raise ValueError("radius should be a numerical value")
+            if value < 0.:
+                raise ValueError("radius should be positive")
+
+        elif attribute == 'limb' and value is not None:
+
+            if not type(value) == bool:
+                raise ValueError("limb should be a boolean value (True/False)")
+
+        Source.__setattr__(self, attribute, value)
 
 
 class ExternalSphericalSource(Source):
@@ -377,13 +441,13 @@ class PlaneParallelSource(Source):
 
     def _check_all_set(self):
         if self.position is None:
-            raise Exception("position is not set")
+            raise ValueError("position is not set")
         if self.radius is None:
-            raise Exception("radius is not set")
+            raise ValueError("radius is not set")
         if self.direction is None:
-            raise Exception("direction is not set")
+            raise ValueError("direction is not set")
         if self.has_lte_spectrum():
-            raise Exception("Point source cannot have LTE spectrum")
+            raise ValueError("Point source cannot have LTE spectrum")
         Source._check_all_set(self)
 
     def write(self, handle, name):
