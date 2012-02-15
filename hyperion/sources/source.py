@@ -31,9 +31,13 @@ class Source(FreezableClass):
 
         self._freeze()
 
-    def check_all_set(self):
+    def _check_all_set(self):
         if self.luminosity is None:
-            raise Exception("luminosity is not set")
+            raise ValueError("luminosity is not set")
+        if not np.isscalar(self.luminosity):
+            raise ValueError("luminosity should be a scalar value")
+        if not np.isreal(self.luminosity):
+            raise ValueError("luminosity should be a numerical value")
 
     def set_spectrum(self, spectrum):
         self.spectrum = spectrum
@@ -45,7 +49,9 @@ class Source(FreezableClass):
         self.luminosity = luminosity
 
     def get_spectrum(self):
-        self.check_all_set()
+
+        self._check_all_set()
+
         if self.spectrum is not None:
             if isinstance(self.spectrum, atpy.Table):
                 nu, fnu = self.spectrum.nu, self.spectrum.fnu
@@ -62,8 +68,13 @@ class Source(FreezableClass):
         return nu, fnu / norm * self.luminosity
 
     def write(self, handle):
+
+        self._check_all_set()
+
         handle.attrs['luminosity'] = self.luminosity
+
         handle.attrs['peeloff'] = 'yes' if self.peeloff else 'no'
+
         if self.spectrum is not None:
             handle.attrs['spectrum'] = 'spectrum'
             if isinstance(self.spectrum, atpy.Table):
@@ -146,7 +157,7 @@ class SpotSource(Source):
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
                         temperature=temperature, name=name, peeloff=peeloff)
 
-    def check_all_set(self):
+    def _check_all_set(self):
         if self.longitude is None:
             raise Exception("longitude is not set")
         if self.latitude is None:
@@ -155,10 +166,10 @@ class SpotSource(Source):
             raise Exception("radius is not set")
         if self.has_lte_spectrum():
             raise Exception("Spot source cannot have LTE spectrum")
-        Source.check_all_set(self)
+        Source._check_all_set(self)
 
     def write(self, handle, name):
-        self.check_all_set()
+        self._check_all_set()
         g = handle.create_group(name)
         g.attrs['type'] = 'spot'
         g.attrs['longitude'] = self.longitude
@@ -175,15 +186,15 @@ class PointSource(Source):
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
                         temperature=temperature, name=name, peeloff=peeloff)
 
-    def check_all_set(self):
+    def _check_all_set(self):
         if self.position is None:
-            raise Exception("position is not set")
+            raise ValueError("position is not set")
         if self.has_lte_spectrum():
-            raise Exception("Point source cannot have LTE spectrum")
-        Source.check_all_set(self)
+            raise ValueError("Point source cannot have LTE spectrum")
+        Source._check_all_set(self)
 
     def write(self, handle, name):
-        self.check_all_set()
+        self._check_all_set()
         g = handle.create_group(name)
         g.attrs['type'] = 'point'
         g.attrs['x'] = self.position[0]
@@ -191,6 +202,24 @@ class PointSource(Source):
         g.attrs['z'] = self.position[2]
         Source.write(self, g)
 
+    def __setattr__(self, attribute, value):
+
+        if attribute == 'position' and value is not None:
+
+            if type(value) in [tuple, list]:
+                if len(value) != 3:
+                    raise ValueError("position should be a sequence of 3 values")
+            elif is_numpy_array(value):
+                if value.ndim != 1:
+                    raise ValueError("position should be a 1-D sequence")
+                if len(value) != 3:
+                    raise ValueError("position should be a sequence of 3 values")
+            else:
+                raise ValueError("position should be a tuple, list, or Numpy array")
+
+        else:
+
+            Source.__setattr__(self, attribute, value)
 
 class SphericalSource(Source):
 
@@ -204,7 +233,7 @@ class SphericalSource(Source):
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
                         temperature=temperature, name=name, peeloff=peeloff)
 
-    def check_all_set(self):
+    def _check_all_set(self):
         if self.position is None:
             raise Exception("position is not set")
         if self.radius is None:
@@ -213,11 +242,11 @@ class SphericalSource(Source):
             raise Exception("limb is not set")
         if self.has_lte_spectrum():
             raise Exception("Spherical source cannot have LTE spectrum")
-        Source.check_all_set(self)
+        Source._check_all_set(self)
 
     def write(self, handle, name):
 
-        self.check_all_set()
+        self._check_all_set()
 
         g = handle.create_group(name)
         g.attrs['type'] = 'sphere'
@@ -247,18 +276,18 @@ class ExternalSphericalSource(Source):
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
                         temperature=temperature, name=name, peeloff=peeloff)
 
-    def check_all_set(self):
+    def _check_all_set(self):
         if self.position is None:
             raise Exception("position is not set")
         if self.radius is None:
             raise Exception("r is not set")
         if self.has_lte_spectrum():
             raise Exception("External spherical source cannot have LTE spectrum")
-        Source.check_all_set(self)
+        Source._check_all_set(self)
 
     def write(self, handle, name):
 
-        self.check_all_set()
+        self._check_all_set()
 
         g = handle.create_group(name)
         g.attrs['type'] = 'extern_sph'
@@ -277,16 +306,16 @@ class ExternalBoxSource(Source):
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
                         temperature=temperature, name=name, peeloff=peeloff)
 
-    def check_all_set(self):
+    def _check_all_set(self):
         if self.bounds is None:
             raise Exception("bounds are not set")
         if self.has_lte_spectrum():
             raise Exception("External spherical source cannot have LTE spectrum")
-        Source.check_all_set(self)
+        Source._check_all_set(self)
 
     def write(self, handle, name):
 
-        self.check_all_set()
+        self._check_all_set()
 
         g = handle.create_group(name)
         g.attrs['type'] = 'extern_box'
@@ -307,16 +336,16 @@ class MapSource(Source):
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
                         temperature=temperature, name=name, peeloff=peeloff)
 
-    def check_all_set(self):
+    def _check_all_set(self):
         if self.map is None:
             raise Exception("map is not set")
         if np.all(self.map == 0.):
             raise Exception("Luminosity map is zero everywhere")
-        Source.check_all_set(self)
+        Source._check_all_set(self)
 
     def write(self, handle, name, grid, compression=True, map_dtype=float):
 
-        self.check_all_set()
+        self._check_all_set()
 
         g = handle.create_group(name)
         g.attrs['type'] = 'map'
@@ -339,7 +368,7 @@ class PlaneParallelSource(Source):
         Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
                         temperature=temperature, name=name, peeloff=peeloff)
 
-    def check_all_set(self):
+    def _check_all_set(self):
         if self.position is None:
             raise Exception("position is not set")
         if self.radius is None:
@@ -348,10 +377,10 @@ class PlaneParallelSource(Source):
             raise Exception("direction is not set")
         if self.has_lte_spectrum():
             raise Exception("Point source cannot have LTE spectrum")
-        Source.check_all_set(self)
+        Source._check_all_set(self)
 
     def write(self, handle, name):
-        self.check_all_set()
+        self._check_all_set()
         g = handle.create_group(name)
         g.attrs['type'] = 'plane_parallel'
         g.attrs['x'] = self.position[0]
