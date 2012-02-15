@@ -164,3 +164,8 @@ def delete_file(file_name):
         else:
             print "Aborting..."
             sys.exit()
+
+def is_numpy_array(variable):
+    return type(variable) in [np.ndarray,
+                              np.core.records.recarray,
+                              np.ma.core.MaskedArray]

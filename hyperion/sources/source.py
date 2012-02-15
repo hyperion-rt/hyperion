@@ -1,7 +1,7 @@
 import numpy as np
 
 from hyperion.util.functions import B_nu, random_id
-from hyperion.util.functions import FreezableClass
+from hyperion.util.functions import FreezableClass, is_numpy_array
 from hyperion.util.integrate import integrate_loglog
 from hyperion.util.constants import c
 
@@ -64,7 +64,7 @@ class Source(FreezableClass):
     def write(self, handle):
         handle.attrs['luminosity'] = self.luminosity
         handle.attrs['peeloff'] = 'yes' if self.peeloff else 'no'
-        if self.spectrum:
+        if self.spectrum is not None:
             handle.attrs['spectrum'] = 'spectrum'
             if isinstance(self.spectrum, atpy.Table):
                 self.spectrum.table_name = 'Spectrum'
@@ -74,7 +74,7 @@ class Source(FreezableClass):
                 table.add_column('nu', self.spectrum[0])
                 table.add_column('fnu', self.spectrum[1])
                 table.write(handle, type='hdf5')
-        elif self.temperature:
+        elif self.temperature is not None:
             handle.attrs['spectrum'] = 'temperature'
             handle.attrs['temperature'] = self.temperature
         else:
@@ -84,13 +84,55 @@ class Source(FreezableClass):
         return self.spectrum is None and self.temperature is None
 
     def __setattr__(self, attribute, value):
-        if attribute == 'spectrum' and type(value) in (tuple, list) and len(value) == 2:
-            nu, fnu = value
-            if nu[-1] < nu[0]:
-                nu = nu[::-1]
-                fnu = fnu[::-1]
-            object.__setattr__(self, attribute, (nu, fnu))
+
+        if attribute == 'spectrum' and value is not None:
+
+            if isinstance(value, atpy.Table):
+
+                if 'nu' not in value.columns:
+                    raise TypeError("spectrum ATpy Table does not contain a"
+                                    " 'nu' column")
+
+                if 'fnu' not in value.columns:
+                    raise TypeError("spectrum ATpy Table does not contain an"
+                                    " 'fnu' column")
+
+                object.__setattr__(self, attribute, value)
+
+            elif type(value) in (tuple, list):
+
+                if len(value) == 2:
+                    nu, fnu = value
+                else:
+                    raise TypeError("spectrum tuple or list should contain"
+                                    " two elements")
+
+                if not is_numpy_array(nu) or nu.ndim != 1:
+                    raise TypeError("nu should be specified as a 1-D Numpy"
+                                    " array")
+
+                if not is_numpy_array(fnu) or fnu.ndim != 1:
+                    raise TypeError("fnu should be specified as a 1-D Numpy"
+                                    " array")
+
+                if nu.shape != fnu.shape:
+                    raise TypeError("nu and fnu should have the same shape")
+
+                # Reverse direction if needed
+                if nu[-1] < nu[0]:
+                    nu = nu[::-1]
+                    fnu = fnu[::-1]
+
+                object.__setattr__(self, attribute, (nu, fnu))
+
+            else:
+
+                raise TypeError('spectrum should be specified either as an '
+                                'atpy.Table instance, or a tuple of two 1-D'
+                                'Numpy arrays (nu, fnu) with the same length')
+
         else:
+
             object.__setattr__(self, attribute, value)
 
 class SpotSource(Source):
