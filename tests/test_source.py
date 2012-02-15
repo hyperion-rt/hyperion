@@ -76,3 +76,12 @@ def test_spectrum_tuple_invalid4():
     s.luminosity = 0.
     with pytest.raises(TypeError):
         s.spectrum = (nu, fnu)
+
+
+def test_spectrum_tuple_invalid5():
+    nu = np.array([1, 2, 3])
+    fnu = np.array([1, 2, 3])
+    s = Source()
+    s.luminosity = 0.
+    with pytest.raises(TypeError):
+        s.spectrum = (nu, fnu, fnu)  # too many items
