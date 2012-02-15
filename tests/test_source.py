@@ -38,17 +38,22 @@ def test_luminosity_invalid1():
 def test_luminosity_invalid2():
     v = virtual_file()
     s = Source()
-    s.luminosity = np.array([1, 2, 3])  # luminosity should be a scalar
     with pytest.raises(ValueError):
-        s.write(v)
+        s.luminosity = np.array([1, 2, 3])  # luminosity should be a scalar
 
 
 def test_luminosity_invalid3():
     v = virtual_file()
     s = Source()
-    s.luminosity = 'invalid'  # luminosity should be a number
     with pytest.raises(ValueError):
-        s.write(v)
+        s.luminosity = 'invalid'  # luminosity should be a number
+
+
+def test_luminosity_invalid4():
+    v = virtual_file()
+    s = Source()
+    with pytest.raises(ValueError):
+        s.luminosity = -1.  # luminosity should be positive
 
 
 def test_spectrum_atpy():

@@ -34,10 +34,6 @@ class Source(FreezableClass):
     def _check_all_set(self):
         if self.luminosity is None:
             raise ValueError("luminosity is not set")
-        if not np.isscalar(self.luminosity):
-            raise ValueError("luminosity should be a scalar value")
-        if not np.isreal(self.luminosity):
-            raise ValueError("luminosity should be a numerical value")
 
     def set_spectrum(self, spectrum):
         self.spectrum = spectrum
@@ -96,7 +92,18 @@ class Source(FreezableClass):
 
     def __setattr__(self, attribute, value):
 
-        if attribute == 'spectrum' and value is not None:
+        if attribute == 'luminosity' and value is not None:
+
+            if not np.isscalar(value):
+                raise ValueError("luminosity should be a scalar value")
+            if not np.isreal(value):
+                raise ValueError("luminosity should be a numerical value")
+            if value < 0.:
+                raise ValueError("luminosity should be positive")
+
+            object.__setattr__(self, attribute, value)
+
+        elif attribute == 'spectrum' and value is not None:
 
             if isinstance(value, atpy.Table):
 
