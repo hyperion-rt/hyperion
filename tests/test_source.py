@@ -433,3 +433,89 @@ def test_spherical_limb_invalid5():
     s = SphericalSource()
     with pytest.raises(ValueError):
         s.limb = 1.  # limb should be a boolean
+
+
+# ExternalSpherical
+
+def test_external_spherical_position_none():
+    s = SphericalSource()
+    s.position = None
+
+
+def test_external_spherical_position_tuple():
+    s = SphericalSource()
+    s.position = (0., 1., 2.)
+
+
+def test_external_spherical_position_tuple_invalid():
+    s = SphericalSource()
+    with pytest.raises(ValueError):
+        s.position = (0., 1., 2., 4.)  # too many elements
+
+
+def test_external_spherical_position_list():
+    s = SphericalSource()
+    s.position = [1., 2., 3.]
+
+
+def test_external_spherical_position_list_invalid():
+    s = SphericalSource()
+    with pytest.raises(ValueError):
+        s.position = [1., 2.]  # too few elements
+
+
+def test_external_spherical_position_numpy():
+    s = SphericalSource()
+    s.position = np.array([2., 3., 4.])
+
+
+def test_external_spherical_position_numpy_invalid1():
+    s = SphericalSource()
+    with pytest.raises(ValueError):
+        s.position = np.array([2.])  # too few elements
+
+
+def test_external_spherical_position_numpy_invalid2():
+    s = SphericalSource()
+    with pytest.raises(ValueError):
+        s.position = np.array([[1., 2., 3.]])  # wrong dimensionality
+
+
+def test_external_spherical_radius_none():
+    s = SphericalSource()
+    s.radius = None
+
+
+def test_external_spherical_radius_float():
+    s = SphericalSource()
+    s.radius = 1.e10
+
+
+def test_external_spherical_radius_invalid1():
+    v = virtual_file()
+    s = SphericalSource()
+    s.position = (0., 0., 0.)
+    # radius is not defined
+    s.limb = True
+    s.temperature = 1.
+    s.luminosity = 1.
+    with pytest.raises(ValueError):
+        s.write(v, 'test')
+
+
+def test_external_spherical_radius_invalid2():
+    s = SphericalSource()
+    with pytest.raises(ValueError):
+        s.radius = np.array([1, 2, 3])  # radius should be a scalar
+
+
+def test_external_spherical_radius_invalid3():
+    s = SphericalSource()
+    with pytest.raises(ValueError):
+        s.radius = 'invalid'  # radius should be a number
+
+
+def test_external_spherical_radius_invalid4():
+    s = SphericalSource()
+    with pytest.raises(ValueError):
+        s.radius = -1.  # radius should be positive

@@ -256,9 +256,7 @@ class PointSource(Source):
             else:
                 raise ValueError("position should be a tuple, list, or Numpy array")
 
-        else:
-
-            Source.__setattr__(self, attribute, value)
+        Source.__setattr__(self, attribute, value)
 
 
 class SphericalSource(Source):
@@ -349,11 +347,11 @@ class ExternalSphericalSource(Source):
 
     def _check_all_set(self):
         if self.position is None:
-            raise Exception("position is not set")
+            raise ValueError("position is not set")
         if self.radius is None:
-            raise Exception("r is not set")
+            raise ValueError("radius is not set")
         if self.has_lte_spectrum():
-            raise Exception("External spherical source cannot have LTE spectrum")
+            raise ValueError("External spherical source cannot have LTE spectrum")
         Source._check_all_set(self)
 
     def write(self, handle, name):
@@ -368,6 +366,31 @@ class ExternalSphericalSource(Source):
         g.attrs['r'] = self.radius
         Source.write(self, g)
 
+    def __setattr__(self, attribute, value):
+
+        if attribute == 'position' and value is not None:
+
+            if type(value) in [tuple, list]:
+                if len(value) != 3:
+                    raise ValueError("position should be a sequence of 3 values")
+            elif is_numpy_array(value):
+                if value.ndim != 1:
+                    raise ValueError("position should be a 1-D sequence")
+                if len(value) != 3:
+                    raise ValueError("position should be a sequence of 3 values")
+            else:
+                raise ValueError("position should be a tuple, list, or Numpy array")
+
+        elif attribute == 'radius' and value is not None:
+
+            if not np.isscalar(value):
+                raise ValueError("radius should be a scalar value")
+            if not np.isreal(value):
+                raise ValueError("radius should be a numerical value")
+            if value < 0.:
+                raise ValueError("radius should be positive")
+
+        Source.__setattr__(self, attribute, value)
 
 class ExternalBoxSource(Source):
 
