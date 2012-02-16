@@ -582,6 +582,10 @@ class Model(FreezableClass):
             else:
                 units = 'ergs/cm^2/s'
 
+        # Check argument types
+        if type(stokes) is not str:
+            raise ValueError("stokes argument should be a string")
+
         # Check for inconsistent parameters
         if distance is not None and stokes in ['linpol', 'circpol']:
             raise Exception("Cannot scale linear or circular polarization degree by distance")
@@ -782,7 +786,7 @@ class Model(FreezableClass):
                 flux = np.abs(flux[3] / flux[0])
                 flux[np.isnan(flux)] = 0.
         else:
-            raise Exception("Unknown Stokes parameter: %s" % stokes)
+            raise ValueError("Unknown Stokes parameter: %s" % stokes)
 
         if uncertainties:
             return wav, flux, unc
@@ -1041,6 +1045,10 @@ class Model(FreezableClass):
             array.
         '''
 
+        # Check argument types
+        if type(stokes) is not str:
+            raise ValueError("stokes argument should be a string")
+
         # Check for inconsistent parameters
         if distance is not None and stokes in ['linpol', 'circpol']:
             raise Exception("Cannot scale linear or circular polarization degree by distance")
@@ -1255,7 +1263,7 @@ class Model(FreezableClass):
                 flux = np.abs(flux[3] / flux[0])
                 flux[np.isnan(flux)] = 0.
         else:
-            raise Exception("Unknown Stokes parameter: %s" % stokes)
+            raise ValueError("Unknown Stokes parameter: %s" % stokes)
 
         if uncertainties:
             return wav, flux, unc
