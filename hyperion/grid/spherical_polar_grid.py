@@ -1,29 +1,33 @@
 import numpy as np
 
 from hyperion.util.meshgrid import meshgrid_nd
-from hyperion.util.functions import FreezableClass
-
-
-def monotonically_increasing(array):
-    for i in range(len(array)-1):
-        if not array[i+1] > array[i]:
-            return False
-    return True
+from hyperion.util.functions import FreezableClass, is_numpy_array, monotonically_increasing
 
 
 class SphericalPolarGrid(FreezableClass):
 
     def __init__(self, r_wall, t_wall, p_wall):
 
-        # Check that arrays are monotonically increasing
+        if type(r_wall) in [list, tuple]:
+            r_wall = np.array(r_wall)
+        if type(t_wall) in [list, tuple]:
+            t_wall = np.array(t_wall)
+        if type(p_wall) in [list, tuple]:
+            p_wall = np.array(p_wall)
+
+        if not is_numpy_array(r_wall) or r_wall.ndim != 1:
+            raise ValueError("r_wall should be a 1-D sequence")
+        if not is_numpy_array(t_wall) or t_wall.ndim != 1:
+            raise ValueError("t_wall should be a 1-D sequence")
+        if not is_numpy_array(p_wall) or p_wall.ndim != 1:
+            raise ValueError("p_wall should be a 1-D sequence")
+
         if not monotonically_increasing(r_wall):
-            raise Exception("Array r_wall is not monotonically increasing")
-
+            raise ValueError("r_wall should be monotonically increasing")
         if not monotonically_increasing(t_wall):
-            raise Exception("Array t_wall is not monotonically increasing")
-
+            raise ValueError("t_wall should be monotonically increasing")
         if not monotonically_increasing(p_wall):
-            raise Exception("Array p_wall is not monotonically increasing")
+            raise ValueError("p_wall should be monotonically increasing")
 
         # Find number of grid cells
         self.nr = len(r_wall) - 1

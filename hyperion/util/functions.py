@@ -169,3 +169,10 @@ def is_numpy_array(variable):
     return type(variable) in [np.ndarray,
                               np.core.records.recarray,
                               np.ma.core.MaskedArray]
+
+
+def monotonically_increasing(array):
+    for i in range(len(array)-1):
+        if not array[i+1] > array[i]:
+            return False
+    return True

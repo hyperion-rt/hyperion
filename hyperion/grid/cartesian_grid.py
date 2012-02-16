@@ -1,12 +1,33 @@
 import numpy as np
 
 from hyperion.util.meshgrid import meshgrid_nd
-from hyperion.util.functions import FreezableClass
+from hyperion.util.functions import FreezableClass, is_numpy_array, monotonically_increasing
 
 
 class CartesianGrid(FreezableClass):
 
     def __init__(self, x_wall, y_wall, z_wall):
+
+        if type(x_wall) in [list, tuple]:
+            x_wall = np.array(x_wall)
+        if type(y_wall) in [list, tuple]:
+            y_wall = np.array(y_wall)
+        if type(z_wall) in [list, tuple]:
+            z_wall = np.array(z_wall)
+
+        if not is_numpy_array(x_wall) or x_wall.ndim != 1:
+            raise ValueError("x_wall should be a 1-D sequence")
+        if not is_numpy_array(y_wall) or y_wall.ndim != 1:
+            raise ValueError("y_wall should be a 1-D sequence")
+        if not is_numpy_array(z_wall) or z_wall.ndim != 1:
+            raise ValueError("z_wall should be a 1-D sequence")
+
+        if not monotonically_increasing(x_wall):
+            raise ValueError("x_wall should be monotonically increasing")
+        if not monotonically_increasing(y_wall):
+            raise ValueError("y_wall should be monotonically increasing")
+        if not monotonically_increasing(z_wall):
+            raise ValueError("z_wall should be monotonically increasing")
 
         # Find number of grid cells
         self.nx = len(x_wall) - 1
