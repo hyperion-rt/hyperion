@@ -12,6 +12,7 @@ from hyperion.model import AnalyticalYSOModel
 from hyperion.util.functions import filename2hdf5
 from hyperion.util.constants import msun, rsun, au, year, k, m_h, G, pi, sigma, c
 
+
 class TtsreModel(AnalyticalYSOModel):
 
     def load_from_mctherm(self, filename):
@@ -62,7 +63,7 @@ class TtsreModel(AnalyticalYSOModel):
         mstar = par['massc'] * msun
         tstar = par['tstar']
         rstar = par['rstar'] * rsun
-        lstar = 4. * pi * rstar**2 * sigma * tstar**4
+        lstar = 4. * pi * rstar ** 2 * sigma * tstar ** 4
 
         self.set_stellar_radius(rstar)
         self.star.luminosity = lstar
@@ -116,7 +117,7 @@ class TtsreModel(AnalyticalYSOModel):
                                        'envelope_pah', 'cavity_pah']):
 
             # Read in dust file
-            dust_file_orig = os.path.abspath(os.path.dirname(filename)) + "/" + par['pardir'] + "/" + par['dustname(%i)' % (i+1)]
+            dust_file_orig = os.path.abspath(os.path.dirname(filename)) + "/" + par['pardir'] + "/" + par['dustname(%i)' % (i + 1)]
             dust_file = filename2hdf5(dust_file_orig)
 
             # Check if file already exists in database
@@ -128,7 +129,7 @@ class TtsreModel(AnalyticalYSOModel):
                 print "No existing HDF5 file for %s" % os.path.basename(dust_file_orig)
                 print " -> computing from scratch (may take a few minutes)"
                 d = SimpleSphericalDust(dust_file_orig)
-                d._extrapolate(1.e-3,1.e5)
+                d._extrapolate(1.e-3, 1.e5)
                 d.write(dust_file)
 
             self.__dict__[parameter] = dust_file
@@ -189,7 +190,7 @@ class TtsreModel(AnalyticalYSOModel):
         self.cavity.rhoamb = par['rhoamb']
 
         # Compute dust sublimation radius
-        rsub = rstar * (tstar/tsub)**2.1
+        rsub = rstar * (tstar / tsub) ** 2.1
 
         # DISK INNER RADII
 
@@ -226,7 +227,7 @@ class TtsreModel(AnalyticalYSOModel):
 
             # Scale by hydrostatic scaleheight
             c_s = np.sqrt(k * tsub / 2.3 / m_h)
-            z_hseq_rsub = rsub * c_s * np.sqrt(rsub/G/mstar)
+            z_hseq_rsub = rsub * c_s * np.sqrt(rsub / G / mstar)
             self.disk1.h_star = par['zscale(1)'] * z_hseq_rsub * (rstar / rsub) ** par['b(1)']
             self.disk2.h_star = par['zscale(2)'] * z_hseq_rsub * (rstar / rsub) ** par['b(2)']
 
@@ -249,8 +250,8 @@ class TtsreModel(AnalyticalYSOModel):
             if not par['calpha']:
                 mdotdisk = par['alpha'] * msun / year
             else:
-                mdotdisk1 = np.sqrt(18*pi**3) * par['alpha'] * np.sqrt(G * mstar/rstar) * self.disk1.rho_0() * self.disk1.h_star**3 / rstar
-                mdotdisk2 = np.sqrt(18*pi**3) * par['alpha'] * np.sqrt(G * mstar/rstar) * self.disk2.rho_0() * self.disk2.h_star**3 / rstar
+                mdotdisk1 = np.sqrt(18 * pi ** 3) * par['alpha'] * np.sqrt(G * mstar / rstar) * self.disk1.rho_0() * self.disk1.h_star ** 3 / rstar
+                mdotdisk2 = np.sqrt(18 * pi ** 3) * par['alpha'] * np.sqrt(G * mstar / rstar) * self.disk2.rho_0() * self.disk2.h_star ** 3 / rstar
                 mdotdisk = mdotdisk1 + mdotdisk2
 
             self.disk1.mdot = mdotdisk * par['fmassd1']
@@ -258,7 +259,7 @@ class TtsreModel(AnalyticalYSOModel):
 
             # STELLAR ACCRETION LUMINOSITY
 
-            lshock = G * mstar * mdotdisk * (1/rstar - 1/rtrunc) # W
+            lshock = G * mstar * mdotdisk * (1 / rstar - 1 / rtrunc)  # W
 
             if not 'cspot' in par:
                 par['cspot'] = False
@@ -278,7 +279,7 @@ class TtsreModel(AnalyticalYSOModel):
 
                 fluxratio = 0.5 * lshock / lstar
 
-            tshock = tstar * (1 + fluxratio)**0.25 # K
+            tshock = tstar * (1 + fluxratio) ** 0.25  # K
 
             # Create x-ray spectrum file
             wav = np.linspace(0.015, 0.060, 100)
@@ -291,21 +292,21 @@ class TtsreModel(AnalyticalYSOModel):
             if par['cspot']:
 
                 if par['nspot'] == 1:
-                    self.add_spot(lshock/2., longitude=0., latitude=par['spotlat'], size=spotsize, spectrum=xray)
-                    self.add_spot(lshock/2., longitude=0., latitude=par['spotlat'], size=spotsize, temperature=tshock)
+                    self.add_spot(lshock / 2., longitude=0., latitude=par['spotlat'], size=spotsize, spectrum=xray)
+                    self.add_spot(lshock / 2., longitude=0., latitude=par['spotlat'], size=spotsize, temperature=tshock)
                 else:
-                    self.add_spot(lshock/4., longitude=0., latitude=par['spotlat'], size=spotsize, spectrum=xray)
-                    self.add_spot(lshock/4., longitude=0, latitude=par['spotlat'], size=spotsize, temperature=tshock)
-                    self.add_spot(lshock/4., longitude=180., latitude=90.-par['spotlat'], size=spotsize, spectrum=xray)
-                    self.add_spot(lshock/4., longitude=180., latitude=90.-par['spotlat'], size=spotsize, temperature=tshock)
+                    self.add_spot(lshock / 4., longitude=0., latitude=par['spotlat'], size=spotsize, spectrum=xray)
+                    self.add_spot(lshock / 4., longitude=0, latitude=par['spotlat'], size=spotsize, temperature=tshock)
+                    self.add_spot(lshock / 4., longitude=180., latitude=90. - par['spotlat'], size=spotsize, spectrum=xray)
+                    self.add_spot(lshock / 4., longitude=180., latitude=90. - par['spotlat'], size=spotsize, temperature=tshock)
 
             else:
 
-                self.star_uv.set_luminosity(lshock/2.)
+                self.star_uv.set_luminosity(lshock / 2.)
                 self.star_uv.set_temperature(tshock)
                 self.star_uv.limb = par['climb']
 
-                self.star_xray.set_luminosity(lshock/2.)
+                self.star_xray.set_luminosity(lshock / 2.)
                 self.star_xray.set_spectrum(xray)
                 self.star_xray.limb = par['climb']
 
