@@ -90,13 +90,13 @@ class TestSimpleModel(object):
             wav, nufnu = self.m.get_sed(aperture=-4)
 
     @pytest.mark.parametrize(('stokes'), ['I', 'Q', 'U', 'V',
-                                          'i', 'q', 'u', 'v',
                                           'linpol', 'circpol'])
     def test_sed_stokes(self, stokes):
         wav, nufnu = self.m.get_sed(stokes=stokes)
         assert nufnu.shape == (2, 3, 5)
 
-    @pytest.mark.parametrize(('stokes'), ['A', 'b', 1, (3,)])
+    @pytest.mark.parametrize(('stokes'), ['A', 'b', 1, (3,),  # invalid values
+                                          'i', 'q', 'u', 'v'])  # lowercase
     def test_sed_stokes_invalid(self, stokes):
         with pytest.raises(ValueError):
             wav, nufnu = self.m.get_sed(stokes=stokes)
