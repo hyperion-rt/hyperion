@@ -40,6 +40,7 @@ class TestSimpleModel(object):
 
         self.m = m
 
+    @pytest.mark.xfail
     def test_sed_group(self):
         wav, nufnu = self.m.get_sed(group=0)
 
@@ -48,6 +49,7 @@ class TestSimpleModel(object):
             wav, nufnu = self.m.get_sed(group=-2)
             # negative indexing allowed, but only one group present
 
+    @pytest.mark.xfail
     def test_sed_group_invalid2(self):
         with pytest.raises(Exception):
             wav, nufnu = self.m.get_sed(group=1)
