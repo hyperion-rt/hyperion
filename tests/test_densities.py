@@ -226,3 +226,35 @@ def test_ulrich_cavity_invalid2():
     e = UlrichEnvelope()
     with pytest.raises(ValueError):
         e.cavity = np.array([1, 2, 3])  # should be BipolarCavity instance
+
+
+# Bipolar Cavities
+
+@pytest.mark.parametrize(('parameter'), ['theta_0', 'r_0', 'rho_0', 'rho_exp'])
+def test_bipolar_cavity_positive(parameter):
+    c = BipolarCavity()
+    c.__setattr__(parameter, 1.)
+
+
+@pytest.mark.parametrize(('parameter'), ['theta_0', 'r_0', 'rho_0', 'rho_exp'])
+def test_bipolar_cavity_negative(parameter):
+    c = BipolarCavity()
+    if parameter in ['power', 'rho_exp']:
+        c.__setattr__(parameter, -1.)
+    else:
+        with pytest.raises(ValueError):
+            c.__setattr__(parameter, -1.)  # negative values are not valid
+
+
+@pytest.mark.parametrize(('parameter'), ['theta_0', 'r_0', 'rho_0', 'rho_exp'])
+def test_bipolar_cavity_invalid1(parameter):
+    c = BipolarCavity()
+    with pytest.raises(ValueError):
+        c.__setattr__(parameter, 'a')  # can't be string
+
+
+@pytest.mark.parametrize(('parameter'), ['theta_0', 'r_0', 'rho_0', 'rho_exp'])
+def test_bipolar_cavity_invalid2(parameter):
+    c = BipolarCavity()
+    with pytest.raises(ValueError):
+        c.__setattr__(parameter, [1., 2.])  # should be scalar

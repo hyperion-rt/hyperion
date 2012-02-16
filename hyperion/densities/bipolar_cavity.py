@@ -2,7 +2,7 @@ import numpy as np
 
 from hyperion.util.functions import FreezableClass
 from hyperion.dust import SphericalDust
-
+from hyperion.densities.envelope import Envelope
 
 class BipolarCavity(FreezableClass):
 
@@ -98,7 +98,34 @@ class BipolarCavity(FreezableClass):
         return mask
 
     def __setattr__(self, attribute, value):
-        if attribute == 'dust' and value is not None and type(value) is str:
-            FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
-        else:
-            FreezableClass.__setattr__(self, attribute, value)
+
+        if value is not None:
+
+            # Dust specified as string
+            if attribute == 'dust' and isinstance(value, basestring):
+                FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
+                return
+
+            # Positive scalars
+            if attribute in ['theta_0', 'r_0', 'rho_0']:
+                if not np.isscalar(value):
+                    raise ValueError("{:s} should be a scalar value".format(attribute))
+                if not np.isreal(value):
+                    raise ValueError("{:s} should be a numerical value".format(attribute))
+                if value < 0.:
+                    raise ValueError("{:s} should be positive".format(attribute))
+
+            # Scalars
+            if attribute in ['power', 'rho_exp']:
+                if not np.isscalar(value):
+                    raise ValueError("{:s} should be a scalar value".format(attribute))
+                if not np.isreal(value):
+                    raise ValueError("{:s} should be a numerical value".format(attribute))
+
+            # Bipolar cavity
+            if attribute == 'envelope':
+                if not isinstance(value, Envelope):
+                    raise ValueError("envelope should be an instance of "
+                                     "Envelope")
+
+        FreezableClass.__setattr__(self, attribute, value)

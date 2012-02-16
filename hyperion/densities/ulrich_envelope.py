@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 
 from hyperion.util.constants import G, pi
-from hyperion.util.functions import FreezableClass
+from hyperion.densities.envelope import Envelope
 from hyperion.densities.bipolar_cavity import BipolarCavity
 from hyperion.util.convenience import OptThinRadius
 from hyperion.dust import SphericalDust
@@ -106,7 +106,7 @@ def solve_mu0(ratio, mu):
     return v
 
 
-class UlrichEnvelope(FreezableClass):
+class UlrichEnvelope(Envelope):
 
     def __init__(self, mdot=None, rho_0=None, rmin=None, rmax=None, rc=None,
                  ambient_density=0., star=None):
@@ -284,7 +284,7 @@ class UlrichEnvelope(FreezableClass):
 
             # Dust specified as string
             if attribute == 'dust' and isinstance(value, basestring):
-                FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
+                Envelope.__setattr__(self, 'dust', SphericalDust(value))
                 return
 
             # Positive scalars
@@ -322,7 +322,7 @@ class UlrichEnvelope(FreezableClass):
                 del self.mdot
             object.__setattr__(self, attribute, value)
         else:
-            FreezableClass.__setattr__(self, attribute, value)
+            Envelope.__setattr__(self, attribute, value)
 
         if attribute == 'cavity' and isinstance(value, BipolarCavity):
             self.cavity.envelope = self

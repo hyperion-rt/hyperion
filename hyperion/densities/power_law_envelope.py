@@ -3,14 +3,14 @@ import warnings
 import numpy as np
 
 from hyperion.util.constants import pi
-from hyperion.util.functions import FreezableClass
+from hyperion.densities.envelope import Envelope
 from hyperion.densities.bipolar_cavity import BipolarCavity
 from hyperion.util.convenience import OptThinRadius
 from hyperion.util.integrate import integrate_powerlaw
 from hyperion.dust import SphericalDust
 
 
-class PowerLawEnvelope(FreezableClass):
+class PowerLawEnvelope(Envelope):
 
     def __init__(self, mass=None, rho_0=None, r_0=None, rmin=None, rmax=None, power=None, star=None):
         '''
@@ -136,7 +136,7 @@ class PowerLawEnvelope(FreezableClass):
 
             # Dust specified as string
             if attribute == 'dust' and isinstance(value, basestring):
-                FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
+                Envelope.__setattr__(self, 'dust', SphericalDust(value))
                 return
 
             # Positive scalars
@@ -181,7 +181,7 @@ class PowerLawEnvelope(FreezableClass):
                 del self.mass
             object.__setattr__(self, attribute, value)
         else:
-            FreezableClass.__setattr__(self, attribute, value)
+            Envelope.__setattr__(self, attribute, value)
 
         if attribute == 'cavity' and isinstance(value, BipolarCavity):
             self.cavity.envelope = self
