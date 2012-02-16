@@ -276,7 +276,6 @@ class UlrichEnvelope(FreezableClass):
             raise Exception("Envelope already has a bipolar cavity")
         else:
             self.cavity = BipolarCavity()
-            self.cavity.envelope = self
             return self.cavity
 
     def __setattr__(self, attribute, value):
@@ -307,6 +306,11 @@ class UlrichEnvelope(FreezableClass):
                     if value < 0.:
                         raise ValueError("{:s} should be positive".format(attribute))
 
+            # Bipolar cavity
+            if attribute == 'cavity':
+                if not isinstance(value, BipolarCavity):
+                    raise ValueError("cavity should be an instance of BipolarCavity")
+
         if attribute == 'mdot':
             if 'rho_0' in self.__dict__:
                 warnings.warn("Overriding value of rho_0 with value derived from mdot")
@@ -319,6 +323,9 @@ class UlrichEnvelope(FreezableClass):
             object.__setattr__(self, attribute, value)
         else:
             FreezableClass.__setattr__(self, attribute, value)
+
+        if attribute == 'cavity' and isinstance(value, BipolarCavity):
+            self.cavity.envelope = self
 
     def __getattr__(self, attribute):
 
