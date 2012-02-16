@@ -106,10 +106,6 @@ class CartesianGrid(FreezableClass):
 
         self._freeze()
 
-    def __getattr__(self, attribute):
-        if attribute == 'shape':
-            return (self.nx, self.ny, self.nz)
-
     def write_physical_array(self, group, array, name, dust=False, compression=True, physics_dtype=float):
 
         if dust:

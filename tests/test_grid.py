@@ -102,3 +102,9 @@ def test_grid_invalid9(grid):
         grid([-1., 1.],
              [-1., 1.],
              [4., -1., 5.])  # should be increasing
+
+
+@pytest.mark.parametrize(('grid'), GRIDS)
+def test_grid_dimension(grid):
+    g = grid([-1., 1.], [-1., 0., 1.], [-1., -0.2, 0.2, 1.])
+    assert g.shape == (3, 2, 1)  # order is reversed
