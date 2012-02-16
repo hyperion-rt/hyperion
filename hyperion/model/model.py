@@ -797,7 +797,6 @@ class Model(FreezableClass):
         else:
             return wav, flux
 
-
     def plot_sed(self, axes=None, filename=None,
                  wmin=0.01, wmax=5000., fmin=None, fmax=None,
                  color='black', labels=True, **kwargs):
@@ -1167,8 +1166,8 @@ class Model(FreezableClass):
 
                 # Find pixel resolution in radians/pixel
                 if inside_observer:
-                    pix_dx = abs(np.radians(xmax - xmin)  / float(nx))
-                    pix_dy = abs(np.radians(ymax - ymin)  / float(ny))
+                    pix_dx = abs(np.radians(xmax - xmin) / float(nx))
+                    pix_dy = abs(np.radians(ymax - ymin) / float(ny))
                 else:
                     pix_dx = abs(np.arctan((xmax - xmin) / float(nx) / distance))
                     pix_dy = abs(np.arctan((ymax - ymin) / float(ny) / distance))
