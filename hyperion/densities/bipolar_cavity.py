@@ -4,6 +4,7 @@ from hyperion.util.functions import FreezableClass
 from hyperion.dust import SphericalDust
 from hyperion.densities.envelope import Envelope
 
+
 class BipolarCavity(FreezableClass):
 
     def __init__(self, theta_0=0., power=1.5, r_0=None,

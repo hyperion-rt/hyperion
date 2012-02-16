@@ -85,7 +85,7 @@ class PowerLawEnvelope(Envelope):
             warnings.warn("Ignoring power-law envelope, since rmax < rmin")
             return np.zeros(grid.shape)
 
-        rho = self.rho_0 * (grid.gr/self.r_0) ** self.power
+        rho = self.rho_0 * (grid.gr / self.r_0) ** self.power
 
         rho[grid.gr < self.rmin] = 0.
         rho[grid.gr > self.rmax] = 0.
@@ -199,7 +199,7 @@ class PowerLawEnvelope(Envelope):
             self._check_all_set()
             alpha = 3. + self.power
             mass = self.rho_0 / alpha * \
-                (4. * pi * (self.rmax ** alpha - self.rmin ** alpha)  / self.r_0 ** self.power)
+                (4. * pi * (self.rmax ** alpha - self.rmin ** alpha) / self.r_0 ** self.power)
             return mass
 
         raise AttributeError(attribute)

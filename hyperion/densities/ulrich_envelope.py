@@ -227,7 +227,7 @@ class UlrichEnvelope(Envelope):
         Find the outermost radius at which the density of the envelope has
         fallen to `rho`.
         '''
-        a, b, c, d = 2., -5., 4., -1 - (self.rho_0 / rho)**2
+        a, b, c, d = 2., -5., 4., -1 - (self.rho_0 / rho) ** 2
         p = (3 * a * c - b ** 2) / (3. * a ** 2)
         q = (2. * b ** 3 - 9. * a * b * c + 27. * a ** 2. * d) / (27 * a ** 3.)
         x1, _, _ = cubic(np.array([p]), np.array([q]))
@@ -255,7 +255,7 @@ class UlrichEnvelope(Envelope):
 
             rho[gamma_1 < 1.] = self.rho_0 \
                               * (np.log((np.sqrt(gamma_1) + 1) / (1. - np.sqrt(gamma_1))) \
-                              -  np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0))))
+                              - np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0))))
 
             rho[gamma_1 >= 1.] = np.inf
 
@@ -263,7 +263,7 @@ class UlrichEnvelope(Envelope):
 
             rho[:] = self.rho_0 \
                    * (np.log((np.sqrt(2. * gamma_1 - 1.) - 1.) / (np.sqrt(2. * gamma_1 - 1.) + 1.)) \
-                   -  np.log((np.sqrt(2. * gamma_0 - 1.) - 1.) / (np.sqrt(2. * gamma_0 - 1.) + 1.)))
+                   - np.log((np.sqrt(2. * gamma_0 - 1.) - 1.) / (np.sqrt(2. * gamma_0 - 1.) + 1.)))
 
         else:
 

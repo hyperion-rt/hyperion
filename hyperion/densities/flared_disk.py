@@ -232,5 +232,4 @@ class FlaredDisk(FreezableClass):
                     if value < 0.:
                         raise ValueError("{:s} should be positive".format(attribute))
 
-
         FreezableClass.__setattr__(self, attribute, value)
