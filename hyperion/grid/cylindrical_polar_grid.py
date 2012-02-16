@@ -42,8 +42,8 @@ class CylindricalPolarGrid(FreezableClass):
         self.p_wall = p_wall
 
         # Compute cell centers
-        self.w = 10.**((np.log10(w_wall[:-1]) + np.log10(w_wall[1:])) / 2.)
-        if w_wall[0]==0.:
+        self.w = 10. ** ((np.log10(w_wall[:-1]) + np.log10(w_wall[1:])) / 2.)
+        if w_wall[0] == 0.:
             self.w[0] = w_wall[1] / 2.
         self.z = (z_wall[:-1] + z_wall[1:]) / 2.
         self.p = (p_wall[:-1] + p_wall[1:]) / 2.
@@ -62,7 +62,7 @@ class CylindricalPolarGrid(FreezableClass):
         # USEFUL QUANTITIES
 
         dr = self.gw_wall_max - self.gw_wall_min
-        dr2 = (self.gw_wall_max**2 - self.gw_wall_min**2)
+        dr2 = (self.gw_wall_max ** 2 - self.gw_wall_min ** 2)
         dz = self.gz_wall_max - self.gz_wall_min
         dp = self.gp_wall_max - self.gp_wall_min
 
@@ -81,22 +81,22 @@ class CylindricalPolarGrid(FreezableClass):
         #   dA = r * dz * dphi
         #    A = r * [z 2 - z_1] * [phi_2 - phi_1]
 
-        self.areas[0,:,:,:] = self.gw_wall_min * dz * dp
-        self.areas[1,:,:,:] = self.gw_wall_max * dz * dp
+        self.areas[0, :, :, :] = self.gw_wall_min * dz * dp
+        self.areas[1, :, :, :] = self.gw_wall_max * dz * dp
 
         # z walls:
         #   dA = r * dr * dphi
         #    A = 0.5 * [r_2^2 - r_1^2] * [phi_2 - phi_1]
 
-        self.areas[2,:,:,:] = 0.5 * dr2 * dp
-        self.areas[3,:,:,:] = 0.5 * dr2 * dp
+        self.areas[2, :, :, :] = 0.5 * dr2 * dp
+        self.areas[3, :, :, :] = 0.5 * dr2 * dp
 
         # Phi walls:
         #   dA = dr * dz
         #    A = [r_2 - r_1] * [z_2 - z_1]
 
-        self.areas[4,:,:,:] = dr * dz
-        self.areas[5,:,:,:] = dr * dz
+        self.areas[4, :, :, :] = dr * dz
+        self.areas[5, :, :, :] = dr * dz
 
         # CELL WIDTHS
 
@@ -106,19 +106,19 @@ class CylindricalPolarGrid(FreezableClass):
         #   dS = dr
         #    S = r_2 - r_1
 
-        self.widths[0,:,:,:] = dr
+        self.widths[0, :, :, :] = dr
 
         # z direction:
         #   dS = dz
         #    S = [z_2 - z_1]
 
-        self.widths[1,:,:,:] = dz
+        self.widths[1, :, :, :] = dz
 
         # Phi direction:
         #   dS = r * dphi
         #    S = r * [phi_2 - phi_1]
 
-        self.widths[2,:,:,:] = self.gw * dp
+        self.widths[2, :, :, :] = self.gw * dp
 
         self.geometry_id = None
 
@@ -147,11 +147,11 @@ class CylindricalPolarGrid(FreezableClass):
         if widths:
             dset = group.create_dataset("Widths", data=self.widths, compression=compression, dtype=geo_dtype)
 
-        dset = group.create_dataset("Walls 1", data=np.array(zip(self.w_wall), dtype=[('w',wall_dtype)]), compression=compression)
+        dset = group.create_dataset("Walls 1", data=np.array(zip(self.w_wall), dtype=[('w', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
-        dset = group.create_dataset("Walls 2", data=np.array(zip(self.z_wall), dtype=[('z',wall_dtype)]), compression=compression)
+        dset = group.create_dataset("Walls 2", data=np.array(zip(self.z_wall), dtype=[('z', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
-        dset = group.create_dataset("Walls 3", data=np.array(zip(self.p_wall), dtype=[('p',wall_dtype)]), compression=compression)
+        dset = group.create_dataset("Walls 3", data=np.array(zip(self.p_wall), dtype=[('p', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'rad'

@@ -42,8 +42,8 @@ class SphericalPolarGrid(FreezableClass):
         self.p_wall = p_wall
 
         # Compute cell centers
-        self.r = 10.**((np.log10(r_wall[:-1]) + np.log10(r_wall[1:])) / 2.)
-        if r_wall[0]==0.:
+        self.r = 10. ** ((np.log10(r_wall[:-1]) + np.log10(r_wall[1:])) / 2.)
+        if r_wall[0] == 0.:
             self.r[0] = r_wall[1] / 2.
         self.t = (t_wall[:-1] + t_wall[1:]) / 2.
         self.p = (p_wall[:-1] + p_wall[1:]) / 2.
@@ -66,8 +66,8 @@ class SphericalPolarGrid(FreezableClass):
         # USEFUL QUANTITIES
 
         dr = (self.gr_wall_max - self.gr_wall_min)
-        dr2 = (self.gr_wall_max**2 - self.gr_wall_min**2)
-        dr3 = (self.gr_wall_max**3 - self.gr_wall_min**3)
+        dr2 = (self.gr_wall_max ** 2 - self.gr_wall_min ** 2)
+        dr3 = (self.gr_wall_max ** 3 - self.gr_wall_min ** 3)
         dt = self.gt_wall_max - self.gt_wall_min
         dcost = np.cos(self.gt_wall_min) - np.cos(self.gt_wall_max)
         dp = (self.gp_wall_max - self.gp_wall_min)
@@ -87,22 +87,22 @@ class SphericalPolarGrid(FreezableClass):
         #   dA = r^2 * sin(theta) * dtheta * dphi
         #    A = r^2 * [cos(theta_1) - cos(theta_2)] * [phi_2 - phi_1]
 
-        self.areas[0,:,:,:] = self.gr_wall_min**2 * dcost * dp
-        self.areas[1,:,:,:] = self.gr_wall_max**2 * dcost * dp
+        self.areas[0, :, :, :] = self.gr_wall_min ** 2 * dcost * dp
+        self.areas[1, :, :, :] = self.gr_wall_max ** 2 * dcost * dp
 
         # Theta walls:
         #   dA = r * sin(theta) * dr * dphi
         #    A = 0.5 * [r_2^2 - r_1^2] * sin(theta) * [phi_2 - phi_1]
 
-        self.areas[2,:,:,:] = 0.5 * dr2 * np.sin(self.gt_wall_min) * dp
-        self.areas[3,:,:,:] = 0.5 * dr2 * np.sin(self.gt_wall_max) * dp
+        self.areas[2, :, :, :] = 0.5 * dr2 * np.sin(self.gt_wall_min) * dp
+        self.areas[3, :, :, :] = 0.5 * dr2 * np.sin(self.gt_wall_max) * dp
 
         # Phi walls:
         #   dA = r * dr * dtheta
         #    A = 0.5 * [r_2^2 - r_1^2] * [theta_2 - theta_1]
 
-        self.areas[4,:,:,:] = 0.5 * dr2 * dt
-        self.areas[5,:,:,:] = 0.5 * dr2 * dt
+        self.areas[4, :, :, :] = 0.5 * dr2 * dt
+        self.areas[5, :, :, :] = 0.5 * dr2 * dt
 
         # CELL WIDTHS
 
@@ -112,19 +112,19 @@ class SphericalPolarGrid(FreezableClass):
         #   dS = dr
         #    S = r_2 - r_1
 
-        self.widths[0,:,:,:] = dr
+        self.widths[0, :, :, :] = dr
 
         # Theta direction:
         #   dS = r * dtheta
         #    S = r * [theta_2 - theta_1]
 
-        self.widths[1,:,:,:] = self.gr * dt
+        self.widths[1, :, :, :] = self.gr * dt
 
         # Phi direction:
         #   dS = r * sin(theta) * dphi
         #    S = r * sin(theta) * [phi_2 - phi_1]
 
-        self.widths[2,:,:,:] = self.gr * np.sin(self.gt) * dp
+        self.widths[2, :, :, :] = self.gr * np.sin(self.gt) * dp
 
         self.geometry_id = None
 
@@ -153,11 +153,11 @@ class SphericalPolarGrid(FreezableClass):
         if widths:
             dset = group.create_dataset("Widths", data=self.widths, compression=compression, dtype=geo_dtype)
 
-        dset = group.create_dataset("Walls 1", data=np.array(zip(self.r_wall), dtype=[('r',wall_dtype)]), compression=compression)
+        dset = group.create_dataset("Walls 1", data=np.array(zip(self.r_wall), dtype=[('r', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
-        dset = group.create_dataset("Walls 2", data=np.array(zip(self.t_wall), dtype=[('t',wall_dtype)]), compression=compression)
+        dset = group.create_dataset("Walls 2", data=np.array(zip(self.t_wall), dtype=[('t', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'rad'
 
-        dset = group.create_dataset("Walls 3", data=np.array(zip(self.p_wall), dtype=[('p',wall_dtype)]), compression=compression)
+        dset = group.create_dataset("Walls 3", data=np.array(zip(self.p_wall), dtype=[('p', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'rad'

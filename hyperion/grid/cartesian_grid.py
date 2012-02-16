@@ -73,18 +73,18 @@ class CartesianGrid(FreezableClass):
 
         # X walls:
 
-        self.areas[0,:,:,:] = dy * dz
-        self.areas[1,:,:,:] = dy * dz
+        self.areas[0, :, :, :] = dy * dz
+        self.areas[1, :, :, :] = dy * dz
 
         # Y walls:
 
-        self.areas[2,:,:,:] = dx * dz
-        self.areas[3,:,:,:] = dx * dz
+        self.areas[2, :, :, :] = dx * dz
+        self.areas[3, :, :, :] = dx * dz
 
         # Z walls:
 
-        self.areas[4,:,:,:] = dx * dy
-        self.areas[5,:,:,:] = dx * dy
+        self.areas[4, :, :, :] = dx * dy
+        self.areas[5, :, :, :] = dx * dy
 
         # CELL WIDTHS
 
@@ -92,15 +92,15 @@ class CartesianGrid(FreezableClass):
 
         # X direction:
 
-        self.widths[0,:,:,:] = dx
+        self.widths[0, :, :, :] = dx
 
         # Y direction:
 
-        self.widths[1,:,:,:] = dy
+        self.widths[1, :, :, :] = dy
 
         # Z direction:
 
-        self.widths[2,:,:,:] = dz
+        self.widths[2, :, :, :] = dz
 
         self.geometry_id = None
 
@@ -133,11 +133,11 @@ class CartesianGrid(FreezableClass):
         if widths:
             dset = group.create_dataset("Widths", data=self.widths, compression=compression, dtype=geo_dtype)
 
-        dset = group.create_dataset("Walls 1", data=np.array(zip(self.x_wall), dtype=[('x',wall_dtype)]), compression=compression)
+        dset = group.create_dataset("Walls 1", data=np.array(zip(self.x_wall), dtype=[('x', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
-        dset = group.create_dataset("Walls 2", data=np.array(zip(self.y_wall), dtype=[('y',wall_dtype)]), compression=compression)
+        dset = group.create_dataset("Walls 2", data=np.array(zip(self.y_wall), dtype=[('y', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
-        dset = group.create_dataset("Walls 3", data=np.array(zip(self.z_wall), dtype=[('z',wall_dtype)]), compression=compression)
+        dset = group.create_dataset("Walls 3", data=np.array(zip(self.z_wall), dtype=[('z', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
