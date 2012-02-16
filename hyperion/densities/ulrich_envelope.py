@@ -281,6 +281,32 @@ class UlrichEnvelope(FreezableClass):
 
     def __setattr__(self, attribute, value):
 
+        if value is not None:
+
+            # Dust specified as string
+            if attribute == 'dust' and isinstance(value, basestring):
+                FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
+                return
+
+            # Positive scalars
+            if attribute in ['rc', 'rho_amb', 'rho_0', 'mdot']:
+                if not np.isscalar(value):
+                    raise ValueError("{:s} should be a scalar value".format(attribute))
+                if not np.isreal(value):
+                    raise ValueError("{:s} should be a numerical value".format(attribute))
+                if value < 0.:
+                    raise ValueError("{:s} should be positive".format(attribute))
+
+            # Radii (positive scalars or OptThinRadius instance)
+            if attribute in ['rmin', 'rmax']:
+                if not isinstance(value, OptThinRadius):
+                    if not np.isscalar(value):
+                        raise ValueError("{:s} should be a scalar value or an OptThinRadius instance".format(attribute))
+                    if not np.isreal(value):
+                        raise ValueError("{:s} should be a numerical value or an OptThinRadius instance".format(attribute))
+                    if value < 0.:
+                        raise ValueError("{:s} should be positive".format(attribute))
+
         if attribute == 'mdot':
             if 'rho_0' in self.__dict__:
                 warnings.warn("Overriding value of rho_0 with value derived from mdot")
@@ -291,8 +317,6 @@ class UlrichEnvelope(FreezableClass):
                 warnings.warn("Overriding value of mdot with value derived from rho_0")
                 del self.mdot
             object.__setattr__(self, attribute, value)
-        elif attribute == 'dust' and value is not None and type(value) is str:
-            FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
         else:
             FreezableClass.__setattr__(self, attribute, value)
 

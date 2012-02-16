@@ -198,7 +198,39 @@ class FlaredDisk(FreezableClass):
         return tau
 
     def __setattr__(self, attribute, value):
-        if attribute == 'dust' and value is not None and type(value) is str:
-            FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
-        else:
-            FreezableClass.__setattr__(self, attribute, value)
+
+        if value is not None:
+
+            # Dust specified as string
+            if attribute == 'dust' and isinstance(value, basestring):
+                FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
+                return
+
+            # Positive scalars
+            if attribute in ['mass', 'h_0', 'r_0']:
+                if not np.isscalar(value):
+                    raise ValueError("{:s} should be a scalar value".format(attribute))
+                if not np.isreal(value):
+                    raise ValueError("{:s} should be a numerical value".format(attribute))
+                if value < 0.:
+                    raise ValueError("{:s} should be positive".format(attribute))
+
+            # Scalars
+            if attribute in ['p', 'beta']:
+                if not np.isscalar(value):
+                    raise ValueError("{:s} should be a scalar value".format(attribute))
+                if not np.isreal(value):
+                    raise ValueError("{:s} should be a numerical value".format(attribute))
+
+            # Radii (positive scalars or OptThinRadius instance)
+            if attribute in ['rmin', 'rmax']:
+                if not isinstance(value, OptThinRadius):
+                    if not np.isscalar(value):
+                        raise ValueError("{:s} should be a scalar value or an OptThinRadius instance".format(attribute))
+                    if not np.isreal(value):
+                        raise ValueError("{:s} should be a numerical value or an OptThinRadius instance".format(attribute))
+                    if value < 0.:
+                        raise ValueError("{:s} should be positive".format(attribute))
+
+
+        FreezableClass.__setattr__(self, attribute, value)
