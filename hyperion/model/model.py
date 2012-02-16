@@ -464,6 +464,10 @@ class Model(FreezableClass):
             return self.binned_output
 
     def run(self, logfile=None, mpi=False, n_cores=multiprocessing.cpu_count()):
+
+        if not os.path.exists(self.name + '.rtin'):
+            self.write()
+
         if mpi:
             option = '-m {0}'.format(n_cores)
         else:
