@@ -803,7 +803,7 @@ class PeeledImageConf(ImageConf):
             self._write_inside_observer(group)
             if self.viewing_angles is None:
                 self.set_viewing_angles([90.], [0.])
-        elif self.viewing_angles is not None:
+        elif len(self.viewing_angles) > 0:
             group.attrs['inside_observer'] = 'no'
             if self.peeloff_origin is None:
                 self.set_peeloff_origin((0., 0., 0.))
