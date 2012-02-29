@@ -457,20 +457,32 @@ class AnalyticalYSOModel(Model):
     def _resolve_optically_thin_radii(self):
         if not self.star.isfinal():
             raise Exception("Stellar parameters need to be finalized before resolving radiation-dependent radii")
-        for disk in self.disks:
+        for i, disk in enumerate(self.disks):
             if isinstance(disk.rmin, OptThinRadius):
+                if disk.dust is None:
+                    raise Exception("Disk %i dust not set" % (i + 1))
                 disk.rmin = disk.rmin.evaluate(self.star, disk.dust)
             if isinstance(disk.rmax, OptThinRadius):
+                if disk.dust is None:
+                    raise Exception("Disk %i dust not set" % (i + 1))
                 disk.rmax = disk.rmax.evaluate(self.star, disk.dust)
-        for envelope in self.envelopes:
+        for i, envelope in enumerate(self.envelopes):
             if isinstance(envelope.rmin, OptThinRadius):
+                if envelope.dust is None:
+                    raise Exception("Envelope %i dust not set" % (i + 1))
                 envelope.rmin = envelope.rmin.evaluate(self.star, envelope.dust)
             if isinstance(envelope.rmax, OptThinRadius):
+                if envelope.dust is None:
+                    raise Exception("Envelope %i dust not set" % (i + 1))
                 envelope.rmax = envelope.rmax.evaluate(self.star, envelope.dust)
         if self.ambient is not None:
             if isinstance(self.ambient.rmin, OptThinRadius):
+                if self.ambient.dust is None:
+                    raise Exception("Ambient medium dust not set")
                 self.ambient.rmin = self.ambient.rmin.evaluate(self.star, self.ambient.dust)
             if isinstance(self.ambient.rmax, OptThinRadius):
+                if self.ambient.dust is None:
+                    raise Exception("Ambient medium dust not set")
                 self.ambient.rmax = self.ambient.rmax.evaluate(self.star, self.ambient.dust)
 
     # OUTPUT
