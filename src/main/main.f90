@@ -62,6 +62,9 @@ program main
      call mp_write_keyword(handle_out, '/', 'fortran_version', fortran_version)
   end if
 
+  ! Make a link to the inputs
+  call mp_create_external_link(handle_out, '/Input', input_file, '/')
+
   ! Wait for all threads
   call mp_join()
 

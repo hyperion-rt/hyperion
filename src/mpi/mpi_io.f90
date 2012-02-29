@@ -17,6 +17,7 @@ module mpi_hdf5_io
   public :: mp_open_read
   public :: mp_open_write
   public :: mp_close
+  public :: mp_create_external_link
   public :: mp_path_exists
   public :: mp_open_group
   public :: mp_create_group
@@ -171,6 +172,13 @@ contains
     integer(hid_t),intent(in) :: handle
     if(main_process()) call hdf5_close(handle)
   end subroutine mp_close
+
+  subroutine mp_create_external_link(handle, path, filename, object)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, filename, object
+    if(main_process()) call hdf5_create_external_link(handle, path, filename, object)
+  end subroutine mp_create_external_link
 
   logical function mp_path_exists(handle, path) result(exists)
     implicit none
