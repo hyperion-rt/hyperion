@@ -213,6 +213,7 @@ contains
     do ig=1,n_groups
        call mp_read_keyword(handle, paths(ig), 'inside_observer', inside_observer(ig))
        call mp_read_keyword(handle, paths(ig), 'n_view', n_view)
+       if(.not. n_view > 0) call error("n_view should be a positive integer", "peeled_images_setup")
        call mp_read_keyword(handle, paths(ig), 'd_min', d_min(ig))
        call mp_read_keyword(handle, paths(ig), 'd_max', d_max(ig))
        if(inside_observer(ig).and.d_min(ig) < 0.) then
