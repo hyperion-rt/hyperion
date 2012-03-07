@@ -675,7 +675,7 @@ class Model(FreezableClass):
             unc = g['seds_unc'].value
 
         try:
-            inside_observer = g.attrs['inside_observer']
+            inside_observer = g.attrs['inside_observer'].lower() == 'yes'
         except:
             inside_observer = False
 
@@ -701,7 +701,7 @@ class Model(FreezableClass):
         else:
 
             if units != 'ergs/s':
-                raise Exception("Since distance= is not specified, units should be set to ergs/s")
+                raise ValueError("Since distance= is not specified, units should be set to ergs/s")
 
             # Units here are not technically ergs/cm^2/s but ergs/s
             scale = np.repeat(1., len(nu))
@@ -1137,7 +1137,7 @@ class Model(FreezableClass):
             unc = g['images_unc'].value
 
         try:
-            inside_observer = g.attrs['inside_observer']
+            inside_observer = g.attrs['inside_observer'].lower() == 'yes'
         except:
             inside_observer = False
 
@@ -1186,7 +1186,9 @@ class Model(FreezableClass):
 
         else:
 
-            # Units here are not technically ergs/cm^2/s but ergs/s
+            if units != 'ergs/s':
+                raise ValueError("Since distance= is not specified, units should be set to ergs/s")
+
             scale = np.repeat(1., len(nu))
 
         # Close HDF5 file
