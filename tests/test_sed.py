@@ -102,3 +102,12 @@ class TestSimpleModel(object):
     def test_sed_stokes_invalid(self, stokes):
         with pytest.raises(ValueError):
             wav, nufnu = self.m.get_sed(stokes=stokes)
+
+    @pytest.mark.parametrize(('units'), ['ergs/s'])
+    def test_sed_nodistance_units(self, units):
+        wav, nufnu = self.m.get_sed(units=units)
+
+    @pytest.mark.parametrize(('units'), ['ergs/cm^2/s', 'mJy', 'Jy', 'ergs/cm^2/s/Hz', 'MJy/sr'])
+    def test_sed_nodistance_units_invalid(self, units):
+        with pytest.raises(ValueError):
+            wav, nufnu = self.m.get_sed(units=units)
