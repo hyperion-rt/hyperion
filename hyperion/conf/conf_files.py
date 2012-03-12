@@ -692,14 +692,11 @@ class BinnedImageConf(ImageConf):
 
 class PeeledImageConf(ImageConf):
 
-    def __init__(self, viewing_angles=None, inside_observer=None, peeloff_origin=None, **kwargs):
-        if viewing_angles is not None:
-            self.n_view = len(self.viewing_angles)
-        else:
-            self.n_view = 0
-        self.viewing_angles = viewing_angles
-        self.inside_observer = inside_observer
-        self.peeloff_origin = peeloff_origin
+    def __init__(self, **kwargs):
+        self.set_viewing_angles([], [])
+        self.set_inside_observer(None)
+        self.set_ignore_optical_depth(False)
+        self.set_peeloff_origin(None)
         self.set_depth(-np.inf, np.inf)
         ImageConf.__init__(self, **kwargs)
 
