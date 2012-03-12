@@ -749,6 +749,23 @@ class PeeledImageConf(ImageConf):
         group.attrs['observer_y'] = self.inside_observer[1]
         group.attrs['observer_z'] = self.inside_observer[2]
 
+    def set_ignore_optical_depth(self, ignore_optical_depth):
+        '''
+        Ingore optical depth when creating images.
+
+        This is useful in cases where one wants to understand how much the
+        optical depth is affecting a set of images.
+
+        Parameters
+        ----------
+        ignore_optical_depth : bool
+           Whether to ignore optical depth effects (default is False)
+        '''
+        self.ignore_optical_depth = ignore_optical_depth
+
+    def _write_ignore_optical_depth(self, group):
+        group.attrs['ignore_optical_depth'] = bool2str(self.ignore_optical_depth)
+
     def set_peeloff_origin(self, position):
         '''
         Set the origin for the peeloff.
@@ -807,6 +824,8 @@ class PeeledImageConf(ImageConf):
             self._write_peeloff_origin(group)
         else:
             raise Exception("Need to specify either observer position, or viewing angles")
+
+        self._write_ignore_optical_depth(group)
 
         self._write_viewing_angles(group)
 

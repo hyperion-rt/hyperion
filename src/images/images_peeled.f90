@@ -35,6 +35,7 @@ module peeled_images
   integer,allocatable :: view_id(:)
 
   logical,allocatable :: inside_observer(:)
+  logical,allocatable :: ignore_optical_depth(:)
   type(vector3d_dp), allocatable :: r_peeloff(:)
   type(angle3d_dp), allocatable :: viewing_angles(:)
   ! angles in which to make peeled images
@@ -150,10 +151,19 @@ contains
 
        if(in_image(peeled_image(ig),x_image, y_image)) then
 
-          if(polychromatic) then
-             call grid_escape_column_density(p,tmax,column_density,killed)
+          if(ignore_optical_depth(ig)) then
+             if(polychromatic) then
+                 column_density = 0._dp
+             else
+                 tau = 0._dp
+             end if
+             killed = .false.
           else
-             call grid_escape_tau(p,tmax,tau,killed)
+              if(polychromatic) then
+                 call grid_escape_column_density(p,tmax,column_density,killed)
+              else
+                 call grid_escape_tau(p,tmax,tau,killed)
+              end if
           end if
 
           ! For inside observer, don't want optical depth to escape grid, just to go to observer!
@@ -204,6 +214,7 @@ contains
     if(main_process()) write(*,'(" [peeled_images] setting up ",I0," peeled image groups ")') n_groups
 
     allocate(inside_observer(n_groups))
+    allocate(ignore_optical_depth(n_groups))
     allocate(r_peeloff(n_groups))
     allocate(d_min(n_groups))
     allocate(d_max(n_groups))
@@ -212,6 +223,7 @@ contains
     n_peeled = 0
     do ig=1,n_groups
        call mp_read_keyword(handle, paths(ig), 'inside_observer', inside_observer(ig))
+       call mp_read_keyword(handle, paths(ig), 'ignore_optical_depth', ignore_optical_depth(ig))
        call mp_read_keyword(handle, paths(ig), 'n_view', n_view)
        if(.not. n_view > 0) call error("n_view should be a positive integer", "peeled_images_setup")
        call mp_read_keyword(handle, paths(ig), 'd_min', d_min(ig))
