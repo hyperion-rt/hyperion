@@ -53,6 +53,10 @@ program main
   end if
 
   if(main_process()) call check_file_exists(input_file)
+
+  ! Wait for all threads
+  call mp_join()
+
   handle_in = mp_open_read(input_file)
 
   ! Prepare output directory
