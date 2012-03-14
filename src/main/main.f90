@@ -17,7 +17,7 @@ program main
 
   integer :: iter
   character(len=1000) :: input_file, output_file
-  integer(hid_t) :: handle_in, handle_out, g_peeled, g_binned
+  integer(hid_t) :: handle_in, handle_out, g_peeled, g_binned, g_input
   real(dp) :: time1, time2, time
   logical :: converged, copy_input
   character(len=30) :: datetime
@@ -67,9 +67,10 @@ program main
   end if
 
   ! Include the input in the output file
-  call mp_read_keyword(handle_out, '/', 'copy_input', copy_input)
+  call mp_read_keyword(handle_in, '/', 'copy_input', copy_input)
   if(copy_input) then
-     call mp_copy_group(handle_in, '/', handle_out, '/Input')
+     g_input = mp_create_group(handle_out, '/Input')
+     call mp_copy_group(handle_in, '/', g_input, '.')
   else
      call mp_create_external_link(handle_out, '/Input', input_file, '/')
   end if

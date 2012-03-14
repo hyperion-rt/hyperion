@@ -94,15 +94,15 @@ class TestWriteEnergyCopy(object):
         m.run(random_filename())
 
 
-def test_input_link():
+@pytest.mark.parametrize(('write_copy'), [True, False])
+def test_input_link(write_copy):
 
     input_file = random_filename()
     output_file = random_filename()
 
     model = get_test_model_noimaging()
-    model.write(input_file)
-
     model.set_copy_input(False)
+    model.write(input_file, copy=write_copy)
 
     # Check that copy parameter is there
     f = h5py.File(input_file, 'r')
@@ -119,15 +119,15 @@ def test_input_link():
     assert f.file != f['Input'].file
     f.close()
 
-def test_input_copy():
+@pytest.mark.parametrize(('write_copy'), [True, False])
+def test_input_copy(write_copy):
 
     input_file = random_filename()
     output_file = random_filename()
 
     model = get_test_model_noimaging()
-    model.write(input_file)
-
     model.set_copy_input(True)
+    model.write(input_file, copy=write_copy)
 
     # Check that copy parameter is there
     f = h5py.File(input_file, 'r')
