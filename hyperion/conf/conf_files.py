@@ -3,10 +3,7 @@ from hyperion.util.functions import FreezableClass
 
 
 def bool2str(value):
-    if value:
-        return "yes"
-    else:
-        return "no"
+    return 'yes' if value else 'no'
 
 
 class OutputConf(FreezableClass):
@@ -403,7 +400,7 @@ class RunConf(FreezableClass):
         self.enforce_energy_range = enforce
 
     def _write_enforce_energy_range(self, group):
-        group.attrs['enforce_energy_range'] = 'yes' if self.enforce_energy_range else 'no'
+        group.attrs['enforce_energy_range'] = bool2str(self.enforce_energy_range)
 
     def set_output_bytes(self, io_bytes):
         '''
