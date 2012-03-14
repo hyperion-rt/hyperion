@@ -10,6 +10,7 @@ module mpi_hdf5_io
        &               mp_open_group => hdf5_open_group, &
        &               mp_create_group => hdf5_create_group, &
        &               mp_close_group => hdf5_close_group, &
+       &               mp_copy_group => hdf5_copy_group, &
        &               mp_list_groups => hdf5_list_groups, &
        &               mp_table_write_header => hdf5_table_write_header, &
        &               mp_exists_keyword => hdf5_exists_keyword, &
@@ -34,6 +35,7 @@ module mpi_hdf5_io
   public :: mp_open_group
   public :: mp_create_group
   public :: mp_close_group
+  public :: mp_copy_group
   public :: mp_list_groups
   public :: mp_table_write_header
   public :: mp_exists_keyword

@@ -19,7 +19,7 @@ program main
   character(len=1000) :: input_file, output_file
   integer(hid_t) :: handle_in, handle_out, g_peeled, g_binned
   real(dp) :: time1, time2, time
-  logical :: converged
+  logical :: converged, copy_input
   character(len=30) :: datetime
 
   character(len=5), parameter :: fortran_version = '0.8.4'
@@ -66,8 +66,13 @@ program main
      call mp_write_keyword(handle_out, '/', 'fortran_version', fortran_version)
   end if
 
-  ! Make a link to the inputs
-  call mp_create_external_link(handle_out, '/Input', input_file, '/')
+  ! Include the input in the output file
+  call mp_read_keyword(handle_out, '/', 'copy_input', copy_input)
+  if(copy_input) then
+     call mp_copy_group(handle_in, '/', handle_out, '/Input')
+  else
+     call mp_create_external_link(handle_out, '/Input', input_file, '/')
+  end if
 
   ! Wait for all threads
   call mp_join()

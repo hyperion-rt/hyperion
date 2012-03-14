@@ -1,4 +1,4 @@
-! MD5 of template: 505f593f3e8d6c1148b75eb48dfece4f
+! MD5 of template: c695f9417e0ddff11ffbcc45a76a834f
 module mpi_hdf5_io
 
   use core_lib
@@ -22,6 +22,7 @@ module mpi_hdf5_io
   public :: mp_open_group
   public :: mp_create_group
   public :: mp_close_group
+  public :: mp_copy_group
   public :: mp_list_groups
   public :: mp_table_write_header
   public :: mp_exists_keyword
@@ -215,6 +216,13 @@ contains
     integer(hid_t),intent(in) :: group
     if(main_process()) call hdf5_close_group(group)
   end subroutine mp_close_group
+
+  subroutine mp_copy_group(handle_in, path_in, handle_out, path_out)
+    implicit none
+    integer(hid_t),intent(in) :: handle_in, handle_out
+    character(len=*),intent(in) ::  path_in, path_out
+    if(main_process()) call hdf5_copy_group(handle_in, path_in, handle_out, path_out)
+  end subroutine mp_copy_group
 
   subroutine mp_list_groups(handle, path, group_names)
     implicit none
