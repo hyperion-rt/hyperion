@@ -4,6 +4,7 @@ import sys
 import subprocess
 import os
 from ConfigParser import SafeConfigParser
+import tempfile
 
 import h5py
 
@@ -74,4 +75,16 @@ else:
     command = '{0} -n {1} hyperion_{2}_mpi'.format(mpi_command,
                                                    n_cores, suffix)
 
-p = subprocess.call('{0} {1} {2}'.format(command, input, output), shell=True)
+# Capture stderr to check for errors
+stderr = tempfile.TemporaryFile()
+p = subprocess.call('{0} {1} {2}'.format(command, input, output), shell=True, stderr=stderr)
+
+# Check if any errors were output
+if stderr.tell() > 0 or p != 0:
+
+    # Print errors (since they were captured)
+    stderr.seek(0)
+    print stderr.read()
+
+    # Return failure code
+    sys.exit(1)
