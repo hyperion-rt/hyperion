@@ -111,23 +111,22 @@ class Configuration(FreezableClass):
 
 class Model(FreezableClass):
 
-    def __init__(self, name):
+    def __init__(self, name=None):
         '''
         Create a Model instance
 
         Parameters
         ----------
-        name : str
-            The name of the model. This is used to name the .rtin file
-            output with the write() method.
+        name: str
+            The name of the model. This can be a descriptive name to identify
+            the model. It is used by Model.write() to generate an input
+            filename if none is specified.
         '''
-
-        if name[-6:] == '.rtout':
-            name = name[:-6]
 
         self.conf = Configuration()
 
         self.name = name
+
         self.reset_density()
         self.reset_sources()
         self.reset_images()
@@ -151,6 +150,8 @@ class Model(FreezableClass):
         self.set_sample_sources_evenly = self.conf.run.set_sample_sources_evenly
         self.set_enforce_energy_range = self.conf.run.set_enforce_energy_range
         self.set_copy_input = self.conf.run.set_copy_input
+
+        self.filename = None
 
         self._freeze()
 
@@ -214,33 +215,64 @@ class Model(FreezableClass):
         if self._monochromatic:
             group.create_dataset('Frequencies', data=np.array(zip(self._frequencies), dtype=[('nu', dtype)]), compression=compression)
 
-    def write(self, compression=True, copy_dust=False, absolute_paths=False, geo_dtype=float, wall_dtype=float, physics_dtype=float):
+    def write(self, filename=None, compression=True, copy=True,
+              absolute_paths=False, geo_dtype=float, wall_dtype=float,
+              physics_dtype=float):
         '''
-        Write the model to an HDF5 file
+        Write the model input parameters to an HDF5 file
 
-        Optional Keyword Arguments:
-
-            *compression*: [ True | False ]
-                Whether to compress the datasets inside the HDF5 file
-
-            *copy_dust*: [ True | False ]
-                Whether to copy the dust properties when a filename is specified (True), or to just link to the file (False)
-
-            *paths*: [ True | False ]
-                Whether to use absolute paths (True) or relative paths (False) when linking to files
+        Parameters
+        ----------
+        filename: str
+            The name of the input file to write. If no name is specified, the
+            filename is constructed from the model name.
+        compression: bool
+            Whether to compress the datasets inside the HDF5 file.
+        copy: bool
+            Whether to copy all external content into the input file, or
+            whether to just link to external content.
+        absolute_paths: bool
+            If copy=False, then if absolute_paths is True, absolute filenames
+            are used in the link, otherwise the path relative to the input
+            file is used.
+        geo_dtype: type
+            Numerical type to use for geometrical quantities (volumes, areas,
+            widths).
+        wall_dtype: type
+            Numerical type to use for wall positions.
+        physics_dtype: type
+            Numerical type to use for physical grids.
         '''
 
-        if not self.name:
-            raise Exception("Model name is not defined")
+        # If no filename has been specified, use the model name to construct
+        # one. If neither have been specified, raise an exception.
+        if filename is None:
+            if self.name is not None:
+                filename = self.name + '.rtin'
+            else:
+                raise ValueError("filename= has not been specified and model "
+                                 "has no name")
 
-        if not os.path.dirname(self.name) == "" and not os.path.exists(os.path.dirname(self.name)):
-            raise Exception("Directory %s does not exist" % os.path.dirname(self.name))
+        # Check that grid has been set up
+        if self.grid is None:
+            raise Exception("No coordinate grid has been set up")
+
+        # Check that containing directory exists to give a more understandable
+        # message than 'File does not exist', since this might confuse users
+        # (it is the output directory that does not exist)
+        if not os.path.dirname(filename) == "":
+            if not os.path.exists(os.path.dirname(filename)):
+                raise IOError("Directory %s does not exist" % \
+                              os.path.dirname(filename))
 
         # Create output file
-        delete_file('%s.rtin' % self.name)
-        root = h5py.File('%s.rtin' % self.name, 'w')
+        delete_file(filename)
+        root = h5py.File(filename, 'w')
+
+        # Add Python version
         root.attrs['python_version'] = hyperion.__version__
 
+        # Create all the necessary groups and sub-groups
         g_dust = root.create_group('Dust')
         g_grid = root.create_group('Grid')
         g_geometry = g_grid.create_group('Geometry')
@@ -250,59 +282,101 @@ class Model(FreezableClass):
         g_peeled = g_output.create_group('Peeled')
         g_binned = g_output.create_group('Binned')
 
-        if self.grid is None:
-            raise Exception("No grid has been set up")
-
         # Generate random geometry ID
         self.grid.geometry_id = random_id()
 
         # Output sources
         for i, source in enumerate(self.sources):
             if isinstance(source, MapSource):
-                source.write(g_sources, 'Source %05i' % i, self.grid, compression=compression, map_dtype=physics_dtype)
+                source.write(g_sources, 'Source %05i' % i, self.grid,
+                             compression=compression, map_dtype=physics_dtype)
             else:
                 source.write(g_sources, 'Source %05i' % i)
 
-        # Output configuration files
+        # Output configuration for peeled images/SEDs
         for i, peel in enumerate(self.peeled_output):
             if not self._frequencies is None:
                 if not peel._monochromatic:
                     raise Exception("Peeled images need to be set to monochromatic mode")
             peel.write(g_peeled.create_group('Group %05i' % (i + 1)))
+
+        # Output configuration for binned images/SEDs
         if self.binned_output is not None:
             self.binned_output.write(g_binned.create_group('Group 00001'))
 
+        # Write monochromatic configuration
         self._write_monochromatic(root, compression=compression)
+
+        # Write run-time and output configuration
         self.conf.run.write(root)
         self.conf.output.write(g_output)
 
+        # Output grid(s)
         if len(self.density) > 0:
 
-            self.grid.write_physical_array(g_physics, self.density, "Density", dust=True, compression=compression, physics_dtype=physics_dtype)
+            # Output density grid
+            self.grid.write_physical_array(g_physics, self.density,
+                                           "Density", dust=True,
+                                           compression=compression,
+                                           physics_dtype=physics_dtype)
+
+            # Output minimum specific energy
             g_physics.create_dataset("Minimum Specific Energy", data=self.minimum_specific_energy)
 
+            # Output specific energy grid
             if self.specific_energy is not None:
+
                 if type(self.specific_energy) is list:
+
                     self.grid.write_physical_array(g_physics, self.specific_energy, "Specific Energy", dust=True, compression=compression, physics_dtype=physics_dtype)
-                elif type(self.specific_energy) is str:
+
+                elif isinstance(self.specific_energy, basestring):
+
+                    # Open existing file
                     f = h5py.File(self.specific_energy, 'r')
                     max_iteration = find_last_iteration(f)
-                    print "Retrieving specific_energy from iteration %i of %s" % (max_iteration, self.specific_energy)
-                    specific_energy = f['Iteration %05i' % max_iteration]['specific_energy']
-                    if specific_energy.shape != g_physics['Density'].shape:
-                        raise Exception("Specific energy array is not the right dimensions")
-                    dset = g_physics.create_dataset('Specific Energy', data=specific_energy)
-                    dset.attrs['geometry'] = g_physics['Density'].attrs['geometry']
+
+                    if copy:
+
+                        print "Copying specific_energy from iteration %i of %s" % (max_iteration, self.specific_energy)
+
+                        # Copy specific energy array
+                        specific_energy = f['Iteration %05i' % max_iteration]['specific_energy']
+
+                        # Check that shape is consistent with density
+                        if specific_energy.shape != g_physics['Density'].shape:
+                            raise Exception("Specific energy array is not the right dimensions")
+
+                        # Create new dataset in input file
+                        dset = g_physics.create_dataset('Specific Energy', data=specific_energy)
+                        dset.attrs['geometry'] = g_physics['Density'].attrs['geometry']
+
+                    else:
+
+                        print "Linking to specific_energy from iteration %i of %s" % (max_iteration, self.specific_energy)
+
+                        # Find path to file for link
+                        if absolute_paths:
+                            path = os.path.abspath(self.specific_energy)
+                        else:
+                            # Relative path should be relative to input file, not current directory.
+                            path = os.path.relpath(self.specific_energy, os.path.dirname(filename))
+
+                        # Create link
+                        g_physics['Specific Energy'] = h5py.ExternalLink(path, '/Iteration %05i/specific_energy' % max_iteration)
+
                 else:
+
                     raise Exception("Unknown type %s for Model.specific_energy" % str(type(self.specific_energy)))
 
-            # Output dust file
+            # Output dust file, avoiding writing the same dust file multiple
+            # times
             present = {}
             for i, dust in enumerate(self.dust):
 
                 short_name = 'dust_%03i' % (i + 1)
 
-                if copy_dust or (type(dust) != str and dust.filename is None):
+                if copy:
 
                     if type(dust) == str:
                         dust = SphericalDust(dust)
@@ -316,18 +390,26 @@ class Model(FreezableClass):
                 else:
 
                     if type(dust) != str:
-                        dust = dust.filename
+                        if dust.filename is None:
+                            raise ValueError("Dust properties are not located in a file, so cannot link. Use copy=True or write the dust properties to a file first")
+                        else:
+                            dust = dust.filename
 
                     if absolute_paths:
-                        g_dust[short_name] = h5py.ExternalLink(os.path.abspath(dust), '/')
+                        path = os.path.abspath(dust)
                     else:
-                        g_dust[short_name] = h5py.ExternalLink(os.path.relpath(dust), '/')
+                        # Relative path should be relative to input file, not current directory.
+                        path = os.path.relpath(dust, os.path.dirname(filename))
+
+                    g_dust[short_name] = h5py.ExternalLink(path, '/')
 
         # Output geometry
         self.grid.write_geometry(g_geometry, \
                                  compression=compression, geo_dtype=geo_dtype, wall_dtype=wall_dtype)
 
         root.close()
+
+        self.filename = filename
 
     def add_point_source(self, *args, **kwargs):
         source = PointSource(*args, **kwargs)
@@ -363,6 +445,8 @@ class Model(FreezableClass):
         self.sources.append(source)
 
     def add_density_grid(self, density, dust, specific_energy=None, minimum_specific_energy=None, minimum_temperature=None, merge_if_possible=True):
+
+        # TODO - check that density is array
 
         # Check that grid has been previously defined
         if not self.grid:
@@ -464,22 +548,59 @@ class Model(FreezableClass):
             self.binned_output = BinnedImageConf(**kwargs)
             return self.binned_output
 
-    def run(self, logfile=None, mpi=False, n_cores=multiprocessing.cpu_count()):
+    def run(self, filename=None, logfile=None, mpi=False, n_cores=multiprocessing.cpu_count()):
 
-        if not os.path.exists(self.name + '.rtin'):
-            self.write()
+        if self.filename is None:
+            raise ValueError("Input file does not exist - write() needs to be called before run()")
 
         if mpi:
             option = '-m {0}'.format(n_cores)
         else:
             option = ''
-        input = "%s.rtin" % self.name
-        output = "%s.rtout" % self.name
+
+
+        input_file = self.filename
+        if filename is None:
+            if '.rtin' in self.filename:
+                output_file = self.filename.replace('.rtin', '.rtout')
+            else:
+                output_file = self.filename + '.rtout'
+        else:
+            output_file = filename
+
         if logfile:
             flog = file(logfile, 'wb')
-            p = subprocess.call('hyperion %s %s %s' % (option, input, output), stdout=flog, stderr=flog, shell=True)
+            returncode = subprocess.call('hyperion %s %s %s' % (option, input_file, output_file), stdout=flog, stderr=flog, shell=True)
         else:
-            p = subprocess.call('hyperion %s %s %s' % (option, input, output), shell=True)
+            returncode = subprocess.call('hyperion %s %s %s' % (option, input_file, output_file), shell=True)
+
+        if returncode != 0:
+            raise SystemExit("An error occurred, and the run did not complete")
+
+        # Return handle to output file
+        return ModelOutput(output_file)
+
+
+class ModelOutput(FreezableClass):
+
+    def __init__(self, filename):
+        '''
+        Create a ModelOutput instance that can be used to access the
+        data in the output file.
+
+        Parameters
+        ----------
+        name : str
+            The name of the model output file.
+        '''
+
+        # Check that file exists
+        if not os.path.exists(filename):
+            raise IOError("File not found: %s" % filename)
+
+        # Open file and store handle to object
+        # (but don't read in the contents yet)
+        self.file = h5py.File(filename, 'r')
 
     def get_sed(self, stokes='I', group=1, technique='peeled',
                 distance=None, component='total', inclination='all',
@@ -595,17 +716,10 @@ class Model(FreezableClass):
         if distance is not None and stokes in ['linpol', 'circpol']:
             raise Exception("Cannot scale linear or circular polarization degree by distance")
 
-        # Check that file exists
-        if not os.path.exists('%s.rtout' % self.name):
-            raise Exception("File not found %s.rtout" % self.name)
-
-        # Open file and retrieve correct group
-        f = h5py.File('%s.rtout' % self.name, 'r')
-
         if technique == 'peeled':
-            g = f['Peeled/Group %05i' % group]
+            g = self.file['Peeled/Group %05i' % group]
         else:
-            g = f['Binned']
+            g = self.file['Binned']
 
         if not 'seds' in g:
             raise Exception("Group %i does not contain any SEDs" % group)
@@ -706,9 +820,6 @@ class Model(FreezableClass):
 
             # Units here are not technically ergs/cm^2/s but ergs/s
             scale = np.repeat(1., len(nu))
-
-        # Close HDF5 file
-        f.close()
 
         # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
         if flux.dtype == np.float32:
@@ -1061,13 +1172,10 @@ class Model(FreezableClass):
         if not os.path.exists('%s.rtout' % self.name):
             raise Exception("File not found %s.rtout" % self.name)
 
-        # Open file and retrieve correct group
-        f = h5py.File('%s.rtout' % self.name, 'r')
-
         if technique == 'peeled':
-            g = f['Peeled/Group %05i' % group]
+            g = self.file['Peeled/Group %05i' % group]
         else:
-            g = f['Binned']
+            g = self.file['Binned']
 
         if not 'images' in g:
             raise Exception("Group %i does not contain any images" % group)
@@ -1191,9 +1299,6 @@ class Model(FreezableClass):
                 raise ValueError("Since distance= is not specified, units should be set to ergs/s")
 
             scale = np.repeat(1., len(nu))
-
-        # Close HDF5 file
-        f.close()
 
         # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
         if flux.dtype == np.float32:
@@ -1392,15 +1497,12 @@ class Model(FreezableClass):
             The iteration to retrieve the grid for. The default is to return the components for the last iteration
         '''
 
-        # Open file
-        f = h5py.File('%s.rtout' % self.name, 'r')
-
         # If iteration is last one, find iteration number
         if iteration == -1:
-            iteration = find_last_iteration(f)
+            iteration = find_last_iteration(self.file)
 
         # Return components
-        components = f['Iteration %05i' % iteration].keys()
+        components = self.file['Iteration %05i' % iteration].keys()
         if 'specific_energy' in components:
             components.append('temperature')
         return components
@@ -1444,24 +1546,22 @@ class Model(FreezableClass):
         if name not in available_components:
             raise Exception("name should be one of %s" % string.join(available_components, '/'))
 
-        # Open file
-        f_out = h5py.File('%s.rtout' % self.name, 'r')
-
         # If iteration is last one, find iteration number
         if iteration == -1:
-            iteration = find_last_iteration(f_out)
+            iteration = find_last_iteration(self.file)
 
         # Extract specific energy grid
         if name == 'temperature':
-            array = np.array(f_out['Iteration %05i' % iteration]['specific_energy'])
+            array = np.array(self.file['Iteration %05i' % iteration]['specific_energy'])
             f_in = h5py.File('%s.rtin' % self.name, 'r')
             g_dust = f_in['Dust']
             for i in range(array.shape[0]):
-                dust = g_dust['dust_%03i' % (i + 1)].file  # .file because of bug in h5py, fixed in adf1be35b0f6
+                print g_dust['dust_%03i' % (i + 1)].file
+                dust = g_dust['dust_%03i' % (i + 1)]  # .file because of bug in h5py, fixed in adf1be35b0f6
                 d = SphericalDust(dust)
                 array[i, :, :, :] = d.mean_opacities._specific_energy2temperature(array[i, :, :, :])
         else:
-            array = np.array(f_out['Iteration %05i' % iteration][name])
+            array = np.array(self.file['Iteration %05i' % iteration][name])
 
         # If required, extract grid for a specific dust type
         if dust_id == 'all':
