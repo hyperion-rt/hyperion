@@ -233,6 +233,13 @@ class IsotropicSphericalDust(SphericalDust):
 
         SphericalDust.__init__(self)
 
+        if type(wav) in [list, tuple]:
+            wav = np.array(wav)
+        if type(chi) in [list, tuple]:
+            chi = np.array(chi)
+        if type(albedo) in [list, tuple]:
+            albedo = np.array(albedo)
+
         # Set cos(theta) grid for computing the scattering matrix elements
         self.optical_properties.mu = np.linspace(-1., 1., 2)
 
