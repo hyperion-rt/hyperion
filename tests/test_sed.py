@@ -1,12 +1,13 @@
-import numpy as np
-from hyperion.model import Model
-from hyperion.util.functions import random_filename
-
 import tempfile
 import os
 import string
 import random
+
+import numpy as np
 import pytest
+
+from hyperion.model import Model
+from hyperion.util.functions import random_filename
 
 
 class TestSimpleModel(object):
