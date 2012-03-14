@@ -18,7 +18,7 @@ def get_test_dust():
 
 
 def get_test_model_noimaging():
-        
+
     model = Model()
     model.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
     model.set_n_photons(initial=1, imaging=0)

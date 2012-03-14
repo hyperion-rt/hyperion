@@ -94,7 +94,6 @@ class TestWriteEnergyCopy(object):
         m.run(random_filename())
 
 
-
 def test_input_link():
 
     input_file = random_filename()
