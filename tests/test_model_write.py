@@ -100,7 +100,34 @@ def test_input_link():
     output_file = random_filename()
 
     model = get_test_model_noimaging()
-    model.write(input_file, copy=True)
+    model.write(input_file)
+
+    model.set_copy_input(False)
+
+    # Check that copy parameter is there
+    f = h5py.File(input_file, 'r')
+    assert f.attrs['copy_input'] == 'no'
+    f.close()
+
+    # Run the model
+    model.run(output_file)
+
+    # Check that attributes from input can still be accessed, then check that
+    # 'Input' is a link
+    f = h5py.File(output_file, 'r')
+    assert f['Input'].attrs['copy_input'] == 'no'
+    assert f.file != f['Input'].file
+    f.close()
+
+def test_input_copy():
+
+    input_file = random_filename()
+    output_file = random_filename()
+
+    model = get_test_model_noimaging()
+    model.write(input_file)
+
+    model.set_copy_input(True)
 
     # Check that copy parameter is there
     f = h5py.File(input_file, 'r')
@@ -110,7 +137,9 @@ def test_input_link():
     # Run the model
     model.run(output_file)
 
-    # Check that attributes from input can still be accessed
+    # Check that attributes from input can still be accessed, then check that
+    # 'Input' is a not a link
     f = h5py.File(output_file, 'r')
     assert f['Input'].attrs['copy_input'] == 'yes'
+    assert f.file == f['Input'].file
     f.close()
