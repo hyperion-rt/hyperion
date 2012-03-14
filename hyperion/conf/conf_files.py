@@ -44,6 +44,7 @@ class RunConf(FreezableClass):
         self.set_output_bytes(8)
         self.set_sample_sources_evenly(False)
         self.set_enforce_energy_range(True)
+        self.set_copy_input(True)
         self._monochromatic = False
         self._freeze()
 
@@ -402,6 +403,21 @@ class RunConf(FreezableClass):
     def _write_enforce_energy_range(self, group):
         group.attrs['enforce_energy_range'] = bool2str(self.enforce_energy_range)
 
+    def set_copy_input(self, copy):
+        '''
+        Set whether to copy the input data into the output file.
+
+        Parameters
+        ----------
+        copy: bool
+            Whether to copy the input data into the output file (True) or
+            whether to link to it (False)
+        '''
+        self.copy_input = copy
+
+    def _write_copy_input(self, group):
+        group.attrs['copy_input'] = bool2str(self.copy_input)
+
     def set_output_bytes(self, io_bytes):
         '''
         Set whether to output physical quantity arrays in 32-bit or 64-bit
@@ -456,7 +472,7 @@ class RunConf(FreezableClass):
         self._write_output_bytes(group)
         self._write_sample_sources_evenly(group)
         self._write_enforce_energy_range(group)
-
+        self._write_copy_input(group)
 
 class ImageConf(FreezableClass):
 
