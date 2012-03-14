@@ -3,11 +3,13 @@ import random
 import os
 import shutil
 import sys
+import tempfile
 
 import numpy as np
 
 from hyperion.util.constants import h, c, k
 
+TMPDIR = tempfile.mkdtemp()
 
 class FreezableClass(object):
 
@@ -137,6 +139,10 @@ def filename2hdf5(filename):
 
 def random_id(length=32):
     return string.join(random.sample(string.letters + string.digits, length),'')
+
+
+def random_filename():
+    return os.path.join(TMPDIR, random_id())
 
 
 def create_dir(dir_name):
