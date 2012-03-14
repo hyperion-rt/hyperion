@@ -1,4 +1,3 @@
-import warnings
 
 import atpy
 import numpy as np
@@ -10,6 +9,7 @@ from hyperion.util.interpolate import interp1d_fast, interp1d_fast_loglog, \
 from hyperion.util.functions import extrap1d_log10, B_nu, FreezableClass, \
                                     nu_common, planck_nu_range
 from hyperion.util.constants import c, sigma
+from hyperion.util.logger import logger
 
 
 class OpticalProperties(FreezableClass):
@@ -100,7 +100,7 @@ class OpticalProperties(FreezableClass):
                  / integrate_linlog_subset(self.mu, self.P1[iw, :],
                                            self.mu[0], self.mu[-1])
 
-            print "Removing fraction %g" % frac
+            logger.info("Removing fraction %g" % frac)
 
             # Find scattering and absorption opacities
             sigma_nu = self.chi[iw] * self.albedo[iw]
@@ -318,11 +318,11 @@ class OpticalProperties(FreezableClass):
         nu = nu_common(planck_nu, self.nu)
 
         if planck_nu.min() < self.nu.min():
-            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            logger.warn("Planck function for requested temperature not completely covered by opacity function")
             nu = nu[nu >= self.nu.min()]
 
         if planck_nu.max() > self.nu.max():
-            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            logger.warn("Planck function for requested temperature not completely covered by opacity function")
             nu = nu[nu <= self.nu.max()]
 
         return self.chi_planck_spectrum(nu, B_nu(nu, temperature))
@@ -335,11 +335,11 @@ class OpticalProperties(FreezableClass):
         nu = nu_common(planck_nu, self.nu)
 
         if planck_nu.min() < self.nu.min():
-            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            logger.warn("Planck function for requested temperature not completely covered by opacity function")
             nu = nu[nu >= self.nu.min()]
 
         if planck_nu.max() > self.nu.max():
-            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            logger.warn("Planck function for requested temperature not completely covered by opacity function")
             nu = nu[nu <= self.nu.max()]
 
         return self.kappa_planck_spectrum(nu, B_nu(nu, temperature))
@@ -352,11 +352,11 @@ class OpticalProperties(FreezableClass):
         nu = nu_common(planck_nu, self.nu)
 
         if planck_nu.min() < self.nu.min():
-            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            logger.warn("Planck function for requested temperature not completely covered by opacity function")
             nu = nu[nu >= self.nu.min()]
 
         if planck_nu.max() > self.nu.max():
-            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            logger.warn("Planck function for requested temperature not completely covered by opacity function")
             nu = nu[nu <= self.nu.max()]
 
         return self.chi_rosseland_spectrum(nu, B_nu(nu, temperature))
@@ -369,11 +369,11 @@ class OpticalProperties(FreezableClass):
         nu = nu_common(planck_nu, self.nu)
 
         if planck_nu.min() < self.nu.min():
-            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            logger.warn("Planck function for requested temperature not completely covered by opacity function")
             nu = nu[nu >= self.nu.min()]
 
         if planck_nu.max() > self.nu.max():
-            warnings.warn("Planck function for requested temperature not completely covered by opacity function")
+            logger.warn("Planck function for requested temperature not completely covered by opacity function")
             nu = nu[nu <= self.nu.max()]
 
         return self.kappa_rosseland_spectrum(nu, B_nu(nu, temperature))

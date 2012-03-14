@@ -1,4 +1,3 @@
-import warnings
 
 import atpy
 import numpy as np
@@ -9,6 +8,7 @@ from hyperion.util.interpolate import interp1d_fast_loglog
 from hyperion.util.functions import B_nu, FreezableClass, nu_common, \
                                     planck_nu_range
 from hyperion.util.constants import sigma
+from hyperion.util.logger import logger
 
 
 class Emissivities(FreezableClass):
@@ -71,11 +71,11 @@ class Emissivities(FreezableClass):
         self.nu = nu_common(planck_nu, optical_properties.nu)
 
         if planck_nu.min() < optical_properties.nu.min():
-            warnings.warn("Planck function for lowest temperature not completely covered by opacity function")
+            logger.warn("Planck function for lowest temperature not completely covered by opacity function")
             self.nu = self.nu[self.nu >= optical_properties.nu.min()]
 
         if planck_nu.max() > optical_properties.nu.max():
-            warnings.warn("Planck function for highest temperature not completely covered by opacity function")
+            logger.warn("Planck function for highest temperature not completely covered by opacity function")
             self.nu = self.nu[self.nu <= optical_properties.nu.max()]
 
         # Compute opacity to absorption

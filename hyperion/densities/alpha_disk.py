@@ -1,4 +1,3 @@
-import warnings
 
 import numpy as np
 
@@ -7,6 +6,7 @@ from hyperion.util.functions import FreezableClass
 from hyperion.util.convenience import OptThinRadius
 from hyperion.util.integrate import integrate_powerlaw
 from hyperion.dust import SphericalDust
+from hyperion.util.logger import logger
 
 
 class AlphaDiskWhitney(FreezableClass):
@@ -103,7 +103,7 @@ class AlphaDiskWhitney(FreezableClass):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            warnings.warn("Ignoring disk, since rmax < rmin")
+            logger.warn("Ignoring disk, since rmax < rmin")
             return 0.
 
         int1 = integrate_powerlaw(self.rmin, self.rmax, 1.0 + self.p)
@@ -127,7 +127,7 @@ class AlphaDiskWhitney(FreezableClass):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            warnings.warn("Ignoring disk, since rmax < rmin")
+            logger.warn("Ignoring disk, since rmax < rmin")
             return np.zeros(grid.shape)
 
         if self.mass == 0:
@@ -159,7 +159,7 @@ class AlphaDiskWhitney(FreezableClass):
 
         norm = self.mass / np.sum(rho * grid.volumes)
 
-        print "Normalization factor for disk mass: %5.2f" % norm
+        logger.info("Normalization factor for disk mass: %5.2f" % norm)
 
         # Normalize to total disk mass
         rho = rho * norm
@@ -175,7 +175,7 @@ class AlphaDiskWhitney(FreezableClass):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            warnings.warn("Ignoring disk, since rmax < rmin")
+            logger.warn("Ignoring disk, since rmax < rmin")
             return np.zeros(r.shape)
 
         int1 = integrate_powerlaw(self.rmin, r.clip(self.rmin, self.rmax), self.p - self.beta)
@@ -191,7 +191,7 @@ class AlphaDiskWhitney(FreezableClass):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            warnings.warn("Ignoring disk, since rmax < rmin")
+            logger.warn("Ignoring disk, since rmax < rmin")
             return np.zeros(theta.shape)
 
         # Convert coordinates to cylindrical polars
@@ -235,7 +235,7 @@ class AlphaDiskWhitney(FreezableClass):
         '''
 
         if self.rmax <= self.rmin:
-            warnings.warn("Ignoring disk, since rmax < rmin")
+            logger.warn("Ignoring disk, since rmax < rmin")
             return np.zeros(grid.shape)
 
         if 'lvisc' in self.__dict__ and self.lvisc == 0.:
@@ -282,8 +282,8 @@ class AlphaDiskWhitney(FreezableClass):
         else:
             luminosity[grid.gr > self.rmax] = 0.
 
-        print "Luminosity sum [actual] : %.3e" % np.sum(luminosity)
-        print "Luminosity sum [theoretical] : %.3e" % self.lvisc
+        logger.info("Luminosity sum [actual] : %.3e" % np.sum(luminosity))
+        logger.info("Luminosity sum [theoretical] : %.3e" % self.lvisc)
 
         return luminosity
 
@@ -291,12 +291,12 @@ class AlphaDiskWhitney(FreezableClass):
 
         if attribute == 'mdot':
             if 'lvisc' in self.__dict__:
-                warnings.warn("Overriding value of lvisc with value derived from mdot")
+                logger.warn("Overriding value of lvisc with value derived from mdot")
                 del self.lvisc
             object.__setattr__(self, attribute, value)
         elif attribute == 'lvisc':
             if 'mdot' in self.__dict__:
-                warnings.warn("Overriding value of mdot with value derived from lvisc")
+                logger.warn("Overriding value of mdot with value derived from lvisc")
                 del self.mdot
             object.__setattr__(self, attribute, value)
         elif attribute == 'dust' and value is not None and type(value) is str:

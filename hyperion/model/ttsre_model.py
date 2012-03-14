@@ -11,6 +11,7 @@ from hyperion.dust import SimpleSphericalDust
 from hyperion.model import AnalyticalYSOModel
 from hyperion.util.functions import filename2hdf5
 from hyperion.util.constants import msun, rsun, au, year, k, m_h, G, pi, sigma, c
+from hyperion.util.logger import logger
 
 
 class TtsreModel(AnalyticalYSOModel):
@@ -84,11 +85,11 @@ class TtsreModel(AnalyticalYSOModel):
             # Check if file already exists in database
             try:
                 path = hyperion.get_HDF5_datafile(atmos_file_orig)
-                print "Exact HDF5 match found for %s" % os.path.basename(atmos_file_orig)
+                logger.info("Exact HDF5 match found for %s" % os.path.basename(atmos_file_orig))
                 atmos_file = Table(path)
             except:
-                print "No existing HDF5 file for %s" % os.path.basename(atmos_file_orig)
-                print " -> computing from scratch (may take a few minutes)"
+                logger.info("No existing HDF5 file for %s" % os.path.basename(atmos_file_orig))
+                logger.info(" -> computing from scratch (may take a few minutes)")
                 atmos_file = atmos.prepare_atmos(atmos_file_orig)
 
             self.set_stellar_spectrum(atmos_file)
@@ -123,11 +124,11 @@ class TtsreModel(AnalyticalYSOModel):
             # Check if file already exists in database
             try:
                 path = hyperion.get_HDF5_datafile(dust_file_orig)
-                print "Exact HDF5 match found for %s" % os.path.basename(dust_file_orig)
+                logger.info("Exact HDF5 match found for %s" % os.path.basename(dust_file_orig))
                 shutil.copy(path, dust_file)
             except:
-                print "No existing HDF5 file for %s" % os.path.basename(dust_file_orig)
-                print " -> computing from scratch (may take a few minutes)"
+                logger.info("No existing HDF5 file for %s" % os.path.basename(dust_file_orig))
+                logger.info(" -> computing from scratch (may take a few minutes)")
                 d = SimpleSphericalDust(dust_file_orig)
                 d._extrapolate(1.e-3, 1.e5)
                 d.write(dust_file)

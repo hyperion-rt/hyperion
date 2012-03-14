@@ -1,4 +1,3 @@
-import warnings
 from copy import deepcopy
 
 import numpy as np
@@ -12,6 +11,7 @@ from hyperion.util.constants import pi, sigma, c, G
 from hyperion.sources import SphericalSource, SpotSource
 from hyperion.util.functions import FreezableClass
 from hyperion.util.convenience import OptThinRadius
+from hyperion.util.logger import logger
 
 
 def _min_none(*args):
@@ -154,11 +154,11 @@ class AnalyticalYSOModel(Model):
 
         for disk in self.disks:
             if disk is reference_disk:
-                warnings.warn("Reference disk already exists, not re-adding")
+                logger.warn("Reference disk already exists, not re-adding")
                 exists = True
 
         if not exists:
-            warnings.warn("Reference disk does not exist, adding")
+            logger.warn("Reference disk does not exist, adding")
             self.disks.append(reference_disk)
 
         for i, size in enumerate(sizes):
@@ -295,7 +295,7 @@ class AnalyticalYSOModel(Model):
             rmax = _max_none(*rmax_values)
 
         if rmax < rmin:
-            warnings.warn("Grid rmax < rmin, model with consist only of central star")
+            logger.warn("Grid rmax < rmin, model with consist only of central star")
             rmin = self.star.radius
             rmax = 2. * self.star.radius
 
@@ -497,9 +497,9 @@ class AnalyticalYSOModel(Model):
         for i, disk in enumerate(self.disks):
 
             if disk.rmin >= disk.rmax:
-                warnings.warn("Disk rmin >= rmax, ignoring density contribution")
+                logger.warn("Disk rmin >= rmax, ignoring density contribution")
             elif disk.mass == 0.:
-                warnings.warn("Disk mass is zero, ignoring density contribution")
+                logger.warn("Disk mass is zero, ignoring density contribution")
             else:
 
                 if not disk.dust:
@@ -511,11 +511,11 @@ class AnalyticalYSOModel(Model):
         for i, envelope in enumerate(self.envelopes):
 
             if envelope.rmin >= envelope.rmax:
-                warnings.warn("Envelope rmin >= rmax, ignoring density contribution")
+                logger.warn("Envelope rmin >= rmax, ignoring density contribution")
             elif isinstance(envelope, UlrichEnvelope) and envelope.rho_0 == 0.:
-                warnings.warn("Ulrich envelope has zero density everywhere, ignoring density contribution")
+                logger.warn("Ulrich envelope has zero density everywhere, ignoring density contribution")
             elif isinstance(envelope, PowerLawEnvelope) and envelope.mass == 0.:
-                warnings.warn("Power-law envelope has zero density everywhere, ignoring density contribution")
+                logger.warn("Power-law envelope has zero density everywhere, ignoring density contribution")
             else:
 
                 if not envelope.dust:
@@ -526,9 +526,9 @@ class AnalyticalYSOModel(Model):
 
                 if envelope.cavity is not None:
                     if envelope.cavity.theta_0 == 0.:
-                        warnings.warn("Cavity opening angle is zero, ignoring density contribution")
+                        logger.warn("Cavity opening angle is zero, ignoring density contribution")
                     elif envelope.cavity.rho_0 == 0.:
-                        warnings.warn("Cavity density is zero, ignoring density contribution")
+                        logger.warn("Cavity density is zero, ignoring density contribution")
                     else:
                         if not envelope.cavity.dust:
                             raise Exception("Cavity dust not set")
@@ -541,7 +541,7 @@ class AnalyticalYSOModel(Model):
         if self.ambient is not None:
 
             if self.ambient.density == 0.:
-                warnings.warn("Ambient medium has zero density, ignoring density contribution")
+                logger.warn("Ambient medium has zero density, ignoring density contribution")
             else:
 
                 ambient = self.ambient
@@ -589,11 +589,11 @@ class AnalyticalYSOModel(Model):
             for i, disk in enumerate(self.disks):
 
                 if disk.rmin >= disk.rmax:
-                    warnings.warn("Disk rmin >= rmax, ignoring accretion luminosity")
+                    logger.warn("Disk rmin >= rmax, ignoring accretion luminosity")
                 elif disk.mass == 0.:
-                    warnings.warn("Disk mass is zero, ignoring accretion luminosity")
+                    logger.warn("Disk mass is zero, ignoring accretion luminosity")
                 elif disk.lvisc == 0.:
-                    warnings.warn("Disk viscous luminosity is zero, ignoring accretion luminosity")
+                    logger.warn("Disk viscous luminosity is zero, ignoring accretion luminosity")
                 else:
                     self.add_map_source(luminosity=disk.lvisc, map=disk.accretion_luminosity(self.grid), name='accdisk%i' % i)
 

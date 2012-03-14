@@ -1,4 +1,3 @@
-import warnings
 
 import numpy as np
 
@@ -8,6 +7,7 @@ from hyperion.densities.bipolar_cavity import BipolarCavity
 from hyperion.util.convenience import OptThinRadius
 from hyperion.util.integrate import integrate_powerlaw
 from hyperion.dust import SphericalDust
+from hyperion.util.logger import logger
 
 
 class PowerLawEnvelope(Envelope):
@@ -82,7 +82,7 @@ class PowerLawEnvelope(Envelope):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            warnings.warn("Ignoring power-law envelope, since rmax < rmin")
+            logger.warn("Ignoring power-law envelope, since rmax < rmin")
             return np.zeros(grid.shape)
 
         rho = self.rho_0 * (grid.gr / self.r_0) ** self.power
@@ -92,7 +92,7 @@ class PowerLawEnvelope(Envelope):
 
         norm = self.mass / np.sum(rho * grid.volumes)
 
-        print "Normalization factor for envelope mass: %5.2f" % norm
+        logger.info("Normalization factor for envelope mass: %5.2f" % norm)
 
         rho = rho * norm
 
@@ -118,7 +118,7 @@ class PowerLawEnvelope(Envelope):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            warnings.warn("Ignoring power-law envelope, since rmax < rmin")
+            logger.warn("Ignoring power-law envelope, since rmax < rmin")
             return np.zeros(r.shape)
 
         return self.rho_0 * integrate_powerlaw(self.rmin, r.clip(self.rmin, self.rmax), self.power) / self.r_0 ** self.power
@@ -172,12 +172,12 @@ class PowerLawEnvelope(Envelope):
 
         if attribute == 'mass':
             if 'rho_0' in self.__dict__:
-                warnings.warn("Overriding value of rho_0 with value derived from mass")
+                logger.warn("Overriding value of rho_0 with value derived from mass")
                 del self.rho_0
             object.__setattr__(self, attribute, value)
         elif attribute == 'rho_0':
             if 'mass' in self.__dict__:
-                warnings.warn("Overriding value of mass with value derived from rho_0")
+                logger.warn("Overriding value of mass with value derived from rho_0")
                 del self.mass
             object.__setattr__(self, attribute, value)
         else:

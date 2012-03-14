@@ -1,12 +1,12 @@
-import warnings
 
 import numpy as np
 
-from hyperion.util.constants import pi, G
+from hyperion.util.constants import pi
 from hyperion.util.functions import FreezableClass
 from hyperion.util.convenience import OptThinRadius
 from hyperion.util.integrate import integrate_powerlaw
 from hyperion.dust import SphericalDust
+from hyperion.util.logger import logger
 
 
 class FlaredDisk(FreezableClass):
@@ -86,7 +86,7 @@ class FlaredDisk(FreezableClass):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            warnings.warn("Ignoring disk, since rmax < rmin")
+            logger.warn("Ignoring disk, since rmax < rmin")
             return 0.
 
         int1 = integrate_powerlaw(self.rmin, self.rmax, 1.0 + self.p)
@@ -107,7 +107,7 @@ class FlaredDisk(FreezableClass):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            warnings.warn("Ignoring disk, since rmax < rmin")
+            logger.warn("Ignoring disk, since rmax < rmin")
             return np.zeros(grid.shape)
 
         if self.mass == 0:
@@ -136,7 +136,7 @@ class FlaredDisk(FreezableClass):
 
         norm = self.mass / np.sum(rho * grid.volumes)
 
-        print "Normalization factor for disk mass: %5.2f" % norm
+        logger.info("Normalization factor for disk mass: %5.2f" % norm)
 
         # Normalize to total disk mass
         rho = rho * norm
@@ -152,7 +152,7 @@ class FlaredDisk(FreezableClass):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            warnings.warn("Ignoring disk, since rmax < rmin")
+            logger.warn("Ignoring disk, since rmax < rmin")
             return np.zeros(r.shape)
 
         int1 = integrate_powerlaw(self.rmin, r.clip(self.rmin, self.rmax), self.p - self.beta)
@@ -165,7 +165,7 @@ class FlaredDisk(FreezableClass):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            warnings.warn("Ignoring disk, since rmax < rmin")
+            logger.warn("Ignoring disk, since rmax < rmin")
             return np.zeros(theta.shape)
 
         # Convert coordinates to cylindrical polars

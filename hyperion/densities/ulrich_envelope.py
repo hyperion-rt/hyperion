@@ -1,4 +1,3 @@
-import warnings
 
 import numpy as np
 
@@ -7,6 +6,7 @@ from hyperion.densities.envelope import Envelope
 from hyperion.densities.bipolar_cavity import BipolarCavity
 from hyperion.util.convenience import OptThinRadius
 from hyperion.dust import SphericalDust
+from hyperion.util.logger import logger
 
 
 def delta_neg(r, q):
@@ -185,7 +185,7 @@ class UlrichEnvelope(Envelope):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            warnings.warn("Ignoring Ulrich envelope, since rmax < rmin")
+            logger.warn("Ignoring Ulrich envelope, since rmax < rmin")
             return np.zeros(grid.shape)
 
         # Find mu = cos(theta)
@@ -243,7 +243,7 @@ class UlrichEnvelope(Envelope):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            warnings.warn("Ignoring Ulrich envelope, since rmax < rmin")
+            logger.warn("Ignoring Ulrich envelope, since rmax < rmin")
             return np.zeros(r.shape)
 
         gamma_0 = self.rmin / self.rc
@@ -313,12 +313,12 @@ class UlrichEnvelope(Envelope):
 
         if attribute == 'mdot':
             if 'rho_0' in self.__dict__:
-                warnings.warn("Overriding value of rho_0 with value derived from mdot")
+                logger.warn("Overriding value of rho_0 with value derived from mdot")
                 del self.rho_0
             object.__setattr__(self, attribute, value)
         elif attribute == 'rho_0':
             if 'mdot' in self.__dict__:
-                warnings.warn("Overriding value of mdot with value derived from rho_0")
+                logger.warn("Overriding value of mdot with value derived from rho_0")
                 del self.mdot
             object.__setattr__(self, attribute, value)
         else:

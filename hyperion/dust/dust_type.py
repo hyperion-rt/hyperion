@@ -1,6 +1,5 @@
 import os
 import hashlib
-import warnings
 
 import atpy
 import numpy as np
@@ -10,6 +9,7 @@ import hyperion
 from hyperion.util.constants import c
 from hyperion.util.functions import FreezableClass
 from hyperion.util.interpolate import interp1d_fast_loglog
+from hyperion.util.logger import logger
 
 from hyperion.dust.optical_properties import OpticalProperties
 from hyperion.dust.emissivities import Emissivities
@@ -59,7 +59,7 @@ class SphericalDust(FreezableClass):
 
         # Check that emissivities are set (before computing mean opacities)
         if not self.emissivities.set:
-            warnings.warn("Computing emissivities assuming LTE")
+            logger.warn("Computing emissivities assuming LTE")
             self.emissivities.set_lte(self.optical_properties)
 
         # Compute mean opacities if not already existent
@@ -157,7 +157,7 @@ class SphericalDust(FreezableClass):
 
         # Check that emissivities are set (before computing mean opacities)
         if not self.emissivities.set:
-            warnings.warn("Computing emissivities assuming LTE")
+            logger.warn("Computing emissivities assuming LTE")
             self.emissivities.set_lte(self.optical_properties)
 
         # Compute mean opacities if not already existent
@@ -418,7 +418,7 @@ class MieXDust(SphericalDust):
             values = self.optical_properties.__dict__[quantity]
 
             if np.any(np.isnan(values)):
-                warnings.warn("NaN values found inside MieX %s file - interpolating" % quantity)
+                logger.warn("NaN values found inside MieX %s file - interpolating" % quantity)
                 invalid = np.isnan(values)
                 values[invalid] = interp1d_fast_loglog(wav[~invalid], values[~invalid], wav[invalid])
                 if np.any(np.isnan(values)):
@@ -476,7 +476,7 @@ class MieXDust(SphericalDust):
                 values = self.optical_properties.__dict__[quantity]
 
                 if np.any(np.isnan(values[:, i])):
-                    warnings.warn("NaN values found inside MieX %s file - interpolating" % quantity)
+                    logger.warn("NaN values found inside MieX %s file - interpolating" % quantity)
                     invalid = np.isnan(values[:, i])
                     values[:, i][invalid] = interp1d_fast_loglog(wav[~invalid], values[:, i][~invalid], wav[invalid])
                     if np.any(np.isnan(values[:, i])):

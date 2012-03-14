@@ -1,7 +1,6 @@
 import os
 import string
 import subprocess
-import warnings
 import multiprocessing
 
 import h5py
@@ -16,6 +15,7 @@ from hyperion.conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from hyperion.util.constants import c, pi
 from hyperion.util.functions import FreezableClass
 from hyperion.dust import SphericalDust
+from hyperion.util.logger import logger
 
 STOKESD = {}
 STOKESD['I'] = 0
@@ -338,7 +338,7 @@ class Model(FreezableClass):
 
                     if copy:
 
-                        print "Copying specific_energy from iteration %i of %s" % (max_iteration, self.specific_energy)
+                        logger.info("Copying specific_energy from iteration %i of %s" % (max_iteration, self.specific_energy))
 
                         # Copy specific energy array
                         specific_energy = f['Iteration %05i' % max_iteration]['specific_energy']
@@ -353,7 +353,7 @@ class Model(FreezableClass):
 
                     else:
 
-                        print "Linking to specific_energy from iteration %i of %s" % (max_iteration, self.specific_energy)
+                        logger.info("Linking to specific_energy from iteration %i of %s" % (max_iteration, self.specific_energy))
 
                         # Find path to file for link
                         if absolute_paths:
@@ -462,7 +462,7 @@ class Model(FreezableClass):
 
         # Check whether all densities are zero
         if np.all(density == 0.):
-            warnings.warn("All density values are zero - ignoring density grid")
+            logger.warn("All density values are zero - ignoring density grid")
             return
 
         # Check consistency between density list size and specific energy list size
@@ -495,7 +495,7 @@ class Model(FreezableClass):
                     # Check whether the minimum_specific_energy values differ
                     if minimum_specific_energy is not None:
                         if self.minimum_specific_energy[ip] != minimum_specific_energy:
-                            warnings.warn("Cannot merge density grids because minimum_specific_energy values differ")
+                            logger.warn("Cannot merge density grids because minimum_specific_energy values differ")
                             merge = False
                         else:
                             merge = True
@@ -504,7 +504,7 @@ class Model(FreezableClass):
 
                     # Merge the densities
                     if merge:
-                        warnings.warn("Merging densities")
+                        logger.warn("Merging densities")
                         self.density[ip] += density
                         return
 
@@ -1006,7 +1006,7 @@ class ModelOutput(FreezableClass):
         for ii in inclination:
             for ia in aperture:
                 if(np.all(nufnu[ii, ia, :] == 0.)):
-                    warnings.warn("All fluxes are zero - cannot plot in log-log plot")
+                    logger.warn("All fluxes are zero - cannot plot in log-log plot")
                 else:
 
                     # Plot main SED
@@ -1556,7 +1556,6 @@ class ModelOutput(FreezableClass):
             f_in = h5py.File('%s.rtin' % self.name, 'r')
             g_dust = f_in['Dust']
             for i in range(array.shape[0]):
-                print g_dust['dust_%03i' % (i + 1)].file
                 dust = g_dust['dust_%03i' % (i + 1)]  # .file because of bug in h5py, fixed in adf1be35b0f6
                 d = SphericalDust(dust)
                 array[i, :, :, :] = d.mean_opacities._specific_energy2temperature(array[i, :, :, :])

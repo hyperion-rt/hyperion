@@ -1,4 +1,5 @@
 import numpy as np
+from hyperion.util.logger import logger
 
 
 def parse_multi_tuple(string):
@@ -37,7 +38,7 @@ class Fab(object):
     def read_data(self, filename, offset, quantity_index, verbose=False):
 
         if verbose:
-            print "Reading %s" % filename
+            logger.info("Reading %s" % filename)
 
         fabsize = self.nx * self.ny * self.nz
 

@@ -4,11 +4,12 @@ import numpy as np
 import atpy
 
 from hyperion.util.constants import c
+from hyperion.util.logger import logger
 
 
 def prepare_atmos(filename, output=None):
 
-    print "Converting atmosphere file %s" % os.path.basename(filename)
+    logger.info("Converting atmosphere file %s" % os.path.basename(filename))
 
     atmos = np.loadtxt(filename, comments='#', \
                 dtype=[('wav', float), ('fnu', float)])
