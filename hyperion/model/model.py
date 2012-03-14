@@ -558,7 +558,6 @@ class Model(FreezableClass):
         else:
             option = ''
 
-
         input_file = self.filename
         if filename is None:
             if '.rtin' in self.filename:
