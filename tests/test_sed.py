@@ -36,9 +36,7 @@ class TestSimpleModel(object):
 
         m.set_n_photons(imaging=1)
 
-        m.run()
-
-        self.m = m
+        self.m = m.run()
 
     @pytest.mark.xfail
     def test_sed_group(self):
