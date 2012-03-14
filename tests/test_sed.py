@@ -1,6 +1,6 @@
 import numpy as np
 from hyperion.model import Model
-from hyperion.util.functions import random_id
+from hyperion.util.functions import random_filename
 
 import tempfile
 import os
@@ -13,9 +13,7 @@ class TestSimpleModel(object):
 
     def setup_class(self):
 
-        directory = tempfile.mkdtemp()
-
-        m = Model(os.path.join(directory, random_id()))
+        m = Model()
 
         m.set_cartesian_grid([-1., 1.],
                              [-1., 1.],
@@ -35,6 +33,8 @@ class TestSimpleModel(object):
         m.set_n_initial_iterations(0)
 
         m.set_n_photons(imaging=1)
+
+        m.write(random_filename())
 
         self.m = m.run()
 

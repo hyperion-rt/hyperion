@@ -7,13 +7,9 @@ import pytest
 import h5py
 
 from hyperion.model import Model
-from hyperion.util.functions import random_id
+from hyperion.util.functions import random_filename
 from hyperion.dust import IsotropicSphericalDust
 from test_helpers import get_test_model_noimaging, get_test_dust
-
-
-def random_filename():
-    return os.path.join(tempfile.mkdtemp(), random_id())
 
 
 def test_write_noname_nofilename():
@@ -96,7 +92,7 @@ class TestWriteEnergyCopy(object):
         m.specific_energy = self.reference_output
         m.write(random_filename(), copy=False)
         m.run(random_filename())
-        
+
 
 
 def test_input_link():
@@ -110,13 +106,12 @@ def test_input_link():
     # Check that copy parameter is there
     f = h5py.File(input_file, 'r')
     assert f.attrs['copy_input'] == 'yes'
+    f.close()
 
     # Run the model
     model.run(output_file)
-    
+
     # Check that attributes from input can still be accessed
     f = h5py.File(output_file, 'r')
     assert f['Input'].attrs['copy_input'] == 'yes'
-
-
-
+    f.close()
