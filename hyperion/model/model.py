@@ -1528,6 +1528,10 @@ class ModelOutput(FreezableClass):
         iteration : integer, optional
             The iteration to retrieve the grid for. The default is to return the grid for the last iteration.
 
+        dust_id : 'all' or int
+            If applicable, the ID of the dust type to extract the grid for (does not apply to n_photons)
+
+
         Returns
         -------
 
@@ -1539,6 +1543,11 @@ class ModelOutput(FreezableClass):
 
         At the moment, this method only works on regular grids, not AMR or Oct-tree grids
         '''
+
+        # Check that dust_id was not specified if grid is n_photons
+        if name == 'n_photons':
+            if dust_id != 'all':
+                raise ValueError("Cannot specify dust_id when retrieving n_photons")
 
         # Check name
         available_components = self.get_available_components()
@@ -1552,17 +1561,19 @@ class ModelOutput(FreezableClass):
         # Extract specific energy grid
         if name == 'temperature':
             array = np.array(self.file['Iteration %05i' % iteration]['specific_energy'])
-            f_in = h5py.File('%s.rtin' % self.name, 'r')
-            g_dust = f_in['Dust']
+            g_dust = self.file['Input/Dust']
             for i in range(array.shape[0]):
-                dust = g_dust['dust_%03i' % (i + 1)]  # .file because of bug in h5py, fixed in adf1be35b0f6
+                dust = g_dust['dust_%03i' % (i + 1)]
                 d = SphericalDust(dust)
                 array[i, :, :, :] = d.mean_opacities._specific_energy2temperature(array[i, :, :, :])
         else:
             array = np.array(self.file['Iteration %05i' % iteration][name])
 
+
         # If required, extract grid for a specific dust type
-        if dust_id == 'all':
+        if name == 'n_photons':
+            return array
+        elif dust_id == 'all':
             return [array[i, :, :, :] for i in range(array.shape[0])]
         else:
             return array[dust_id, :, :, :]
