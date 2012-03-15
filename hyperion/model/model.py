@@ -953,6 +953,9 @@ class ModelOutput(FreezableClass):
 
         '''
 
+        # TODO: make this routine work when origin='detailed' and source_id or
+        # dust_id are 'all'
+
         # Check for inconsistent parameters
         if axes is not None and filename is not None:
             raise Exception("Cannot specify both an axes instance and a filename")
