@@ -110,3 +110,38 @@ class TestSimpleModel(object):
     def test_sed_nodistance_units_invalid(self, units):
         with pytest.raises(ValueError):
             wav, nufnu = self.m.get_sed(units=units)
+
+
+class TestSimpleModelInside(object):
+
+    def setup_class(self):
+
+        m = Model()
+
+        m.set_cartesian_grid([-1., 1.],
+                             [-1., 1.],
+                             [-1., 1.])
+
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 6000.
+
+        i = m.add_peeled_images()
+        i.set_inside_observer((0.,0.,0.))
+        i.set_image_limits(1., -1., -1., 1.)
+        i.set_image_size(10, 20)
+        i.set_wavelength_range(5, 0.1, 100.)
+        i.set_aperture_range(3, 1., 10.)
+
+        m.set_n_initial_iterations(0)
+
+        m.set_n_photons(imaging=1)
+
+        m.write(random_filename())
+
+        self.m = m.run()
+
+    def test_distance_fail(self):
+        with pytest.raises(ValueError) as e:
+            wav, nufnu = self.m.get_sed(distance=1.)
+        assert e.value.message == 'Cannot specify distance for inside observers'

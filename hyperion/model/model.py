@@ -790,8 +790,11 @@ class ModelOutput(FreezableClass):
         except:
             inside_observer = False
 
+        if inside_observer and distance is not None:
+            raise ValueError("Cannot specify distance for inside observers")
+
         # Optionally scale by distance
-        if distance is not None or inside_observer is 'yes':
+        if distance is not None or inside_observer:
 
             # Convert to the correct units
             if units == 'ergs/cm^2/s':
@@ -1245,6 +1248,9 @@ class ModelOutput(FreezableClass):
             inside_observer = g.attrs['inside_observer'].lower() == 'yes'
         except:
             inside_observer = False
+
+        if inside_observer and distance is not None:
+            raise ValueError("Cannot specify distance for inside observers")
 
         # Optionally scale by distance
         if distance or inside_observer:
