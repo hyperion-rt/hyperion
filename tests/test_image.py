@@ -24,7 +24,7 @@ class TestImageSimpleModel(object):
         s.luminosity = 1.
         s.temperature = 6000.
 
-        i = m.add_peeled_images(image=True)
+        i = m.add_peeled_images(sed=False, image=True)
         i.set_viewing_angles([1., 2.], [1., 2.])
         i.set_image_limits(-1., 1., -1., 1.)
         i.set_image_size(10, 20)
@@ -109,12 +109,11 @@ class TestSimpleModelInside(object):
         s.luminosity = 1.
         s.temperature = 6000.
 
-        i = m.add_peeled_images()
+        i = m.add_peeled_images(sed=False, image=True)
         i.set_inside_observer((0.,0.,0.))
         i.set_image_limits(1., -1., -1., 1.)
         i.set_image_size(10, 20)
         i.set_wavelength_range(5, 0.1, 100.)
-        i.set_aperture_range(3, 1., 10.)
 
         m.set_n_initial_iterations(0)
 
