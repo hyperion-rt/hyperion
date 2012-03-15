@@ -44,112 +44,112 @@ contains
     implicit none
     type(grid_cell),intent(in) :: cell
     integer,intent(in) :: idir
-    cell_width = geo%levels(cell%ilevel)%fabs(cell%ifab)%width(idir)
+    cell_width = geo%levels(cell%ilevel)%grids(cell%igrid)%width(idir)
   end function cell_width
 
-  logical function fabs_intersect(fab1, fab2)
-    ! Given two fabs, do they intersect anywhere?
+  logical function grids_intersect(grid1, grid2)
+    ! Given two grids, do they intersect anywhere?
     implicit none
-    type(fab_desc),intent(in) :: fab1, fab2
-    fabs_intersect = .false.
-    if(fab1%xmax < fab2%xmin) return
-    if(fab1%xmin > fab2%xmax) return
-    if(fab1%ymax < fab2%ymin) return
-    if(fab1%ymin > fab2%ymax) return
-    if(fab1%zmax < fab2%zmin) return
-    if(fab1%zmin > fab2%zmax) return
-    fabs_intersect = .true.
-  end function fabs_intersect
+    type(grid_desc),intent(in) :: grid1, grid2
+    grids_intersect = .false.
+    if(grid1%xmax < grid2%xmin) return
+    if(grid1%xmin > grid2%xmax) return
+    if(grid1%ymax < grid2%ymin) return
+    if(grid1%ymin > grid2%ymax) return
+    if(grid1%zmax < grid2%zmin) return
+    if(grid1%zmin > grid2%zmax) return
+    grids_intersect = .true.
+  end function grids_intersect
 
-  logical function fabs_close(fab1, fab2)
-    ! Given two fabs, are they within one half cell from each other
-    type(fab_desc),intent(in) :: fab1, fab2
-    fabs_close = .false.
-    if(fab1%xmax < fab2%xmin - fab2%width(1)*0.5_dp) return
-    if(fab1%xmin > fab2%xmax + fab2%width(1)*0.5_dp) return
-    if(fab1%ymax < fab2%ymin - fab2%width(2)*0.5_dp) return
-    if(fab1%ymin > fab2%ymax + fab2%width(2)*0.5_dp) return
-    if(fab1%zmax < fab2%zmin - fab2%width(3)*0.5_dp) return
-    if(fab1%zmin > fab2%zmax + fab2%width(3)*0.5_dp) return
-    fabs_close = .true.
-  end function fabs_close
+  logical function grids_close(grid1, grid2)
+    ! Given two grids, are they within one half cell from each other
+    type(grid_desc),intent(in) :: grid1, grid2
+    grids_close = .false.
+    if(grid1%xmax < grid2%xmin - grid2%width(1)*0.5_dp) return
+    if(grid1%xmin > grid2%xmax + grid2%width(1)*0.5_dp) return
+    if(grid1%ymax < grid2%ymin - grid2%width(2)*0.5_dp) return
+    if(grid1%ymin > grid2%ymax + grid2%width(2)*0.5_dp) return
+    if(grid1%zmax < grid2%zmin - grid2%width(3)*0.5_dp) return
+    if(grid1%zmin > grid2%zmax + grid2%width(3)*0.5_dp) return
+    grids_close = .true.
+  end function grids_close
 
-  logical function in_fab(fab, r)
-    ! Given a fab and a position r, determines if the position lies inside the fab.
+  logical function in_grid(grid, r)
+    ! Given a grid and a position r, determines if the position lies inside the grid.
     ! Could be optimized by finding distance from center (abs(x)-x0) < dx, although not clear which is faster.
     implicit none
-    type(fab_desc),intent(in) :: fab
+    type(grid_desc),intent(in) :: grid
     type(vector3d_dp),intent(in) :: r
-    in_fab = .false.
-    if(r%x < fab%xmin) return
-    if(r%x > fab%xmax) return
-    if(r%y < fab%ymin) return
-    if(r%y > fab%ymax) return
-    if(r%z < fab%zmin) return
-    if(r%z > fab%zmax) return
-    in_fab = .true.
-  end function in_fab
+    in_grid = .false.
+    if(r%x < grid%xmin) return
+    if(r%x > grid%xmax) return
+    if(r%y < grid%ymin) return
+    if(r%y > grid%ymax) return
+    if(r%z < grid%zmin) return
+    if(r%z > grid%zmax) return
+    in_grid = .true.
+  end function in_grid
 
-  integer function locate_fab(level, r) result(ifab)
+  integer function locate_grid(level, r) result(igrid)
     ! Given a level and a position r, determines if the position lies in
-    ! any of the fabs, and if so returns the fab ID in the level. If the
-    ! position does not lie in any fab, the function returns -1.
+    ! any of the grids, and if so returns the grid ID in the level. If the
+    ! position does not lie in any grid, the function returns -1.
     implicit none
     type(level_desc),intent(in) :: level
     type(vector3d_dp),intent(in) :: r
-    do ifab=1,size(level%fabs)
-       if(in_fab(level%fabs(ifab), r)) return
+    do igrid=1,size(level%grids)
+       if(in_grid(level%grids(igrid), r)) return
     end do
-    ifab = -1
-  end function locate_fab
+    igrid = -1
+  end function locate_grid
 
-  subroutine read_fab(group, fab)
+  subroutine read_grid(group, grid)
 
-    ! Given and HDF5 group containing a fab, this subroutine reads and returns it
+    ! Given and HDF5 group containing a grid, this subroutine reads and returns it
 
     implicit none
 
     integer(hid_t),intent(in) :: group
-    type(fab_desc),intent(out) :: fab
+    type(grid_desc),intent(out) :: grid
 
-    call mp_read_keyword(group, '.', 'n1', fab%n1)
-    call mp_read_keyword(group, '.', 'n2', fab%n2)
-    call mp_read_keyword(group, '.', 'n3', fab%n3)
-    fab%n_cells = fab%n1 * fab%n2 * fab%n3
-    fab%n_dim = 3
+    call mp_read_keyword(group, '.', 'n1', grid%n1)
+    call mp_read_keyword(group, '.', 'n2', grid%n2)
+    call mp_read_keyword(group, '.', 'n3', grid%n3)
+    grid%n_cells = grid%n1 * grid%n2 * grid%n3
+    grid%n_dim = 3
 
-    allocate(fab%w1(fab%n1+1))
-    call mp_read_keyword(group, '.', 'xmin', fab%xmin)
-    call mp_read_keyword(group, '.', 'xmax', fab%xmax)
-    call linspace(fab%xmin, fab%xmax, fab%w1)
+    allocate(grid%w1(grid%n1+1))
+    call mp_read_keyword(group, '.', 'xmin', grid%xmin)
+    call mp_read_keyword(group, '.', 'xmax', grid%xmax)
+    call linspace(grid%xmin, grid%xmax, grid%w1)
 
-    allocate(fab%w2(fab%n2+1))
-    call mp_read_keyword(group, '.', 'ymin', fab%ymin)
-    call mp_read_keyword(group, '.', 'ymax', fab%ymax)
-    call linspace(fab%ymin, fab%ymax, fab%w2)
+    allocate(grid%w2(grid%n2+1))
+    call mp_read_keyword(group, '.', 'ymin', grid%ymin)
+    call mp_read_keyword(group, '.', 'ymax', grid%ymax)
+    call linspace(grid%ymin, grid%ymax, grid%w2)
 
-    allocate(fab%w3(fab%n3+1))
-    call mp_read_keyword(group, '.', 'zmin', fab%zmin)
-    call mp_read_keyword(group, '.', 'zmax', fab%zmax)
-    call linspace(fab%zmin, fab%zmax, fab%w3)
+    allocate(grid%w3(grid%n3+1))
+    call mp_read_keyword(group, '.', 'zmin', grid%zmin)
+    call mp_read_keyword(group, '.', 'zmax', grid%zmax)
+    call linspace(grid%zmin, grid%zmax, grid%w3)
 
-    fab%width(1) = (fab%xmax-fab%xmin)/real(fab%n1, dp)
-    fab%width(2) = (fab%ymax-fab%ymin)/real(fab%n2, dp)
-    fab%width(3) = (fab%zmax-fab%zmin)/real(fab%n3, dp)
+    grid%width(1) = (grid%xmax-grid%xmin)/real(grid%n1, dp)
+    grid%width(2) = (grid%ymax-grid%ymin)/real(grid%n2, dp)
+    grid%width(3) = (grid%zmax-grid%zmin)/real(grid%n3, dp)
 
-    fab%area(1:2) = fab%width(2) * fab%width(3)
-    fab%area(3:4) = fab%width(1) * fab%width(3)
-    fab%area(5:6) = fab%width(1) * fab%width(2)
+    grid%area(1:2) = grid%width(2) * grid%width(3)
+    grid%area(3:4) = grid%width(1) * grid%width(3)
+    grid%area(5:6) = grid%width(1) * grid%width(2)
 
-    fab%volume = fab%width(1) * fab%width(2) * fab%width(3)
+    grid%volume = grid%width(1) * grid%width(2) * grid%width(3)
 
-    allocate(fab%goto_fab(0:fab%n1+1, 0:fab%n2+1, 0:fab%n3+1))
-    allocate(fab%goto_level(0:fab%n1+1, 0:fab%n2+1, 0:fab%n3+1))
+    allocate(grid%goto_grid(0:grid%n1+1, 0:grid%n2+1, 0:grid%n3+1))
+    allocate(grid%goto_level(0:grid%n1+1, 0:grid%n2+1, 0:grid%n3+1))
 
-    fab%goto_fab = 0
-    fab%goto_level = 0
+    grid%goto_grid = 0
+    grid%goto_level = 0
 
-  end subroutine read_fab
+  end subroutine read_grid
 
   subroutine read_level(group, level)
 
@@ -157,19 +157,19 @@ contains
 
     integer(hid_t),intent(in) :: group
     type(level_desc),intent(out) :: level
-    integer :: nfabs, ifab
-    integer(hid_t) :: g_fab
-    character(len=100) :: fab_name
+    integer :: ngrids, igrid
+    integer(hid_t) :: g_grid
+    character(len=100) :: grid_name
 
-    call mp_read_keyword(group, '.', 'nfabs', nfabs)
+    call mp_read_keyword(group, '.', 'ngrids', ngrids)
 
-    allocate(level%fabs(nfabs))
+    allocate(level%grids(ngrids))
 
-    do ifab=1,nfabs
-       write(fab_name, '("Fab ", I0)') ifab
-       g_fab = mp_open_group(group, fab_name)
-       call read_fab(g_fab, level%fabs(ifab))
-       call mp_close_group(g_fab)
+    do igrid=1,ngrids
+       write(grid_name, '("Grid ", I0)') igrid
+       g_grid = mp_open_group(group, grid_name)
+       call read_grid(g_grid, level%grids(igrid))
+       call mp_close_group(g_grid)
     end do
 
   end subroutine read_level
@@ -186,11 +186,11 @@ contains
     integer(hid_t) :: g_level
     character(len=100) :: level_name
 
-    integer :: ifab, ifab1, ifab2, icell
+    integer :: igrid, igrid1, igrid2, icell
 
     integer :: start_id
     type(level_desc), pointer :: level, level1, level2
-    type(fab_desc), pointer :: fab, fab1, fab2
+    type(grid_desc), pointer :: grid, grid1, grid2
     integer :: i1, i2, i3
     type(vector3d_dp) :: r
     real(dp) :: min_width
@@ -209,7 +209,7 @@ contains
     ! Allocate the levels
     allocate(geo%levels(nlevels))
 
-    ! Loop through the levels and read all the fabs
+    ! Loop through the levels and read all the grids
     do ilevel=1,nlevels
        write(level_name, '("Level ", I0)') ilevel
        g_level = mp_open_group(group, level_name)
@@ -217,14 +217,14 @@ contains
        call mp_close_group(g_level)
     end do
 
-    ! Find the unique ID of the first cell in each fab
+    ! Find the unique ID of the first cell in each grid
     start_id = 1
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
-       do ifab=1,size(level%fabs)
-          fab => level%fabs(ifab)
-          fab%start_id = start_id
-          start_id = start_id + fab%n_cells
+       do igrid=1,size(level%grids)
+          grid => level%grids(igrid)
+          grid%start_id = start_id
+          start_id = start_id + grid%n_cells
        end do
     end do
 
@@ -236,11 +236,11 @@ contains
     min_width = huge(1._dp)
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
-       do ifab=1,size(level%fabs)
-          fab => level%fabs(ifab)
-          if(any(fab%width < min_width)) min_width = minval(fab%width)
-          do icell=fab%start_id,fab%start_id+fab%n_cells-1
-             geo%volume(icell) = fab%volume
+       do igrid=1,size(level%grids)
+          grid => level%grids(igrid)
+          if(any(grid%width < min_width)) min_width = minval(grid%width)
+          do icell=grid%start_id,grid%start_id+grid%n_cells-1
+             geo%volume(icell) = grid%volume
              if(geo%volume(icell)==0.) stop
           end do
        end do
@@ -250,31 +250,31 @@ contains
     ! Set number of dimensions (is this needed by PDA?)
     geo%n_dim = 3
 
-    ! Set the step size for stepping out of fabs. Choose half the smallest width in the grid.
+    ! Set the step size for stepping out of grids. Choose half the smallest width in the grid.
     geo%eps = min_width / 2._dp
 
-    ! Find the level ID, fab ID, and internal 3D coordinates for each unique ID
+    ! Find the level ID, grid ID, and internal 3D coordinates for each unique ID
     call preset_cell_id(geo)
 
-    ! For each fab, find all cells in level below that overlap, and set flag in level below to indicate this
+    ! For each grid, find all cells in level below that overlap, and set flag in level below to indicate this
 
     do ilevel1=size(geo%levels)-1, 1, -1
        level1 => geo%levels(ilevel1)
        level2 => geo%levels(ilevel1+1)
-       do ifab1=1,size(level1%fabs)
-          fab1 => level1%fabs(ifab1)
-          do ifab2=1,size(level2%fabs)
-             fab2 => level2%fabs(ifab2)
-             if(fabs_intersect(fab1, fab2)) then
-                do i1=1,fab1%n1
-                   r%x = 0.5_dp * (fab1%w1(i1) + fab1%w1(i1+1))
-                   do i2=1,fab1%n2
-                      r%y = 0.5_dp * (fab1%w2(i2) + fab1%w2(i2+1))
-                      do i3=1,fab1%n3
-                         r%z = 0.5_dp * (fab1%w3(i3) + fab1%w3(i3+1))
-                         if(in_fab(fab2, r)) then
-                            fab1%goto_fab(i1, i2, i3) = ifab2
-                            fab1%goto_level(i1, i2, i3) = ilevel1+1
+       do igrid1=1,size(level1%grids)
+          grid1 => level1%grids(igrid1)
+          do igrid2=1,size(level2%grids)
+             grid2 => level2%grids(igrid2)
+             if(grids_intersect(grid1, grid2)) then
+                do i1=1,grid1%n1
+                   r%x = 0.5_dp * (grid1%w1(i1) + grid1%w1(i1+1))
+                   do i2=1,grid1%n2
+                      r%y = 0.5_dp * (grid1%w2(i2) + grid1%w2(i2+1))
+                      do i3=1,grid1%n3
+                         r%z = 0.5_dp * (grid1%w3(i3) + grid1%w3(i3+1))
+                         if(in_grid(grid2, r)) then
+                            grid1%goto_grid(i1, i2, i3) = igrid2
+                            grid1%goto_level(i1, i2, i3) = ilevel1+1
                          end if
                       end do
                    end do
@@ -284,100 +284,100 @@ contains
        end do
     end do
 
-    ! Now for all neighboring cells, find out what fab they end up in if they go one step outside the grid
+    ! Now for all neighboring cells, find out what grid they end up in if they go one step outside the grid
 
     do ilevel1 = 1, size(geo%levels)
        level1 => geo%levels(ilevel1)
-       do ifab1=1,size(level1%fabs)
-          fab1 => level1%fabs(ifab1)
+       do igrid1=1,size(level1%grids)
+          grid1 => level1%grids(igrid1)
 
           do ilevel2 = ilevel1, 1, -1
              level2 => geo%levels(ilevel2)
-             do ifab2=1,size(level2%fabs)
-                fab2 => level2%fabs(ifab2)
+             do igrid2=1,size(level2%grids)
+                grid2 => level2%grids(igrid2)
 
-                if(fabs_close(fab1, fab2).and.ifab1.ne.ifab2) then
+                if(grids_close(grid1, grid2).and.igrid1.ne.igrid2) then
 
                    ! xmin side
                    i1 = 0
-                   r%x = fab1%xmin - fab1%width(1) * 0.5_dp
-                   do i2=1,fab1%n2
-                      r%y = 0.5_dp * (fab1%w2(i2) + fab1%w2(i2+1))
-                      do i3=1,fab1%n3
-                         r%z = 0.5_dp * (fab1%w3(i3) + fab1%w3(i3+1))
-                         if(in_fab(fab2, r) .and. fab1%goto_fab(i1, i2, i3) == 0) then
-                            fab1%goto_fab(i1, i2, i3) = ifab2
-                            fab1%goto_level(i1, i2, i3) = ilevel2
+                   r%x = grid1%xmin - grid1%width(1) * 0.5_dp
+                   do i2=1,grid1%n2
+                      r%y = 0.5_dp * (grid1%w2(i2) + grid1%w2(i2+1))
+                      do i3=1,grid1%n3
+                         r%z = 0.5_dp * (grid1%w3(i3) + grid1%w3(i3+1))
+                         if(in_grid(grid2, r) .and. grid1%goto_grid(i1, i2, i3) == 0) then
+                            grid1%goto_grid(i1, i2, i3) = igrid2
+                            grid1%goto_level(i1, i2, i3) = ilevel2
                          end if
                       end do
                    end do
 
                    ! xmax side
-                   i1 = fab1%n1+1
-                   r%x = fab1%xmax + fab1%width(1) * 0.5_dp
-                   do i2=1,fab1%n2
-                      r%y = 0.5_dp * (fab1%w2(i2) + fab1%w2(i2+1))
-                      do i3=1,fab1%n3
-                         r%z = 0.5_dp * (fab1%w3(i3) + fab1%w3(i3+1))
-                         if(in_fab(fab2, r) .and. fab1%goto_fab(i1, i2, i3) == 0) then
-                            fab1%goto_fab(i1, i2, i3) = ifab2
-                            fab1%goto_level(i1, i2, i3) = ilevel2
+                   i1 = grid1%n1+1
+                   r%x = grid1%xmax + grid1%width(1) * 0.5_dp
+                   do i2=1,grid1%n2
+                      r%y = 0.5_dp * (grid1%w2(i2) + grid1%w2(i2+1))
+                      do i3=1,grid1%n3
+                         r%z = 0.5_dp * (grid1%w3(i3) + grid1%w3(i3+1))
+                         if(in_grid(grid2, r) .and. grid1%goto_grid(i1, i2, i3) == 0) then
+                            grid1%goto_grid(i1, i2, i3) = igrid2
+                            grid1%goto_level(i1, i2, i3) = ilevel2
                          end if
                       end do
                    end do
 
                    ! ymin side
                    i2 = 0
-                   r%y = fab1%ymin - fab1%width(2) * 0.5_dp
-                   do i1=1,fab1%n1
-                      r%x = 0.5_dp * (fab1%w1(i1) + fab1%w1(i1+1))
-                      do i3=1,fab1%n3
-                         r%z = 0.5_dp * (fab1%w3(i3) + fab1%w3(i3+1))
-                         if(in_fab(fab2, r) .and. fab1%goto_fab(i1, i2, i3) == 0) then
-                            fab1%goto_fab(i1, i2, i3) = ifab2
-                            fab1%goto_level(i1, i2, i3) = ilevel2
+                   r%y = grid1%ymin - grid1%width(2) * 0.5_dp
+                   do i1=1,grid1%n1
+                      r%x = 0.5_dp * (grid1%w1(i1) + grid1%w1(i1+1))
+                      do i3=1,grid1%n3
+                         r%z = 0.5_dp * (grid1%w3(i3) + grid1%w3(i3+1))
+                         if(in_grid(grid2, r) .and. grid1%goto_grid(i1, i2, i3) == 0) then
+                            grid1%goto_grid(i1, i2, i3) = igrid2
+                            grid1%goto_level(i1, i2, i3) = ilevel2
                          end if
                       end do
                    end do
 
                    ! ymax side
-                   i2 = fab1%n2+1
-                   r%y = fab1%ymax + fab1%width(2) * 0.5_dp
-                   do i1=1,fab1%n1
-                      r%x = 0.5_dp * (fab1%w1(i1) + fab1%w1(i1+1))
-                      do i3=1,fab1%n3
-                         r%z = 0.5_dp * (fab1%w3(i3) + fab1%w3(i3+1))
-                         if(in_fab(fab2, r) .and. fab1%goto_fab(i1, i2, i3) == 0) then
-                            fab1%goto_fab(i1, i2, i3) = ifab2
-                            fab1%goto_level(i1, i2, i3) = ilevel2
+                   i2 = grid1%n2+1
+                   r%y = grid1%ymax + grid1%width(2) * 0.5_dp
+                   do i1=1,grid1%n1
+                      r%x = 0.5_dp * (grid1%w1(i1) + grid1%w1(i1+1))
+                      do i3=1,grid1%n3
+                         r%z = 0.5_dp * (grid1%w3(i3) + grid1%w3(i3+1))
+                         if(in_grid(grid2, r) .and. grid1%goto_grid(i1, i2, i3) == 0) then
+                            grid1%goto_grid(i1, i2, i3) = igrid2
+                            grid1%goto_level(i1, i2, i3) = ilevel2
                          end if
                       end do
                    end do
 
                    ! zmin side
                    i3 = 0
-                   r%z = fab1%zmin - fab1%width(3) * 0.5_dp
-                   do i1=1,fab1%n1
-                      r%x = 0.5_dp * (fab1%w1(i1) + fab1%w1(i1+1))
-                      do i2=1,fab1%n2
-                         r%y = 0.5_dp * (fab1%w2(i2) + fab1%w2(i2+1))
-                         if(in_fab(fab2, r) .and. fab1%goto_fab(i1, i2, i3) == 0) then
-                            fab1%goto_fab(i1, i2, i3) = ifab2
-                            fab1%goto_level(i1, i2, i3) = ilevel2
+                   r%z = grid1%zmin - grid1%width(3) * 0.5_dp
+                   do i1=1,grid1%n1
+                      r%x = 0.5_dp * (grid1%w1(i1) + grid1%w1(i1+1))
+                      do i2=1,grid1%n2
+                         r%y = 0.5_dp * (grid1%w2(i2) + grid1%w2(i2+1))
+                         if(in_grid(grid2, r) .and. grid1%goto_grid(i1, i2, i3) == 0) then
+                            grid1%goto_grid(i1, i2, i3) = igrid2
+                            grid1%goto_level(i1, i2, i3) = ilevel2
                          end if
                       end do
                    end do
 
                    ! ymax side
-                   i3 = fab1%n3+1
-                   r%z = fab1%zmax + fab1%width(3) * 0.5_dp
-                   do i1=1,fab1%n1
-                      r%x = 0.5_dp * (fab1%w1(i1) + fab1%w1(i1+1))
-                      do i2=1,fab1%n2
-                         r%y = 0.5_dp * (fab1%w2(i2) + fab1%w2(i2+1))
-                         if(in_fab(fab2, r) .and. fab1%goto_fab(i1, i2, i3) == 0) then
-                            fab1%goto_fab(i1, i2, i3) = ifab2
-                            fab1%goto_level(i1, i2, i3) = ilevel2
+                   i3 = grid1%n3+1
+                   r%z = grid1%zmax + grid1%width(3) * 0.5_dp
+                   do i1=1,grid1%n1
+                      r%x = 0.5_dp * (grid1%w1(i1) + grid1%w1(i1+1))
+                      do i2=1,grid1%n2
+                         r%y = 0.5_dp * (grid1%w2(i2) + grid1%w2(i2+1))
+                         if(in_grid(grid2, r) .and. grid1%goto_grid(i1, i2, i3) == 0) then
+                            grid1%goto_grid(i1, i2, i3) = igrid2
+                            grid1%goto_level(i1, i2, i3) = ilevel2
                          end if
                       end do
                    end do
@@ -403,24 +403,24 @@ contains
     if(ipos2==nbin+1 .and. abs(x - xmax) < eps) ipos2 = nbin
   end function ipos2
 
-  recursive type(grid_cell) function find_position_in_fab(r, ilevel, ifab) result(cell)
+  recursive type(grid_cell) function find_position_in_grid(r, ilevel, igrid) result(cell)
     implicit none
     type(vector3d_dp),intent(in) :: r
-    integer,intent(in) :: ilevel, ifab
-    integer :: i1, i2, i3, ilevel_new, ifab_new
-    type(fab_desc), pointer :: fab
-    fab => geo%levels(ilevel)%fabs(ifab)
-    i1 = ipos2(fab%xmin, fab%xmax, r%x, fab%n1)
-    i2 = ipos2(fab%ymin, fab%ymax, r%y, fab%n2)
-    i3 = ipos2(fab%zmin, fab%zmax, r%z, fab%n3)
-    ilevel_new = fab%goto_level(i1, i2, i3)
-    ifab_new = fab%goto_fab(i1, i2, i3)
+    integer,intent(in) :: ilevel, igrid
+    integer :: i1, i2, i3, ilevel_new, igrid_new
+    type(grid_desc), pointer :: grid
+    grid => geo%levels(ilevel)%grids(igrid)
+    i1 = ipos2(grid%xmin, grid%xmax, r%x, grid%n1)
+    i2 = ipos2(grid%ymin, grid%ymax, r%y, grid%n2)
+    i3 = ipos2(grid%zmin, grid%zmax, r%z, grid%n3)
+    ilevel_new = grid%goto_level(i1, i2, i3)
+    igrid_new = grid%goto_grid(i1, i2, i3)
     if(ilevel_new == 0) then
-       cell = new_grid_cell(i1, i2, i3, ilevel, ifab, geo)
+       cell = new_grid_cell(i1, i2, i3, ilevel, igrid, geo)
     else
-       cell = find_position_in_fab(r, ilevel_new, ifab_new)
+       cell = find_position_in_grid(r, ilevel_new, igrid_new)
     end if
-  end function find_position_in_fab
+  end function find_position_in_grid
 
 
   subroutine grid_geometry_debug(debug_flag)
@@ -439,10 +439,10 @@ contains
   type(grid_cell) function find_cell_position(r) result(icell)
     implicit none
     type(vector3d_dp),intent(in) :: r
-    integer :: ifab
+    integer :: igrid
     if(debug) write(*,'(" [debug] find_cell")')
-    ifab = locate_fab(geo%levels(1), r) ! Find fab in level 1
-    icell = find_position_in_fab(r, 1, ifab) ! Refine position
+    igrid = locate_grid(geo%levels(1), r) ! Find grid in level 1
+    icell = find_position_in_grid(r, 1, igrid) ! Refine position
   end function find_cell_position
 
   subroutine place_in_cell(p)
@@ -477,10 +477,10 @@ contains
     type(vector3d_dp),optional,intent(in) :: intersection
     type(vector3d_dp) :: r
 
-    integer :: i1, i2, i3, ilevel, ifab
-    type(fab_desc), pointer :: fab
+    integer :: i1, i2, i3, ilevel, igrid
+    type(grid_desc), pointer :: grid
 
-    fab => geo%levels(cell%ilevel)%fabs(cell%ifab)
+    grid => geo%levels(cell%ilevel)%grids(cell%igrid)
 
     i1 = cell%i1
     i2 = cell%i2
@@ -500,15 +500,15 @@ contains
        i3 = i3 + 1
     end select
 
-    if(fab%goto_level(i1, i2, i3) == 0) then
-       if(i1==0.or.i1==fab%n1+1.or.i2==0.or.i2==fab%n2+1.or.i3==0.or.i3==fab%n3+1) then
+    if(grid%goto_level(i1, i2, i3) == 0) then
+       if(i1==0.or.i1==grid%n1+1.or.i2==0.or.i2==grid%n2+1.or.i3==0.or.i3==grid%n3+1) then
           next_cell = outside_cell
        else
-          next_cell = new_grid_cell(i1, i2, i3, cell%ilevel, cell%ifab, geo)
+          next_cell = new_grid_cell(i1, i2, i3, cell%ilevel, cell%igrid, geo)
        end if
     else
-       ilevel = fab%goto_level(i1, i2, i3)
-       ifab = fab%goto_fab(i1, i2, i3)
+       ilevel = grid%goto_level(i1, i2, i3)
+       igrid = grid%goto_grid(i1, i2, i3)
        r = intersection
        select case(direction)
        case(1)
@@ -524,7 +524,7 @@ contains
        case(6)
           r%z = r%z + geo%eps
        end select
-       next_cell = find_position_in_fab(r, ilevel, ifab)
+       next_cell = find_position_in_grid(r, ilevel, igrid)
     end if
   end function next_cell
 
@@ -535,31 +535,31 @@ contains
     type(photon),intent(in) :: p
     type(grid_cell) :: icell_actual
     real(dp) :: frac
-    type(fab_desc), pointer :: fab
-    fab => geo%levels(p%icell%ilevel)%fabs(p%icell%ifab)
+    type(grid_desc), pointer :: grid
+    grid => geo%levels(p%icell%ilevel)%grids(p%icell%igrid)
     icell_actual = p%icell
-    icell_actual%i1 = ipos(fab%xmin, fab%xmax, p%r%x, fab%n1)
-    icell_actual%i2 = ipos(fab%ymin, fab%ymax, p%r%y, fab%n2)
-    icell_actual%i3 = ipos(fab%zmin, fab%zmax, p%r%z, fab%n3)
+    icell_actual%i1 = ipos(grid%xmin, grid%xmax, p%r%x, grid%n1)
+    icell_actual%i2 = ipos(grid%ymin, grid%ymax, p%r%y, grid%n2)
+    icell_actual%i3 = ipos(grid%zmin, grid%zmax, p%r%z, grid%n3)
     if(p%on_wall) then
        select case(p%on_wall_id)
        case(1)
-          frac = (p%r%x - fab%w1(p%icell%i1)) / (fab%w1(p%icell%i1+1) - fab%w1(p%icell%i1))
+          frac = (p%r%x - grid%w1(p%icell%i1)) / (grid%w1(p%icell%i1+1) - grid%w1(p%icell%i1))
           in_correct_cell = icell_actual%i2 == p%icell%i2 .and. icell_actual%i3 == p%icell%i3
        case(2)
-          frac = (p%r%x - fab%w1(p%icell%i1+1)) / (fab%w1(p%icell%i1+1) - fab%w1(p%icell%i1))
+          frac = (p%r%x - grid%w1(p%icell%i1+1)) / (grid%w1(p%icell%i1+1) - grid%w1(p%icell%i1))
           in_correct_cell = icell_actual%i2 == p%icell%i2 .and. icell_actual%i3 == p%icell%i3
        case(3)
-          frac = (p%r%y - fab%w2(p%icell%i2)) / (fab%w2(p%icell%i2+1) - fab%w2(p%icell%i2))
+          frac = (p%r%y - grid%w2(p%icell%i2)) / (grid%w2(p%icell%i2+1) - grid%w2(p%icell%i2))
           in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i3 == p%icell%i3
        case(4)
-          frac = (p%r%y - fab%w2(p%icell%i2+1)) / (fab%w2(p%icell%i2+1) - fab%w2(p%icell%i2))
+          frac = (p%r%y - grid%w2(p%icell%i2+1)) / (grid%w2(p%icell%i2+1) - grid%w2(p%icell%i2))
           in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i3 == p%icell%i3
        case(5)
-          frac = (p%r%z - fab%w3(p%icell%i3)) / (fab%w3(p%icell%i3+1) - fab%w3(p%icell%i3))
+          frac = (p%r%z - grid%w3(p%icell%i3)) / (grid%w3(p%icell%i3+1) - grid%w3(p%icell%i3))
           in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i2 == p%icell%i2
        case(6)
-          frac = (p%r%z - fab%w3(p%icell%i3+1)) / (fab%w3(p%icell%i3+1) - fab%w3(p%icell%i3))
+          frac = (p%r%z - grid%w3(p%icell%i3+1)) / (grid%w3(p%icell%i3+1) - grid%w3(p%icell%i3))
           in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i2 == p%icell%i2
        case default
           call warn("in_correct_cell","invalid on_wall_id")
@@ -576,14 +576,14 @@ contains
     type(grid_cell),intent(in) :: icell
     type(vector3d_dp), intent(out) :: pos
     real(dp) :: x,y,z
-    type(fab_desc), pointer :: fab
-    fab => geo%levels(icell%ilevel)%fabs(icell%ifab)
+    type(grid_desc), pointer :: grid
+    grid => geo%levels(icell%ilevel)%grids(icell%igrid)
     call random(x)
     call random(y)
     call random(z)
-    pos%x = x * (fab%w1(icell%i1+1) - fab%w1(icell%i1)) + fab%w1(icell%i1)
-    pos%y = y * (fab%w2(icell%i2+1) - fab%w2(icell%i2)) + fab%w2(icell%i2)
-    pos%z = z * (fab%w3(icell%i3+1) - fab%w3(icell%i3)) + fab%w3(icell%i3)
+    pos%x = x * (grid%w1(icell%i1+1) - grid%w1(icell%i1)) + grid%w1(icell%i1)
+    pos%y = y * (grid%w2(icell%i2+1) - grid%w2(icell%i2)) + grid%w2(icell%i2)
+    pos%z = z * (grid%w3(icell%i3+1) - grid%w3(icell%i3)) + grid%w3(icell%i3)
   end subroutine random_position_cell
 
   real(dp) function distance_to_closest_wall(p) result(d)
@@ -594,16 +594,16 @@ contains
 
     real(dp) :: d1,d2,d3,d4,d5,d6
 
-    type(fab_desc), pointer :: fab
+    type(grid_desc), pointer :: grid
 
-    fab => geo%levels(p%icell%ilevel)%fabs(p%icell%ifab)
+    grid => geo%levels(p%icell%ilevel)%grids(p%icell%igrid)
 
-    d1 = p%r%x - fab%w1(p%icell%i1)
-    d2 = fab%w1(p%icell%i1+1) - p%r%x
-    d3 = p%r%y - fab%w2(p%icell%i2)
-    d4 = fab%w2(p%icell%i2+1) - p%r%y
-    d5 = p%r%z - fab%w3(p%icell%i3)
-    d6 = fab%w3(p%icell%i3+1) - p%r%z
+    d1 = p%r%x - grid%w1(p%icell%i1)
+    d2 = grid%w1(p%icell%i1+1) - p%r%x
+    d3 = p%r%y - grid%w2(p%icell%i2)
+    d4 = grid%w2(p%icell%i2+1) - p%r%y
+    d5 = p%r%z - grid%w3(p%icell%i3)
+    d6 = grid%w3(p%icell%i3+1) - p%r%z
 
     ! Find the smallest of the distances
 
@@ -637,9 +637,9 @@ contains
 
     logical :: pos_vx, pos_vy, pos_vz
 
-    type(fab_desc), pointer :: fab
+    type(grid_desc), pointer :: grid
 
-    fab => geo%levels(p%icell%ilevel)%fabs(p%icell%ifab)
+    grid => geo%levels(p%icell%ilevel)%grids(p%icell%igrid)
 
     ! Can store this in photon, because it only changes at each interaction
     pos_vx = p%v%x > 0._dp ! whether photon is moving in the +ve x direction
@@ -648,25 +648,25 @@ contains
 
     ! Store inv_v to go faster
     if(pos_vx) then
-       tx = ( fab%w1(p%icell%i1+1) - p%r%x ) / p%v%x
+       tx = ( grid%w1(p%icell%i1+1) - p%r%x ) / p%v%x
     else if(p%v%x < 0._dp) then
-       tx = ( fab%w1(p%icell%i1)   - p%r%x ) / p%v%x
+       tx = ( grid%w1(p%icell%i1)   - p%r%x ) / p%v%x
     else
        tx = huge(1._dp)
     end if
 
     if(pos_vy) then
-       ty = ( fab%w2(p%icell%i2+1) - p%r%y ) / p%v%y
+       ty = ( grid%w2(p%icell%i2+1) - p%r%y ) / p%v%y
     else if(p%v%y < 0._dp) then
-       ty = ( fab%w2(p%icell%i2)   - p%r%y ) / p%v%y
+       ty = ( grid%w2(p%icell%i2)   - p%r%y ) / p%v%y
     else
        ty = huge(1._dp)
     end if
 
     if(pos_vz) then
-       tz = ( fab%w3(p%icell%i3+1) - p%r%z ) / p%v%z
+       tz = ( grid%w3(p%icell%i3+1) - p%r%z ) / p%v%z
     else if(p%v%z < 0._dp) then
-       tz = ( fab%w3(p%icell%i3)   - p%r%z ) / p%v%z
+       tz = ( grid%w3(p%icell%i3)   - p%r%z ) / p%v%z
     else
        tz = huge(1._dp)
     end if

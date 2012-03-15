@@ -84,14 +84,14 @@ grid types
 AMR grids
 ---------
 
-AMR grids have to be specified using nested Python objects. The names of the classes used, and the origin of the AMR grid is unimportant, but an AMR grid has to contain a ``levels`` attribute. The ``levels`` attribute should be iterable, and contain single levels that have a ``fabs`` attribute. The ``fabs`` attribute should be iterable and contain single fabs that have the following attributes:
+AMR grids have to be specified using nested Python objects. The names of the classes used, and the origin of the AMR grid is unimportant, but an AMR object has to contain a ``levels`` attribute. The ``levels`` attribute should be iterable, and contain single levels that have a ``grids`` attribute. The ``grids`` attribute should be iterable and contain single grids that have the following attributes:
 
-* ``xmin`` - lower x position of the fab
-* ``xmax`` - upper x position of the fab
-* ``ymin`` - lower y position of the fab
-* ``ymax`` - upper y position of the fab
-* ``zmin`` - lower z position of the fab
-* ``zmax`` - upper z position of the fab
+* ``xmin`` - lower x position of the grid
+* ``xmax`` - upper x position of the grid
+* ``ymin`` - lower y position of the grid
+* ``ymax`` - upper y position of the grid
+* ``zmin`` - lower z position of the grid
+* ``zmax`` - upper z position of the grid
 * ``nx`` - number of cells in x direction
 * ``ny`` - number of cells in y direction
 * ``nz`` - number of cells in z direction
@@ -166,8 +166,8 @@ If one wants to set a preliminary specific energy based e.g. on density or a con
     from copy import deepcopy
     amr_specific_energy = deepcopy(amr)
     for level in amr_specific_energy.levels:
-        for fab in level.fabs:
-            fab.data[:, :, :] = 100.  # Set to 100K
+        for grid in level.grids:
+            grid.data[:, :, :] = 100.  # Set to 100K
 
     m.add_density_grid(amr, 'kmh.hdf5', specific_energy=amr_specific_energy)
 

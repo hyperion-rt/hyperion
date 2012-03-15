@@ -7,20 +7,20 @@ module type_grid
 
   private
 
-  public :: fab_desc
-  type fab_desc
+  public :: grid_desc
+  type grid_desc
      integer :: n_cells, n_dim, n1, n2, n3
      real(dp), allocatable :: w1(:), w2(:), w3(:)
      integer :: start_id
      real(dp) :: volume, area(6), width(3)
-     integer, allocatable :: goto_fab(:,:,:)
+     integer, allocatable :: goto_grid(:,:,:)
      integer, allocatable :: goto_level(:,:,:)
      real(dp) :: xmin, xmax, ymin, ymax, zmin, zmax
-  end type fab_desc
+  end type grid_desc
 
   public :: level_desc
   type level_desc
-     type(fab_desc),allocatable :: fabs(:)
+     type(grid_desc),allocatable :: grids(:)
   end type level_desc
 
   public :: grid_geometry_desc

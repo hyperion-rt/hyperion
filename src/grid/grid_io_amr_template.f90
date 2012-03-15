@@ -48,12 +48,12 @@ contains
     implicit none
     integer(hid_t),intent(in) :: group
     character(len=*),intent(in) :: name
-    integer(hid_t) :: g_level, g_fab
+    integer(hid_t) :: g_level, g_grid
     if(mp_path_exists(group, 'Level 1')) then
        g_level = mp_open_group(group, 'Level 1')
-       if(mp_path_exists(g_level, 'Fab 1')) then
-          g_fab = mp_open_group(g_level, 'Fab 1')
-          if(mp_path_exists(g_fab, name)) then
+       if(mp_path_exists(g_level, 'Grid 1')) then
+          g_grid = mp_open_group(g_level, 'Grid 1')
+          if(mp_path_exists(g_grid, name)) then
              grid_exists = .true.
           else
              grid_exists = .false.
@@ -78,24 +78,24 @@ contains
     type(grid_geometry_desc),intent(in),target :: geo
     @T, allocatable :: array4d(:,:,:,:)
     character(len=100) :: full_path
-    integer :: ilevel, ifab, idust
+    integer :: ilevel, igrid, idust
     type(level_desc), pointer :: level
-    type(fab_desc), pointer :: fab
+    type(grid_desc), pointer :: grid
 
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
-       do ifab=1,size(level%fabs)
-          fab => level%fabs(ifab)
-          write(full_path, '("Level ", I0, "/Fab ", I0,"/")') ilevel, ifab
+       do igrid=1,size(level%grids)
+          grid => level%grids(igrid)
+          write(full_path, '("Level ", I0, "/Grid ", I0,"/")') ilevel, igrid
           full_path = trim(full_path)//trim(path)
           call mp_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
           do idust=1,size(array4d, 4)
-             where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
+             where(grid%goto_grid(1:grid%n1,1:grid%n2,1:grid%n3) > 0)
                 array4d(:,:,:,idust) = 0
              end where
           end do
-          array(fab%start_id:fab%start_id + fab%n_cells - 1, :) = reshape(array4d, (/fab%n_cells, size(array, 2)/))
+          array(grid%start_id:grid%start_id + grid%n_cells - 1, :) = reshape(array4d, (/grid%n_cells, size(array, 2)/))
        end do
     end do
 
@@ -118,22 +118,22 @@ contains
     type(grid_geometry_desc),intent(in),target :: geo
     @T, allocatable :: array3d(:,:,:)
     character(len=100) :: full_path
-    integer :: ilevel, ifab
+    integer :: ilevel, igrid
     type(level_desc), pointer :: level
-    type(fab_desc), pointer :: fab
+    type(grid_desc), pointer :: grid
 
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
-       do ifab=1,size(level%fabs)
-          fab => level%fabs(ifab)
-          write(full_path, '("Level ", I0, "/Fab ", I0,"/")') ilevel, ifab
+       do igrid=1,size(level%grids)
+          grid => level%grids(igrid)
+          write(full_path, '("Level ", I0, "/Grid ", I0,"/")') ilevel, igrid
           full_path = trim(full_path)//trim(path)
           call mp_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
-          where(fab%goto_fab(1:fab%n1,1:fab%n2,1:fab%n3) > 0)
+          where(grid%goto_grid(1:grid%n1,1:grid%n2,1:grid%n3) > 0)
              array3d(:,:,:) = 0
           end where
-          array(fab%start_id:fab%start_id + fab%n_cells - 1) = reshape(array3d, (/fab%n_cells/))
+          array(grid%start_id:grid%start_id + grid%n_cells - 1) = reshape(array3d, (/grid%n_cells/))
        end do
     end do
 
@@ -154,11 +154,11 @@ contains
     character(len=*), intent(in) :: path
     @T, intent(in) :: array(:,:)
     type(grid_geometry_desc),intent(in),target :: geo
-    integer(hid_t) :: g_level, g_fab
+    integer(hid_t) :: g_level, g_grid
     character(len=100) :: name
-    integer :: ilevel, ifab
+    integer :: ilevel, igrid
     type(level_desc), pointer :: level
-    type(fab_desc), pointer :: fab
+    type(grid_desc), pointer :: grid
 
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
@@ -168,17 +168,17 @@ contains
        else
           g_level = mp_create_group(group, name)
        end if
-       do ifab=1,size(level%fabs)
-          fab => level%fabs(ifab)
-          write(name, '("Fab ", I0)') ifab
+       do igrid=1,size(level%grids)
+          grid => level%grids(igrid)
+          write(name, '("Grid ", I0)') igrid
           if(mp_path_exists(g_level, name)) then
-             g_fab = mp_open_group(g_level, name)
+             g_grid = mp_open_group(g_level, name)
           else
-             g_fab = mp_create_group(g_level, name)
+             g_grid = mp_create_group(g_level, name)
           end if
-          call mp_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1, :), &
-               &                                     (/fab%n1, fab%n2, fab%n3, size(array,2)/)))
-          call mp_close_group(g_fab)
+          call mp_write_array(g_grid, path, reshape(array(grid%start_id:grid%start_id + grid%n_cells - 1, :), &
+               &                                     (/grid%n1, grid%n2, grid%n3, size(array,2)/)))
+          call mp_close_group(g_grid)
        end do
        call mp_close_group(g_level)
 
@@ -194,11 +194,11 @@ contains
     character(len=*), intent(in) :: path
     @T, intent(in) :: array(:)
     type(grid_geometry_desc),intent(in),target :: geo
-    integer(hid_t) :: g_level, g_fab
+    integer(hid_t) :: g_level, g_grid
     character(len=100) :: name
-    integer :: ilevel, ifab
+    integer :: ilevel, igrid
     type(level_desc), pointer :: level
-    type(fab_desc), pointer :: fab
+    type(grid_desc), pointer :: grid
 
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
@@ -208,16 +208,16 @@ contains
        else
           g_level = mp_create_group(group, name)
        end if
-       do ifab=1,size(level%fabs)
-          fab => level%fabs(ifab)
-          write(name, '("Fab ", I0)') ifab
+       do igrid=1,size(level%grids)
+          grid => level%grids(igrid)
+          write(name, '("Grid ", I0)') igrid
           if(mp_path_exists(g_level, name)) then
-             g_fab = mp_open_group(g_level, name)
+             g_grid = mp_open_group(g_level, name)
           else
-             g_fab = mp_create_group(g_level, name)
+             g_grid = mp_create_group(g_level, name)
           end if
-          call mp_write_array(g_fab, path, reshape(array(fab%start_id:fab%start_id + fab%n_cells - 1), (/fab%n1, fab%n2, fab%n3/)))
-          call mp_close_group(g_fab)
+          call mp_write_array(g_grid, path, reshape(array(grid%start_id:grid%start_id + grid%n_cells - 1), (/grid%n1, grid%n2, grid%n3/)))
+          call mp_close_group(g_grid)
        end do
        call mp_close_group(g_level)
 

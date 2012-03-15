@@ -24,7 +24,7 @@ class Grid(object):
         self.zmin, self.zmax = None, None
 
 
-class Fab(object):
+class Grid(object):
 
     def __init__(self):
         self.imin, self.imax, self.itype = None, None, None
@@ -40,7 +40,7 @@ class Fab(object):
         if verbose:
             logger.info("Reading %s" % filename)
 
-        fabsize = self.nx * self.ny * self.nz
+        gridsize = self.nx * self.ny * self.nz
 
         f = open(filename, 'rb')
         f.seek(offset)
@@ -74,8 +74,8 @@ class Fab(object):
 
         pos = f.tell()
 
-        f.seek(pos + quantity_index * n_bytes * fabsize)
-        array = np.fromstring(f.read()[:n_bytes * fabsize],
+        f.seek(pos + quantity_index * n_bytes * gridsize)
+        array = np.fromstring(f.read()[:n_bytes * gridsize],
                               dtype='%sf%i' % (endian, n_bytes))
         self.data = array.reshape(self.nz, self.ny, self.nx)
 
@@ -95,8 +95,8 @@ class Level(object):
         # The grids
         self.grids = []
 
-        # The fabs
-        self.fabs = []
+        # The grids
+        self.grids = []
 
 
 class AMR(object):
@@ -177,19 +177,19 @@ class AMR(object):
         # Loop through levels
         for level in self.levels[:max_level]:
 
-            level_num, nfabs, creation_time = f.readline().strip().split()
+            level_num, ngrids, creation_time = f.readline().strip().split()
             level.number = int(level_num)
-            nfabs = int(nfabs)
+            ngrids = int(ngrids)
 
             # Initialize grids
-            level.fabs = [Fab() for ifab in range(nfabs)]
+            level.grids = [Grid() for igrid in range(ngrids)]
 
             levelsteps = int(f.readline().strip())
 
-            for fab in level.fabs:
-                fab.xmin, fab.xmax = [float(x) for x in f.readline().split()]
-                fab.ymin, fab.ymax = [float(y) for y in f.readline().split()]
-                fab.zmin, fab.zmax = [float(z) for z in f.readline().split()]
+            for grid in level.grids:
+                grid.xmin, grid.xmax = [float(x) for x in f.readline().split()]
+                grid.ymin, grid.ymax = [float(y) for y in f.readline().split()]
+                grid.zmin, grid.zmax = [float(z) for z in f.readline().split()]
 
             n_quantities_check = 0
             nfiles = 0
@@ -203,38 +203,38 @@ class AMR(object):
             fh.readline()
             fh.readline()
 
-            # Read the number of components in multifab files
-            nfabcomp = int(fh.readline())
+            # Read the number of components in multigrid files
+            ngridcomp = int(fh.readline())
 
-            if nfabcomp != n_quantities:
-                raise Exception("Only some of the components included in multifab file")
+            if ngridcomp != n_quantities:
+                raise Exception("Only some of the components included in multigrid file")
 
             fh.readline()
 
             # Read the number of boxes
-            nfabs_check = int(fh.readline().strip()[1:].split()[0])
+            ngrids_check = int(fh.readline().strip()[1:].split()[0])
 
-            if nfabs_check != nfabs:
-                raise Exception("Number of fabs in multifab file does not match known number")
+            if ngrids_check != ngrids:
+                raise Exception("Number of grids in multigrid file does not match known number")
 
-            # Loop through the fabs
-            for fab in level.fabs:
+            # Loop through the grids
+            for grid in level.grids:
                 values = parse_multi_tuple(fh.readline())
-                fab.imin, fab.jmin, fab.kmin = values[0]
-                fab.imax, fab.jmax, fab.kmax = values[1]
-                fab.itype, fab.jtype, fab.ktype = values[2]
-                fab.nx = fab.imax - fab.imin + 1
-                fab.ny = fab.jmax - fab.jmin + 1
-                fab.nz = fab.kmax - fab.kmin + 1
+                grid.imin, grid.jmin, grid.kmin = values[0]
+                grid.imax, grid.jmax, grid.kmax = values[1]
+                grid.itype, grid.jtype, grid.ktype = values[2]
+                grid.nx = grid.imax - grid.imin + 1
+                grid.ny = grid.jmax - grid.jmin + 1
+                grid.nz = grid.kmax - grid.kmin + 1
 
             fh.readline()
             fh.readline()
 
-            for fab in level.fabs:
+            for grid in level.grids:
                 string = fh.readline().split(':')[1]
                 filename = "%s/Level_%i/%s" % (dirname, level.number, string.split()[0].strip())
                 offset = int(string.split()[1])
-                fab.read_data(filename, offset, quantity_index, verbose=verbose)
+                grid.read_data(filename, offset, quantity_index, verbose=verbose)
 
         # Throw away levels that aren't needed
         self.levels = self.levels[:max_level]

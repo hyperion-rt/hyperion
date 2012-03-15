@@ -9,21 +9,21 @@ AMR grids are specified by nested objects in the Python, with a layout described
 Programmatically
 ================
 
-The following example demonstrates how an AMR grid with 5 fabs and 10 levels per fab can be built programmatically from scratch::
+The following example demonstrates how an AMR grid with 5 grids and 10 levels can be built programmatically from scratch::
 
     amr = object()
     amr.levels = []
     for ilevel in range(5):
         level = object()
-        level.fabs = []
-        for ifab in range(10):
-            fab = object()
-            fab.xmin, fab.xmax = ..., ...
-            fab.ymin, fab.ymax = ..., ...
-            fab.zmin, fab.zmax = ..., ...
-            fab.nx, fab.ny, fab.nz = 32, 32, 32
-            fab.data = np.array(...) # should have shape (nx, ny, nz)
-            level.fabs.append(fab)
+        level.grids = []
+        for igrid in range(10):
+            grid = object()
+            grid.xmin, grid.xmax = ..., ...
+            grid.ymin, grid.ymax = ..., ...
+            grid.zmin, grid.zmax = ..., ...
+            grid.nx, grid.ny, grid.nz = 32, 32, 32
+            grid.data = np.array(...) # should have shape (nx, ny, nz)
+            level.grids.append(grid)
         amr.levels.append(level)
 
 From simulation output

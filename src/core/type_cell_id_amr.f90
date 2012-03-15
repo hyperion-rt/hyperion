@@ -11,7 +11,7 @@ module type_grid_cell
   type grid_cell
      integer :: ic         ! unique cell ID
      integer :: ilevel     ! level ID
-     integer :: ifab       ! grid ID
+     integer :: igrid       ! grid ID
      integer :: i1, i2, i3 ! position in grid
   end type grid_cell
 
@@ -29,8 +29,8 @@ module type_grid_cell
      module procedure new_grid_cell_5d
   end interface new_grid_cell
 
-  ! level, fab, and coordinates for each unique ID
-  integer,allocatable :: cell_ilevel(:), cell_ifab(:), cell_i1(:), cell_i2(:), cell_i3(:)
+  ! level, grid, and coordinates for each unique ID
+  integer,allocatable :: cell_ilevel(:), cell_igrid(:), cell_i1(:), cell_i2(:), cell_i3(:)
 
 contains
 
@@ -40,11 +40,11 @@ contains
 
     type(grid_geometry_desc),intent(in), target :: geo
     type(level_desc), pointer :: level
-    type(fab_desc), pointer :: fab
-    integer :: ic, i1, i2, i3, ilevel, ifab
+    type(grid_desc), pointer :: grid
+    integer :: ic, i1, i2, i3, ilevel, igrid
 
     allocate(cell_ilevel(geo%n_cells))
-    allocate(cell_ifab(geo%n_cells))
+    allocate(cell_igrid(geo%n_cells))
     allocate(cell_i1(geo%n_cells))
     allocate(cell_i2(geo%n_cells))
     allocate(cell_i3(geo%n_cells))
@@ -52,14 +52,14 @@ contains
     ic = 0
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
-       do ifab=1,size(level%fabs)
-          fab => level%fabs(ifab)
-          do i3=1,fab%n3
-             do i2=1,fab%n2
-                do i1=1,fab%n1
+       do igrid=1,size(level%grids)
+          grid => level%grids(igrid)
+          do i3=1,grid%n3
+             do i2=1,grid%n2
+                do i1=1,grid%n1
                    ic = ic + 1
                    cell_ilevel(ic) = ilevel
-                   cell_ifab(ic) = ifab
+                   cell_igrid(ic) = igrid
                    cell_i1(ic) = i1
                    cell_i2(ic) = i2
                    cell_i3(ic) = i3
@@ -77,15 +77,15 @@ contains
     equal = a%ic == b%ic
   end function equal
 
-  type(grid_cell) function new_grid_cell_5d(i1, i2, i3, ilevel, ifab, geo) result(cell)
+  type(grid_cell) function new_grid_cell_5d(i1, i2, i3, ilevel, igrid, geo) result(cell)
     implicit none
-    integer,intent(in) :: i1, i2, i3, ilevel, ifab
+    integer,intent(in) :: i1, i2, i3, ilevel, igrid
     type(grid_geometry_desc),intent(in), target :: geo
-    type(fab_desc),pointer :: fab
-    fab => geo%levels(ilevel)%fabs(ifab)
-    cell%ic = (fab%start_id-1) + (i3-1)*fab%n1*fab%n2 + (i2-1)*fab%n1 + i1
+    type(grid_desc),pointer :: grid
+    grid => geo%levels(ilevel)%grids(igrid)
+    cell%ic = (grid%start_id-1) + (i3-1)*grid%n1*grid%n2 + (i2-1)*grid%n1 + i1
     cell%ilevel = ilevel
-    cell%ifab = ifab
+    cell%igrid = igrid
     cell%i1 = i1
     cell%i2 = i2
     cell%i3 = i3
@@ -97,7 +97,7 @@ contains
     type(grid_geometry_desc),intent(in) :: geo
     cell%ic = ic
     cell%ilevel = cell_ilevel(ic)
-    cell%ifab = cell_ifab(ic)
+    cell%igrid = cell_igrid(ic)
     cell%i1 = cell_i1(ic)
     cell%i2 = cell_i2(ic)
     cell%i3 = cell_i3(ic)
