@@ -698,6 +698,7 @@ class ModelOutput(FreezableClass):
             array.
         '''
 
+        # Set default units
         if units is None:
             if distance is None:
                 units = 'ergs/s'
@@ -775,7 +776,7 @@ class ModelOutput(FreezableClass):
             numin = g['seds'].attrs['numin']
             numax = g['seds'].attrs['numax']
             wavmin, wavmax = c / numax * 1.e4, c / numin * 1.e4
-            wav = np.logspace(np.log10(wavmax), np.log10(wavmin), g['seds'].shape[4] * 2 + 1)[1::2]
+            wav = np.logspace(np.log10(wavmax), np.log10(wavmin), g['seds'].shape[-1] * 2 + 1)[1::2]
             nu = c / wav * 1.e4
         else:
             nu = g['frequencies']['nu']
@@ -826,14 +827,13 @@ class ModelOutput(FreezableClass):
         if uncertainties and unc.dtype == np.float32:
             unc = unc.astype(np.float64)
 
-        # If a stokes component is requested, scale the SED. Frequency is
-        # the third dimension. We might be able to make the following code
-        # simpler by making it the last dimension.
+        # If a stokes component is requested, scale the images. Frequency is
+        # the last dimension, so this compact notation can be used.
 
         if stokes in STOKESD:
-            flux *= scale[np.newaxis, np.newaxis, np.newaxis, np.newaxis, :]
+            flux *= scale
             if uncertainties:
-                unc *= scale[np.newaxis, np.newaxis, np.newaxis, np.newaxis, :]
+                unc *= scale
 
         # We now slice the SED array to end up with what the user requested.
         # Note that we slice from the last to the first dimension to ensure that
@@ -1064,7 +1064,7 @@ class ModelOutput(FreezableClass):
 
     def get_image(self, stokes='I', group=1, technique='peeled',
                   distance=None, component='total', inclination='all',
-                  uncertainties=False, units='ergs/cm^2/s',
+                  uncertainties=False, units=None,
                   source_id=None, dust_id=None):
         '''
         Retrieve images for a specific image group and Stokes component
@@ -1159,6 +1159,13 @@ class ModelOutput(FreezableClass):
             array.
         '''
 
+        # Set default units
+        if units is None:
+            if distance is None:
+                units = 'ergs/s'
+            else:
+                units = 'ergs/cm^2/s'
+
         # Check argument types
         if type(stokes) is not str:
             raise ValueError("stokes argument should be a string")
@@ -1166,10 +1173,6 @@ class ModelOutput(FreezableClass):
         # Check for inconsistent parameters
         if distance is not None and stokes in ['linpol', 'circpol']:
             raise Exception("Cannot scale linear or circular polarization degree by distance")
-
-        # Check that file exists
-        if not os.path.exists('%s.rtout' % self.name):
-            raise Exception("File not found %s.rtout" % self.name)
 
         if technique == 'peeled':
             g = self.file['Peeled/Group %05i' % group]
@@ -1234,7 +1237,7 @@ class ModelOutput(FreezableClass):
             numin = g['images'].attrs['numin']
             numax = g['images'].attrs['numax']
             wavmin, wavmax = c / numax * 1.e4, c / numin * 1.e4
-            wav = np.logspace(np.log10(wavmax), np.log10(wavmin), g['images'].shape[3] * 2 + 1)[1::2]
+            wav = np.logspace(np.log10(wavmax), np.log10(wavmin), g['images'].shape[-1] * 2 + 1)[1::2]
             nu = c / wav * 1.e4
         else:
             nu = g['frequencies']['nu']
@@ -1309,13 +1312,12 @@ class ModelOutput(FreezableClass):
             unc = unc.astype(np.float64)
 
         # If a stokes component is requested, scale the images. Frequency is
-        # the third dimension. We might be able to make the following code
-        # simpler by making it the last dimension.
+        # the last dimension, so this compact notation can be used.
 
         if stokes in STOKESD:
-            flux *= scale[np.newaxis, np.newaxis, np.newaxis, :, np.newaxis, np.newaxis]
+            flux *= scale
             if uncertainties:
-                unc *= scale[np.newaxis, np.newaxis, np.newaxis, :, np.newaxis, np.newaxis]
+                unc *= scale
 
         # We now slice the image array to end up with what the user requested.
         # Note that we slice from the last to the first dimension to ensure that

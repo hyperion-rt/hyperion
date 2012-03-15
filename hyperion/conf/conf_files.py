@@ -830,7 +830,7 @@ class PeeledImageConf(ImageConf):
             self._write_inside_observer(group)
             if self.viewing_angles == []:
                 self.set_viewing_angles([90.], [0.])
-            if self.xmin < self.xmax:
+            if self.image and self.xmin < self.xmax:
                 raise ValueError("longitudes should increase towards the left for inside observers")
 
         elif len(self.viewing_angles) > 0:

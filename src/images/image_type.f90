@@ -244,10 +244,10 @@ contains
     ! Allocate arrays
 
     if(img%compute_image) then
-       allocate(img%img(img%n_x,img%n_y,img%n_nu,img%n_view,img%n_orig))
+       allocate(img%img(img%n_nu,img%n_x,img%n_y,img%n_view,img%n_orig))
        if(img%uncertainties) then
-          allocate(img%img2(img%n_x,img%n_y,img%n_nu,img%n_view,img%n_orig))
-          allocate(img%imgn(img%n_x,img%n_y,img%n_nu,img%n_view,img%n_orig))
+          allocate(img%img2(img%n_nu,img%n_x,img%n_y,img%n_view,img%n_orig))
+          allocate(img%imgn(img%n_nu,img%n_x,img%n_y,img%n_view,img%n_orig))
        end if
     end if
 
@@ -412,10 +412,10 @@ contains
           call find_image_bin(img,x_image,y_image,ix,iy)
           if(ix >= 1 .and. ix <= img%n_x) then
              if(iy >= 1 .and. iy <= img%n_y) then
-                img%img(ix,iy,inu,im,io) = img%img(ix,iy,inu,im,io) + p%s * p%energy
+                img%img(inu,ix,iy,im,io) = img%img(inu,ix,iy,im,io) + p%s * p%energy
                 if(img%uncertainties) then
-                   img%img2(ix,iy,inu,im,io) = img%img2(ix,iy,inu,im,io) + p%s**2._dp * p%energy**2._dp
-                   img%imgn(ix,iy,inu,im,io) = img%imgn(ix,iy,inu,im,io) + 1._dp
+                   img%img2(inu,ix,iy,im,io) = img%img2(inu,ix,iy,im,io) + p%s**2._dp * p%energy**2._dp
+                   img%imgn(inu,ix,iy,im,io) = img%imgn(inu,ix,iy,im,io) + 1._dp
                 end if
              end if
           end if
@@ -499,10 +499,10 @@ contains
        if(ix >= 1 .and. ix <= img%n_x) then
           if(iy >= 1 .and. iy <= img%n_y) then
              do iw=1,img%n_nu
-                img%img(ix,iy,iw,im,io)%i = img%img(ix,iy,iw,im,io)%i + img%tmp_spectrum(iw)
+                img%img(iw,ix,iy,im,io)%i = img%img(iw,ix,iy,im,io)%i + img%tmp_spectrum(iw)
                 if(img%uncertainties) then
-                   img%img2(ix,iy,iw,im,io)%i = img%img2(ix,iy,iw,im,io)%i + img%tmp_spectrum(iw)**2._dp
-                   img%imgn(ix,iy,iw,im,io) = img%imgn(ix,iy,iw,im,io) + 1._dp
+                   img%img2(iw,ix,iy,im,io)%i = img%img2(iw,ix,iy,im,io)%i + img%tmp_spectrum(iw)**2._dp
+                   img%imgn(iw,ix,iy,im,io) = img%imgn(iw,ix,iy,im,io) + 1._dp
                 end if
              end do
           end if
@@ -617,8 +617,8 @@ contains
 
        write(*,'(" [image_write] writing out images")')
 
-       allocate(cube6d(img%n_x, img%n_y, img%n_nu, img%n_view, img%n_orig, 4))
-       if(img%uncertainties) allocate(cube6de(img%n_x, img%n_y, img%n_nu, img%n_view, img%n_orig, 4))
+       allocate(cube6d(img%n_nu, img%n_x, img%n_y, img%n_view, img%n_orig, 4))
+       if(img%uncertainties) allocate(cube6de(img%n_nu, img%n_x, img%n_y, img%n_view, img%n_orig, 4))
 
        cube6d(:,:,:,:,:,1) = img%img%i
        cube6d(:,:,:,:,:,2) = img%img%q
@@ -644,8 +644,8 @@ contains
           if(img%uncertainties) cube6de = cube6de / dnunorm
        else
           do inu=1,img%n_nu
-             cube6d(:,:,inu,:,:,:) = cube6d(:,:,inu,:,:,:) * img%nu(inu)
-             if(img%uncertainties) cube6de(:,:,inu,:,:,:) = cube6de(:,:,inu,:,:,:) * img%nu(inu)
+             cube6d(inu,:,:,:,:,:) = cube6d(inu,:,:,:,:,:) * img%nu(inu)
+             if(img%uncertainties) cube6de(inu,:,:,:,:,:) = cube6de(inu,:,:,:,:,:) * img%nu(inu)
           end do
        end if
 
