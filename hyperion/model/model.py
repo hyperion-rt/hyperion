@@ -216,7 +216,7 @@ class Model(FreezableClass):
             group.create_dataset('Frequencies', data=np.array(zip(self._frequencies), dtype=[('nu', dtype)]), compression=compression)
 
     def write(self, filename=None, compression=True, copy=True,
-              absolute_paths=False, geo_dtype=float, wall_dtype=float,
+              absolute_paths=False, wall_dtype=float,
               physics_dtype=float):
         '''
         Write the model input parameters to an HDF5 file
@@ -235,9 +235,6 @@ class Model(FreezableClass):
             If copy=False, then if absolute_paths is True, absolute filenames
             are used in the link, otherwise the path relative to the input
             file is used.
-        geo_dtype: type
-            Numerical type to use for geometrical quantities (volumes, areas,
-            widths).
         wall_dtype: type
             Numerical type to use for wall positions.
         physics_dtype: type
@@ -316,7 +313,7 @@ class Model(FreezableClass):
 
             # Output density grid
             self.grid.write_physical_array(g_physics, self.density,
-                                           "Density", dust=True,
+                                           "Density",
                                            compression=compression,
                                            physics_dtype=physics_dtype)
 
@@ -328,7 +325,7 @@ class Model(FreezableClass):
 
                 if type(self.specific_energy) is list:
 
-                    self.grid.write_physical_array(g_physics, self.specific_energy, "Specific Energy", dust=True, compression=compression, physics_dtype=physics_dtype)
+                    self.grid.write_physical_array(g_physics, self.specific_energy, "Specific Energy", compression=compression, physics_dtype=physics_dtype)
 
                 elif isinstance(self.specific_energy, basestring):
 
@@ -405,7 +402,7 @@ class Model(FreezableClass):
 
         # Output geometry
         self.grid.write_geometry(g_geometry, \
-                                 compression=compression, geo_dtype=geo_dtype, wall_dtype=wall_dtype)
+                                 compression=compression, wall_dtype=wall_dtype)
 
         root.close()
 

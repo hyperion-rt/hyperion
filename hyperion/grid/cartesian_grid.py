@@ -6,7 +6,38 @@ from hyperion.util.functions import FreezableClass, is_numpy_array, monotonicall
 
 class CartesianGrid(FreezableClass):
 
-    def __init__(self, x_wall, y_wall, z_wall):
+    def __init__(self, *args):
+
+        self.nx = None
+        self.ny = None
+        self.nz = None
+
+        self.shape = None
+
+        self.x_wall = None
+        self.y_wall = None
+        self.z_wall = None
+
+        self.x = None
+        self.y = None
+        self.z = None
+
+        self.gx = None
+        self.gy = None
+        self.gz = None
+
+        self.volumes = None
+        self.areas = None
+        self.widths = None
+
+        self.geometry_id = None
+
+        self._freeze()
+
+        if len(args) > 0:
+            self.set(*args)
+
+    def set(self, x_wall, y_wall, z_wall):
 
         if type(x_wall) in [list, tuple]:
             x_wall = np.array(x_wall)
@@ -51,17 +82,16 @@ class CartesianGrid(FreezableClass):
         self.gx, self.gy, self.gz = meshgrid_nd(self.x, self.y, self.z)
 
         # Generate 3D versions of the inner and outer wall positions respectively
-        self.gx_wall_min, self.gy_wall_min, self.gz_wall_min = \
+        gx_wall_min, gy_wall_min, gz_wall_min = \
                     meshgrid_nd(x_wall[:-1], y_wall[:-1], z_wall[:-1])
-
-        self.gx_wall_max, self.gy_wall_max, self.gz_wall_max = \
+        gx_wall_max, gy_wall_max, gz_wall_max = \
                     meshgrid_nd(x_wall[1:], y_wall[1:], z_wall[1:])
 
         # USEFUL QUANTITIES
 
-        dx = (self.gx_wall_max - self.gx_wall_min)
-        dy = (self.gy_wall_max - self.gy_wall_min)
-        dz = (self.gz_wall_max - self.gz_wall_min)
+        dx = gx_wall_max - gx_wall_min
+        dy = gy_wall_max - gy_wall_min
+        dz = gz_wall_max - gz_wall_min
 
         # CELL VOLUMES
 
@@ -102,32 +132,91 @@ class CartesianGrid(FreezableClass):
 
         self.widths[2, :, :, :] = dz
 
-        self.geometry_id = None
+    def write_physical_array(self, group, array, name, compression=True,
+                             physics_dtype=float):
+        '''
+        Write out a physical quantity defined on a cartesian grid
 
-        self._freeze()
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to write the array to
+        array: list of np.ndarray or np.ndarray
+            The physical quantity to write out. If specified as a list, then
+            it is assumed to an array that is defined for different dust
+            types.
+        name: str
+            The name of the physical array
+        compression: bool
+            Whether to compress the array in the HDF5 file
+        physics_dtype: type
+            The datatype to use to write the array
+        '''
 
-    def write_physical_array(self, group, array, name, dust=False, compression=True, physics_dtype=float):
+        if type(array) in [list, tuple]:
 
-        if dust:
+            # Check that dimensions are compatible
+            for item in array:
+                if item.shape != self.shape:
+                    raise ValueError("Grids in list do not have the right "
+                                     "dimensions: %s instead of %s"
+                                     % (item.shape, self.shape))
+
+            # Convert list of 3D arrays to a single 4D array
             shape = list(self.shape)
             shape.insert(0, len(array))
             array = np.vstack(array).reshape(*shape)
-        dset = group.create_dataset(name, data=array, compression=compression, dtype=physics_dtype)
+
+        elif type(array) == np.ndarray:
+
+            if array.shape != self.shape:
+                raise ValueError("Grid does not have the right "
+                                 "dimensions: %s instead of %s"
+                                 % (array.shape, self.shape))
+
+        else:
+
+            raise ValueError("array should be a list or a Numpy array")
+
+        dset = group.create_dataset(name, data=array,
+                                    compression=compression,
+                                    dtype=physics_dtype)
+
         dset.attrs['geometry'] = self.geometry_id
 
-    def write_geometry(self, group, overwrite=True, volumes=False, areas=False, widths=False, compression=True, geo_dtype=float, wall_dtype=float):
+    def read_geometry(self, group):
+        '''
+        Read in a cartesian grid
 
-        group.attrs['geometry'] = self.geometry_id
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to read the grid from
+        '''
+
+        if group.attrs['grid_type'] != 'car':
+            raise ValueError("Grid is not cartesian")
+
+        self.geometry_id = group.attrs['geometry']
+
+        self.set(group['Walls 1'], group['Walls 2'], group['Walls 3'])
+
+    def write_geometry(self, group, compression=True, wall_dtype=float):
+        '''
+        Write out the cartesian grid
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to write the grid to
+        compression: bool
+            Whether to compress the arrays in the HDF5 file
+        wall_dtype: type
+            The datatype to use to write the wall positions
+        '''
+
         group.attrs['grid_type'] = 'car'
-
-        if volumes:
-            dset = group.create_dataset("Volumes", data=self.volumes, compression=compression, dtype=geo_dtype)
-
-        if areas:
-            dset = group.create_dataset("Areas", data=self.areas, compression=compression, dtype=geo_dtype)
-
-        if widths:
-            dset = group.create_dataset("Widths", data=self.widths, compression=compression, dtype=geo_dtype)
+        group.attrs['geometry'] = self.geometry_id
 
         dset = group.create_dataset("Walls 1", data=np.array(zip(self.x_wall), dtype=[('x', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'

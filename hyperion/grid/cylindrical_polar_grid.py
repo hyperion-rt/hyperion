@@ -6,7 +6,38 @@ from hyperion.util.functions import FreezableClass, is_numpy_array, monotonicall
 
 class CylindricalPolarGrid(FreezableClass):
 
-    def __init__(self, w_wall, z_wall, p_wall):
+    def __init__(self, *args):
+
+        self.nw = None
+        self.nz = None
+        self.np = None
+
+        self.shape = None
+
+        self.w_wall = None
+        self.z_wall = None
+        self.p_wall = None
+
+        self.w = None
+        self.z = None
+        self.p = None
+
+        self.gw = None
+        self.gz = None
+        self.gp = None
+
+        self.volumes = None
+        self.areas = None
+        self.widths = None
+
+        self.geometry_id = None
+
+        self._freeze()
+
+        if len(args) > 0:
+            self.set(*args)
+
+    def set(self, w_wall, z_wall, p_wall):
 
         if type(w_wall) in [list, tuple]:
             w_wall = np.array(w_wall)
@@ -53,18 +84,18 @@ class CylindricalPolarGrid(FreezableClass):
         self.gw, self.gz, self.gp = meshgrid_nd(self.w, self.z, self.p)
 
         # Generate 3D versions of the inner and outer wall positions respectively
-        self.gw_wall_min, self.gz_wall_min, self.gp_wall_min = \
+        gw_wall_min, gz_wall_min, gp_wall_min = \
                     meshgrid_nd(w_wall[:-1], z_wall[:-1], p_wall[:-1])
 
-        self.gw_wall_max, self.gz_wall_max, self.gp_wall_max = \
+        gw_wall_max, gz_wall_max, gp_wall_max = \
                     meshgrid_nd(w_wall[1:], z_wall[1:], p_wall[1:])
 
         # USEFUL QUANTITIES
 
-        dr = self.gw_wall_max - self.gw_wall_min
-        dr2 = (self.gw_wall_max ** 2 - self.gw_wall_min ** 2)
-        dz = self.gz_wall_max - self.gz_wall_min
-        dp = self.gp_wall_max - self.gp_wall_min
+        dr = gw_wall_max - gw_wall_min
+        dr2 = gw_wall_max ** 2 - gw_wall_min ** 2
+        dz = gz_wall_max - gz_wall_min
+        dp = gp_wall_max - gp_wall_min
 
         # CELL VOLUMES
 
@@ -81,8 +112,8 @@ class CylindricalPolarGrid(FreezableClass):
         #   dA = r * dz * dphi
         #    A = r * [z 2 - z_1] * [phi_2 - phi_1]
 
-        self.areas[0, :, :, :] = self.gw_wall_min * dz * dp
-        self.areas[1, :, :, :] = self.gw_wall_max * dz * dp
+        self.areas[0, :, :, :] = gw_wall_min * dz * dp
+        self.areas[1, :, :, :] = gw_wall_max * dz * dp
 
         # z walls:
         #   dA = r * dr * dphi
@@ -124,34 +155,97 @@ class CylindricalPolarGrid(FreezableClass):
 
         self._freeze()
 
-    def write_physical_array(self, group, array, name, dust=False, compression=True, physics_dtype=float):
+    def write_physical_array(self, group, array, name, compression=True,
+                             physics_dtype=float):
+        '''
+        Write out a physical quantity defined on a cylindrical polar grid
 
-        if dust:
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to write the array to
+        array: list of np.ndarray or np.ndarray
+            The physical quantity to write out. If specified as a list, then
+            it is assumed to an array that is defined for different dust
+            types.
+        name: str
+            The name of the physical array
+        compression: bool
+            Whether to compress the array in the HDF5 file
+        physics_dtype: type
+            The datatype to use to write the array
+        '''
+
+        if type(array) in [list, tuple]:
+
+            # Check that dimensions are compatible
+            for item in array:
+                if item.shape != self.shape:
+                    raise ValueError("Grids in list do not have the right "
+                                     "dimensions: %s instead of %s"
+                                     % (item.shape, self.shape))
+
+            # Convert list of 3D arrays to a single 4D array
             shape = list(self.shape)
             shape.insert(0, len(array))
             array = np.vstack(array).reshape(*shape)
-        dset = group.create_dataset(name, data=array, compression=compression, dtype=physics_dtype)
+
+        elif type(array) == np.ndarray:
+
+            if array.shape != self.shape:
+                raise ValueError("Grid does not have the right "
+                                 "dimensions: %s instead of %s"
+                                 % (array.shape, self.shape))
+
+        else:
+
+            raise ValueError("array should be a list or a Numpy array")
+
+        dset = group.create_dataset(name, data=array,
+                                    compression=compression,
+                                    dtype=physics_dtype)
+
         dset.attrs['geometry'] = self.geometry_id
 
-    def write_geometry(self, group, overwrite=True, volumes=False, areas=False, widths=False, compression=True, geo_dtype=float, wall_dtype=float):
+    def read_geometry(self, group):
+        '''
+        Read in a cylindrical polar grid
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to read the grid from
+        '''
+
+        if group.attrs['grid_type'] != 'cyl_pol':
+            raise ValueError("Grid is not cylindrical polar")
+
+        self.geometry_id = group.attrs['geometry']
+
+        self.set(group['Walls 1'], group['Walls 2'], group['Walls 3'])
+
+    def write_geometry(self, group, compression=True, wall_dtype=float):
+        '''
+        Write out the cylindrical polar grid
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to write the grid to
+        compression: bool
+            Whether to compress the arrays in the HDF5 file
+        wall_dtype: type
+            The datatype to use to write the wall positions
+        '''
 
         group.attrs['geometry'] = self.geometry_id
         group.attrs['grid_type'] = 'cyl_pol'
-
-        if volumes:
-            dset = group.create_dataset("Volumes", data=self.volumes, compression=compression, dtype=geo_dtype)
-
-        if areas:
-            dset = group.create_dataset("Areas", data=self.areas, compression=compression, dtype=geo_dtype)
-
-        if widths:
-            dset = group.create_dataset("Widths", data=self.widths, compression=compression, dtype=geo_dtype)
 
         dset = group.create_dataset("Walls 1", data=np.array(zip(self.w_wall), dtype=[('w', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
         dset = group.create_dataset("Walls 2", data=np.array(zip(self.z_wall), dtype=[('z', wall_dtype)]), compression=compression)
-        dset.attrs['Unit'] = 'cm'
+        dset.attrs['Unit'] = 'rad'
 
         dset = group.create_dataset("Walls 3", data=np.array(zip(self.p_wall), dtype=[('p', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'rad'

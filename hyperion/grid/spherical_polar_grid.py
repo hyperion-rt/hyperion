@@ -6,7 +6,41 @@ from hyperion.util.functions import FreezableClass, is_numpy_array, monotonicall
 
 class SphericalPolarGrid(FreezableClass):
 
-    def __init__(self, r_wall, t_wall, p_wall):
+    def __init__(self, *args):
+
+        self.nr = None
+        self.nt = None
+        self.np = None
+
+        self.shape = None
+
+        self.r_wall = None
+        self.t_wall = None
+        self.p_wall = None
+
+        self.r = None
+        self.t = None
+        self.p = None
+
+        self.gr = None
+        self.gt = None
+        self.gp = None
+
+        self.gw = None
+        self.gz = None
+
+        self.volumes = None
+        self.areas = None
+        self.widths = None
+
+        self.geometry_id = None
+
+        self._freeze()
+
+        if len(args) > 0:
+            self.set(*args)
+
+    def set(self, r_wall, t_wall, p_wall):
 
         if type(r_wall) in [list, tuple]:
             r_wall = np.array(r_wall)
@@ -57,20 +91,19 @@ class SphericalPolarGrid(FreezableClass):
         self.gw = self.gr * np.sin(self.gt)
 
         # Generate 3D versions of the inner and outer wall positions respectively
-        self.gr_wall_min, self.gt_wall_min, self.gp_wall_min = \
+        gr_wall_min, gt_wall_min, gp_wall_min = \
                     meshgrid_nd(r_wall[:-1], t_wall[:-1], p_wall[:-1])
-
-        self.gr_wall_max, self.gt_wall_max, self.gp_wall_max = \
+        gr_wall_max, gt_wall_max, gp_wall_max = \
                     meshgrid_nd(r_wall[1:], t_wall[1:], p_wall[1:])
 
         # USEFUL QUANTITIES
 
-        dr = (self.gr_wall_max - self.gr_wall_min)
-        dr2 = (self.gr_wall_max ** 2 - self.gr_wall_min ** 2)
-        dr3 = (self.gr_wall_max ** 3 - self.gr_wall_min ** 3)
-        dt = self.gt_wall_max - self.gt_wall_min
-        dcost = np.cos(self.gt_wall_min) - np.cos(self.gt_wall_max)
-        dp = (self.gp_wall_max - self.gp_wall_min)
+        dr = gr_wall_max - gr_wall_min
+        dr2 = gr_wall_max ** 2 - gr_wall_min ** 2
+        dr3 = gr_wall_max ** 3 - gr_wall_min ** 3
+        dt = gt_wall_max - gt_wall_min
+        dcost = np.cos(gt_wall_min) - np.cos(gt_wall_max)
+        dp = gp_wall_max - gp_wall_min
 
         # CELL VOLUMES
 
@@ -87,15 +120,15 @@ class SphericalPolarGrid(FreezableClass):
         #   dA = r^2 * sin(theta) * dtheta * dphi
         #    A = r^2 * [cos(theta_1) - cos(theta_2)] * [phi_2 - phi_1]
 
-        self.areas[0, :, :, :] = self.gr_wall_min ** 2 * dcost * dp
-        self.areas[1, :, :, :] = self.gr_wall_max ** 2 * dcost * dp
+        self.areas[0, :, :, :] = gr_wall_min ** 2 * dcost * dp
+        self.areas[1, :, :, :] = gr_wall_max ** 2 * dcost * dp
 
         # Theta walls:
         #   dA = r * sin(theta) * dr * dphi
         #    A = 0.5 * [r_2^2 - r_1^2] * sin(theta) * [phi_2 - phi_1]
 
-        self.areas[2, :, :, :] = 0.5 * dr2 * np.sin(self.gt_wall_min) * dp
-        self.areas[3, :, :, :] = 0.5 * dr2 * np.sin(self.gt_wall_max) * dp
+        self.areas[2, :, :, :] = 0.5 * dr2 * np.sin(gt_wall_min) * dp
+        self.areas[3, :, :, :] = 0.5 * dr2 * np.sin(gt_wall_max) * dp
 
         # Phi walls:
         #   dA = r * dr * dtheta
@@ -126,32 +159,91 @@ class SphericalPolarGrid(FreezableClass):
 
         self.widths[2, :, :, :] = self.gr * np.sin(self.gt) * dp
 
-        self.geometry_id = None
+    def write_physical_array(self, group, array, name, compression=True,
+                             physics_dtype=float):
+        '''
+        Write out a physical quantity defined on a spherical polar grid
 
-        self._freeze()
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to write the array to
+        array: list of np.ndarray or np.ndarray
+            The physical quantity to write out. If specified as a list, then
+            it is assumed to an array that is defined for different dust
+            types.
+        name: str
+            The name of the physical array
+        compression: bool
+            Whether to compress the array in the HDF5 file
+        physics_dtype: type
+            The datatype to use to write the array
+        '''
 
-    def write_physical_array(self, group, array, name, dust=False, compression=True, physics_dtype=float):
+        if type(array) in [list, tuple]:
 
-        if dust:
+            # Check that dimensions are compatible
+            for item in array:
+                if item.shape != self.shape:
+                    raise ValueError("Grids in list do not have the right "
+                                     "dimensions: %s instead of %s"
+                                     % (item.shape, self.shape))
+
+            # Convert list of 3D arrays to a single 4D array
             shape = list(self.shape)
             shape.insert(0, len(array))
             array = np.vstack(array).reshape(*shape)
-        dset = group.create_dataset(name, data=array, compression=compression, dtype=physics_dtype)
+
+        elif type(array) == np.ndarray:
+
+            if array.shape != self.shape:
+                raise ValueError("Grid does not have the right "
+                                 "dimensions: %s instead of %s"
+                                 % (array.shape, self.shape))
+
+        else:
+
+            raise ValueError("array should be a list or a Numpy array")
+
+        dset = group.create_dataset(name, data=array,
+                                    compression=compression,
+                                    dtype=physics_dtype)
+
         dset.attrs['geometry'] = self.geometry_id
 
-    def write_geometry(self, group, overwrite=True, volumes=False, areas=False, widths=False, compression=True, geo_dtype=float, wall_dtype=float):
+    def read_geometry(self, group):
+        '''
+        Read in a spherical polar grid
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to read the grid from
+        '''
+
+        if group.attrs['grid_type'] != 'sph_pol':
+            raise ValueError("Grid is not spherical polar")
+
+        self.geometry_id = group.attrs['geometry']
+
+        self.set(group['Walls 1'], group['Walls 2'], group['Walls 3'])
+
+    def write_geometry(self, group, compression=True, wall_dtype=float):
+        '''
+        Write out the spherical polar grid
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to write the grid to
+        compression: bool
+            Whether to compress the arrays in the HDF5 file
+        wall_dtype: type
+            The datatype to use to write the wall positions
+        '''
 
         group.attrs['geometry'] = self.geometry_id
         group.attrs['grid_type'] = 'sph_pol'
-
-        if volumes:
-            dset = group.create_dataset("Volumes", data=self.volumes, compression=compression, dtype=geo_dtype)
-
-        if areas:
-            dset = group.create_dataset("Areas", data=self.areas, compression=compression, dtype=geo_dtype)
-
-        if widths:
-            dset = group.create_dataset("Widths", data=self.widths, compression=compression, dtype=geo_dtype)
 
         dset = group.create_dataset("Walls 1", data=np.array(zip(self.r_wall), dtype=[('r', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
