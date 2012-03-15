@@ -35,9 +35,9 @@ class CartesianGrid(FreezableClass):
         self._freeze()
 
         if len(args) > 0:
-            self.set(*args)
+            self.set_walls(*args)
 
-    def set(self, x_wall, y_wall, z_wall):
+    def set_walls(self, x_wall, y_wall, z_wall):
 
         if type(x_wall) in [list, tuple]:
             x_wall = np.array(x_wall)

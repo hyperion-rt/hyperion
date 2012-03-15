@@ -35,9 +35,9 @@ class CylindricalPolarGrid(FreezableClass):
         self._freeze()
 
         if len(args) > 0:
-            self.set(*args)
+            self.set_walls(*args)
 
-    def set(self, w_wall, z_wall, p_wall):
+    def set_walls(self, w_wall, z_wall, p_wall):
 
         if type(w_wall) in [list, tuple]:
             w_wall = np.array(w_wall)

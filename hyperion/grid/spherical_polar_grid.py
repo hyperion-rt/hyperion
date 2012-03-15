@@ -38,9 +38,9 @@ class SphericalPolarGrid(FreezableClass):
         self._freeze()
 
         if len(args) > 0:
-            self.set(*args)
+            self.set_walls(*args)
 
-    def set(self, r_wall, t_wall, p_wall):
+    def set_walls(self, r_wall, t_wall, p_wall):
 
         if type(r_wall) in [list, tuple]:
             r_wall = np.array(r_wall)
