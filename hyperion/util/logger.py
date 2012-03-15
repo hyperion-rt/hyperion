@@ -40,7 +40,7 @@ def add_coloring_to_emit_ansi(fn):
 
 # Initialize logger
 logging.basicConfig(format="%(levelname)s: %(message)s", level=level)
-logger = logging.getLogger()
+logger = logging.getLogger('hyperion')
 
 if color:
     f = logging.Formatter("%(levelname)s: %(message)s")
