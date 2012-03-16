@@ -21,18 +21,29 @@ def integrate_subset(x, y, xmin, xmax):
     # Swap limits if necessary
     if xmin > xmax:
         xmin, xmax = xmax, xmin
+    elif xmin == xmax:
+        return 0.
 
-    # Find the subset of points to use
-    i1 = np.searchsorted(x, xmin)
-    i2 = np.searchsorted(x, xmax) - 1
+    # Find the subset of points to use and the value of the function at the
+    # end-points of the integration
 
-    # Find value of the function at the end-points of the integration
-    ymin = interp1d_fast(x[i1-1:i1+1], y[i1-1:i1+1], xmin)
-    ymax = interp1d_fast(x[i2:i2+2], y[i2:i2+2], xmax)
+    if xmin == x[0]:
+        i1 = 1
+        ymin = y[0]
+    else:
+        i1 = np.searchsorted(x, xmin)
+        ymin = interp1d_fast(x[i1-1:i1+1], y[i1-1:i1+1], xmin)
+
+    if xmax == x[-1]:
+        i2 = -2
+        ymax = y[-1]
+    else:
+        i2 = np.searchsorted(x, xmax)
+        ymax = interp1d_fast(x[i2-1:i2+1], y[i2-1:i2+1], xmax)
 
     # Construct sub-arrays of the relevant data
-    x = np.hstack([xmin, x[i1:i2+1], xmax])
-    y = np.hstack([ymin, y[i1:i2+1], ymax])
+    x = np.hstack([xmin, x[i1:i2], xmax])
+    y = np.hstack([ymin, y[i1:i2], ymax])
 
     # Call function to integrate the whole subset
     return integrate(x, y)
@@ -54,18 +65,29 @@ def integrate_loglin_subset(x, y, xmin, xmax):
     # Swap limits if necessary
     if xmin > xmax:
         xmin, xmax = xmax, xmin
+    elif xmin == xmax:
+        return 0.
 
-    # Find the subset of points to use
-    i1 = np.searchsorted(x, xmin)
-    i2 = np.searchsorted(x, xmax) - 1
+    # Find the subset of points to use and the value of the function at the
+    # end-points of the integration
 
-    # Find value of the function at the end-points of the integration
-    ymin = interp1d_fast_loglin(x[i1-1:i1+1], y[i1-1:i1+1], xmin)
-    ymax = interp1d_fast_loglin(x[i2:i2+2], y[i2:i2+2], xmax)
+    if xmin == x[0]:
+        i1 = 1
+        ymin = y[0]
+    else:
+        i1 = np.searchsorted(x, xmin)
+        ymin = interp1d_fast_loglin(x[i1-1:i1+1], y[i1-1:i1+1], xmin)
+
+    if xmax == x[-1]:
+        i2 = -2
+        ymax = y[-1]
+    else:
+        i2 = np.searchsorted(x, xmax)
+        ymax = interp1d_fast_loglin(x[i2-1:i2+1], y[i2-1:i2+1], xmax)
 
     # Construct sub-arrays of the relevant data
-    x = np.hstack([xmin, x[i1:i2+1], xmax])
-    y = np.hstack([ymin, y[i1:i2+1], ymax])
+    x = np.hstack([xmin, x[i1:i2], xmax])
+    y = np.hstack([ymin, y[i1:i2], ymax])
 
     # Call function to integrate the whole subset
     return integrate_loglin(x, y)
@@ -87,18 +109,29 @@ def integrate_linlog_subset(x, y, xmin, xmax):
     # Swap limits if necessary
     if xmin > xmax:
         xmin, xmax = xmax, xmin
+    elif xmin == xmax:
+        return 0.
 
-    # Find the subset of points to use
-    i1 = np.searchsorted(x, xmin)
-    i2 = np.searchsorted(x, xmax) - 1
+    # Find the subset of points to use and the value of the function at the
+    # end-points of the integration
 
-    # Find value of the function at the end-points of the integration
-    ymin = interp1d_fast_linlog(x[i1-1:i1+1], y[i1-1:i1+1], xmin)
-    ymax = interp1d_fast_linlog(x[i2:i2+2], y[i2:i2+2], xmax)
+    if xmin == x[0]:
+        i1 = 1
+        ymin = y[0]
+    else:
+        i1 = np.searchsorted(x, xmin)
+        ymin = interp1d_fast_linlog(x[i1-1:i1+1], y[i1-1:i1+1], xmin)
+
+    if xmax == x[-1]:
+        i2 = -2
+        ymax = y[-1]
+    else:
+        i2 = np.searchsorted(x, xmax)
+        ymax = interp1d_fast_linlog(x[i2-1:i2+1], y[i2-1:i2+1], xmax)
 
     # Construct sub-arrays of the relevant data
-    x = np.hstack([xmin, x[i1:i2+1], xmax])
-    y = np.hstack([ymin, y[i1:i2+1], ymax])
+    x = np.hstack([xmin, x[i1:i2], xmax])
+    y = np.hstack([ymin, y[i1:i2], ymax])
 
     # Call function to integrate the whole subset
     return integrate_linlog(x, y)
@@ -119,18 +152,29 @@ def integrate_loglog_subset(x, y, xmin, xmax):
     # Swap limits if necessary
     if xmin > xmax:
         xmin, xmax = xmax, xmin
+    elif xmin == xmax:
+        return 0.
 
-    # Find the subset of points to use
-    i1 = np.searchsorted(x, xmin)
-    i2 = np.searchsorted(x, xmax) - 1
+    # Find the subset of points to use and the value of the function at the
+    # end-points of the integration
 
-    # Find value of the function at the end-points of the integration
-    ymin = interp1d_fast_loglog(x[i1-1:i1+1], y[i1-1:i1+1], xmin)
-    ymax = interp1d_fast_loglog(x[i2:i2+2], y[i2:i2+2], xmax)
+    if xmin == x[0]:
+        i1 = 1
+        ymin = y[0]
+    else:
+        i1 = np.searchsorted(x, xmin)
+        ymin = interp1d_fast_loglog(x[i1-1:i1+1], y[i1-1:i1+1], xmin)
+
+    if xmax == x[-1]:
+        i2 = -2
+        ymax = y[-1]
+    else:
+        i2 = np.searchsorted(x, xmax)
+        ymax = interp1d_fast_loglog(x[i2-1:i2+1], y[i2-1:i2+1], xmax)
 
     # Construct sub-arrays of the relevant data
-    x = np.hstack([xmin, x[i1:i2+1], xmax])
-    y = np.hstack([ymin, y[i1:i2+1], ymax])
+    x = np.hstack([xmin, x[i1:i2], xmax])
+    y = np.hstack([ymin, y[i1:i2], ymax])
 
     # Call function to integrate the whole subset
     return integrate_loglog(x, y)
