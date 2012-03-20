@@ -352,7 +352,7 @@ contains
     if(make_binned_images) then
 
        allocate(cube4d(binned_image%n_nu,binned_image%n_ap,binned_image%n_view,binned_image%n_orig))
-       allocate(cube5d(binned_image%n_x,binned_image%n_y,binned_image%n_nu,binned_image%n_view,binned_image%n_orig))
+       allocate(cube5d(binned_image%n_nu,binned_image%n_x,binned_image%n_y,binned_image%n_view,binned_image%n_orig))
 
        if(binned_image%compute_sed) then
 
@@ -404,7 +404,7 @@ contains
        do ip=1,n_groups
 
           allocate(cube4d(peeled_image(ip)%n_nu,peeled_image(ip)%n_ap,peeled_image(ip)%n_view,peeled_image(ip)%n_orig))
-          allocate(cube5d(peeled_image(ip)%n_x,peeled_image(ip)%n_y,peeled_image(ip)%n_nu,peeled_image(ip)%n_view,peeled_image(ip)%n_orig))
+          allocate(cube5d(peeled_image(ip)%n_nu,peeled_image(ip)%n_x,peeled_image(ip)%n_y,peeled_image(ip)%n_view,peeled_image(ip)%n_orig))
 
           if(peeled_image(ip)%compute_sed) then
 
