@@ -12,10 +12,12 @@ module mpi_hdf5_io
   integer :: ierr
 
   public :: mp_set_compression
+  public :: mp_test_version
   public :: mp_open_new
   public :: mp_open_read
   public :: mp_open_write
   public :: mp_close
+  public :: mp_finalize
   public :: mp_create_external_link
   public :: mp_path_exists
   public :: mp_open_group
@@ -136,6 +138,13 @@ contains
     if(main_process()) call hdf5_set_compression(compression)
   end subroutine mp_set_compression
 
+  logical function mp_test_version(major, minor, release) result(test)
+    implicit none
+    integer,intent(in) :: major, minor, release
+    if(main_process()) test = hdf5_test_version(major, minor, release)
+    call mpi_bcast(test, 1, mpi_logical, rank_main, mpi_comm_world, ierr)
+  end function mp_test_version
+
   integer(hid_t) function mp_open_new(filename, confirm) result(handle)
     implicit none
     character(len=*),intent(in) :: filename
@@ -172,6 +181,11 @@ contains
     integer(hid_t),intent(in) :: handle
     if(main_process()) call hdf5_close(handle)
   end subroutine mp_close
+
+  subroutine mp_finalize()
+    implicit none
+    if(main_process()) call hdf5_finalize()
+  end subroutine mp_finalize
 
   subroutine mp_create_external_link(handle, path, filename, object)
     implicit none

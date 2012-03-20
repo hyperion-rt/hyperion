@@ -1,4 +1,4 @@
-! MD5 of template: 6350b97734d073b8c7b6f308a2cd958e
+! MD5 of template: aaf3fd4ae68c1556a0ea47b490321b92
 module grid_io
 
   use core_lib

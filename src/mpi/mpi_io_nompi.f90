@@ -1,10 +1,12 @@
 module mpi_hdf5_io
 
   use core_lib, only : mp_set_compression => hdf5_set_compression, &
+       &               mp_test_version => hdf5_test_version, &
        &               mp_open_new => hdf5_open_new, &
        &               mp_open_read => hdf5_open_read, &
        &               mp_open_write => hdf5_open_write, &
        &               mp_close => hdf5_close, &
+       &               mp_finalize => hdf5_finalize, &
        &               mp_create_external_link => hdf5_create_external_link, &
        &               mp_path_exists => hdf5_path_exists, &
        &               mp_open_group => hdf5_open_group, &
@@ -26,10 +28,12 @@ module mpi_hdf5_io
 
   private
   public :: mp_set_compression
+  public :: mp_test_version
   public :: mp_open_new
   public :: mp_open_read
   public :: mp_open_write
   public :: mp_close
+  public :: mp_finalize
   public :: mp_create_external_link
   public :: mp_path_exists
   public :: mp_open_group
