@@ -59,7 +59,7 @@ class SphericalDust(FreezableClass):
 
         # Check that emissivities are set (before computing mean opacities)
         if not self.emissivities.set:
-            logger.warn("Computing emissivities assuming LTE")
+            logger.info("Computing emissivities assuming LTE")
             self.emissivities.set_lte(self.optical_properties)
 
         # Compute mean opacities if not already existent
@@ -157,7 +157,7 @@ class SphericalDust(FreezableClass):
 
         # Check that emissivities are set (before computing mean opacities)
         if not self.emissivities.set:
-            logger.warn("Computing emissivities assuming LTE")
+            logger.info("Computing emissivities assuming LTE")
             self.emissivities.set_lte(self.optical_properties)
 
         # Compute mean opacities if not already existent

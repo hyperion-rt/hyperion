@@ -501,7 +501,7 @@ class Model(FreezableClass):
 
                     # Merge the densities
                     if merge:
-                        logger.warn("Merging densities")
+                        logger.info("Merging densities")
                         self.density[ip] += density
                         return
 
