@@ -62,10 +62,10 @@ else:
 
         # Check whether mpirun or mpiexec are available
         for dir in os.environ['PATH'].split(':'):
-            if os.path.exists(dir + '/mpirun'):
+            if os.path.exists(os.path.join(dir, 'mpirun')):
                 mpi_command = 'mpirun'
                 break
-            if os.path.exists(dir + '/mpiexec'):
+            if os.path.exists(os.path.join(dir, 'mpiexec')):
                 mpi_command = 'mpiexec'
                 break
 
