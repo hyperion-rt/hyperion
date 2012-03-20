@@ -68,6 +68,15 @@ program main
 
   ! Include the input in the output file
   call mp_read_keyword(handle_in, '/', 'copy_input', copy_input)
+
+  ! Add HDF5 version check - copy requires a recent version of HDF5 because
+  ! writing tables with uneven field names (which we need) was buggy before
+  ! that version.
+  if(copy_input.and..not.mp_test_version(1, 8, 6)) then
+      if(main_process()) call warn("main","copy_input option requires HDF5 1.8.6 or later, linking input")
+      copy_input = .false.
+  end if
+
   if(copy_input) then
      g_input = mp_create_group(handle_out, '/Input')
      call mp_copy_group(handle_in, '/', g_input, '.')
@@ -254,6 +263,9 @@ program main
 
   ! Close output file
   call mp_close(handle_out)
+
+  ! Finalize HDF5
+  call mp_finalize()
 
   ! Stop multi-processing
   call mp_stop()
