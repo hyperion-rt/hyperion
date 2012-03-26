@@ -38,9 +38,11 @@ for filename in arguments:
             for ig in range(n_groups):
                 group = f['Peeled/Group %05i' % (ig + 1)]
                 if 'images' in group:
-                    image = group['images']
+                    image = np.array(group['images'])
+                    image = image.swapaxes(-1, -2)
+                    image = image.swapaxes(-2, -3)
                     pyfits.writeto(filename.replace('.rtout', '_%05i_images.fits' % (ig + 1)),
-                                   np.array(image), clobber=True)
+                                   image, clobber=True)
         else:
             print "No peeled images in %s" % filename
 
