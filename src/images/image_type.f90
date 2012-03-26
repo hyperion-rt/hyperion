@@ -540,15 +540,37 @@ contains
 
     real(dp) :: dnunorm
 
-    dnunorm = (10._dp**(img%log10_nu_max-img%log10_nu_min))**(1._dp/dble(img%n_nu)) - 1._dp
+    ! The factor for SED normalization is derived in the following way:
+    !
+    ! Given n_nu equal bins in log10 space from nu_min to nu_max, the center
+    ! of the bins is given by:
+    !
+    ! log10[nu(j)] = [log10(nu_max) - log10(nu_min)] * (j - 0.5) / n_nu
+    !
+    ! Thus:
+    !
+    ! nu(j) = (nu_max / nu_min) ** ((j - 0.5) / n_nu)
+    !
+    ! Therefore, the width of bins is given by
+    !
+    ! dnu(j) = nu(j + 0.5) - nu(j - 0.5)
+    ! dnu(j) = (nu_max / nu_min) ** (j / n_nu)
+    !        - (nu_max / nu_min) ** ((j - 1) / n_nu)
+    !
+    ! The SED normalization is done by converting F_nu * dnu to nu * Fnu, i.e.
+    ! dividing by dnu(j) and multiplying by nu(j), i.e. dividing by dnunorm
+    ! where:
+    !
+    ! dnunorm = dnu(j) / nu(j)
+    ! dnunorm = (nu_max / nu_min) ** (+0.5 / n_nu)
+    !         - (nu_max / nu_min) ** (-0.5 / n_nu)
+
+    dnunorm = (img%nu_max / img%nu_min) ** (+0.5_dp / real(img%n_nu, dp)) &
+            - (img%nu_max / img%nu_min) ** (-0.5_dp / real(img%n_nu, dp))
 
     if(img%compute_sed) then
 
        write(*,'(" [image_write] writing out SEDs")')
-
-       ! Barb's equation for normalization - waiting for Jon's reply
-       ! norm = (10.**img%nu_max/10.**img%nu_min)**(+0.5d0/dble(img%n_nu)) &
-       ! &    - (10.**img%nu_max/10.**img%nu_min)**(-0.5d0/dble(img%n_nu))
 
        allocate(cube5d(img%n_nu, img%n_ap, img%n_view,img%n_orig,4))
        if(img%uncertainties) allocate(cube5de(img%n_nu, img%n_ap, img%n_view,img%n_orig,4))
