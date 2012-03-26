@@ -217,7 +217,7 @@ class Model(FreezableClass):
 
     def write(self, filename=None, compression=True, copy=True,
               absolute_paths=False, wall_dtype=float,
-              physics_dtype=float):
+              physics_dtype=float, overwrite=True):
         '''
         Write the model input parameters to an HDF5 file
 
@@ -239,6 +239,8 @@ class Model(FreezableClass):
             Numerical type to use for wall positions.
         physics_dtype: type
             Numerical type to use for physical grids.
+        overwrite: bool
+            Whether to overwrite any pre-existing file
         '''
 
         # If no filename has been specified, use the model name to construct
@@ -249,6 +251,10 @@ class Model(FreezableClass):
             else:
                 raise ValueError("filename= has not been specified and model "
                                  "has no name")
+
+        # Remove previous file if it exists
+        if overwrite and os.path.exists(filename):
+            os.remove(filename)
 
         # Check that grid has been set up
         if self.grid is None:
@@ -545,7 +551,7 @@ class Model(FreezableClass):
             self.binned_output = BinnedImageConf(**kwargs)
             return self.binned_output
 
-    def run(self, filename=None, logfile=None, mpi=False, n_cores=multiprocessing.cpu_count()):
+    def run(self, filename=None, logfile=None, mpi=False, n_cores=multiprocessing.cpu_count(), overwrite=False):
 
         if self.filename is None:
             raise ValueError("Input file does not exist - write() needs to be called before run()")
@@ -563,6 +569,9 @@ class Model(FreezableClass):
                 output_file = self.filename + '.rtout'
         else:
             output_file = filename
+
+        if overwrite and os.path.exists(output_file):
+            os.remove(output_file)
 
         if logfile:
             flog = file(logfile, 'wb')
