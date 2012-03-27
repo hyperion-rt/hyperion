@@ -1,7 +1,10 @@
+import hashlib
+
+import h5py
 import numpy as np
 
 from hyperion.util.meshgrid import meshgrid_nd
-from hyperion.util.functions import FreezableClass, is_numpy_array, monotonically_increasing
+from hyperion.util.functions import FreezableClass, is_numpy_array, monotonically_increasing, link_or_copy
 
 
 class CylindricalPolarGrid(FreezableClass):
@@ -30,7 +33,7 @@ class CylindricalPolarGrid(FreezableClass):
         self.areas = None
         self.widths = None
 
-        self.geometry_id = None
+        self.quantities = {}
 
         self._freeze()
 
@@ -151,37 +154,14 @@ class CylindricalPolarGrid(FreezableClass):
 
         self.widths[2, :, :, :] = self.gw * dp
 
-        self.geometry_id = None
-
-        self._freeze()
-
-    def write_physical_array(self, group, array, name, compression=True,
-                             physics_dtype=float):
-        '''
-        Write out a physical quantity defined on a cylindrical polar grid
-
-        Parameters
-        ----------
-        group: h5py.Group
-            The HDF5 group to write the array to
-        array: list of np.ndarray or np.ndarray
-            The physical quantity to write out. If specified as a list, then
-            it is assumed to an array that is defined for different dust
-            types.
-        name: str
-            The name of the physical array
-        compression: bool
-            Whether to compress the array in the HDF5 file
-        physics_dtype: type
-            The datatype to use to write the array
-        '''
+    def _check_array_dimensions(self, array):
 
         if type(array) in [list, tuple]:
 
             # Check that dimensions are compatible
             for item in array:
                 if item.shape != self.shape:
-                    raise ValueError("Grids in list do not have the right "
+                    raise ValueError("Arrays in list do not have the right "
                                      "dimensions: %s instead of %s"
                                      % (item.shape, self.shape))
 
@@ -193,21 +173,15 @@ class CylindricalPolarGrid(FreezableClass):
         elif type(array) == np.ndarray:
 
             if array.shape != self.shape:
-                raise ValueError("Grid does not have the right "
+                raise ValueError("Array does not have the right "
                                  "dimensions: %s instead of %s"
                                  % (array.shape, self.shape))
 
         else:
 
-            raise ValueError("array should be a list or a Numpy array")
+            raise ValueError("Array should be a list or a Numpy array")
 
-        dset = group.create_dataset(name, data=array,
-                                    compression=compression,
-                                    dtype=physics_dtype)
-
-        dset.attrs['geometry'] = self.geometry_id
-
-    def read_geometry(self, group):
+    def read(self, group, quantities='all'):
         '''
         Read in a cylindrical polar grid
 
@@ -215,16 +189,34 @@ class CylindricalPolarGrid(FreezableClass):
         ----------
         group: h5py.Group
             The HDF5 group to read the grid from
+        quantities: 'all' or list
+            Which physical quantities to read in. Use 'all' to read in all
+            quantities or a list of strings to read only specific quantities.
         '''
 
-        if group.attrs['grid_type'] != 'cyl_pol':
+        # Extract HDF5 groups for geometry and physics
+
+        g_geometry = group['Geometry']
+        g_physics = group['Physics']
+
+        # Read in geometry
+
+        if g_geometry.attrs['grid_type'] != 'cyl_pol':
             raise ValueError("Grid is not cylindrical polar")
 
-        self.geometry_id = group.attrs['geometry']
+        self.set(g_geometry['Walls 1'], g_geometry['Walls 2'], g_geometry['Walls 3'])
 
-        self.set(group['Walls 1'], group['Walls 2'], group['Walls 3'])
+        # Check that advertised hash matches real hash
+        if g_geometry.attrs['geometry'] != self.get_geometry_id():
+            raise Exception("Calculated geometry hash does not match hash in file")
 
-    def write_geometry(self, group, compression=True, wall_dtype=float):
+        # Read in physical quantities
+
+        for quantity in g_physics:
+            if quantities == 'all' or quantity in quantities:
+                self.quantities[quantity] = np.array(g_physics[quantity].array)
+
+    def write(self, group, quantities='all', copy=True, absolute_paths=False, compression=True, wall_dtype=float, physics_dtype=float):
         '''
         Write out the cylindrical polar grid
 
@@ -232,20 +224,60 @@ class CylindricalPolarGrid(FreezableClass):
         ----------
         group: h5py.Group
             The HDF5 group to write the grid to
+        quantities: 'all' or list
+            Which physical quantities to write out. Use 'all' to write out all
+            quantities or a list of strings to write only specific quantities.
         compression: bool
             Whether to compress the arrays in the HDF5 file
         wall_dtype: type
             The datatype to use to write the wall positions
+        physics_dtype: type
+            The datatype to use to write the physical quantities
         '''
 
-        group.attrs['geometry'] = self.geometry_id
-        group.attrs['grid_type'] = 'cyl_pol'
+        # Create HDF5 groups if needed
 
-        dset = group.create_dataset("Walls 1", data=np.array(zip(self.w_wall), dtype=[('w', wall_dtype)]), compression=compression)
+        if 'Geometry' not in group:
+            g_geometry = group.create_group('Geometry')
+        else:
+            g_geometry = group['Geometry']
+
+        if 'Physics' not in group:
+            g_physics = group.create_group('Physics')
+        else:
+            g_physics = group['Physics']
+
+        # Write out geometry
+
+        g_geometry.attrs['grid_type'] = 'cyl_pol'
+        g_geometry.attrs['geometry'] = self.get_geometry_id()
+
+        dset = g_geometry.create_dataset("Walls 1", data=np.array(zip(self.w_wall), dtype=[('w', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
-        dset = group.create_dataset("Walls 2", data=np.array(zip(self.z_wall), dtype=[('z', wall_dtype)]), compression=compression)
-        dset.attrs['Unit'] = 'rad'
+        dset = g_geometry.create_dataset("Walls 2", data=np.array(zip(self.z_wall), dtype=[('z', wall_dtype)]), compression=compression)
+        dset.attrs['Unit'] = 'cm'
 
-        dset = group.create_dataset("Walls 3", data=np.array(zip(self.p_wall), dtype=[('p', wall_dtype)]), compression=compression)
-        dset.attrs['Unit'] = 'rad'
+        dset = g_geometry.create_dataset("Walls 3", data=np.array(zip(self.p_wall), dtype=[('p', wall_dtype)]), compression=compression)
+        dset.attrs['Unit'] = 'cm'
+
+        # Write out physical quantities
+
+        for quantity in self.quantities:
+            if quantities == 'all' or quantity in quantities:
+                if isinstance(self.quantities[quantity], h5py.ExternalLink):
+                    link_or_copy(g_physics, quantity, self.quantities[quantity], copy, absolute_paths=absolute_paths)
+                else:
+                    self._check_array_dimensions(self.quantities[quantity])
+                    dset = g_physics.create_dataset(quantity, data=self.quantities[quantity],
+                                                    compression=compression,
+                                                    dtype=physics_dtype)
+                    dset.attrs['geometry'] = self.get_geometry_id()
+
+
+    def get_geometry_id(self):
+        geo_hash = hashlib.md5()
+        geo_hash.update(self.w_wall)
+        geo_hash.update(self.z_wall)
+        geo_hash.update(self.p_wall)
+        return geo_hash.hexdigest()
