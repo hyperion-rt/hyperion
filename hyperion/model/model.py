@@ -526,19 +526,22 @@ class Model(FreezableClass):
             self.minimum_specific_energy.append(0.)
 
     def set_cartesian_grid(self, x_wall, y_wall, z_wall):
-        self.grid = CartesianGrid(x_wall, y_wall, z_wall)
+        self.set_grid(CartesianGrid(x_wall, y_wall, z_wall))
 
     def set_cylindrical_polar_grid(self, w_wall, z_wall, p_wall):
-        self.grid = CylindricalPolarGrid(w_wall, z_wall, p_wall)
+        self.set_grid(CylindricalPolarGrid(w_wall, z_wall, p_wall))
 
     def set_spherical_polar_grid(self, r_wall, t_wall, p_wall):
-        self.grid = SphericalPolarGrid(r_wall, t_wall, p_wall)
+        self.set_grid(SphericalPolarGrid(r_wall, t_wall, p_wall))
 
     def set_octree_grid(self, refined, x, y, z, dx, dy, dz):
-        self.grid = OcTreeGrid(refined, x, y, z, dx, dy, dz)
+        self.set_grid(OcTreeGrid(refined, x, y, z, dx, dy, dz))
 
     def set_amr_grid(self, description):
-        self.grid = AMRGrid(description)
+        self.set_grid(AMRGrid(description))
+
+    def set_grid(self, grid):
+        self.grid = grid
 
     def add_peeled_images(self, **kwargs):
         self.peeled_output.append(PeeledImageConf(**kwargs))
