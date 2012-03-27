@@ -8,12 +8,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import hyperion
-from hyperion.util.functions import delete_file, random_id
+from hyperion.util.functions import delete_file
 from hyperion.grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OcTreeGrid, AMRGrid
 from hyperion.sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource
 from hyperion.conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from hyperion.util.constants import c, pi
-from hyperion.util.functions import FreezableClass
+from hyperion.util.functions import FreezableClass, link_or_copy
 from hyperion.dust import SphericalDust
 from hyperion.util.logger import logger
 
@@ -127,10 +127,9 @@ class Model(FreezableClass):
 
         self.name = name
 
-        self.reset_density()
+        self.reset_dust()
         self.reset_sources()
         self.reset_images()
-        self.specific_energy = None
         self.minimum_specific_energy = []
         self.set_monochromatic(False)
 
@@ -155,9 +154,8 @@ class Model(FreezableClass):
 
         self._freeze()
 
-    def reset_density(self):
-        self.density = []
-        self.dust = []
+    def reset_dust(self):
+        self.dust = None
 
     def reset_sources(self):
         self.sources = []
@@ -214,6 +212,64 @@ class Model(FreezableClass):
         group.attrs['monochromatic'] = bool2str(self._monochromatic)
         if self._monochromatic:
             group.create_dataset('Frequencies', data=np.array(zip(self._frequencies), dtype=[('nu', dtype)]), compression=compression)
+
+    def use_quantities(self, filename, quantities='all', use_dust=True):
+        '''
+        Use physical quantities from an existing output file
+
+        Parameters
+        ----------
+        filename: str
+            The file to read the quantities from. This should be the output
+            file of a radiation transfer run.
+        quantities: 'all' or list
+            Which physical quantities to read in. Use 'all' to read in all
+            quantities or a list of strings to read only specific quantities.
+        copy: bool
+            Whether to copy the quantities into the new input file, or whether
+            to just link to them.
+        use_dust: bool
+            Whether to also use the dust properties from the file specified
+        '''
+
+        # Open existing file
+        f = h5py.File(filename, 'r')
+
+        # Find last iteration
+        max_iteration = find_last_iteration(f)
+
+        logger.info("Retrieving quantities from iteration %i of %s" % (max_iteration, filename))
+
+        # Find path to file for link. For now, use absolute links.
+        # In Model.write() we can always replace the links with
+        # relative links if desired.
+        file_path = os.path.abspath(filename)
+
+        # Loop over quantities
+        for quantity in ['density', 'specific_energy']:
+
+            if quantities == 'all' or quantity in quantities:
+
+                # Set the path to the quantity
+                if quantity in ['density', 'minimum_specific_energy']:
+                    array_path = '/Input/Grid/Physics/%s' % quantity
+                else:
+                    array_path = '/Iteration %05i/specific_energy' % max_iteration
+
+                logger.info("Using %s from %s" % (quantity, filename))
+
+                # Add quantity to grid
+                self.grid.quantities[quantity] = h5py.ExternalLink(file_path, array_path)
+
+        # Minimum specific energy
+        array_path = '/Input/Grid/Physics/minimum_specific_energy'
+        logger.info("Using minimum_specific_energy from %s" % filename)
+        self.minimum_specific_energy = h5py.ExternalLink(file_path, array_path)
+
+        # Dust properties
+        if use_dust:
+            logger.info("Using dust properties from %s" % filename)
+            self.dust = h5py.ExternalLink(file_path, '/Input/Dust')
 
     def write(self, filename=None, compression=True, copy=True,
               absolute_paths=False, wall_dtype=float,
@@ -276,17 +332,11 @@ class Model(FreezableClass):
         root.attrs['python_version'] = hyperion.__version__
 
         # Create all the necessary groups and sub-groups
-        g_dust = root.create_group('Dust')
         g_grid = root.create_group('Grid')
-        g_geometry = g_grid.create_group('Geometry')
-        g_physics = g_grid.create_group('Physics')
         g_sources = root.create_group('Sources')
         g_output = root.create_group('Output')
         g_peeled = g_output.create_group('Peeled')
         g_binned = g_output.create_group('Binned')
-
-        # Generate random geometry ID
-        self.grid.geometry_id = random_id()
 
         # Output sources
         for i, source in enumerate(self.sources):
@@ -314,101 +364,73 @@ class Model(FreezableClass):
         self.conf.run.write(root)
         self.conf.output.write(g_output)
 
-        # Output grid(s)
-        if len(self.density) > 0:
+        if 'density' in self.grid.quantities:
 
-            # Output density grid
-            self.grid.write_physical_array(g_physics, self.density,
-                                           "Density",
-                                           compression=compression,
-                                           physics_dtype=physics_dtype)
+            # Check if dust types are specified for each
+            if self.dust is None:
+                raise Exception("No dust properties specified")
 
-            # Output minimum specific energy
-            g_physics.create_dataset("Minimum Specific Energy", data=self.minimum_specific_energy)
+            # Write the geometry and physical quantity arrays to the input file
+            self.grid.write(g_grid, copy=copy, absolute_paths=absolute_paths, compression=compression, physics_dtype=physics_dtype)
 
-            # Output specific energy grid
-            if self.specific_energy is not None:
+            # Write minimum specific energy
+            if isinstance(self.minimum_specific_energy, h5py.ExternalLink):
+                link_or_copy(g_grid['Physics'], 'minimum_specific_energy', self.minimum_specific_energy, copy, absolute_paths=absolute_paths)
+            else:
+                if len(self.minimum_specific_energy) != len(self.grid.quantities['density']):
+                    raise Exception("Number of minimum_specific_energy values should match number of dust types")
+                g_grid['Physics'].create_dataset("minimum_specific_energy", data=self.minimum_specific_energy)
 
-                if type(self.specific_energy) is list:
+            if isinstance(self.dust, h5py.ExternalLink):
 
-                    self.grid.write_physical_array(g_physics, self.specific_energy, "Specific Energy", compression=compression, physics_dtype=physics_dtype)
+                link_or_copy(root, 'Dust', self.dust, copy, absolute_paths=absolute_paths)
 
-                elif isinstance(self.specific_energy, basestring):
+            elif isinstance(self.dust, h5py.Group):
 
-                    # Open existing file
-                    f = h5py.File(self.specific_energy, 'r')
-                    max_iteration = find_last_iteration(f)
+                root.copy(self.dust, 'Dust')
+
+            elif type(self.dust) == list:
+
+                g_dust = root.create_group('Dust')
+
+                if len(self.grid.quantities['density']) != len(self.dust):
+                    raise Exception("Number of density grids should match number of dust types")
+
+                # Output dust file, avoiding writing the same dust file multiple times
+                present = {}
+                for i, dust in enumerate(self.dust):
+
+                    short_name = 'dust_%03i' % (i + 1)
 
                     if copy:
 
-                        logger.info("Copying specific_energy from iteration %i of %s" % (max_iteration, self.specific_energy))
+                        if type(dust) == str:
+                            dust = SphericalDust(dust)
 
-                        # Copy specific energy array
-                        specific_energy = f['Iteration %05i' % max_iteration]['specific_energy']
-
-                        # Check that shape is consistent with density
-                        if specific_energy.shape != g_physics['Density'].shape:
-                            raise Exception("Specific energy array is not the right dimensions")
-
-                        # Create new dataset in input file
-                        dset = g_physics.create_dataset('Specific Energy', data=specific_energy)
-                        dset.attrs['geometry'] = g_physics['Density'].attrs['geometry']
+                        if id(dust) in present:
+                            g_dust[short_name] = h5py.SoftLink(present[id(dust)])
+                        else:
+                            dust.write(g_dust.create_group(short_name))
+                            present[id(dust)] = short_name
 
                     else:
 
-                        logger.info("Linking to specific_energy from iteration %i of %s" % (max_iteration, self.specific_energy))
+                        if type(dust) != str:
+                            if dust.filename is None:
+                                raise ValueError("Dust properties are not located in a file, so cannot link. Use copy=True or write the dust properties to a file first")
+                            else:
+                                dust = dust.filename
 
-                        # Find path to file for link
                         if absolute_paths:
-                            path = os.path.abspath(self.specific_energy)
+                            path = os.path.abspath(dust)
                         else:
                             # Relative path should be relative to input file, not current directory.
-                            path = os.path.relpath(self.specific_energy, os.path.dirname(filename))
+                            path = os.path.relpath(dust, os.path.dirname(filename))
 
-                        # Create link
-                        g_physics['Specific Energy'] = h5py.ExternalLink(path, '/Iteration %05i/specific_energy' % max_iteration)
+                        g_dust[short_name] = h5py.ExternalLink(path, '/')
 
-                else:
-
-                    raise Exception("Unknown type %s for Model.specific_energy" % str(type(self.specific_energy)))
-
-            # Output dust file, avoiding writing the same dust file multiple
-            # times
-            present = {}
-            for i, dust in enumerate(self.dust):
-
-                short_name = 'dust_%03i' % (i + 1)
-
-                if copy:
-
-                    if type(dust) == str:
-                        dust = SphericalDust(dust)
-
-                    if id(dust) in present:
-                        g_dust[short_name] = h5py.SoftLink(present[id(dust)])
-                    else:
-                        dust.write(g_dust.create_group(short_name))
-                        present[id(dust)] = short_name
-
-                else:
-
-                    if type(dust) != str:
-                        if dust.filename is None:
-                            raise ValueError("Dust properties are not located in a file, so cannot link. Use copy=True or write the dust properties to a file first")
-                        else:
-                            dust = dust.filename
-
-                    if absolute_paths:
-                        path = os.path.abspath(dust)
-                    else:
-                        # Relative path should be relative to input file, not current directory.
-                        path = os.path.relpath(dust, os.path.dirname(filename))
-
-                    g_dust[short_name] = h5py.ExternalLink(path, '/')
-
-        # Output geometry
-        self.grid.write_geometry(g_geometry, \
-                                 compression=compression, wall_dtype=wall_dtype)
+            else:
+                raise ValueError("Unknown type for dust attribute: %s" % type(self.dust))
 
         root.close()
 
@@ -469,14 +491,16 @@ class Model(FreezableClass):
             return
 
         # Check consistency between density list size and specific energy list size
-        if len(self.density) > 0:
-            if specific_energy is not None and type(self.specific_energy) is not list:
+        if 'density' in self.grid.quantities:
+            if specific_energy is not None and 'specific_energy' not in self.grid.quantities:
                 raise Exception("Cannot add specific energy as it was not added for previous density arrays")
-            if specific_energy is None and type(self.specific_energy) is list:
+            if specific_energy is None and 'specific_energy' in self.grid.quantities:
                 raise Exception("Specific energy was added for previous density arrays, so should be added for all arrays")
         else:
+            self.dust = []
+            self.grid.quantities['density'] = []
             if specific_energy is not None:
-                self.specific_energy = []
+                self.grid.quantities['specific_energy'] = []
 
         if minimum_specific_energy is not None and minimum_temperature is not None:
             raise Exception("Cannot specify both the minimum specific energy and temperature")
@@ -490,7 +514,7 @@ class Model(FreezableClass):
             # Only consider this if the specific energy is not specified
             if specific_energy is None:
 
-                # Only do it if the dust type already exists
+                    # Only do it if the dust type already exists
                 if dust in self.dust:
 
                     ip = self.dust.index(dust)
@@ -512,12 +536,12 @@ class Model(FreezableClass):
                         return
 
         # Set the density and dust
-        self.density.append(density)
+        self.grid.quantities['density'].append(density)
         self.dust.append(dust)
 
         # Set specific energy if specified
         if specific_energy is not None:
-            self.specific_energy.append(specific_energy)
+            self.grid.quantities['specific_energy'].append(specific_energy)
 
         # Set minimum specific energy
         if minimum_specific_energy is not None:

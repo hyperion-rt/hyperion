@@ -104,7 +104,7 @@ contains
        if(main_process()) write(*,'(" [grid_physics] reading density grid")')
 
        ! Read in density
-       call read_grid_4d(group, 'Density', density, geo)
+       call read_grid_4d(group, 'density', density, geo)
 
        ! Check number of dust types for density
        if(size(density, 2).ne.n_dust) call error("setup_grid","density array has wrong number of dust types")
@@ -116,14 +116,14 @@ contains
        end if
 
        ! Read in minimum specific energy
-       call mp_read_array_auto(group, 'Minimum Specific Energy', minimum_specific_energy)
+       call mp_read_array_auto(group, 'minimum_specific_energy', minimum_specific_energy)
 
-       if(grid_exists(group, 'Specific Energy')) then
+       if(grid_exists(group, 'specific_energy')) then
 
           if(main_process()) write(*,'(" [grid_physics] reading specific_energy grid")')
 
           ! Read in specific_energy
-          call read_grid_4d(group, 'Specific Energy', specific_energy, geo)
+          call read_grid_4d(group, 'specific_energy', specific_energy, geo)
 
           ! Check number of dust types for specific_energy
           if(size(specific_energy, 2).ne.n_dust) call error("setup_grid","specific_energy array has wrong number of dust types")
