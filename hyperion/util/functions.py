@@ -5,11 +5,40 @@ import shutil
 import sys
 import tempfile
 
+import h5py
 import numpy as np
 
 from hyperion.util.constants import h, c, k
 
 TMPDIR = tempfile.mkdtemp()
+
+
+def link_or_copy(group, path, link, copy, absolute_paths=False):
+    '''
+    Link or copy a dataaset or group
+
+    Parameters
+    ----------
+    group: h5py.Group
+        The group to create the link, dataset, or group in
+    path: str
+        The path of the link, dataset, or group in the new file
+    link: h5py.ExternalLink
+        A link to the group or dataset to include
+    copy: bool
+        Whether to copy or link to the dataset
+    absolute_paths: bool
+        If copy=False, then if absolute_paths is True, absolute filenames
+        are used in the link, otherwise the path relative to the file is used.
+    '''
+    if copy:
+        group.copy(h5py.File(link.filename, 'r')[link.path], path)
+    else:
+        if absolute_paths:
+            group[path] = h5py.ExternalLink(os.path.abspath(link.filename), link.path)
+        else:
+            group[path] = h5py.ExternalLink(os.path.relpath(link.filename, os.path.dirname(group.file.filename)), link.path)
+
 
 class FreezableClass(object):
 
