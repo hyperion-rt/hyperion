@@ -1,7 +1,10 @@
+import hashlib
+
+import h5py
 import numpy as np
 
 from hyperion.util.meshgrid import meshgrid_nd
-from hyperion.util.functions import FreezableClass
+from hyperion.util.functions import FreezableClass, link_or_copy
 
 
 def zero_density(grid, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, zmin=np.inf, zmax=np.inf):
@@ -19,11 +22,72 @@ def zero_density(grid, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, zmi
     return grid
 
 
+class Grid(FreezableClass):
+
+    def __init__(self):
+
+        # The 3D data arrays (can have various components)
+        self.quantities = {}
+
+        # The boundaries of the 3D grid in real space
+        self.xmin, self.xmax = None, None
+        self.ymin, self.ymax = None, None
+        self.zmin, self.zmax = None, None
+
+        # The dimensions of the array
+        self.nx, self.ny, self.nz = None, None
+
+        self._freeze()
+
+    def _check_array_dimensions(self, array):
+
+        if type(array) in [list, tuple]:
+
+            # Check that dimensions are compatible
+            for item in array:
+                if item.shape != self.shape:
+                    raise ValueError("Arrays in list do not have the right "
+                                     "dimensions: %s instead of %s"
+                                     % (item.shape, self.shape))
+
+            # Convert list of 3D arrays to a single 4D array
+            shape = list(self.shape)
+            shape.insert(0, len(array))
+            array = np.vstack(array).reshape(*shape)
+
+        elif type(array) == np.ndarray:
+
+            if array.shape != self.shape:
+                raise ValueError("Array does not have the right "
+                                 "dimensions: %s instead of %s"
+                                 % (array.shape, self.shape))
+
+        else:
+
+            raise ValueError("Array should be a list or a Numpy array")
+
+    def __getattr__(self, attribute):
+        if attribute == 'shape':
+            return (self.nz, self.ny, self.nx)
+        else:
+            return FreezableClass.__getattr__(self, attribute)
+
+
+class Level(FreezableClass):
+
+    def __init__(self):
+
+        # The list of grids in the level
+        self.grids = []
+
+        self._freeze()
+
+
 class AMRGrid(FreezableClass):
 
-    def __init__(self, grid):
+    def __init__(self):
 
-        self.levels = grid.levels
+        self.levels = []
 
         self.geometry_id = None
 
@@ -33,57 +97,172 @@ class AMRGrid(FreezableClass):
         if attribute == 'shape':
             return (1, 1, self.ncells)
 
-    def write_physical_array(self, group, array, name, dust=False, compression=True, physics_dtype=float):
+    def read(self, group, quantities='all'):
+        '''
+        Read in an AMR grid
 
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to read the grid from
+        quantities: 'all' or list
+            Which physical quantities to read in. Use 'all' to read in all
+            quantities or a list of strings to read only specific quantities.
+        '''
+
+        # Initialize levels
+        self.levels = []
+
+        # Read geometry group
+        g_geometry = group['Geometry']
+
+        # Read quantities group
+        g_quantities = group['Quantities']
+
+        # Read geometry ID
+        self.geometry_id = g_geometry.attrs['geometry']
+
+        # Check that grid is indeed AMR
+        if g_geometry.attrs['grid_type'] != 'amr':
+            raise Exception("Grid is not AMR")
+
+        # Initialize levels list
+        self.levels = []
+
+        # Loop over levels
+        for ilevel in range(g_geometry.attrs['nlevels']):
+
+            # Read in level
+            level_path = 'level_%05i' % (ilevel + 1)
+            g_level = g_geometry[level_path]
+
+            # Initialize level
+            level = Level()
+
+            # Loop over grids
+            for igrid in range(g_level.attrs['ngrids']):
+
+                # Read in grid
+                grid_path = 'grid_%05i' % (igrid + 1)
+                g_grid = g_level[grid_path]
+
+                # Initialize grid
+                grid = Grid()
+
+                # Retrieve real-world grid boundaries
+                grid.xmin = g_grid.attrs['xmin']
+                grid.xmax = g_grid.attrs['xmax']
+                grid.ymin = g_grid.attrs['ymin']
+                grid.ymax = g_grid.attrs['ymax']
+                grid.zmin = g_grid.attrs['zmin']
+                grid.zmax = g_grid.attrs['zmax']
+
+                # Retrieve grid dimensions
+                grid.nx = g_grid.attrs['n1']
+                grid.ny = g_grid.attrs['n2']
+                grid.nz = g_grid.attrs['n3']
+
+                # Read in desired quantities
+                g_grid_quantities = g_quantities[level_path][grid_path]
+                for quantity in g_grid_quantities:
+                    if quantities == 'all' or quantity in quantities:
+                        # TODO - if array is 4D, need to convert to list
+                        grid.quantities[quantity] = np.array(g_grid_quantities[quantity].array)
+
+                # Append grid to current level
+                level.grids.append(grid)
+
+            # Append level to overall grid
+            self.levels.append(level)
+
+        # Check that advertised hash matches real hash
+        if g_geometry.attrs['geometry'] != self.get_geometry_id():
+            raise Exception("Calculated geometry hash does not match hash in file")
+
+    def write(self, group, quantities='all', copy=True, absolute_paths=False, compression=True, wall_dtype=float, physics_dtype=float):
+        '''
+        Write out the AMR grid
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to write the grid to
+        quantities: 'all' or list
+            Which physical quantities to write out. Use 'all' to write out all
+            quantities or a list of strings to write only specific quantities.
+        compression: bool
+            Whether to compress the arrays in the HDF5 file
+        wall_dtype: type
+            The datatype to use to write the wall positions
+        physics_dtype: type
+            The datatype to use to write the physical quantities
+        '''
+
+        # Create HDF5 groups if needed
+
+        if 'Geometry' not in group:
+            g_geometry = group.greate_group('Geometry')
+        else:
+            g_geometry = group['Geometry']
+
+        if 'Geometry' not in group:
+            g_quantities = group.greate_group('Quantities')
+        else:
+            g_quantities = group['Quantities']
+
+        # Write out geometry and physical quantities
+
+        # Loop over levels
         for ilevel, level in enumerate(self.levels):
-            level_name = "Level %i" % (ilevel + 1)
-            if level_name in group:
-                g_level = group[level_name]
-            else:
-                g_level = group.create_group("Level %i" % (ilevel + 1))
+
+            # Read in level
+            level_path = 'level_%05i' % (ilevel + 1)
+            g_level = g_geometry.create_group(level_path)
+
+            # Loop over grids
             for igrid, grid in enumerate(level.grids):
-                grid_name = "Grid %i" % (igrid + 1)
-                if grid_name in g_level:
-                    g_grid = g_level[grid_name]
-                else:
-                    g_grid = g_level.create_group("Grid %i" % (igrid + 1))
-                if dust:
 
-                    # First check that the dimensions are ok
-                    for a in array:
-                        if a.levels[ilevel].grids[igrid].data.shape != (grid.nz,grid.ny,grid.nx):
-                            raise Exception("Grid dimensions inconsistent with physical array dimensions")
+                # Read in grid
+                grid_path = 'grid_%05i' % (igrid + 1)
+                g_grid = g_level.create_group(grid_path)
 
-                    # Restack list of arrays as single array
-                    shape = list(array[0].levels[ilevel].grids[igrid].data.shape)
-                    shape.insert(0, len(array))
-                    grid_array = np.vstack([a.levels[ilevel].grids[igrid].data for a in array]).reshape(*shape)
-
-                else:
-
-                    # First check that the dimensions are ok
-                    if array.levels[ilevel].grids[igrid].data.shape != (grid.nz,grid.ny,grid.nx):
-                        raise Exception("Grid dimensions inconsistent with physical array dimensions")
-
-                    grid_array = array.levels[ilevel].grids[igrid].data
-
-                g_grid.create_dataset(name, data=grid_array, compression=compression, dtype=physics_dtype)
-
-    def write_geometry(self, group, overwrite=True, volumes=False, areas=False, widths=False, compression=True, geo_dtype=float, wall_dtype=float):
-        group.attrs['geometry'] = self.geometry_id
-        group.attrs['grid_type'] = 'amr'
-        group.attrs['nlevels'] = len(self.levels)
-        for ilevel, level in enumerate(self.levels):
-            g_level = group.create_group("Level %i" % (ilevel + 1))
-            g_level.attrs['ngrids'] = len(level.grids)
-            for igrid, grid in enumerate(level.grids):
-                g_grid = g_level.create_group("Grid %i" % (igrid + 1))
+                # Write real-world grid boundaries
                 g_grid.attrs['xmin'] = grid.xmin
                 g_grid.attrs['xmax'] = grid.xmax
                 g_grid.attrs['ymin'] = grid.ymin
                 g_grid.attrs['ymax'] = grid.ymax
                 g_grid.attrs['zmin'] = grid.zmin
                 g_grid.attrs['zmax'] = grid.zmax
+
+                # Wrote grid dimensions
                 g_grid.attrs['n1'] = grid.nx
                 g_grid.attrs['n2'] = grid.ny
                 g_grid.attrs['n3'] = grid.nz
+
+                # Write out physical quantities
+                for quantity in self.quantities:
+                    if quantities == 'all' or quantity in quantities:
+                        if isinstance(level.quantities[quantity], h5py.ExternalLink):
+                            link_or_copy(g_quantities, quantity, level.quantities[quantity], copy, absolute_paths=absolute_paths)
+                        else:
+                            grid._check_array_dimensions(level.quantities[quantity])
+                            g_quantities.create_dataset(quantity, data=level.quantities[quantity],
+                                                        compression=compression,
+                                                        dtype=physics_dtype)
+
+        g_geometry.attrs['geometry'] = self.get_geometry_id()
+
+    def get_geometry_id(self):
+        geo_hash = hashlib.md5()
+        for level in self.levels:
+            for grid in level.grids:
+                geo_hash.update(grid.xmin)
+                geo_hash.update(grid.xmax)
+                geo_hash.update(grid.ymin)
+                geo_hash.update(grid.ymax)
+                geo_hash.update(grid.zmin)
+                geo_hash.update(grid.zmax)
+                geo_hash.update(grid.nx)
+                geo_hash.update(grid.ny)
+                geo_hash.update(grid.nz)
+        return geo_hash.hexdigest()
