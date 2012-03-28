@@ -80,16 +80,28 @@ class MeanOpacities(FreezableClass):
         temperatures = np.sqrt(np.sqrt((self.var / (4. * sigma * self.kappa_planck))))
         specific_energy = interp1d_fast_loglog(temperatures, self.var, temperature,
                                                bounds_error=False, fill_value=np.nan)
-        specific_energy[temperature < temperatures[0]] = self.var[0]
-        specific_energy[temperature > temperatures[-1]] = self.var[-1]
+        if np.isscalar(temperature):
+            if temperature < temperatures[0]:
+                specific_energy = self.var[0]
+            elif temperature > temperatures[-1]:
+                specific_energy = self.var[-1]
+        else:
+            specific_energy[temperature < temperatures[0]] = self.var[0]
+            specific_energy[temperature > temperatures[-1]] = self.var[-1]
         return specific_energy
 
     def _specific_energy2temperature(self, specific_energy):
         temperatures = np.sqrt(np.sqrt((self.var / (4. * sigma * self.kappa_planck))))
         temperature = interp1d_fast_loglog(self.var, temperatures, specific_energy,
                                            bounds_error=False, fill_value=np.nan)
-        temperature[specific_energy < self.var[0]] = temperatures[0]
-        temperature[specific_energy > self.var[-1]] = temperatures[-1]
+        if np.isscalar(specific_energy):
+            if specific_energy < self.var[0]:
+                temperature = temperatures[0]
+            elif specific_energy > self.var[-1]:
+                temperature = temperatures[-1]
+        else:
+            temperature[specific_energy < self.var[0]] = temperatures[0]
+            temperature[specific_energy > self.var[-1]] = temperatures[-1]
         return temperature
 
     def to_table_set(self, table_set):
