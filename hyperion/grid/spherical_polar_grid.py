@@ -222,6 +222,7 @@ class SphericalPolarGrid(FreezableClass):
 
         for quantity in g_physics:
             if quantities == 'all' or quantity in quantities:
+                # TODO - if array is 4D, need to convert to list
                 self.quantities[quantity] = np.array(g_physics[quantity].array)
 
     def write(self, group, quantities='all', copy=True, absolute_paths=False, compression=True, wall_dtype=float, physics_dtype=float):
