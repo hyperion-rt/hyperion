@@ -1,3 +1,4 @@
+import struct
 import hashlib
 
 import h5py
@@ -35,7 +36,7 @@ class Grid(FreezableClass):
         self.zmin, self.zmax = None, None
 
         # The dimensions of the array
-        self.nx, self.ny, self.nz = None, None
+        self.nx, self.ny, self.nz = None, None, None
 
         self._freeze()
 
@@ -96,6 +97,8 @@ class AMRGrid(FreezableClass):
     def __getattr__(self, attribute):
         if attribute == 'shape':
             return (1, 1, self.ncells)
+        else:
+            return FreezableClass(self, attribute)
 
     def read(self, group, quantities='all'):
         '''
@@ -167,7 +170,7 @@ class AMRGrid(FreezableClass):
                 for quantity in g_grid_quantities:
                     if quantities == 'all' or quantity in quantities:
                         # TODO - if array is 4D, need to convert to list
-                        grid.quantities[quantity] = np.array(g_grid_quantities[quantity].array)
+                        grid.quantities[quantity] = np.array(g_grid_quantities[quantity])
 
                 # Append grid to current level
                 level.grids.append(grid)
@@ -201,14 +204,17 @@ class AMRGrid(FreezableClass):
         # Create HDF5 groups if needed
 
         if 'Geometry' not in group:
-            g_geometry = group.greate_group('Geometry')
+            g_geometry = group.create_group('Geometry')
         else:
             g_geometry = group['Geometry']
 
-        if 'Geometry' not in group:
-            g_quantities = group.greate_group('Quantities')
+        if 'Quantities' not in group:
+            g_quantities = group.create_group('Quantities')
         else:
             g_quantities = group['Quantities']
+
+        g_geometry.attrs['grid_type'] = 'amr'
+        g_geometry.attrs['nlevels'] = len(self.levels)
 
         # Write out geometry and physical quantities
 
@@ -218,6 +224,8 @@ class AMRGrid(FreezableClass):
             # Read in level
             level_path = 'level_%05i' % (ilevel + 1)
             g_level = g_geometry.create_group(level_path)
+            q_level = g_quantities.create_group(level_path)
+            g_level.attrs['ngrids'] = len(level.grids)
 
             # Loop over grids
             for igrid, grid in enumerate(level.grids):
@@ -225,6 +233,7 @@ class AMRGrid(FreezableClass):
                 # Read in grid
                 grid_path = 'grid_%05i' % (igrid + 1)
                 g_grid = g_level.create_group(grid_path)
+                q_grid = q_level.create_group(grid_path)
 
                 # Write real-world grid boundaries
                 g_grid.attrs['xmin'] = grid.xmin
@@ -240,15 +249,15 @@ class AMRGrid(FreezableClass):
                 g_grid.attrs['n3'] = grid.nz
 
                 # Write out physical quantities
-                for quantity in self.quantities:
+                for quantity in grid.quantities:
                     if quantities == 'all' or quantity in quantities:
-                        if isinstance(level.quantities[quantity], h5py.ExternalLink):
-                            link_or_copy(g_quantities, quantity, level.quantities[quantity], copy, absolute_paths=absolute_paths)
+                        if isinstance(grid.quantities[quantity], h5py.ExternalLink):
+                            link_or_copy(q_grid, quantity, grid.quantities[quantity], copy, absolute_paths=absolute_paths)
                         else:
-                            grid._check_array_dimensions(level.quantities[quantity])
-                            g_quantities.create_dataset(quantity, data=level.quantities[quantity],
-                                                        compression=compression,
-                                                        dtype=physics_dtype)
+                            grid._check_array_dimensions(grid.quantities[quantity])
+                            q_grid.create_dataset(quantity, data=grid.quantities[quantity],
+                                                  compression=compression,
+                                                  dtype=physics_dtype)
 
         g_geometry.attrs['geometry'] = self.get_geometry_id()
 
@@ -256,13 +265,13 @@ class AMRGrid(FreezableClass):
         geo_hash = hashlib.md5()
         for level in self.levels:
             for grid in level.grids:
-                geo_hash.update(grid.xmin)
-                geo_hash.update(grid.xmax)
-                geo_hash.update(grid.ymin)
-                geo_hash.update(grid.ymax)
-                geo_hash.update(grid.zmin)
-                geo_hash.update(grid.zmax)
-                geo_hash.update(grid.nx)
-                geo_hash.update(grid.ny)
-                geo_hash.update(grid.nz)
+                geo_hash.update(struct.pack('>d', grid.xmin))
+                geo_hash.update(struct.pack('>d', grid.xmax))
+                geo_hash.update(struct.pack('>d', grid.ymin))
+                geo_hash.update(struct.pack('>d', grid.ymax))
+                geo_hash.update(struct.pack('>d', grid.zmin))
+                geo_hash.update(struct.pack('>d', grid.zmax))
+                geo_hash.update(struct.pack('>q', grid.nx))
+                geo_hash.update(struct.pack('>q', grid.ny))
+                geo_hash.update(struct.pack('>q', grid.nz))
         return geo_hash.hexdigest()

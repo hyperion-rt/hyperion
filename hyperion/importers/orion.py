@@ -1,5 +1,6 @@
 import numpy as np
 from hyperion.util.logger import logger
+from hyperion.grid.amr_grid import Grid, Level, AMRGrid
 
 
 def parse_multi_tuple(string):
@@ -16,26 +17,15 @@ class Star(object):
             [float(values[i]) for i in [0, 1, 2, 3, 11, 14, 15]]
 
 
-class Grid(object):
-
-    def __init__(self):
-        self.xmin, self.xmax = None, None
-        self.ymin, self.ymax = None, None
-        self.zmin, self.zmax = None, None
-
-
-class Grid(object):
+class OrionGrid(Grid):
 
     def __init__(self):
         self.imin, self.imax, self.itype = None, None, None
         self.jmin, self.jmax, self.jtype = None, None, None
         self.kmin, self.kmax, self.ktype = None, None, None
-        self.xmin, self.xmax = None, None
-        self.ymin, self.ymax = None, None
-        self.zmin, self.zmax = None, None
-        self.data = {}
+        Grid.__init__(self)
 
-    def read_data(self, filename, offset, quantity_index, verbose=False):
+    def read_data(self, filename, offset, quantity_indices, verbose=False):
 
         if verbose:
             logger.info("Reading %s" % filename)
@@ -74,34 +64,32 @@ class Grid(object):
 
         pos = f.tell()
 
-        f.seek(pos + quantity_index * n_bytes * gridsize)
-        array = np.fromstring(f.read()[:n_bytes * gridsize],
-                              dtype='%sf%i' % (endian, n_bytes))
-        self.data = array.reshape(self.nz, self.ny, self.nx)
+        for quantity in quantity_indices:
+
+            f.seek(pos + quantity_indices[quantity] * n_bytes * gridsize)
+            array = np.fromstring(f.read(n_bytes * gridsize),
+                                  dtype='%sf%i' % (endian, n_bytes))
+            self.quantities[quantity] = array.reshape(self.nz, self.ny, self.nx)
 
 
-class Level(object):
+class OrionLevel(Level):
 
     def __init__(self):
+        self.idxlo = None
+        self.idxhi = None
+        self.periodicity = None
+        self.number = None
+        Level.__init__(self)
 
-        # The level number
-        self.level = 0
+class OrionAMRGrid(AMRGrid):
 
-        # Minimum and maximum position in index space
-        self.imin, self.imax = None, None
-        self.jmin, self.jmax = None, None
-        self.kmin, self.kmax = None, None
+    def __init__(self, dirname, quantities, verbose=False, max_level=None):
 
-        # The grids
-        self.grids = []
+        self.xmin, self.xmax = None, None
+        self.ymin, self.ymax = None, None
+        self.zmin, self.zmax = None, None
 
-        # The grids
-        self.grids = []
-
-
-class AMR(object):
-
-    def __init__(self, dirname, quantity, verbose=False, max_level=None):
+        AMRGrid.__init__(self)
 
         # Open file
         f = file('%s/Header' % dirname, 'rb')
@@ -113,10 +101,19 @@ class AMR(object):
         n_quantities = int(f.readline().strip())
 
         # Read in component names
-        quantities = [f.readline().strip() for i in range(n_quantities)]
+        available_quantities = [f.readline().strip() for i in range(n_quantities)]
+
+        # If a single quantity is requested as a string, make it into a list
+        if isinstance(quantities, basestring):
+            if quantities == 'all':
+                quantities = available_quantities
+            else:
+                quantities = [quantities]
 
         # Make list of wanted quantities, and their indices
-        quantity_index = quantities.index(quantity)
+        quantity_indices = {}
+        for quantity in quantities:
+            quantity_indices[quantity] = available_quantities.index(quantity)
 
         # Read in number of dimensions
         ndim = int(f.readline().strip())
@@ -130,7 +127,7 @@ class AMR(object):
         n_levels = int(f.readline().strip()) + 1
 
         # Create list of levels
-        self.levels = [Level() for i in range(n_levels)]
+        self.levels = [OrionLevel() for i in range(n_levels)]
 
         if max_level is None:
             max_level = n_levels
@@ -140,7 +137,7 @@ class AMR(object):
         self.xmax, self.ymax, self.zmax = [float(x) for x in f.readline().strip().split()]
 
         # Read in refinement ratios
-        self.refinement_ratios = [int(x) for x in f.readline().strip().split()]
+        refinement_ratios = [int(x) for x in f.readline().strip().split()]
 
         # Read in next line
         line = f.readline().strip()
@@ -182,7 +179,7 @@ class AMR(object):
             ngrids = int(ngrids)
 
             # Initialize grids
-            level.grids = [Grid() for igrid in range(ngrids)]
+            level.grids = [OrionGrid() for igrid in range(ngrids)]
 
             levelsteps = int(f.readline().strip())
 
@@ -234,18 +231,21 @@ class AMR(object):
                 string = fh.readline().split(':')[1]
                 filename = "%s/Level_%i/%s" % (dirname, level.number, string.split()[0].strip())
                 offset = int(string.split()[1])
-                grid.read_data(filename, offset, quantity_index, verbose=verbose)
+                grid.read_data(filename, offset, quantity_indices, verbose=verbose)
 
         # Throw away levels that aren't needed
         self.levels = self.levels[:max_level]
 
-        # Read in star particles
-        fs = open('%s/StarParticles' % dirname, 'rb')
-        fs.readline()
-        self.stars = []
-        for line in fs.readlines():
-            self.stars.append(Star(line))
+def parse_orion(dirname, quantities='density', verbose=False, max_level=None):
 
+    # Read in grid
+    amr_grid = OrionAMRGrid(dirname, quantities=quantities, verbose=verbose, max_level=max_level)
 
-def parse_orion(dirname, quantity='density', verbose=False, max_level=None):
-    return AMR(dirname, quantity=quantity, verbose=verbose, max_level=max_level)
+    # Read in star particles
+    fs = open('%s/StarParticles' % dirname, 'rb')
+    fs.readline()
+    stars = []
+    for line in fs.readlines():
+        stars.append(Star(line))
+
+    return amr_grid, stars
