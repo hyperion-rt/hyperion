@@ -6,6 +6,7 @@ import numpy as np
 
 from hyperion.util.meshgrid import meshgrid_nd
 from hyperion.util.functions import FreezableClass, link_or_copy
+from hyperion.util.logger import logger
 
 
 def zero_density(grid, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, zmin=np.inf, zmax=np.inf):
@@ -63,15 +64,13 @@ class AMRGrid(FreezableClass):
 
         self.levels = []
 
-        self.geometry_id = None
-
         self._freeze()
 
     def __getattr__(self, attribute):
         if attribute == 'shape':
             return (1, 1, self.ncells)
         else:
-            return FreezableClass(self, attribute)
+            return FreezableClass.__getattribute__(self, attribute)
 
     def _check_array_dimensions(self, amr_grid=None):
         '''
@@ -148,9 +147,6 @@ class AMRGrid(FreezableClass):
 
         # Read quantities group
         g_quantities = group['Quantities']
-
-        # Read geometry ID
-        self.geometry_id = g_geometry.attrs['geometry']
 
         # Check that grid is indeed AMR
         if g_geometry.attrs['grid_type'] != 'amr':
@@ -304,3 +300,77 @@ class AMRGrid(FreezableClass):
                 geo_hash.update(struct.pack('>q', grid.ny))
                 geo_hash.update(struct.pack('>q', grid.nz))
         return geo_hash.hexdigest()
+
+    def __getitem__(self, item):
+        return AMRGridView(self, item)
+
+    def __setitem__(self, item, value):
+        if isinstance(value, AMRGridView):
+            if self.levels == [] and value.levels != []:
+                logger.warn("No geometry in target grid - copying from original grid")
+                for level in value.levels:
+                    level_ref = Level()
+                    for grid in level.grids:
+                        grid_ref = Grid()
+                        grid_ref.nx = grid.nx
+                        grid_ref.ny = grid.ny
+                        grid_ref.nz = grid.nz
+                        grid_ref.xmin, grid_ref.xmax = grid.xmin, grid.xmax
+                        grid_ref.ymin, grid_ref.ymax = grid.ymin, grid.ymax
+                        grid_ref.zmin, grid_ref.zmax = grid.zmin, grid.zmax
+                        grid_ref.quantities = {}
+                        level_ref.grids.append(grid_ref)
+                    self.levels.append(level_ref)
+            for ilevel, level_ref in enumerate(self.levels):
+                level = value.levels[ilevel]
+                for igrid, grid_ref in enumerate(level_ref.grids):
+                    grid = level.grids[igrid]
+                    grid_ref.quantities[item] = grid.quantities[value.viewed_quantity]
+        elif value == []:
+            for level in self.levels:
+                for grid in level.grids:
+                    grid.quantities[item] = []
+        else:
+            raise ValueError('value should be an empty list or an AMRGridView instance')
+
+
+class AMRGridView(AMRGrid):
+
+    def __init__(self, amr_grid, quantity):
+
+        self.viewed_quantity = quantity
+        AMRGrid.__init__(self)
+
+        for level_ref in amr_grid.levels:
+            level = Level()
+            for grid_ref in level_ref.grids:
+                grid = Grid()
+                grid.nx = grid_ref.nx
+                grid.ny = grid_ref.ny
+                grid.nz = grid_ref.nz
+                grid.xmin, grid.xmax = grid_ref.xmin, grid_ref.xmax
+                grid.ymin, grid.ymax = grid_ref.ymin, grid_ref.ymax
+                grid.zmin, grid.zmax = grid_ref.zmin, grid_ref.zmax
+                grid.quantities = {}
+                grid.quantities[quantity] = grid_ref.quantities[quantity]
+                level.grids.append(grid)
+            self.levels.append(level)
+
+    def append(self, amr_grid_view):
+        '''
+        Used to append quantities from another grid
+
+        Parameters
+        ----------
+        amr_grid: AMR grid view
+            The grid to copy the quantities from
+        quantity: str, optional
+            If there are more than one quantity in the AMR grid, which one to copy
+        '''
+        if not isinstance(amr_grid_view, AMRGridView):
+            raise ValueError("amr_grid_view should be an AMRGridView object")
+        for ilevel, level_ref in enumerate(self.levels):
+            level = amr_grid_view.levels[ilevel]
+            for igrid, grid_ref in enumerate(level_ref.grids):
+                grid = level.grids[igrid]
+                grid_ref.quantities[self.viewed_quantity].append(grid.quantities[amr_grid_view.viewed_quantity])
