@@ -86,6 +86,18 @@ class AMRGrid(FreezableClass):
     def __getattr__(self, attribute):
         if attribute == 'shape':
             return (1, 1, self.ncells)
+        elif attribute == 'n_dust':
+            n_dust = None
+            for level in self.levels:
+                for grid in level.grids:
+                    for quantity in grid.quantities:
+                        if type(grid.quantities[quantity]) in [list, tuple]:
+                            if n_dust is None:
+                                n_dust = len(grid.quantities[quantity])
+                            else:
+                                if n_dust != len(grid.quantities[quantity]):
+                                    raise ValueError("Not all dust lists in the AMR grid have the same size")
+            return n_dust
         else:
             return FreezableClass.__getattribute__(self, attribute)
 
