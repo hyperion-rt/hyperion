@@ -333,6 +333,15 @@ class AMRGrid(FreezableClass):
         else:
             raise ValueError('value should be an empty list or an AMRGridView instance')
 
+    def __contains__(self, item):
+        if len(self.levels) > 0:
+            if len(self.levels[0].grids) > 0:
+                return item in self.levels[0].grids[0].quantities
+            else:
+                return False
+        else:
+            return False
+
 
 class AMRGridView(AMRGrid):
 
