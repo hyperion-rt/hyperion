@@ -60,11 +60,28 @@ class Level(FreezableClass):
 
 class AMRGrid(FreezableClass):
 
-    def __init__(self):
+    def __init__(self, amr_grid=None):
 
+        # Initalize AMR levels
         self.levels = []
 
         self._freeze()
+
+        # Copy geometry if provided
+        if amr_grid is not None:
+            for level in amr_grid.levels:
+                level_ref = Level()
+                for grid in level.grids:
+                    grid_ref = Grid()
+                    grid_ref.nx = grid.nx
+                    grid_ref.ny = grid.ny
+                    grid_ref.nz = grid.nz
+                    grid_ref.xmin, grid_ref.xmax = grid.xmin, grid.xmax
+                    grid_ref.ymin, grid_ref.ymax = grid.ymin, grid.ymax
+                    grid_ref.zmin, grid_ref.zmax = grid.zmin, grid.zmax
+                    grid_ref.quantities = {}
+                    level_ref.grids.append(grid_ref)
+                self.levels.append(level_ref)
 
     def __getattr__(self, attribute):
         if attribute == 'shape':
