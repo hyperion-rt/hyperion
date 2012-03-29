@@ -9,8 +9,8 @@ from hyperion.util.functions import FreezableClass, link_or_copy
 
 
 def zero_density(grid, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, zmin=np.inf, zmax=np.inf):
-    for ilevel,level in enumerate(grid.levels):
-        for igrid,grid in enumerate(level.grids):
+    for ilevel, level in enumerate(grid.levels):
+        for igrid, grid in enumerate(level.grids):
             wx = np.linspace(grid.xmin, grid.xmax, grid.nx + 1)
             wy = np.linspace(grid.ymin, grid.ymax, grid.ny + 1)
             wz = np.linspace(grid.zmin, grid.zmax, grid.nz + 1)
@@ -39,33 +39,6 @@ class Grid(FreezableClass):
         self.nx, self.ny, self.nz = None, None, None
 
         self._freeze()
-
-    def _check_array_dimensions(self, array):
-
-        if type(array) in [list, tuple]:
-
-            # Check that dimensions are compatible
-            for item in array:
-                if item.shape != self.shape:
-                    raise ValueError("Arrays in list do not have the right "
-                                     "dimensions: %s instead of %s"
-                                     % (item.shape, self.shape))
-
-            # Convert list of 3D arrays to a single 4D array
-            shape = list(self.shape)
-            shape.insert(0, len(array))
-            array = np.vstack(array).reshape(*shape)
-
-        elif type(array) == np.ndarray:
-
-            if array.shape != self.shape:
-                raise ValueError("Array does not have the right "
-                                 "dimensions: %s instead of %s"
-                                 % (array.shape, self.shape))
-
-        else:
-
-            raise ValueError("Array should be a list or a Numpy array")
 
     def __getattr__(self, attribute):
         if attribute == 'shape':
@@ -99,6 +72,60 @@ class AMRGrid(FreezableClass):
             return (1, 1, self.ncells)
         else:
             return FreezableClass(self, attribute)
+
+    def _check_array_dimensions(self, amr_grid=None):
+        '''
+        Check that a grid's array dimensions agree with this grid's metadata
+
+        Parameters
+        ----------
+        amr_grid: AMR grid, optional
+            The AMR grid for which to test the array dimensions. If this is not
+            specified, this method performs a self-consistency check of array
+            dimensions and meta-data.
+        '''
+
+        # If no grid is specified, do a self-consistency checks
+        if amr_grid is None:
+            amr_grid = self
+
+        # Loop over levels
+        for ilevel, level_ref in enumerate(self.levels):
+
+            # Read in level
+            level = amr_grid.levels[ilevel]
+
+            # Loop over grids
+            for igrid, grid_ref in enumerate(level.grids):
+
+                # Read in grid
+                grid = level.grids[igrid]
+
+                # Loop over quantities
+                for quantity in grid.quantities:
+
+                    # Extract array
+                    array = grid.quantities[quantity]
+
+                    if type(array) in [list, tuple]:
+
+                        # Check that dimensions are compatible
+                        for item in array:
+                            if item.shape != grid_ref.shape:
+                                raise ValueError("Arrays in list do not have the right "
+                                                 "dimensions: %s instead of %s"
+                                                 % (item.shape, grid_ref.shape))
+
+                    elif type(array) == np.ndarray:
+
+                        if array.shape != grid_ref.shape:
+                            raise ValueError("Array does not have the right "
+                                             "dimensions: %s instead of %s"
+                                             % (array.shape, grid_ref.shape))
+
+                    else:
+
+                        raise ValueError("Array should be a list or a Numpy array")
 
     def read(self, group, quantities='all'):
         '''
@@ -216,7 +243,10 @@ class AMRGrid(FreezableClass):
         g_geometry.attrs['grid_type'] = 'amr'
         g_geometry.attrs['nlevels'] = len(self.levels)
 
-        # Write out geometry and physical quantities
+        # Self-consistently check geometry and physical quantities
+        self._check_array_dimensions()
+
+        # Write out physical quantities
 
         # Loop over levels
         for ilevel, level in enumerate(self.levels):
@@ -254,7 +284,6 @@ class AMRGrid(FreezableClass):
                         if isinstance(grid.quantities[quantity], h5py.ExternalLink):
                             link_or_copy(q_grid, quantity, grid.quantities[quantity], copy, absolute_paths=absolute_paths)
                         else:
-                            grid._check_array_dimensions(grid.quantities[quantity])
                             q_grid.create_dataset(quantity, data=grid.quantities[quantity],
                                                   compression=compression,
                                                   dtype=physics_dtype)

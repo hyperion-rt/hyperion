@@ -154,7 +154,17 @@ class CylindricalPolarGrid(FreezableClass):
 
         self.widths[2, :, :, :] = self.gw * dp
 
-    def _check_array_dimensions(self, array):
+    def _check_array_dimensions(self, array=None):
+        '''
+        Check that a grid's array dimensions agree with this grid's metadata
+
+        Parameters
+        ----------
+        array: np.ndarray or list of np.ndarray, optional
+            The array for which to test the dimensions. If this is not
+            specified, this method performs a self-consistency check of array
+            dimensions and meta-data.
+        '''
 
         if type(array) in [list, tuple]:
 
@@ -164,11 +174,6 @@ class CylindricalPolarGrid(FreezableClass):
                     raise ValueError("Arrays in list do not have the right "
                                      "dimensions: %s instead of %s"
                                      % (item.shape, self.shape))
-
-            # Convert list of 3D arrays to a single 4D array
-            shape = list(self.shape)
-            shape.insert(0, len(array))
-            array = np.vstack(array).reshape(*shape)
 
         elif type(array) == np.ndarray:
 
@@ -262,6 +267,9 @@ class CylindricalPolarGrid(FreezableClass):
         dset = g_geometry.create_dataset("Walls 3", data=np.array(zip(self.p_wall), dtype=[('p', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
+        # Self-consistently check geometry and physical quantities
+        self._check_array_dimensions()
+
         # Write out physical quantities
 
         for quantity in self.quantities:
@@ -269,12 +277,10 @@ class CylindricalPolarGrid(FreezableClass):
                 if isinstance(self.quantities[quantity], h5py.ExternalLink):
                     link_or_copy(g_physics, quantity, self.quantities[quantity], copy, absolute_paths=absolute_paths)
                 else:
-                    self._check_array_dimensions(self.quantities[quantity])
                     dset = g_physics.create_dataset(quantity, data=self.quantities[quantity],
                                                     compression=compression,
                                                     dtype=physics_dtype)
                     dset.attrs['geometry'] = self.get_geometry_id()
-
 
     def get_geometry_id(self):
         geo_hash = hashlib.md5()
