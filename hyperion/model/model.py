@@ -259,7 +259,7 @@ class Model(FreezableClass):
                 logger.info("Using %s from %s" % (quantity, filename))
 
                 # Add quantity to grid
-                self.grid.quantities[quantity] = h5py.ExternalLink(file_path, array_path)
+                self.grid[quantity] = h5py.ExternalLink(file_path, array_path)
 
         # Minimum specific energy
         array_path = '/Input/Grid/Physics/minimum_specific_energy'
@@ -364,7 +364,7 @@ class Model(FreezableClass):
         self.conf.run.write(root)
         self.conf.output.write(g_output)
 
-        if 'density' in self.grid.quantities:
+        if 'density' in self.grid:
 
             # Check if dust types are specified for each
             if self.dust is None:
@@ -377,9 +377,9 @@ class Model(FreezableClass):
             if isinstance(self.minimum_specific_energy, h5py.ExternalLink):
                 link_or_copy(g_grid['Physics'], 'minimum_specific_energy', self.minimum_specific_energy, copy, absolute_paths=absolute_paths)
             else:
-                if len(self.minimum_specific_energy) != len(self.grid.quantities['density']):
+                if len(self.minimum_specific_energy) != self.grid.n_dust:
                     raise Exception("Number of minimum_specific_energy values should match number of dust types")
-                g_grid['Physics'].create_dataset("minimum_specific_energy", data=self.minimum_specific_energy)
+                g_grid['Quantities'].create_dataset("minimum_specific_energy", data=self.minimum_specific_energy)
 
             if isinstance(self.dust, h5py.ExternalLink):
 
@@ -393,7 +393,7 @@ class Model(FreezableClass):
 
                 g_dust = root.create_group('Dust')
 
-                if len(self.grid.quantities['density']) != len(self.dust):
+                if self.grid['density'].n_dust != len(self.dust):
                     raise Exception("Number of density grids should match number of dust types")
 
                 # Output dust file, avoiding writing the same dust file multiple times
@@ -471,36 +471,33 @@ class Model(FreezableClass):
 
     def add_density_grid(self, density, dust, specific_energy=None, minimum_specific_energy=None, minimum_temperature=None, merge_if_possible=True):
 
-        # TODO - check that density is array
+        # TODO - check that density is array, except it doesn't have to be, for AMR objects
 
         # Check that grid has been previously defined
         if not self.grid:
-            raise Exception("Grid not defined")
+            raise Exception("A coordinate system/grid has to be defined before adding a density grid")
 
-        # Check whether grid dimensions are the same
-        if not isinstance(self.grid, AMRGrid):
-            if not density.shape == self.grid.shape:
-                raise Exception("Density shape does not match that of grid")
-            if specific_energy is not None:
-                if not specific_energy.shape == self.grid.shape:
-                    raise Exception("Specific Energy shape does not match that of grid")
+        # Check whether grid geometries are the same
+        self.grid._check_array_dimensions(density)
+        if specific_energy is not None:
+            self.grid._check_array_dimensions(specific_energy)
 
         # Check whether all densities are zero
         if np.all(density == 0.):
-            logger.warn("All density values are zero - ignoring density grid")
+            logger.info("All density values are zero - ignoring density grid")
             return
 
         # Check consistency between density list size and specific energy list size
-        if 'density' in self.grid.quantities:
-            if specific_energy is not None and 'specific_energy' not in self.grid.quantities:
+        if 'density' in self.grid:
+            if specific_energy is not None and 'specific_energy' not in self.grid:
                 raise Exception("Cannot add specific energy as it was not added for previous density arrays")
-            if specific_energy is None and 'specific_energy' in self.grid.quantities:
+            if specific_energy is None and 'specific_energy' in self.grid:
                 raise Exception("Specific energy was added for previous density arrays, so should be added for all arrays")
         else:
             self.dust = []
-            self.grid.quantities['density'] = []
+            self.grid['density'] = []
             if specific_energy is not None:
-                self.grid.quantities['specific_energy'] = []
+                self.grid['specific_energy'] = []
 
         if minimum_specific_energy is not None and minimum_temperature is not None:
             raise Exception("Cannot specify both the minimum specific energy and temperature")
@@ -536,12 +533,12 @@ class Model(FreezableClass):
                         return
 
         # Set the density and dust
-        self.grid.quantities['density'].append(density)
+        self.grid['density'].append(density)
         self.dust.append(dust)
 
         # Set specific energy if specified
         if specific_energy is not None:
-            self.grid.quantities['specific_energy'].append(specific_energy)
+            self.grid['specific_energy'].append(specific_energy)
 
         # Set minimum specific energy
         if minimum_specific_energy is not None:
