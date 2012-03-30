@@ -367,14 +367,14 @@ class Model(FreezableClass):
         self.conf.run.write(root)
         self.conf.output.write(g_output)
 
+        # Write the geometry and physical quantity arrays to the input file
+        self.grid.write(g_grid, copy=copy, absolute_paths=absolute_paths, compression=compression, physics_dtype=physics_dtype)
+
         if 'density' in self.grid:
 
             # Check if dust types are specified for each
             if self.dust is None:
                 raise Exception("No dust properties specified")
-
-            # Write the geometry and physical quantity arrays to the input file
-            self.grid.write(g_grid, copy=copy, absolute_paths=absolute_paths, compression=compression, physics_dtype=physics_dtype)
 
             # Write minimum specific energy
             if isinstance(self.minimum_specific_energy, h5py.ExternalLink):
@@ -434,6 +434,10 @@ class Model(FreezableClass):
 
             else:
                 raise ValueError("Unknown type for dust attribute: %s" % type(self.dust))
+
+        else:
+
+            root.create_group('Dust')
 
         root.close()
 
