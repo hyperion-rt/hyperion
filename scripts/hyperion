@@ -30,15 +30,17 @@ else:
     input, output = args.input, args.output
 
 f = h5py.File(input, 'r')
-coord_type = f['Grid']['Geometry']['Walls 1'].dtype.names[0]
+coord_type = f['Grid']['Geometry'].attrs['grid_type']
 
 # Determine grid type
-if coord_type == 'w':
+if coord_type == 'cyl_pol':
     suffix = 'cyl'
-elif coord_type == 'r':
+elif coord_type == 'sph_pol':
     suffix = 'sph'
-elif coord_type == 'x':
+elif coord_type == 'car':
     suffix = 'car'
+elif coord_type == 'amr':
+    suffix = 'amr'
 else:
     raise Exception("Unexpected coordinate type: %s" % coord_type)
 
