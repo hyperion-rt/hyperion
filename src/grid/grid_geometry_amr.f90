@@ -166,7 +166,7 @@ contains
     allocate(level%grids(ngrids))
 
     do igrid=1,ngrids
-       write(grid_name, '("Grid ", I0)') igrid
+       write(grid_name, '("grid_", I5.5)') igrid
        g_grid = mp_open_group(group, grid_name)
        call read_grid(g_grid, level%grids(igrid))
        call mp_close_group(g_grid)
@@ -211,7 +211,7 @@ contains
 
     ! Loop through the levels and read all the grids
     do ilevel=1,nlevels
-       write(level_name, '("Level ", I0)') ilevel
+       write(level_name, '("level_", I5.5)') ilevel
        g_level = mp_open_group(group, level_name)
        call read_level(g_level, geo%levels(ilevel))
        call mp_close_group(g_level)

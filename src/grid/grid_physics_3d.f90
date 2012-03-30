@@ -115,6 +115,8 @@ contains
           density_original = density
        end if
 
+       if(main_process()) write(*,'(" [grid_physics] reading minimum_specific_energy")')
+
        ! Read in minimum specific energy
        call mp_read_array_auto(group, 'minimum_specific_energy', minimum_specific_energy)
 

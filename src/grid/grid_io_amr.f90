@@ -1,4 +1,4 @@
-! MD5 of template: 7d80e99a7e7f159dffa89c6a870b0339
+! MD5 of template: a9d1b24b38764cb05db2f7aeda80e7ca
 module grid_io
 
   use core_lib
@@ -50,10 +50,10 @@ contains
     integer(hid_t),intent(in) :: group
     character(len=*),intent(in) :: name
     integer(hid_t) :: g_level, g_grid
-    if(mp_path_exists(group, 'Level 1')) then
-       g_level = mp_open_group(group, 'Level 1')
-       if(mp_path_exists(g_level, 'Grid 1')) then
-          g_grid = mp_open_group(g_level, 'Grid 1')
+    if(mp_path_exists(group, 'level_00001')) then
+       g_level = mp_open_group(group, 'level_00001')
+       if(mp_path_exists(g_level, 'grid_00001')) then
+          g_grid = mp_open_group(g_level, 'grid_00001')
           if(mp_path_exists(g_grid, name)) then
              grid_exists = .true.
           else
@@ -86,7 +86,7 @@ contains
        level => geo%levels(ilevel)
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(full_path, '("Level ", I0, "/Grid ", I0,"/")') ilevel, igrid
+          write(full_path, '("level_", I5.5, "/grid_", I5.5,"/")') ilevel, igrid
           full_path = trim(full_path)//trim(path)
           call mp_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
@@ -126,7 +126,7 @@ contains
        level => geo%levels(ilevel)
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(full_path, '("Level ", I0, "/Grid ", I0,"/")') ilevel, igrid
+          write(full_path, '("level_", I5.5, "/grid_ ", I5.5,"/")') ilevel, igrid
           full_path = trim(full_path)//trim(path)
           call mp_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
@@ -162,7 +162,7 @@ contains
 
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
-       write(name, '("Level ", I0)') ilevel
+       write(name, '("level_", I5.5)') ilevel
        if(mp_path_exists(group, name)) then
           g_level = mp_open_group(group, name)
        else
@@ -170,7 +170,7 @@ contains
        end if
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(name, '("Grid ", I0)') igrid
+          write(name, '("grid_", I5.5)') igrid
           if(mp_path_exists(g_level, name)) then
              g_grid = mp_open_group(g_level, name)
           else
@@ -202,7 +202,7 @@ contains
 
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
-       write(name, '("Level ", I0)') ilevel
+       write(name, '("level_", I5.5)') ilevel
        if(mp_path_exists(group, name)) then
           g_level = mp_open_group(group, name)
        else
@@ -210,7 +210,7 @@ contains
        end if
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(name, '("Grid ", I0)') igrid
+          write(name, '("grid_", I5.5)') igrid
           if(mp_path_exists(g_level, name)) then
              g_grid = mp_open_group(g_level, name)
           else
@@ -244,7 +244,7 @@ contains
        level => geo%levels(ilevel)
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(full_path, '("Level ", I0, "/Grid ", I0,"/")') ilevel, igrid
+          write(full_path, '("level_", I5.5, "/grid_", I5.5,"/")') ilevel, igrid
           full_path = trim(full_path)//trim(path)
           call mp_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
@@ -284,7 +284,7 @@ contains
        level => geo%levels(ilevel)
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(full_path, '("Level ", I0, "/Grid ", I0,"/")') ilevel, igrid
+          write(full_path, '("level_", I5.5, "/grid_ ", I5.5,"/")') ilevel, igrid
           full_path = trim(full_path)//trim(path)
           call mp_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
@@ -320,7 +320,7 @@ contains
 
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
-       write(name, '("Level ", I0)') ilevel
+       write(name, '("level_", I5.5)') ilevel
        if(mp_path_exists(group, name)) then
           g_level = mp_open_group(group, name)
        else
@@ -328,7 +328,7 @@ contains
        end if
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(name, '("Grid ", I0)') igrid
+          write(name, '("grid_", I5.5)') igrid
           if(mp_path_exists(g_level, name)) then
              g_grid = mp_open_group(g_level, name)
           else
@@ -360,7 +360,7 @@ contains
 
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
-       write(name, '("Level ", I0)') ilevel
+       write(name, '("level_", I5.5)') ilevel
        if(mp_path_exists(group, name)) then
           g_level = mp_open_group(group, name)
        else
@@ -368,7 +368,7 @@ contains
        end if
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(name, '("Grid ", I0)') igrid
+          write(name, '("grid_", I5.5)') igrid
           if(mp_path_exists(g_level, name)) then
              g_grid = mp_open_group(g_level, name)
           else
@@ -402,7 +402,7 @@ contains
        level => geo%levels(ilevel)
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(full_path, '("Level ", I0, "/Grid ", I0,"/")') ilevel, igrid
+          write(full_path, '("level_", I5.5, "/grid_", I5.5,"/")') ilevel, igrid
           full_path = trim(full_path)//trim(path)
           call mp_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
@@ -442,7 +442,7 @@ contains
        level => geo%levels(ilevel)
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(full_path, '("Level ", I0, "/Grid ", I0,"/")') ilevel, igrid
+          write(full_path, '("level_", I5.5, "/grid_ ", I5.5,"/")') ilevel, igrid
           full_path = trim(full_path)//trim(path)
           call mp_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
@@ -478,7 +478,7 @@ contains
 
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
-       write(name, '("Level ", I0)') ilevel
+       write(name, '("level_", I5.5)') ilevel
        if(mp_path_exists(group, name)) then
           g_level = mp_open_group(group, name)
        else
@@ -486,7 +486,7 @@ contains
        end if
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(name, '("Grid ", I0)') igrid
+          write(name, '("grid_", I5.5)') igrid
           if(mp_path_exists(g_level, name)) then
              g_grid = mp_open_group(g_level, name)
           else
@@ -518,7 +518,7 @@ contains
 
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
-       write(name, '("Level ", I0)') ilevel
+       write(name, '("level_", I5.5)') ilevel
        if(mp_path_exists(group, name)) then
           g_level = mp_open_group(group, name)
        else
@@ -526,7 +526,7 @@ contains
        end if
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(name, '("Grid ", I0)') igrid
+          write(name, '("grid_", I5.5)') igrid
           if(mp_path_exists(g_level, name)) then
              g_grid = mp_open_group(g_level, name)
           else
@@ -560,7 +560,7 @@ contains
        level => geo%levels(ilevel)
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(full_path, '("Level ", I0, "/Grid ", I0,"/")') ilevel, igrid
+          write(full_path, '("level_", I5.5, "/grid_", I5.5,"/")') ilevel, igrid
           full_path = trim(full_path)//trim(path)
           call mp_read_array_auto(group, full_path, array4d)
           if(any(is_nan(array4d))) call error("read_grid_4d", "NaN values in 4D array")
@@ -600,7 +600,7 @@ contains
        level => geo%levels(ilevel)
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(full_path, '("Level ", I0, "/Grid ", I0,"/")') ilevel, igrid
+          write(full_path, '("level_", I5.5, "/grid_ ", I5.5,"/")') ilevel, igrid
           full_path = trim(full_path)//trim(path)
           call mp_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")
@@ -636,7 +636,7 @@ contains
 
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
-       write(name, '("Level ", I0)') ilevel
+       write(name, '("level_", I5.5)') ilevel
        if(mp_path_exists(group, name)) then
           g_level = mp_open_group(group, name)
        else
@@ -644,7 +644,7 @@ contains
        end if
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(name, '("Grid ", I0)') igrid
+          write(name, '("grid_", I5.5)') igrid
           if(mp_path_exists(g_level, name)) then
              g_grid = mp_open_group(g_level, name)
           else
@@ -676,7 +676,7 @@ contains
 
     do ilevel=1,size(geo%levels)
        level => geo%levels(ilevel)
-       write(name, '("Level ", I0)') ilevel
+       write(name, '("level_", I5.5)') ilevel
        if(mp_path_exists(group, name)) then
           g_level = mp_open_group(group, name)
        else
@@ -684,7 +684,7 @@ contains
        end if
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(name, '("Grid ", I0)') igrid
+          write(name, '("grid_", I5.5)') igrid
           if(mp_path_exists(g_level, name)) then
              g_grid = mp_open_group(g_level, name)
           else

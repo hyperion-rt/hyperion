@@ -104,7 +104,7 @@ contains
     call setup_grid_geometry(g_geometry)
     call mp_close_group(g_geometry)
 
-    g_physics = mp_open_group(input_handle, '/Grid/Physics')
+    g_physics = mp_open_group(input_handle, '/Grid/Quantities')
     call setup_grid_physics(g_physics, use_mrw, use_pda)
     call mp_close_group(g_physics)
 
