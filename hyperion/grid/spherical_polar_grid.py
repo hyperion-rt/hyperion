@@ -251,7 +251,9 @@ class SphericalPolarGrid(FreezableClass):
         if g_geometry.attrs['grid_type'] != 'sph_pol':
             raise ValueError("Grid is not spherical polar")
 
-        self.set(g_geometry['Walls 1'], g_geometry['Walls 2'], g_geometry['Walls 3'])
+        self.set_walls(g_geometry['Walls 1']['r'],
+                       g_geometry['Walls 2']['t'],
+                       g_geometry['Walls 3']['p'])
 
         # Check that advertised hash matches real hash
         if g_geometry.attrs['geometry'] != self.get_geometry_id():
