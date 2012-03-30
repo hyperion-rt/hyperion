@@ -238,6 +238,9 @@ class Model(FreezableClass):
         # Find last iteration
         max_iteration = find_last_iteration(f)
 
+        if max_iteration == 0:
+            raise ValueError("No iterations found in file: %s" % filename)
+
         logger.info("Retrieving quantities from iteration %i of %s" % (max_iteration, filename))
 
         # Find path to file for link. For now, use absolute links.
@@ -252,7 +255,7 @@ class Model(FreezableClass):
 
                 # Set the path to the quantity
                 if quantity in ['density', 'minimum_specific_energy']:
-                    array_path = '/Input/Grid/Physics/%s' % quantity
+                    array_path = '/Input/Grid/Quantities/%s' % quantity
                 else:
                     array_path = '/Iteration %05i/specific_energy' % max_iteration
 
@@ -262,7 +265,7 @@ class Model(FreezableClass):
                 self.grid[quantity] = h5py.ExternalLink(file_path, array_path)
 
         # Minimum specific energy
-        array_path = '/Input/Grid/Physics/minimum_specific_energy'
+        array_path = '/Input/Grid/Quantities/minimum_specific_energy'
         logger.info("Using minimum_specific_energy from %s" % filename)
         self.minimum_specific_energy = h5py.ExternalLink(file_path, array_path)
 
@@ -375,7 +378,7 @@ class Model(FreezableClass):
 
             # Write minimum specific energy
             if isinstance(self.minimum_specific_energy, h5py.ExternalLink):
-                link_or_copy(g_grid['Physics'], 'minimum_specific_energy', self.minimum_specific_energy, copy, absolute_paths=absolute_paths)
+                link_or_copy(g_grid['Quantities'], 'minimum_specific_energy', self.minimum_specific_energy, copy, absolute_paths=absolute_paths)
             else:
                 if len(self.minimum_specific_energy) != self.grid.n_dust:
                     raise Exception("Number of minimum_specific_energy values should match number of dust types")

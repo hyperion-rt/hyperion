@@ -1,3 +1,4 @@
+import os
 import struct
 import hashlib
 
@@ -150,6 +151,32 @@ class AMRGrid(FreezableClass):
                             raise ValueError("Array does not have the right "
                                              "dimensions: %s instead of %s"
                                              % (array.shape, grid_ref.shape))
+
+                    elif isinstance(array, h5py.ExternalLink):
+
+                        print array.filename
+                        print array.path
+
+                        array = h5py.File(array.filename, 'r')[array.path]
+
+                        if len(array.shape) == 3:
+
+                            if array.shape != grid_ref.shape:
+                                raise ValueError("Array does not have the right "
+                                                 "dimensions: %s instead of %s"
+                                                 % (array.shape, grid_ref.shape))
+
+                        elif len(array.shape) == 4:
+
+                            for item in array:
+                                if item.shape != grid_ref.shape:
+                                    raise ValueError("Arrays in list do not have the right "
+                                                     "dimensions: %s instead of %s"
+                                                     % (item.shape, grid_ref.shape))
+
+                        else:
+
+                            raise Exception("Unexpected number of dimensions: %i" % array.ndim)
 
                     else:
 
@@ -355,6 +382,15 @@ class AMRGrid(FreezableClass):
                 for igrid, grid_ref in enumerate(level_ref.grids):
                     grid = level.grids[igrid]
                     grid_ref.quantities[item] = grid.quantities[value.viewed_quantity]
+        elif isinstance(value, h5py.ExternalLink):
+            filename = value.filename
+            base_path = os.path.dirname(value.path)
+            array_name = os.path.basename(value.path)
+            for ilevel, level_ref in enumerate(self.levels):
+                level_path = 'level_%05i' % (ilevel + 1)
+                for igrid, grid_ref in enumerate(level_ref.grids):
+                    grid_path = 'grid_%05i' % (ilevel + 1)
+                    grid_ref.quantities[item] = h5py.ExternalLink(filename, os.path.join(base_path, level_path, grid_path, array_name))
         elif value == []:
             for level in self.levels:
                 for grid in level.grids:
@@ -401,9 +437,7 @@ class AMRGridView(AMRGrid):
         Parameters
         ----------
         amr_grid: AMR grid view
-            The grid to copy the quantities from
-        quantity: str, optional
-            If there are more than one quantity in the AMR grid, which one to copy
+            The grid to copy the quantity from
         '''
         if not isinstance(amr_grid_view, AMRGridView):
             raise ValueError("amr_grid_view should be an AMRGridView object")

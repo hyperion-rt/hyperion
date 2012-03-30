@@ -5,15 +5,12 @@ import numpy as np
 
 from hyperion.util.meshgrid import meshgrid_nd
 from hyperion.util.functions import FreezableClass, is_numpy_array, monotonically_increasing, link_or_copy
+from hyperion.util.logger import logger
 
 
 class CartesianGrid(FreezableClass):
 
     def __init__(self, *args):
-
-        self.nx = None
-        self.ny = None
-        self.nz = None
 
         self.shape = None
 
@@ -63,12 +60,8 @@ class CartesianGrid(FreezableClass):
         if not monotonically_increasing(z_wall):
             raise ValueError("z_wall should be monotonically increasing")
 
-        # Find number of grid cells
-        self.nx = len(x_wall) - 1
-        self.ny = len(y_wall) - 1
-        self.nz = len(z_wall) - 1
-
-        self.shape = (self.nz, self.ny, self.nx)
+        # Find grid shape
+        self.shape = (len(z_wall) - 1, len(y_wall) - 1, len(x_wall) - 1)
 
         # Store wall positions
         self.x_wall = x_wall
@@ -102,7 +95,7 @@ class CartesianGrid(FreezableClass):
 
         # WALL AREAS
 
-        self.areas = np.zeros((6, self.nz, self.ny, self.nx))
+        self.areas = np.zeros((6,) + self.shape)
 
         # X walls:
 
@@ -121,7 +114,7 @@ class CartesianGrid(FreezableClass):
 
         # CELL WIDTHS
 
-        self.widths = np.zeros((3, self.nz, self.ny, self.nx))
+        self.widths = np.zeros((3,) + self.shape)
 
         # X direction:
 
@@ -135,25 +128,19 @@ class CartesianGrid(FreezableClass):
 
         self.widths[2, :, :, :] = dz
 
-    def add_quantity(self, name, array, replace=False):
-        '''
-        Add a physical quantity to the grid
-
-        Parameters
-        ----------
-        name: str
-            The name of the quantity to add
-        array: list of np.ndarray or np.ndarray
-            The physical quantity to write out. If specified as a list, then
-            it is assumed to an array that is defined for different
-            populations (e.g. dust or gas).
-        replace: bool
-            Whether to replace a quantity that is already in the grid
-        '''
-        self._check_array_dimensions(array)
-        if not replace and name in self.quantities:
-            raise ValueError("Quantity is already in grid")
-        self.quantities[name] = array
+    def __getattr__(self, attribute):
+        if attribute == 'n_dust':
+            n_dust = None
+            for quantity in self.quantities:
+                if type(self.quantities[quantity]) in [list, tuple]:
+                    if n_dust is None:
+                        n_dust = len(self.quantities[quantity])
+                    else:
+                        if n_dust != len(self.quantities[quantity]):
+                            raise ValueError("Not all dust lists in the grid have the same size")
+            return n_dust
+        else:
+            return FreezableClass.__getattribute__(self, attribute)
 
     def _check_array_dimensions(self, array=None):
         '''
@@ -167,25 +154,52 @@ class CartesianGrid(FreezableClass):
             dimensions and meta-data.
         '''
 
-        if type(array) in [list, tuple]:
+        for quantity in self.quantities:
 
-            # Check that dimensions are compatible
-            for item in array:
-                if item.shape != self.shape:
-                    raise ValueError("Arrays in list do not have the right "
+            array = self.quantities[quantity]
+
+            if type(array) in [list, tuple]:
+
+                # Check that dimensions are compatible
+                for item in array:
+                    if item.shape != self.shape:
+                        raise ValueError("Arrays in list do not have the right "
+                                         "dimensions: %s instead of %s"
+                                         % (item.shape, self.shape))
+
+            elif type(array) == np.ndarray:
+
+                if array.shape != self.shape:
+                    raise ValueError("Array does not have the right "
                                      "dimensions: %s instead of %s"
-                                     % (item.shape, self.shape))
+                                     % (array.shape, self.shape))
 
-        elif type(array) == np.ndarray:
+            elif isinstance(array, h5py.ExternalLink):
 
-            if array.shape != self.shape:
-                raise ValueError("Array does not have the right "
-                                 "dimensions: %s instead of %s"
-                                 % (array.shape, self.shape))
+                array = h5py.File(array.filename, 'r')[array.path]
 
-        else:
+                if len(array.shape) == 3:
 
-            raise ValueError("Array should be a list or a Numpy array")
+                    if array.shape != self.shape:
+                        raise ValueError("Array does not have the right "
+                                         "dimensions: %s instead of %s"
+                                         % (array.shape, self.shape))
+
+                elif len(array.shape) == 4:
+
+                    for item in array:
+                        if item.shape != self.shape:
+                            raise ValueError("Arrays in list do not have the right "
+                                             "dimensions: %s instead of %s"
+                                             % (item.shape, self.shape))
+
+                else:
+
+                    raise Exception("Unexpected number of dimensions: %i" % array.ndim)
+
+            else:
+
+                raise ValueError("Array should be a list or a Numpy array")
 
     def read(self, group, quantities='all'):
         '''
@@ -203,7 +217,7 @@ class CartesianGrid(FreezableClass):
         # Extract HDF5 groups for geometry and physics
 
         g_geometry = group['Geometry']
-        g_physics = group['Physics']
+        g_quantities = group['Quantities']
 
         # Read in geometry
 
@@ -218,10 +232,10 @@ class CartesianGrid(FreezableClass):
 
         # Read in physical quantities
 
-        for quantity in g_physics:
+        for quantity in g_quantities:
             if quantities == 'all' or quantity in quantities:
                 # TODO - if array is 4D, need to convert to list
-                self.quantities[quantity] = np.array(g_physics[quantity].array)
+                self.quantities[quantity] = np.array(g_quantities[quantity].array)
 
     def write(self, group, quantities='all', copy=True, absolute_paths=False, compression=True, wall_dtype=float, physics_dtype=float):
         '''
@@ -249,10 +263,10 @@ class CartesianGrid(FreezableClass):
         else:
             g_geometry = group['Geometry']
 
-        if 'Physics' not in group:
-            g_physics = group.create_group('Physics')
+        if 'Quantities' not in group:
+            g_quantities = group.create_group('Quantities')
         else:
-            g_physics = group['Physics']
+            g_quantities = group['Quantities']
 
         # Write out geometry
 
@@ -276,9 +290,9 @@ class CartesianGrid(FreezableClass):
         for quantity in self.quantities:
             if quantities == 'all' or quantity in quantities:
                 if isinstance(self.quantities[quantity], h5py.ExternalLink):
-                    link_or_copy(g_physics, quantity, self.quantities[quantity], copy, absolute_paths=absolute_paths)
+                    link_or_copy(g_quantities, quantity, self.quantities[quantity], copy, absolute_paths=absolute_paths)
                 else:
-                    dset = g_physics.create_dataset(quantity, data=self.quantities[quantity],
+                    dset = g_quantities.create_dataset(quantity, data=self.quantities[quantity],
                                                     compression=compression,
                                                     dtype=physics_dtype)
                     dset.attrs['geometry'] = self.get_geometry_id()
@@ -289,3 +303,47 @@ class CartesianGrid(FreezableClass):
         geo_hash.update(self.y_wall)
         geo_hash.update(self.z_wall)
         return geo_hash.hexdigest()
+
+    def __getitem__(self, item):
+        return CartesianGridView(self, item)
+
+    def __setitem__(self, item, value):
+        if isinstance(value, CartesianGridView):
+            if self.x_wall is None and self.y_wall is None and self.z_wall is None:
+                logger.warn("No geometry in target grid - copying from original grid")
+                self.set_walls(value.x_wall, value.y_wall, value.z_wall)
+            self.quantities[item] = value.quantities[value.viewed_quantity]
+        elif isinstance(value, h5py.ExternalLink):
+            self.quantities[item] = value
+        elif value == []:
+            self.quantities[item] = []
+        else:
+            raise ValueError('value should be an empty list, and ExternalLink, or a CartesianGridView instance')
+
+    def __contains__(self, item):
+        return self.quantities.__contains__(item)
+
+
+class CartesianGridView(CartesianGrid):
+
+    def __init__(self, grid, quantity):
+        self.viewed_quantity = quantity
+        CartesianGrid.__init__(self)
+        self.set_walls(grid.x_wall, grid.y_wall, grid.z_wall)
+        self.quantities = {quantity: grid.quantities[quantity]}
+
+    def append(self, grid):
+        '''
+        Used to append quantities from another grid
+
+        Parameters
+        ----------
+        grid: 3D Numpy array or CartesianGridView instance
+            The grid to copy the quantity from
+        '''
+        if isinstance(grid, CartesianGridView):
+            self.quantities[self.viewed_quantity].append(grid.quantities[grid.viewed_quantity])
+        elif type(grid) is np.ndarray:
+            self.quantities[self.viewed_quantity].append(grid)
+        else:
+            raise ValueError("grid should be a Numpy array or a CartesianGridView object")
