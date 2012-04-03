@@ -191,10 +191,6 @@ class CartesianGrid(FreezableClass):
                        g_geometry['Walls 2']['y'],
                        g_geometry['Walls 3']['z'])
 
-        # Check that advertised hash matches real hash
-        if g_geometry.attrs['geometry'] != self.get_geometry_id():
-            raise Exception("Calculated geometry hash does not match hash in file")
-
         # Read in physical quantities
         if quantities is not None:
             for quantity in g_quantities:
@@ -204,6 +200,13 @@ class CartesianGrid(FreezableClass):
                         self.quantities[quantity] = [array[i] for i in range(array.shape[0])]
                     else:
                         self.quantities[quantity] = array
+
+        # Check that advertised hash matches real hash
+        if g_geometry.attrs['geometry'] != self.get_geometry_id():
+            raise Exception("Calculated geometry hash does not match hash in file")
+
+        # Self-consistently check geometry and physical quantities
+        self._check_array_dimensions()
 
     def write(self, group, quantities='all', copy=True, absolute_paths=False, compression=True, wall_dtype=float, physics_dtype=float):
         '''

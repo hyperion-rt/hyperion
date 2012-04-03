@@ -220,6 +220,9 @@ class AMRGrid(FreezableClass):
         if g_geometry.attrs['geometry'] != self.get_geometry_id():
             raise Exception("Calculated geometry hash does not match hash in file")
 
+        # Self-consistently check geometry and physical quantities
+        self._check_array_dimensions()
+
     def write(self, group, quantities='all', copy=True, absolute_paths=False, compression=True, wall_dtype=float, physics_dtype=float):
         '''
         Write out the AMR grid
