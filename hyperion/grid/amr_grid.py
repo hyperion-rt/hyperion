@@ -8,6 +8,7 @@ import numpy as np
 from hyperion.util.meshgrid import meshgrid_nd
 from hyperion.util.functions import FreezableClass, link_or_copy
 from hyperion.util.logger import logger
+from hyperion.grid.grid_helpers import single_grid_dims
 
 
 def zero_density(grid, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, zmin=np.inf, zmax=np.inf):
@@ -92,12 +93,12 @@ class AMRGrid(FreezableClass):
             for level in self.levels:
                 for grid in level.grids:
                     for quantity in grid.quantities:
-                        if type(grid.quantities[quantity]) in [list, tuple]:
-                            if n_dust is None:
-                                n_dust = len(grid.quantities[quantity])
-                            else:
-                                if n_dust != len(grid.quantities[quantity]):
-                                    raise ValueError("Not all dust lists in the AMR grid have the same size")
+                        n_dust_q, shape_q = single_grid_dims(grid.quantities[quantity])
+                        if n_dust is None:
+                            n_dust = n_dust_q
+                        else:
+                            if n_dust != n_dust_q:
+                                raise ValueError("Not all dust lists in the grid have the same size")
             return n_dust
         else:
             return FreezableClass.__getattribute__(self, attribute)
@@ -133,51 +134,12 @@ class AMRGrid(FreezableClass):
                 # Loop over quantities
                 for quantity in grid.quantities:
 
-                    # Extract array
-                    array = grid.quantities[quantity]
+                    n_pop, shape = single_grid_dims(grid.quantities[quantity])
 
-                    if type(array) in [list, tuple]:
-
-                        # Check that dimensions are compatible
-                        for item in array:
-                            if item.shape != grid_ref.shape:
-                                raise ValueError("Arrays in list do not have the right "
-                                                 "dimensions: %s instead of %s"
-                                                 % (item.shape, grid_ref.shape))
-
-                    elif type(array) == np.ndarray:
-
-                        if array.shape != grid_ref.shape:
-                            raise ValueError("Array does not have the right "
-                                             "dimensions: %s instead of %s"
-                                             % (array.shape, grid_ref.shape))
-
-                    elif isinstance(array, h5py.ExternalLink):
-
-                        array = h5py.File(array.filename, 'r')[array.path]
-
-                        if len(array.shape) == 3:
-
-                            if array.shape != grid_ref.shape:
-                                raise ValueError("Array does not have the right "
-                                                 "dimensions: %s instead of %s"
-                                                 % (array.shape, grid_ref.shape))
-
-                        elif len(array.shape) == 4:
-
-                            for item in array:
-                                if item.shape != grid_ref.shape:
-                                    raise ValueError("Arrays in list do not have the right "
-                                                     "dimensions: %s instead of %s"
-                                                     % (item.shape, grid_ref.shape))
-
-                        else:
-
-                            raise Exception("Unexpected number of dimensions: %i" % array.ndim)
-
-                    else:
-
-                        raise ValueError("Array should be a list or a Numpy array")
+                    if shape != grid.shape:
+                        raise ValueError("Quantity arrays do not have the right "
+                                         "dimensions: %s instead of %s"
+                                         % (shape, grid.shape))
 
     def read(self, group, quantities='all'):
         '''
