@@ -1,4 +1,4 @@
-! MD5 of template: 9d9cd2dde0187680230a3032dbc1ca28
+! MD5 of template: 4c801596331df5176aaace01b6e4e28b
 module mpi_hdf5_io
 
   use core_lib
@@ -39,6 +39,22 @@ module mpi_hdf5_io
      module procedure mp_read_keyword_mpi_character
   end interface mp_read_keyword
 
+  public :: mp_read_keyword_vector
+  interface mp_read_keyword_vector
+     module procedure mp_read_keyword_vector_mpi_real4
+     module procedure mp_read_keyword_vector_mpi_real8
+     module procedure mp_read_keyword_vector_mpi_integer4
+     module procedure mp_read_keyword_vector_mpi_integer8
+  end interface mp_read_keyword_vector
+
+  public :: mp_read_keyword_vector_auto
+  interface mp_read_keyword_vector_auto
+     module procedure mp_read_keyword_vector_auto_mpi_real4
+     module procedure mp_read_keyword_vector_auto_mpi_real8
+     module procedure mp_read_keyword_vector_auto_mpi_integer4
+     module procedure mp_read_keyword_vector_auto_mpi_integer8
+  end interface mp_read_keyword_vector_auto
+
   public :: mp_write_keyword
   interface mp_write_keyword
      module procedure mp_write_keyword_mpi_real4
@@ -48,6 +64,14 @@ module mpi_hdf5_io
      module procedure mp_write_keyword_mpi_logical
      module procedure mp_write_keyword_mpi_character
   end interface mp_write_keyword
+
+  public :: mp_write_keyword_vector
+  interface mp_write_keyword_vector
+     module procedure mp_write_keyword_vector_mpi_real4
+     module procedure mp_write_keyword_vector_mpi_real8
+     module procedure mp_write_keyword_vector_mpi_integer4
+     module procedure mp_write_keyword_vector_mpi_integer8
+  end interface mp_write_keyword_vector
 
   public :: mp_table_read_column_auto
   interface mp_table_read_column_auto
@@ -337,6 +361,28 @@ contains
     call mpi_bcast(value, 1, mpi_integer8, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_keyword_mpi_integer8
 
+  subroutine mp_read_keyword_vector_mpi_integer8(handle, path, name, values)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    integer(idp),intent(out) :: values(:)
+    integer :: n1
+    if(main_process()) call hdf5_read_keyword_vector(handle, path, name, values)
+    n1 = size(values)
+    call mpi_bcast(values, n1, mpi_integer8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_keyword_vector_mpi_integer8
+
+  subroutine mp_read_keyword_vector_auto_mpi_integer8(handle, path, name, values)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    integer(idp),intent(out),allocatable :: values(:)
+    integer :: n1
+    if(main_process()) call hdf5_read_keyword_vector_auto(handle, path, name, values)
+    n1 = size(values)
+    call mpi_bcast(values, n1, mpi_integer8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_keyword_vector_auto_mpi_integer8
+
   subroutine mp_write_keyword_mpi_integer8(handle, path, name, value)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -344,6 +390,14 @@ contains
     integer(idp),intent(in) :: value
     if(main_process()) call hdf5_write_keyword(handle, path, name, value)
   end subroutine mp_write_keyword_mpi_integer8
+
+  subroutine mp_write_keyword_vector_mpi_integer8(handle, path, name, values)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    integer(idp),intent(in) :: values(:)
+    if(main_process()) call hdf5_write_keyword_vector(handle, path, name, values)
+  end subroutine mp_write_keyword_vector_mpi_integer8
 
   subroutine mp_table_read_column_auto_1d_mpi_integer8(handle, path, name, array)
     implicit none
@@ -569,6 +623,28 @@ contains
     call mpi_bcast(value, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_keyword_mpi_integer4
 
+  subroutine mp_read_keyword_vector_mpi_integer4(handle, path, name, values)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    integer,intent(out) :: values(:)
+    integer :: n1
+    if(main_process()) call hdf5_read_keyword_vector(handle, path, name, values)
+    n1 = size(values)
+    call mpi_bcast(values, n1, mpi_integer4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_keyword_vector_mpi_integer4
+
+  subroutine mp_read_keyword_vector_auto_mpi_integer4(handle, path, name, values)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    integer,intent(out),allocatable :: values(:)
+    integer :: n1
+    if(main_process()) call hdf5_read_keyword_vector_auto(handle, path, name, values)
+    n1 = size(values)
+    call mpi_bcast(values, n1, mpi_integer4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_keyword_vector_auto_mpi_integer4
+
   subroutine mp_write_keyword_mpi_integer4(handle, path, name, value)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -576,6 +652,14 @@ contains
     integer,intent(in) :: value
     if(main_process()) call hdf5_write_keyword(handle, path, name, value)
   end subroutine mp_write_keyword_mpi_integer4
+
+  subroutine mp_write_keyword_vector_mpi_integer4(handle, path, name, values)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    integer,intent(in) :: values(:)
+    if(main_process()) call hdf5_write_keyword_vector(handle, path, name, values)
+  end subroutine mp_write_keyword_vector_mpi_integer4
 
   subroutine mp_table_read_column_auto_1d_mpi_integer4(handle, path, name, array)
     implicit none
@@ -801,6 +885,28 @@ contains
     call mpi_bcast(value, 1, mpi_real8, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_keyword_mpi_real8
 
+  subroutine mp_read_keyword_vector_mpi_real8(handle, path, name, values)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    real(dp),intent(out) :: values(:)
+    integer :: n1
+    if(main_process()) call hdf5_read_keyword_vector(handle, path, name, values)
+    n1 = size(values)
+    call mpi_bcast(values, n1, mpi_real8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_keyword_vector_mpi_real8
+
+  subroutine mp_read_keyword_vector_auto_mpi_real8(handle, path, name, values)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    real(dp),intent(out),allocatable :: values(:)
+    integer :: n1
+    if(main_process()) call hdf5_read_keyword_vector_auto(handle, path, name, values)
+    n1 = size(values)
+    call mpi_bcast(values, n1, mpi_real8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_keyword_vector_auto_mpi_real8
+
   subroutine mp_write_keyword_mpi_real8(handle, path, name, value)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -808,6 +914,14 @@ contains
     real(dp),intent(in) :: value
     if(main_process()) call hdf5_write_keyword(handle, path, name, value)
   end subroutine mp_write_keyword_mpi_real8
+
+  subroutine mp_write_keyword_vector_mpi_real8(handle, path, name, values)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    real(dp),intent(in) :: values(:)
+    if(main_process()) call hdf5_write_keyword_vector(handle, path, name, values)
+  end subroutine mp_write_keyword_vector_mpi_real8
 
   subroutine mp_table_read_column_auto_1d_mpi_real8(handle, path, name, array)
     implicit none
@@ -1033,6 +1147,28 @@ contains
     call mpi_bcast(value, 1, mpi_real4, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_keyword_mpi_real4
 
+  subroutine mp_read_keyword_vector_mpi_real4(handle, path, name, values)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    real(sp),intent(out) :: values(:)
+    integer :: n1
+    if(main_process()) call hdf5_read_keyword_vector(handle, path, name, values)
+    n1 = size(values)
+    call mpi_bcast(values, n1, mpi_real4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_keyword_vector_mpi_real4
+
+  subroutine mp_read_keyword_vector_auto_mpi_real4(handle, path, name, values)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    real(sp),intent(out),allocatable :: values(:)
+    integer :: n1
+    if(main_process()) call hdf5_read_keyword_vector_auto(handle, path, name, values)
+    n1 = size(values)
+    call mpi_bcast(values, n1, mpi_real4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_keyword_vector_auto_mpi_real4
+
   subroutine mp_write_keyword_mpi_real4(handle, path, name, value)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -1040,6 +1176,14 @@ contains
     real(sp),intent(in) :: value
     if(main_process()) call hdf5_write_keyword(handle, path, name, value)
   end subroutine mp_write_keyword_mpi_real4
+
+  subroutine mp_write_keyword_vector_mpi_real4(handle, path, name, values)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path, name
+    real(sp),intent(in) :: values(:)
+    if(main_process()) call hdf5_write_keyword_vector(handle, path, name, values)
+  end subroutine mp_write_keyword_vector_mpi_real4
 
   subroutine mp_table_read_column_auto_1d_mpi_real4(handle, path, name, array)
     implicit none

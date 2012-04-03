@@ -17,7 +17,10 @@ module mpi_hdf5_io
        &               mp_table_write_header => hdf5_table_write_header, &
        &               mp_exists_keyword => hdf5_exists_keyword, &
        &               mp_read_keyword => hdf5_read_keyword, &
+       &               mp_read_keyword_vector => hdf5_read_keyword_vector, &
+       &               mp_read_keyword_vector_auto => hdf5_read_keyword_vector_auto, &
        &               mp_write_keyword => hdf5_write_keyword, &
+       &               mp_write_keyword_vector => hdf5_write_keyword_vector, &
        &               mp_table_read_column_auto => hdf5_table_read_column_auto, &
        &               mp_table_write_column => hdf5_table_write_column, &
        &               mp_read_array_auto => hdf5_read_array_auto, &
@@ -44,7 +47,10 @@ module mpi_hdf5_io
   public :: mp_table_write_header
   public :: mp_exists_keyword
   public :: mp_read_keyword
+  public :: mp_read_keyword_vector
+  public :: mp_read_keyword_vector_auto
   public :: mp_write_keyword
+  public :: mp_write_keyword_vector
   public :: mp_table_read_column_auto
   public :: mp_table_write_column
   public :: mp_read_array_auto
