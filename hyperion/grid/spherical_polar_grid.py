@@ -6,6 +6,7 @@ import numpy as np
 from hyperion.util.meshgrid import meshgrid_nd
 from hyperion.util.functions import FreezableClass, is_numpy_array, monotonically_increasing, link_or_copy
 from hyperion.util.logger import logger
+from hyperion.grid.grid_helpers import single_grid_dims
 
 
 class SphericalPolarGrid(FreezableClass):
@@ -159,12 +160,12 @@ class SphericalPolarGrid(FreezableClass):
         if attribute == 'n_dust':
             n_dust = None
             for quantity in self.quantities:
-                if type(self.quantities[quantity]) in [list, tuple]:
-                    if n_dust is None:
-                        n_dust = len(self.quantities[quantity])
-                    else:
-                        if n_dust != len(self.quantities[quantity]):
-                            raise ValueError("Not all dust lists in the grid have the same size")
+                n_dust_q, shape_q = single_grid_dims(self.quantities[quantity])
+                if n_dust is None:
+                    n_dust = n_dust_q
+                else:
+                    if n_dust != n_dust_q:
+                        raise ValueError("Not all dust lists in the grid have the same size")
             return n_dust
         else:
             return FreezableClass.__getattribute__(self, attribute)
@@ -183,50 +184,12 @@ class SphericalPolarGrid(FreezableClass):
 
         for quantity in self.quantities:
 
-            array = self.quantities[quantity]
+            n_pop, shape = single_grid_dims(self.quantities[quantity])
 
-            if type(array) in [list, tuple]:
-
-                # Check that dimensions are compatible
-                for item in array:
-                    if item.shape != self.shape:
-                        raise ValueError("Arrays in list do not have the right "
-                                         "dimensions: %s instead of %s"
-                                         % (item.shape, self.shape))
-
-            elif type(array) == np.ndarray:
-
-                if array.shape != self.shape:
-                    raise ValueError("Array does not have the right "
-                                     "dimensions: %s instead of %s"
-                                     % (array.shape, self.shape))
-
-            elif isinstance(array, h5py.ExternalLink):
-
-                array = h5py.File(array.filename, 'r')[array.path]
-
-                if len(array.shape) == 3:
-
-                    if array.shape != self.shape:
-                        raise ValueError("Array does not have the right "
-                                         "dimensions: %s instead of %s"
-                                         % (array.shape, self.shape))
-
-                elif len(array.shape) == 4:
-
-                    for item in array:
-                        if item.shape != self.shape:
-                            raise ValueError("Arrays in list do not have the right "
-                                             "dimensions: %s instead of %s"
-                                             % (item.shape, self.shape))
-
-                else:
-
-                    raise Exception("Unexpected number of dimensions: %i" % array.ndim)
-
-            else:
-
-                raise ValueError("Array should be a list or a Numpy array")
+            if shape != self.shape:
+                raise ValueError("Quantity arrays do not have the right "
+                                 "dimensions: %s instead of %s"
+                                 % (shape, self.shape))
 
     def read(self, group, quantities='all'):
         '''
@@ -260,11 +223,14 @@ class SphericalPolarGrid(FreezableClass):
             raise Exception("Calculated geometry hash does not match hash in file")
 
         # Read in physical quantities
-
-        for quantity in g_quantities:
-            if quantities == 'all' or quantity in quantities:
-                # TODO - if array is 4D, need to convert to list
-                self.quantities[quantity] = np.array(g_quantities[quantity].array)
+        if quantities is not None:
+            for quantity in g_quantities:
+                if quantities == 'all' or quantity in quantities:
+                    array = np.array(g_quantities[quantity])
+                    if array.ndim == 4:  # if array is 4D, it is a list of 3D arrays
+                        self.quantities[quantity] = [array[i] for i in range(array.shape[0])]
+                    else:
+                        self.quantities[quantity] = array
 
     def write(self, group, quantities='all', copy=True, absolute_paths=False, compression=True, wall_dtype=float, physics_dtype=float):
         '''

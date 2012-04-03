@@ -118,7 +118,7 @@ contains
        if(main_process()) write(*,'(" [grid_physics] reading minimum_specific_energy")')
 
        ! Read in minimum specific energy
-       call mp_read_array_auto(group, 'minimum_specific_energy', minimum_specific_energy)
+       call mp_read_keyword_vector_auto(group, '.', 'minimum_specific_energy', minimum_specific_energy)
 
        if(grid_exists(group, 'specific_energy')) then
 

@@ -213,6 +213,46 @@ class Model(FreezableClass):
         if self._monochromatic:
             group.create_dataset('Frequencies', data=np.array(zip(self._frequencies), dtype=[('nu', dtype)]), compression=compression)
 
+    def use_geometry(self, filename):
+        '''
+        Use the grid from an existing output or input file
+
+        Parameters
+        ----------
+        filename: str
+            The file to read the grid from. This can be either the input or
+            output file from a radiation transfer run.
+        '''
+
+        # Open existing file
+        f = h5py.File(filename, 'r')
+
+        # Get group pointing to grid
+        if 'Grid' in f:
+            g_grid = f['Grid']
+        elif 'Grid' in f['Input']:
+            g_grid = f['Input/Grid']
+        else:
+            raise Exception("No grid found in file: %s" % filename)
+
+        # Determine grid type
+        if g_grid['Geometry'].attrs['grid_type'] == 'car':
+            grid = CartesianGrid()
+        elif g_grid['Geometry'].attrs['grid_type'] == 'sph_pol':
+            grid = SphericalPolarGrid()
+        elif g_grid['Geometry'].attrs['grid_type'] == 'cyl_pol':
+            grid = CylindricalPolarGrid()
+        elif g_grid['Geometry'].attrs['grid_type'] == 'amr':
+            grid = AMRGrid()
+        else:
+            raise NotImplemented("Cannot read geometry type %s" % g_grid['Geometry'].attrs['grid_type'])
+
+        # Read in the grid
+        grid.read(g_grid)
+
+        # Set the grid
+        self.set_grid(grid)
+
     def use_quantities(self, filename, quantities='all', use_dust=True):
         '''
         Use physical quantities from an existing output file
@@ -254,7 +294,7 @@ class Model(FreezableClass):
             if quantities == 'all' or quantity in quantities:
 
                 # Set the path to the quantity
-                if quantity in ['density', 'minimum_specific_energy']:
+                if quantity in ['density']:
                     array_path = '/Input/Grid/Quantities/%s' % quantity
                 else:
                     array_path = '/Iteration %05i/specific_energy' % max_iteration
@@ -265,9 +305,8 @@ class Model(FreezableClass):
                 self.grid[quantity] = h5py.ExternalLink(file_path, array_path)
 
         # Minimum specific energy
-        array_path = '/Input/Grid/Quantities/minimum_specific_energy'
         logger.info("Using minimum_specific_energy from %s" % filename)
-        self.minimum_specific_energy = h5py.ExternalLink(file_path, array_path)
+        self.minimum_specific_energy = [float(x) for x in h5py.File(file_path, 'r')['/Input/Grid/Quantities'].attrs['minimum_specific_energy']]
 
         # Dust properties
         if use_dust:
@@ -377,12 +416,9 @@ class Model(FreezableClass):
                 raise Exception("No dust properties specified")
 
             # Write minimum specific energy
-            if isinstance(self.minimum_specific_energy, h5py.ExternalLink):
-                link_or_copy(g_grid['Quantities'], 'minimum_specific_energy', self.minimum_specific_energy, copy, absolute_paths=absolute_paths)
-            else:
-                if len(self.minimum_specific_energy) != self.grid.n_dust:
-                    raise Exception("Number of minimum_specific_energy values should match number of dust types")
-                g_grid['Quantities'].create_dataset("minimum_specific_energy", data=self.minimum_specific_energy)
+            if len(self.minimum_specific_energy) != self.grid.n_dust:
+                raise Exception("Number of minimum_specific_energy values should match number of dust types")
+            g_grid['Quantities'].attrs["minimum_specific_energy"] = [float(x) for x in self.minimum_specific_energy]
 
             if isinstance(self.dust, h5py.ExternalLink):
 
@@ -536,7 +572,7 @@ class Model(FreezableClass):
                     # Merge the densities
                     if merge:
                         logger.info("Merging densities")
-                        self.density[ip] += density
+                        self.grid.quantities['density'][ip] += density
                         return
 
         # Set the density and dust

@@ -154,9 +154,6 @@ class AMRGrid(FreezableClass):
 
                     elif isinstance(array, h5py.ExternalLink):
 
-                        print array.filename
-                        print array.path
-
                         array = h5py.File(array.filename, 'r')[array.path]
 
                         if len(array.shape) == 3:
