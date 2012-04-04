@@ -369,6 +369,12 @@ class AMRGrid(FreezableClass):
         else:
             return False
 
+    def reset_quantities(self):
+        self.quantities = {}
+        for level in self.levels:
+            for grid in level.grids:
+                grid.quantities = {}
+
 
 class AMRGridView(AMRGrid):
 

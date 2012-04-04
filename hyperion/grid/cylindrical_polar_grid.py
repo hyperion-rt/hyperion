@@ -316,6 +316,9 @@ class CylindricalPolarGrid(FreezableClass):
     def __contains__(self, item):
         return self.quantities.__contains__(item)
 
+    def reset_quantities(self):
+        self.quantities = {}
+
 
 class CylindricalPolarGridView(CylindricalPolarGrid):
 

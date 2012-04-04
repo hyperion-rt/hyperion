@@ -93,7 +93,7 @@ class Star(FreezableClass):
 
 class AnalyticalYSOModel(Model):
 
-    def __init__(self, name):
+    def __init__(self, name=None):
         "Initialize an analytical YSO model"
 
         self.star = Star()
@@ -268,6 +268,9 @@ class AnalyticalYSOModel(Model):
 
         self.star._finalize()
         self._resolve_optically_thin_radii()
+
+        if self.star.radius is None:
+            raise Exception("The central source radius need to be defined before the grid can be set up")
 
         if grid_type is 'spherical':
             n_r, n_theta, n_phi = n1, n2, n3
@@ -490,9 +493,40 @@ class AnalyticalYSOModel(Model):
     def set_minimum_temperature(self, temperature):
         self.minimum_temperature = temperature
 
-    def write(self, merge_if_possible=True, **kwargs):
+    def write(self, filename=None, compression=True, copy=True,
+              absolute_paths=False, wall_dtype=float,
+              physics_dtype=float, overwrite=True, merge_if_possible=True):
+        '''
+        Write the model input parameters to an HDF5 file
 
-        self.reset_density()
+        Parameters
+        ----------
+        filename: str
+            The name of the input file to write. If no name is specified, the
+            filename is constructed from the model name.
+        compression: bool
+            Whether to compress the datasets inside the HDF5 file.
+        copy: bool
+            Whether to copy all external content into the input file, or
+            whether to just link to external content.
+        absolute_paths: bool
+            If copy=False, then if absolute_paths is True, absolute filenames
+            are used in the link, otherwise the path relative to the input
+            file is used.
+        wall_dtype: type
+            Numerical type to use for wall positions.
+        physics_dtype: type
+            Numerical type to use for physical grids.
+        overwrite: bool
+            Whether to overwrite any pre-existing file
+        merge_if_possible: bool
+            Whether to merge densities for the same dust populations
+        '''
+
+        if self.grid is None:
+            raise Exception("The coordinate grid needs to be defined before calling AnalyticalModelYSO.write(...)")
+
+        self.grid.reset_quantities()
 
         for i, disk in enumerate(self.disks):
 
@@ -597,4 +631,7 @@ class AnalyticalYSOModel(Model):
                 else:
                     self.add_map_source(luminosity=disk.lvisc, map=disk.accretion_luminosity(self.grid), name='accdisk%i' % i)
 
-        Model.write(self, **kwargs)
+        Model.write(self, filename=filename, compression=compression,
+                    copy=copy, absolute_paths=absolute_paths,
+                    wall_dtype=wall_dtype, physics_dtype=physics_dtype,
+                    overwrite=overwrite)
