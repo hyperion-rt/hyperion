@@ -61,6 +61,9 @@ class CylindricalPolarGrid(FreezableClass):
         if not monotonically_increasing(p_wall):
             raise ValueError("p_wall should be monotonically increasing")
 
+        if np.any(p_wall < 0.) or np.any(p_wall > 2. * np.pi):
+            raise ValueError("t_wall values be in the range [0:2*pi]")
+
         # Find grid shape
         self.shape = (len(p_wall) - 1, len(z_wall) - 1, len(w_wall) - 1)
 
