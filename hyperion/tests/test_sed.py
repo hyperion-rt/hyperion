@@ -6,8 +6,8 @@ import random
 import numpy as np
 import pytest
 
-from hyperion.model import Model
-from hyperion.util.functions import random_filename
+from ..model import Model
+from ..util.functions import random_filename
 
 
 class TestSEDSimpleModel(object):
@@ -125,7 +125,7 @@ class TestSimpleModelInside(object):
         s.temperature = 6000.
 
         i = m.add_peeled_images(sed=True, image=False)
-        i.set_inside_observer((0.,0.,0.))
+        i.set_inside_observer((0., 0., 0.))
         i.set_wavelength_range(5, 0.1, 100.)
         i.set_aperture_range(3, 1., 10.)
 

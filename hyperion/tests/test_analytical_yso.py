@@ -1,8 +1,8 @@
 import pytest
 
-from hyperion.model import AnalyticalYSOModel
-from hyperion.util.constants import msun, rsun, lsun, tsun, au, pc
-from hyperion.util.functions import random_filename
+from ..model import AnalyticalYSOModel
+from ..util.constants import msun, rsun, lsun, tsun, au, pc
+from ..util.functions import random_filename
 from test_helpers import get_test_dust
 
 

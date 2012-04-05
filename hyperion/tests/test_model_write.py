@@ -6,9 +6,9 @@ import pytest
 
 import h5py
 
-from hyperion.model import Model
-from hyperion.util.functions import random_filename
-from hyperion.dust import IsotropicSphericalDust
+from ..model import Model
+from ..util.functions import random_filename
+from ..dust import IsotropicSphericalDust
 from test_helpers import get_test_model_noimaging, get_test_dust
 
 
@@ -118,6 +118,7 @@ def test_input_link(write_copy):
     assert f['Input'].attrs['copy_input'] == 'no'
     assert f.file != f['Input'].file
     f.close()
+
 
 @pytest.mark.parametrize(('write_copy'), [True, False])
 def test_input_copy(write_copy):

@@ -1,9 +1,10 @@
 import numpy as np
 
-from hyperion.util.integrate import *
+from ..util.integrate import *
 
 import pytest
 import struct
+
 
 def almost_equal(a, b):
     c = struct.pack("<dd", a, b)

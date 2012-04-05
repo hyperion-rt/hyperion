@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from hyperion.util.functions import random_filename
+from ..util.functions import random_filename
 from test_helpers import get_test_model_noimaging, get_test_dust
 
 
@@ -16,9 +16,9 @@ def test_output_grids_exist(output):
     model = get_test_model_noimaging()
     model.add_density_grid(np.array([[[1.]]]), dust)
     model.conf.output.output_density = 'last' if output == 'density' else 'none'
-    model.conf.output.output_density_diff ='last' if output == 'density_diff' else 'none'
-    model.conf.output.output_n_photons ='last' if output == 'n_photons' else 'none'
-    model.conf.output.output_specific_energy ='last' if output == 'specific_energy' else 'none'
+    model.conf.output.output_density_diff = 'last' if output == 'density_diff' else 'none'
+    model.conf.output.output_n_photons = 'last' if output == 'n_photons' else 'none'
+    model.conf.output.output_specific_energy = 'last' if output == 'specific_energy' else 'none'
     model.write(random_filename())
 
     # Run the model
@@ -32,6 +32,7 @@ def test_output_grids_exist(output):
     if output == 'specific_energy':
         assert 'temperature' in model_out.get_available_components()
         model_out.get_physical_grid('temperature')
+
 
 def test_output_grids_density():
 
