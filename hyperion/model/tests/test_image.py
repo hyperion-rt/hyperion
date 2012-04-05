@@ -6,8 +6,8 @@ import random
 import numpy as np
 import pytest
 
-from ..model import Model
-from ..util.functions import random_filename
+from .. import Model
+from ...util.functions import random_filename
 
 
 class TestImageSimpleModel(object):

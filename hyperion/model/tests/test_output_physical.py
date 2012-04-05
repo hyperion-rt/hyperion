@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from ..util.functions import random_filename
+from ...util.functions import random_filename
 from test_helpers import get_test_model_noimaging, get_test_dust
 
 

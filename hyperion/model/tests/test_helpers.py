@@ -2,9 +2,9 @@ import os
 import tempfile
 import numpy as np
 
-from ..dust import IsotropicSphericalDust
-from ..model import Model
-from ..util.functions import random_id
+from ...dust import IsotropicSphericalDust
+from .. import Model
+from ...util.functions import random_id
 
 
 def random_filename():

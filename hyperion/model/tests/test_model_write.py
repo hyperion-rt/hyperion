@@ -6,9 +6,9 @@ import pytest
 
 import h5py
 
-from ..model import Model
-from ..util.functions import random_filename
-from ..dust import IsotropicSphericalDust
+from .. import Model
+from ...util.functions import random_filename
+from ...dust import IsotropicSphericalDust
 from test_helpers import get_test_model_noimaging, get_test_dust
 
 
