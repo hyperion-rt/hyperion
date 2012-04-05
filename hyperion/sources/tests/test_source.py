@@ -6,7 +6,7 @@ import atpy
 import pytest
 import numpy as np
 
-from hyperion.sources import Source, PointSource, SpotSource, SphericalSource
+from .. import Source, PointSource, SpotSource, SphericalSource
 
 
 def random_id(length=32):

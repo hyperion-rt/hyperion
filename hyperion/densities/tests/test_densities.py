@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 
-from hyperion.densities import FlaredDisk, PowerLawEnvelope, UlrichEnvelope, BipolarCavity
-from hyperion.util.convenience import OptThinRadius
+from .. import FlaredDisk, PowerLawEnvelope, UlrichEnvelope, BipolarCavity
+from ...util.convenience import OptThinRadius
 
 # Flared Disk
 
