@@ -81,6 +81,7 @@ class OrionLevel(Level):
         self.number = None
         Level.__init__(self)
 
+
 class OrionAMRGrid(AMRGrid):
 
     def __init__(self, dirname, quantities, verbose=False, max_level=None):
@@ -235,6 +236,7 @@ class OrionAMRGrid(AMRGrid):
 
         # Throw away levels that aren't needed
         self.levels = self.levels[:max_level]
+
 
 def parse_orion(dirname, quantities='density', verbose=False, max_level=None):
 

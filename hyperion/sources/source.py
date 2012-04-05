@@ -392,6 +392,7 @@ class ExternalSphericalSource(Source):
 
         Source.__setattr__(self, attribute, value)
 
+
 class ExternalBoxSource(Source):
 
     def __init__(self, luminosity=None, bounds=None,

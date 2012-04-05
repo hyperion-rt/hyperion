@@ -194,7 +194,6 @@ class RunConf(FreezableClass):
             if 'raytracing_dust' in self.n_photons:
                 raise Exception("[n_photons] raytracing_dust should not be set as raytracing is not being used")
 
-
         group.attrs['n_stats'] = self.n_photons['stats']
 
     def set_raytracing(self, raytracing):
@@ -473,6 +472,7 @@ class RunConf(FreezableClass):
         self._write_sample_sources_evenly(group)
         self._write_enforce_energy_range(group)
         self._write_copy_input(group)
+
 
 class ImageConf(FreezableClass):
 

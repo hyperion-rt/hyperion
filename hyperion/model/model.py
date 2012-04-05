@@ -1653,7 +1653,6 @@ class ModelOutput(FreezableClass):
         else:
             array = np.array(self.file['Iteration %05i' % iteration][name])
 
-
         # If required, extract grid for a specific dust type
         if name == 'n_photons':
             return array
