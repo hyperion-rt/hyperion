@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..util.integrate import *
+from ..integrate import *
 
 import pytest
 import struct
