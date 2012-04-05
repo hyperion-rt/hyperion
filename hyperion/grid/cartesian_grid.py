@@ -187,9 +187,9 @@ class CartesianGrid(FreezableClass):
         if g_geometry.attrs['grid_type'] != 'car':
             raise ValueError("Grid is not cartesian")
 
-        self.set_walls(g_geometry['Walls 1']['x'],
-                       g_geometry['Walls 2']['y'],
-                       g_geometry['Walls 3']['z'])
+        self.set_walls(g_geometry['walls_1']['x'],
+                       g_geometry['walls_2']['y'],
+                       g_geometry['walls_3']['z'])
 
         # Read in physical quantities
         if quantities is not None:
@@ -244,13 +244,13 @@ class CartesianGrid(FreezableClass):
         g_geometry.attrs['grid_type'] = 'car'
         g_geometry.attrs['geometry'] = self.get_geometry_id()
 
-        dset = g_geometry.create_dataset("Walls 1", data=np.array(zip(self.x_wall), dtype=[('x', wall_dtype)]), compression=compression)
+        dset = g_geometry.create_dataset("walls_1", data=np.array(zip(self.x_wall), dtype=[('x', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
-        dset = g_geometry.create_dataset("Walls 2", data=np.array(zip(self.y_wall), dtype=[('y', wall_dtype)]), compression=compression)
+        dset = g_geometry.create_dataset("walls_2", data=np.array(zip(self.y_wall), dtype=[('y', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
-        dset = g_geometry.create_dataset("Walls 3", data=np.array(zip(self.z_wall), dtype=[('z', wall_dtype)]), compression=compression)
+        dset = g_geometry.create_dataset("walls_3", data=np.array(zip(self.z_wall), dtype=[('z', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
         # Self-consistently check geometry and physical quantities

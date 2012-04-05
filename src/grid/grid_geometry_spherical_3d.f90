@@ -89,9 +89,9 @@ contains
 
     if(main_process()) write(*,'(" [setup_grid_geometry] Reading spherical polar grid")')
 
-    call mp_table_read_column_auto(group, 'Walls 1', 'r', geo%w1)
-    call mp_table_read_column_auto(group, 'Walls 2', 't', geo%w2)
-    call mp_table_read_column_auto(group, 'Walls 3', 'p', geo%w3)
+    call mp_table_read_column_auto(group, 'walls_1', 'r', geo%w1)
+    call mp_table_read_column_auto(group, 'walls_2', 't', geo%w2)
+    call mp_table_read_column_auto(group, 'walls_3', 'p', geo%w3)
 
     if(any(geo%w1 < 0.)) then
        call error("setup_grid_geometry","r walls should be positive")

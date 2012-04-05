@@ -82,9 +82,9 @@ contains
 
     if(main_process()) write(*,'(" [setup_grid_geometry] Reading cartesian grid")')
 
-    call mp_table_read_column_auto(group, 'Walls 1', 'x', geo%w1)
-    call mp_table_read_column_auto(group, 'Walls 2', 'y', geo%w2)
-    call mp_table_read_column_auto(group, 'Walls 3', 'z', geo%w3)
+    call mp_table_read_column_auto(group, 'walls_1', 'x', geo%w1)
+    call mp_table_read_column_auto(group, 'walls_2', 'y', geo%w2)
+    call mp_table_read_column_auto(group, 'walls_3', 'z', geo%w3)
 
     geo%n1 = size(geo%w1) - 1
     geo%n2 = size(geo%w2) - 1

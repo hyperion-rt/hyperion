@@ -209,9 +209,9 @@ class CylindricalPolarGrid(FreezableClass):
         if g_geometry.attrs['grid_type'] != 'cyl_pol':
             raise ValueError("Grid is not cylindrical polar")
 
-        self.set_walls(g_geometry['Walls 1']['w'],
-                       g_geometry['Walls 2']['z'],
-                       g_geometry['Walls 3']['p'])
+        self.set_walls(g_geometry['walls_1']['w'],
+                       g_geometry['walls_2']['z'],
+                       g_geometry['walls_3']['p'])
 
         # Read in physical quantities
         if quantities is not None:
@@ -266,13 +266,13 @@ class CylindricalPolarGrid(FreezableClass):
         g_geometry.attrs['grid_type'] = 'cyl_pol'
         g_geometry.attrs['geometry'] = self.get_geometry_id()
 
-        dset = g_geometry.create_dataset("Walls 1", data=np.array(zip(self.w_wall), dtype=[('w', wall_dtype)]), compression=compression)
+        dset = g_geometry.create_dataset("walls_1", data=np.array(zip(self.w_wall), dtype=[('w', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
-        dset = g_geometry.create_dataset("Walls 2", data=np.array(zip(self.z_wall), dtype=[('z', wall_dtype)]), compression=compression)
+        dset = g_geometry.create_dataset("walls_2", data=np.array(zip(self.z_wall), dtype=[('z', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
-        dset = g_geometry.create_dataset("Walls 3", data=np.array(zip(self.p_wall), dtype=[('p', wall_dtype)]), compression=compression)
+        dset = g_geometry.create_dataset("walls_3", data=np.array(zip(self.p_wall), dtype=[('p', wall_dtype)]), compression=compression)
         dset.attrs['Unit'] = 'cm'
 
         # Self-consistently check geometry and physical quantities

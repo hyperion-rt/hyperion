@@ -87,9 +87,9 @@ contains
 
     if(main_process()) write(*,'(" [setup_grid_geometry] Reading cylindrical polar grid")')
 
-    call mp_table_read_column_auto(group, 'Walls 1', 'w', geo%w1)
-    call mp_table_read_column_auto(group, 'Walls 2', 'z', geo%w2)
-    call mp_table_read_column_auto(group, 'Walls 3', 'p', geo%w3)
+    call mp_table_read_column_auto(group, 'walls_1', 'w', geo%w1)
+    call mp_table_read_column_auto(group, 'walls_2', 'z', geo%w2)
+    call mp_table_read_column_auto(group, 'walls_3', 'p', geo%w3)
 
     if(any(geo%w1 < 0.)) then
        call error("setup_grid_geometry","w walls should be positive")
