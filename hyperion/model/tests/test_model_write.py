@@ -61,39 +61,6 @@ class TestWriteDustCopy(object):
         assert e.value.message == 'Dust properties are not located in a file, so cannot link. Use copy=True or write the dust properties to a file first'
 
 
-class TestWriteEnergyCopy(object):
-
-    def setup_class(self):
-
-        self.reference_input = random_filename()
-        self.reference_output = random_filename()
-
-        self.dust_file = random_filename()
-        self.dust = get_test_dust()
-        self.dust.write(self.dust_file)
-
-        self.density = np.array([[[1.]]])
-
-        self.model = get_test_model_noimaging()
-        self.model.add_density_grid(np.array([[[1.]]]), self.dust_file)
-        self.model.write(filename=self.reference_input)
-        self.model.run(self.reference_output)
-
-    def test_copy_filename(self):
-
-        m = get_test_model_noimaging()
-        m.specific_energy = self.reference_output
-        m.write(random_filename(), copy=True)
-        m.run(random_filename())
-
-    def test_link_filename(self):
-
-        m = get_test_model_noimaging()
-        m.specific_energy = self.reference_output
-        m.write(random_filename(), copy=False)
-        m.run(random_filename())
-
-
 @pytest.mark.parametrize(('write_copy'), [True, False])
 def test_input_link(write_copy):
 
