@@ -378,8 +378,12 @@ contains
     character(len=*),intent(in) :: path, name
     @T,intent(out),allocatable :: values(:)
     integer :: n1
-    if(main_process()) call hdf5_read_keyword_vector_auto(handle, path, name, values)
-    n1 = size(values)
+    if(main_process()) then
+       call hdf5_read_keyword_vector_auto(handle, path, name, values)
+       n1 = size(values)
+    end if
+    call mpi_bcast(n1, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
+    if(.not. main_process()) allocate(values(n1))
     call mpi_bcast(values, n1, <T>, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_keyword_vector_auto_<T>
 

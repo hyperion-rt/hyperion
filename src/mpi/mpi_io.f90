@@ -1,4 +1,4 @@
-! MD5 of template: 4c801596331df5176aaace01b6e4e28b
+! MD5 of template: 41c046fbc5b05a383338861ecd9610f5
 module mpi_hdf5_io
 
   use core_lib
@@ -378,8 +378,12 @@ contains
     character(len=*),intent(in) :: path, name
     integer(idp),intent(out),allocatable :: values(:)
     integer :: n1
-    if(main_process()) call hdf5_read_keyword_vector_auto(handle, path, name, values)
-    n1 = size(values)
+    if(main_process()) then
+       call hdf5_read_keyword_vector_auto(handle, path, name, values)
+       n1 = size(values)
+    end if
+    call mpi_bcast(n1, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
+    if(.not. main_process()) allocate(values(n1))
     call mpi_bcast(values, n1, mpi_integer8, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_keyword_vector_auto_mpi_integer8
 
@@ -640,8 +644,12 @@ contains
     character(len=*),intent(in) :: path, name
     integer,intent(out),allocatable :: values(:)
     integer :: n1
-    if(main_process()) call hdf5_read_keyword_vector_auto(handle, path, name, values)
-    n1 = size(values)
+    if(main_process()) then
+       call hdf5_read_keyword_vector_auto(handle, path, name, values)
+       n1 = size(values)
+    end if
+    call mpi_bcast(n1, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
+    if(.not. main_process()) allocate(values(n1))
     call mpi_bcast(values, n1, mpi_integer4, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_keyword_vector_auto_mpi_integer4
 
@@ -902,8 +910,12 @@ contains
     character(len=*),intent(in) :: path, name
     real(dp),intent(out),allocatable :: values(:)
     integer :: n1
-    if(main_process()) call hdf5_read_keyword_vector_auto(handle, path, name, values)
-    n1 = size(values)
+    if(main_process()) then
+       call hdf5_read_keyword_vector_auto(handle, path, name, values)
+       n1 = size(values)
+    end if
+    call mpi_bcast(n1, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
+    if(.not. main_process()) allocate(values(n1))
     call mpi_bcast(values, n1, mpi_real8, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_keyword_vector_auto_mpi_real8
 
@@ -1164,8 +1176,12 @@ contains
     character(len=*),intent(in) :: path, name
     real(sp),intent(out),allocatable :: values(:)
     integer :: n1
-    if(main_process()) call hdf5_read_keyword_vector_auto(handle, path, name, values)
-    n1 = size(values)
+    if(main_process()) then
+       call hdf5_read_keyword_vector_auto(handle, path, name, values)
+       n1 = size(values)
+    end if
+    call mpi_bcast(n1, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
+    if(.not. main_process()) allocate(values(n1))
     call mpi_bcast(values, n1, mpi_real4, rank_main, mpi_comm_world, ierr)
   end subroutine mp_read_keyword_vector_auto_mpi_real4
 
