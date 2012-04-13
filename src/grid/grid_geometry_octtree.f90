@@ -200,10 +200,15 @@ contains
     call mp_read_keyword(group, '.', "grid_type", geo%type)
 
     ! Read in refinement list
-    call mp_table_read_column_auto(group, 'Cells', 'refined', refined)
+    call mp_table_read_column_auto(group, 'cells', 'refined', refined)
 
     ! Find number of cells
     geo%n_cells = size(refined)
+
+    ! Set dimensions
+    geo%n1 = geo%n_cells
+    geo%n2 = 1
+    geo%n3 = 1
 
     ! Allocate cells
     allocate(geo%cells(geo%n_cells))
