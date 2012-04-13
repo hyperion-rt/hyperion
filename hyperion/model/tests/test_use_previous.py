@@ -5,7 +5,7 @@ from .. import Model
 from ...grid.amr_grid import AMRGrid, Level, Grid
 
 
-@pytest.mark.parametrize(('grid_type', 'copy'), [(x, y) for x in ['car', 'sph_pol', 'cyl_pol', 'amr'] for y in [True, False]])
+@pytest.mark.parametrize(('grid_type', 'copy'), [(x, y) for x in ['car', 'sph', 'cyl', 'amr', 'oct'] for y in [True, False]])
 def test_use_quantities_cartesian(grid_type, copy):
 
     # Set up the initial model
@@ -18,7 +18,7 @@ def test_use_quantities_cartesian(grid_type, copy):
         m.set_cylindrical_polar_grid([0., 1.], [-1., 1.], [0., 2. * np.pi])
     elif grid_type == 'sph':
         m.set_spherical_polar_grid([0., 1.], [0., np.pi], [0., 2. * np.pi])
-    else:
+    elif grid_type == 'amr':
         amr = AMRGrid()
         level = Level()
         grid = Grid()
@@ -30,12 +30,18 @@ def test_use_quantities_cartesian(grid_type, copy):
         level.grids.append(grid)
         amr.levels.append(level)
         m.set_amr_grid(amr)
+    else:
+        refined = [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                   0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+        m.set_octree_grid(0., 0., 0., 10., 10., 10., np.array(refined).astype(bool))
 
     # Set up initial density
     if grid_type in ['car', 'cyl', 'sph']:
         m.add_density_grid(np.array([[[1.]]]), 'kmh.hdf5')
-    else:
+    elif grid_type == 'amr':
         m.add_density_grid(amr['density'], 'kmh.hdf5')
+    else:
+        m.add_density_grid(np.ones(len(refined)), 'kmh.hdf5')
 
     # Set up source
     s = m.add_point_source()

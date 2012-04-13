@@ -4,7 +4,7 @@ import h5py
 
 def single_grid_dims(data):
     '''
-    Find the number of populations, and 3D dimensions
+    Find the number of populations
 
     Parameters
     ----------
@@ -53,7 +53,7 @@ def single_grid_dims(data):
             n_pop = shape[0]
             shape = shape[1:]
         else:
-            raise Exception("Unexpected number of dimensions: %i" % data.ndim)
+            raise Exception("Unexpected number of dimensions: %i" % shape)
     else:
         raise ValueError("Data should be a list or a Numpy array or an "
                          "external HDF5 link")

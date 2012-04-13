@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 import hyperion
 from hyperion.util.functions import delete_file
-from hyperion.grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OcTreeGrid, AMRGrid
+from hyperion.grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid
 from hyperion.sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource
 from hyperion.conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from hyperion.util.constants import c, pi
@@ -244,6 +244,8 @@ class Model(FreezableClass):
             grid = CylindricalPolarGrid()
         elif g_grid['Geometry'].attrs['grid_type'] == 'amr':
             grid = AMRGrid()
+        elif g_grid['Geometry'].attrs['grid_type'] == 'oct':
+            grid = OctreeGrid()
         else:
             raise NotImplemented("Cannot read geometry type %s" % g_grid['Geometry'].attrs['grid_type'])
 
@@ -599,7 +601,7 @@ class Model(FreezableClass):
         self.set_grid(SphericalPolarGrid(r_wall, t_wall, p_wall))
 
     def set_octree_grid(self, refined, x, y, z, dx, dy, dz):
-        self.set_grid(OcTreeGrid(refined, x, y, z, dx, dy, dz))
+        self.set_grid(OctreeGrid(refined, x, y, z, dx, dy, dz))
 
     def set_amr_grid(self, description):
         self.set_grid(AMRGrid(description))
