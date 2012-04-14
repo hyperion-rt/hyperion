@@ -130,10 +130,10 @@ Density and Specific Energy
 Once a regular grid is set up, it is straightforward to add one or more density grids. In this step, a dust file in HDF5 format is also required. See :ref:`dustfile` for more details about creating and using dust files in HDF5
 format.
 
-Regular 3D grids
+Regular 3-d grids
 ----------------
 
-For regular cartesian and polar grids, a 3D NumPy array containing
+For regular cartesian and polar grids, a 3-d NumPy array containing
 the density array is required. A density grid is added with::
 
     m.add_density_grid(density_array, dust_file)
@@ -146,7 +146,7 @@ This command can be called multiple times if multiple density arrays are
 needed (for example if different dust sizes have different spatial
 distributions).
 
-Optionally, a specific energy distribution can also be specified using a 3D NumPy
+Optionally, a specific energy distribution can also be specified using a 3-d NumPy
 array using the ``specific_energy=`` argument::
 
     m.add_density_grid(density_array, dust_file, specific_energy=specific_energy_array)
@@ -159,38 +159,25 @@ array using the ``specific_energy=`` argument::
 AMR grids
 ---------
 
-The density can be added using an AMR object (as described in :ref:`grid`)::
+Since AMR grids have a more complex structure than regular 3-d arrays, the density should be added using an AMR object (as described in :ref:`grid`), with the quantity being used specified as an item::
 
-    m.add_density_grid(amr_object, dust_file)
+    m.add_density_grid(amr_object['density'], dust_file)
 
 for example::
 
-    m.add_density_grid(amr, 'kmh.hdf5')
+    m.add_density_grid(amr['density'], 'kmh.hdf5')
+
+For the above to work, the density should be set for each grid in each level, in a ``quantities`` dictionary that has a ``'density'`` key, which in turns contains a 3-d array with the density (see :ref:`amr_indepth` for more details).
 
 Specific energies can be specified using the same kinds of objects and using the `specific_energy` argument::
 
-    m.add_density_grid(amr, dust_file, specific_energy=amr_specific_energy)
-
-If one wants to set a preliminary specific energy based e.g. on density or a constant temperature, then one can do for example::
-
-    # Set the AMR object
-    amr = ...
-
-    # Create a constant temperature grid
-    from copy import deepcopy
-    amr_specific_energy = deepcopy(amr)
-    for level in amr_specific_energy.levels:
-        for grid in level.grids:
-            grid.data[:, :, :] = 100.  # Set to 100K
-
-    m.add_density_grid(amr, 'kmh.hdf5', specific_energy=amr_specific_energy)
-
-For more details on how to create or read in an AMR object, see :ref:`amr_indepth`.
+    m.add_density_grid(amr['density], dust_file,
+                       specific_energy=amr['specific_energy'])
 
 Octree grids
 ------------
 
-Coming soon...
+In the case of Octrees, densities (and optionally specific energies) should be specified in the same manner as the regular grids, but should be specified as a 1-d Numpy array with the same length as the ``refined`` list, where each density corresponds to the equivalent cell in the refined list.
 
 Sources
 =======
@@ -236,7 +223,7 @@ three ways:
 Point Sources
 -------------
 
-A point source is defined by a luminosity, a 3D cartesian position (set to
+A point source is defined by a luminosity, a 3-d cartesian position (set to
 the origin by default), and a spectrum or temperature. The following
 examples demonstrate adding different point sources:
 
