@@ -118,10 +118,10 @@ OBJECTS_OCT_SER =	src/mpi/mpi_core_nompi.f90 \
 			src/main/counters.f90 \
 			src/mpi/mpi_io_nompi.f90 \
 			src/grid/type_grid_octree.f90 \
-			src/core/type_cell_id_octtree.f90 \
+			src/core/type_cell_id_octree.f90 \
 			$(OBJECTS1) \
 			src/grid/grid_io.f90 \
-			src/grid/grid_geometry_octtree.f90 \
+			src/grid/grid_geometry_octree.f90 \
 			src/grid/grid_geometry_common_3d.f90 \
 			src/grid/grid_pda_disabled.f90 \
 			$(OBJECTS2) \
@@ -135,10 +135,10 @@ OBJECTS_OCT_MPI =	src/mpi/mpi_core.f90 \
 			src/main/counters.f90 \
 			src/mpi/mpi_io.f90 \
 			src/grid/type_grid_octree.f90 \
-			src/core/type_cell_id_octtree.f90 \
+			src/core/type_cell_id_octree.f90 \
 			$(OBJECTS1) \
 			src/grid/grid_io.f90 \
-			src/grid/grid_geometry_octtree.f90 \
+			src/grid/grid_geometry_octree.f90 \
 			src/grid/grid_geometry_common_3d.f90 \
 			src/grid/grid_pda_disabled.f90 \
 			$(OBJECTS2) \
