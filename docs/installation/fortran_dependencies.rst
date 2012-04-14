@@ -7,7 +7,7 @@ Fortran code dependencies
 Introduction
 ============
 
-The fortran code for Hyperion requires an installation of MPI with support for Fortran enabled, and the HDF5 library (1.8.5 or later) with support for Fortran. Note that default installations these packages do not include support for Fortran - this has to be explicitly enabled as described below.
+The Fortran code for Hyperion requires an installation of MPI with support for Fortran enabled, and the HDF5 library (1.8.5 or later) with support for Fortran. Note that often, default installations of these packages do not include support for Fortran - this has to be explicitly enabled as described below.
 
 Non-root installs
 =================
@@ -16,8 +16,28 @@ If you do not have root access to the machine you are using, then replace
 ``/usr/local`` in the following instructions by e.g. ``$HOME/usr``.
 In addition, you should not ever include ``sudo`` in any of the commands.
 
-MPI
-===
+Automated Installation
+======================
+
+The easiest way to install these dependencies correctly is to use the installation script provided with Hyperion. Once you have downloaded the Hyperion source code, go to the ``deps/fortran`` directory and run the automated install script provided::
+
+    cd deps/fortran
+    python install.py <prefix>
+
+where ``<prefix>`` is the folder in which you want to install the MPI and HDF5 libraries. For example, to install in ``/usr/local/``, you can do::
+
+    python install.py /usr/local
+
+and the libraries will be installed in the ``lib``, ``include``, etc. directories inside ``usr/local``. The installation script has a number of options (e.g. to set the compilers) that can be seen with::
+
+    python install.py --help
+
+If the installation fails, a log will be posted to the `Pastebin <http://pastebin.com/>`_ service. Copy the URL and report it either by email or on the Github `Issues <https://github.com/astrofrog/hyperion/issues>`_.
+
+If the installation succeeds, you can ignore the rest of this document, and move on to the :doc:`python_dependencies`.
+
+Manual Installation: MPI
+========================
 
 In order to use the parallel version of the radiation transfer code, you will
 need an installation of MPI that supports Fortran. By default, MacOS X ships
@@ -33,7 +53,7 @@ Installation
 First, download the source for the latest *stable release* of MPICH2 from
 `here
 <http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads>`_
-(1.3 at the time of writing). Once downloaded, unpack the file and then go
+(1.4.1 at the time of writing). Once downloaded, unpack the file and then go
 into the source directory::
 
     cd mpich2-x.x.x
@@ -94,8 +114,8 @@ Then, rerun configure and build using::
     make
     sudo make install
 
-HDF5 Library
-============
+Manual Installation: HDF5
+=========================
 
 Installation
 ------------
@@ -112,7 +132,7 @@ To start with, download the source code from `here
 <http://www.hdfgroup.org/ftp/HDF5/current/src/>`_, then go into the source
 code directory::
 
-    cd hdf5-1.8.5
+    cd hdf5-x.x.x
 
 and configure the installation::
 
