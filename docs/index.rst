@@ -7,14 +7,14 @@ Hyperion documentation
 ======================
 
 Hyperion is a three-dimensional dust continuum Monte-Carlo radiative transfer
-code. Models are set up via a Python script, and are then run using a compiled fortran code, optionally making use of the Message Passing Interface (MPI) for parallel computing.
+code. Models are set up via Python scripts, and are run using a compiled Fortran code, optionally making use of the Message Passing Interface (MPI) for parallel computing.
 
 .. toctree::
    :maxdepth: 1
 
-   installation.rst
-   model_setup.rst
-   model_run.rst
-   model_postprocess.rst
+   installation/installation.rst
+   setup/model_setup.rst
+   running/model_run.rst
+   postprocessing/model_postprocess.rst
    tutorials/index.rst
 
