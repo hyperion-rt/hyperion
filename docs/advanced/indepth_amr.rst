@@ -9,22 +9,23 @@ AMR grids are specified by nested objects in the Python, with a layout described
 Programmatically
 ================
 
-The following example demonstrates how an AMR grid with 5 grids and 10 levels can be built programmatically from scratch::
+.. highlight_language:: python
 
-    amr = object()
-    amr.levels = []
-    for ilevel in range(5):
-        level = object()
-        level.grids = []
-        for igrid in range(10):
-            grid = object()
+The following example demonstrates how an AMR grid can be built programmatically from scratch::
+
+    from hyperion.grid import AMRGrid
+    amr = AMRGrid()
+    for ilevel in range(nlevels):
+        level = amd.add_level()
+        for igrid in range(ngrids):
+            grid = level.add_grid()
             grid.xmin, grid.xmax = ..., ...
             grid.ymin, grid.ymax = ..., ...
             grid.zmin, grid.zmax = ..., ...
-            grid.nx, grid.ny, grid.nz = 32, 32, 32
-            grid.data = np.array(...) # should have shape (nx, ny, nz)
-            level.grids.append(grid)
-        amr.levels.append(level)
+            grid.nx, grid.ny, grid.nz = ..., ..., ...
+            grid.quantities['density'] = np.array(...)
+
+where ``nlevels`` is the number of levels in the AMR grid, and ``ngrids`` is the number of grids each each level. The dimensions of the ``np.array(...)`` on the last line should be ``(nz, ny, nx)``.
 
 From simulation output
 ======================
@@ -32,9 +33,9 @@ From simulation output
 Importing functions are available in ``hyperion.importers`` to convert simulation output to the AMR structure required. At this time, only output from the Orion code can be read in. If the output is contained in a directory  ``directory``, then the AMR structure can be retrieved with::
 
     from hyperion.importers import parse_orion
-    amr = parse_orion('directory')
+    amr, stars = parse_orion('directory')
 
-As well as a ``levels`` attribute, the amr object retrieved in this way contains a ``stars`` attribute, which is a list of ``Star`` instances. These ``Star`` instances have several attributes, which include:
+The ``stars`` variable is a list of ``Star`` instances. These ``Star`` instances have several attributes, which include:
 
 * ``x``, ``y``, and ``z`` - the position of the star
 * ``m``, ``r`` - the mass and radius of the star

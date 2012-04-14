@@ -1,8 +1,8 @@
 .. _model:
 
-===============
-Arbitrary Model
-===============
+================
+Arbitrary Models
+================
 
 .. note:: The current document only shows example use of some methods, and
           does not discuss all the options available. To see these, do not
@@ -11,34 +11,28 @@ Arbitrary Model
           ``write`` method.
 
 To create a general model, you will need to first import the Model class
-from the Python ``hyperion`` module::
+from the Python Hyperion module::
 
     from hyperion.model import Model
 
 it is then easy to set up a generic model using::
 
-    m = Model('example')
+    m = Model()
 
-``Model`` requires one argument, the name of the model (this is used later
-on as a prefix for the model filename). The model can then be set up using
-methods of the ``Model`` instance. These are described in the following
-sections.
+The model can then be set up using methods of the ``Model`` instance. These
+are described in the following sections.
 
 Once the model is set up, the user can write it out to the disk for use
 with the Fortran radiation transfer code::
 
-    m.write()
-
-If the model name was set to ``example``, the ``write`` method will write
-an HDF5 file named ``example.rtin`` that is ready for use in the Fortran
-code.
+    m.write('example.rtin')
 
 .. _grid:
 
 Grid
 ====
 
-The code currently supports five types of grid, all 3D:
+The code currently supports five types of 3-d grids:
 
 * Cartesian grids
 * Spherical polar grids
@@ -46,15 +40,15 @@ The code currently supports five types of grid, all 3D:
 * AMR grids
 * Octree grids
 
-The following sections show the different kinds of grids should be set up.
+The following sections show how the different kinds of grids should be set up.
 
-Regular 3D grids
+Regular 3-d grids
 ----------------
 
 In the case of the cartesian and polar grids, the user should define the wall
 position in each of the three directions, using cgs units for the spatial
 coordinates, and radians for the angular coordinates. These wall positions
-should be stored in one 1D NumPy array for each dimension, with one element
+should be stored in one 1-d NumPy array for each dimension, with one element
 more than the number of cells defined. The walls can then be used to create a
 coordinate grid using methods of the form ``set_x_grid(walls_1, walls_2,
 walls_3)``. The following examples demonstrate how to do this for the various
@@ -67,14 +61,14 @@ grid types
     z = np.linspace(-pc, pc, 11)
     m.set_cartesian_grid(x, y, z)
 
-* A 2D 399x199 spherical polar grid::
+* A 2-d 399x199 spherical polar grid::
 
     r = np.logspace(np.log10(rsun), np.log10(100*au), 400)
     theta = np.linspace(0., pi., 199)
     phi = np.array([0., 2*pi])
     m.set_spherical_polar_grid(r, theta, phi)
 
-* A 3D 100x100x10 cylindrical polar grid::
+* A 3-d 100x100x10 cylindrical polar grid::
 
     w = np.logpsace(np.log10(rsun), np.log10(100*au), 101)
     z = np.linspace(-10*au, 10*au, 101)
@@ -84,7 +78,20 @@ grid types
 AMR grids
 ---------
 
-AMR grids have to be specified using nested Python objects. The names of the classes used, and the origin of the AMR grid is unimportant, but an AMR object has to contain a ``levels`` attribute. The ``levels`` attribute should be iterable, and contain single levels that have a ``grids`` attribute. The ``grids`` attribute should be iterable and contain single grids that have the following attributes:
+AMR grids have to be constructed using the ``AMRGrid`` class::
+
+    from hyperion.grid import AMRGrid
+    amr = AMRGrid()
+
+Levels can be added with::
+
+    level = amr.add_level()
+
+And grids can be added to a level with::
+
+    grid = level.add_grid()
+
+Grid objects have the following attributes which should be set:
 
 * ``xmin`` - lower x position of the grid
 * ``xmax`` - upper x position of the grid
@@ -95,7 +102,6 @@ AMR grids have to be specified using nested Python objects. The names of the cla
 * ``nx`` - number of cells in x direction
 * ``ny`` - number of cells in y direction
 * ``nz`` - number of cells in z direction
-* ``data`` - a NumPy array with shape (``nx``, ``ny``, ``nz``) containing a physical quantity (e.g. density or temperature)
 
 Once we have an AMR grid object, which we call ``amr`` here, the geometry can be set using::
 
@@ -108,7 +114,15 @@ For more details on how to create or read in an AMR object, see :ref:`amr_indept
 Octree grids
 ------------
 
-Coming soon...
+An `Octree <http://en.wikipedia.org/wiki/Octree>`_ is a hierarchical grid format where each cell can be divided into eight children cells. At the top level is a single cell that covers the whole spatial domain being considered. To set up an Octree, the following information is needed:
+
+* ``x``, ``y``, ``z`` - the coordinates of the center of the parent cell
+* ``dx``, ``dy``, ``dz`` - the size of the parent cell
+* ``refined`` a 1-d sequence of booleans giving the structure of the grid.
+
+The ``refined`` sequence contains all the information regarding the hierarchy of the grid, and is described in :ref:`indepth_oct`. Once this sequence is set, the geometry can be set with::
+
+    m.set_octree_grid(x, y, z, dx, dy, dz, refined)
 
 Density and Specific Energy
 ===========================
