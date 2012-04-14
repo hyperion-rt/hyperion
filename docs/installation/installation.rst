@@ -2,12 +2,18 @@
 Installation
 ============
 
+.. note:: This section contains information on setting up the dependencies for
+          Hyperion as well as Hyperion itself. If you have any issues with the
+          installation of any of the dependencies or Hyperion, please first
+          talk to your system administrator to see if they can help you get
+          set up!
+
 Dependencies
 ============
 
 First, you will need to install several dependencies. Please follow the
 instructions at the following pages to make sure that you have all the
-dependencies installed:
+dependencies installed.
 
 .. toctree::
    :maxdepth: 1
@@ -46,6 +52,3 @@ If you get::
 
 then something went wrong in the installation, or the directory to which you
 installed the binaries is not in your ``$PATH``.
-
-
-

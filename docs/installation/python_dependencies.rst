@@ -7,7 +7,7 @@ Python code dependencies
 Overview
 ========
 
-The packages required for the python code are:
+The packages required for the Python code are:
 
 * `NumPy <http://www.scipy.org/>`_
 * `SciPy <http://www.scipy.org/>`_
@@ -38,38 +38,35 @@ then the module is already installed.
 
 .. note:: If you do not have root access to the machine you are using, then follow the instructions in :ref:`nonrootpython` to install the modules into your home directory. In addition, you should not ever include ``sudo`` in any of the commands.
 
-Python newbies
-==============
-
-If you want a full Python installation that includes numpy, scipy, matplotlib, h5py, and many other scientific packages, and are a member of an academic institution, but want the easiest solution out there, you can download the `Enthought Python Distribution <http://www.enthought.com/products/edudownload.php>`_ (EPD) for free. EPD includes all the required packages listed above
-
-If you do this, you should be all set, and you can ignore the more detailed installation instructions below.
-
-.. note:: h5py was added to EPD in late 2010, so if you have an older version
-          of EPD already installed, you may need to upgrade)
-
 MacOS X
 =======
+
+MacPorts
+--------
+
+If you are installing Python for the first time, we **strongly** recommend the use of MacPorts to install a full Python distribution. If you would like to do this, follow `these <http://astrofrog.github.com/macports-python/>`_ instructions to get set up. Once you have your Python distribution installed, make sure all the dependencies for Hyperion are installed::
+
+    sudo port selfupdate
+    sudo port install py27-numpy py27-scipy py27-matplotlib py27-h5py
 
 System/python.org Python
 ------------------------
 
-If you do not want to install EPD, the easiest way to install the three first
-packages is to download and install the MacOS X ``dmg`` files for NumPy,
+If you do not want to use MacPorts, the easiest way to install the three first dependencies is to download and install the MacOS X ``dmg`` files for NumPy,
 SciPy, and Matplotlib. Use the links at the top of this section to get the
 latest dmg files from the different websites. You can of course also install
 these from source, but this is beyond the scope of this documentation.
 
 .. note:: If you get an error saying *x can't be installed on this disk. x
-          requires Python 2.6 from www.python.org to install*, then this means
+          requires Python 2.7 from www.python.org to install*, then this means
           you are probably just using the system Python installation. Go to
-          `www.python.org <www.python.org>`_ and download the 2.6.5 or 2.6.6
+          `www.python.org <www.python.org>`_ and download the 2.7.2
           version of Python, install, and try installing the packages again.
 
 Check that the packages import correctly::
 
     $ python
-    Python 2.6.1 (r261:67515, Feb 11 2010, 00:51:29)
+    Python 2.7.2 (default, Jan 31 2012, 22:38:06)
     [GCC 4.2.1 (Apple Inc. build 5646)] on darwin
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import numpy
@@ -89,7 +86,7 @@ To install the plain HDF5 library download the source code from `here
 <http://www.hdfgroup.org/ftp/HDF5/current/src/>`_, then go into the source
 code directory::
 
-    cd hdf5-1.8.5
+    cd hdf5-x.x.x
 
 and carry out the installation::
 
@@ -107,38 +104,8 @@ Now, download the latest ``tar.gz`` package from the ``h5py`` `website <http://c
 Now, go back to your home directory, and check that ``h5py`` imports cleanly::
 
     $ python
-    Python 2.6.1 (r261:67515, Feb 11 2010, 00:51:29)
+    Python 2.7.2 (default, Jan 31 2012, 22:38:06)
     [GCC 4.2.1 (Apple Inc. build 5646)] on darwin
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import h5py
     >>>
-
-
-MacPorts Python
----------------
-
-If you use the Python installation provided by MacPorts, follow the
-instructions in this section. To find out if you are using the MacPorts Python
-version, type::
-
-    which python
-
-If the result is::
-
-    $ which python
-    /opt/local/bin/python
-
-you are probably using the MacPorts version. In this case, you can try and
-install all of the modules via MacPorts. First, make sure your package list is
-up to date::
-
-    sudo port selfupdate
-
-Then do::
-
-    sudo port install py26-numpy py26-scipy py26-matplotlib py26-h5py
-
-If you would prefer to use Python 2.5, replace ``py26`` by ``py25``
-
-
-
