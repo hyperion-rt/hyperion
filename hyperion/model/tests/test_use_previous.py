@@ -3,10 +3,17 @@ import numpy as np
 
 from .. import Model
 from ...grid.amr_grid import AMRGrid, Level, Grid
+from ...util.functions import random_filename
+from test_helpers import get_test_dust
 
 
 @pytest.mark.parametrize(('grid_type', 'copy'), [(x, y) for x in ['car', 'sph', 'cyl', 'amr', 'oct'] for y in [True, False]])
 def test_use_quantities_cartesian(grid_type, copy):
+
+    # Get a dust object
+    dust = get_test_dust()
+    dust_file = random_filename()
+    dust.write(dust_file)
 
     # Set up the initial model
     m = Model()
@@ -37,11 +44,11 @@ def test_use_quantities_cartesian(grid_type, copy):
 
     # Set up initial density
     if grid_type in ['car', 'cyl', 'sph']:
-        m.add_density_grid(np.array([[[1.]]]), 'kmh.hdf5')
+        m.add_density_grid(np.array([[[1.]]]), dust_file)
     elif grid_type == 'amr':
-        m.add_density_grid(amr['density'], 'kmh.hdf5')
+        m.add_density_grid(amr['density'], dust_file)
     else:
-        m.add_density_grid(np.ones(len(refined)), 'kmh.hdf5')
+        m.add_density_grid(np.ones(len(refined)), dust_file)
 
     # Set up source
     s = m.add_point_source()
