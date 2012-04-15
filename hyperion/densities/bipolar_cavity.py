@@ -110,18 +110,18 @@ class BipolarCavity(FreezableClass):
             # Positive scalars
             if attribute in ['theta_0', 'r_0', 'rho_0']:
                 if not np.isscalar(value):
-                    raise ValueError("{:s} should be a scalar value".format(attribute))
+                    raise ValueError("{0:s} should be a scalar value".format(attribute))
                 if not np.isreal(value):
-                    raise ValueError("{:s} should be a numerical value".format(attribute))
+                    raise ValueError("{0:s} should be a numerical value".format(attribute))
                 if value < 0.:
-                    raise ValueError("{:s} should be positive".format(attribute))
+                    raise ValueError("{0:s} should be positive".format(attribute))
 
             # Scalars
             if attribute in ['power', 'rho_exp']:
                 if not np.isscalar(value):
-                    raise ValueError("{:s} should be a scalar value".format(attribute))
+                    raise ValueError("{0:s} should be a scalar value".format(attribute))
                 if not np.isreal(value):
-                    raise ValueError("{:s} should be a numerical value".format(attribute))
+                    raise ValueError("{0:s} should be a numerical value".format(attribute))
 
             # Bipolar cavity
             if attribute == 'envelope':

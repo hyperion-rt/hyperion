@@ -209,27 +209,27 @@ class FlaredDisk(FreezableClass):
             # Positive scalars
             if attribute in ['mass', 'h_0', 'r_0']:
                 if not np.isscalar(value):
-                    raise ValueError("{:s} should be a scalar value".format(attribute))
+                    raise ValueError("{0:s} should be a scalar value".format(attribute))
                 if not np.isreal(value):
-                    raise ValueError("{:s} should be a numerical value".format(attribute))
+                    raise ValueError("{0:s} should be a numerical value".format(attribute))
                 if value < 0.:
-                    raise ValueError("{:s} should be positive".format(attribute))
+                    raise ValueError("{0:s} should be positive".format(attribute))
 
             # Scalars
             if attribute in ['p', 'beta']:
                 if not np.isscalar(value):
-                    raise ValueError("{:s} should be a scalar value".format(attribute))
+                    raise ValueError("{0:s} should be a scalar value".format(attribute))
                 if not np.isreal(value):
-                    raise ValueError("{:s} should be a numerical value".format(attribute))
+                    raise ValueError("{0:s} should be a numerical value".format(attribute))
 
             # Radii (positive scalars or OptThinRadius instance)
             if attribute in ['rmin', 'rmax']:
                 if not isinstance(value, OptThinRadius):
                     if not np.isscalar(value):
-                        raise ValueError("{:s} should be a scalar value or an OptThinRadius instance".format(attribute))
+                        raise ValueError("{0:s} should be a scalar value or an OptThinRadius instance".format(attribute))
                     if not np.isreal(value):
-                        raise ValueError("{:s} should be a numerical value or an OptThinRadius instance".format(attribute))
+                        raise ValueError("{0:s} should be a numerical value or an OptThinRadius instance".format(attribute))
                     if value < 0.:
-                        raise ValueError("{:s} should be positive".format(attribute))
+                        raise ValueError("{0:s} should be positive".format(attribute))
 
         FreezableClass.__setattr__(self, attribute, value)
