@@ -2,6 +2,11 @@
 
 from distutils.core import setup
 
+try:  # Python 3.x
+    from distutils.command.build_py import build_py_2to3 as build_py
+except ImportError:  # Python 2.x
+    from distutils.command.build_py import build_py
+
 scripts = ['ttsre2rtin', 'ttsre2rtin_auto', 'hyperion', 'hyperion2fits', 'mctherm2hyperion']
 
 setup(name='hyperion',
@@ -12,4 +17,6 @@ setup(name='hyperion',
                 'hyperion.util.tests', 'hyperion.atmos', 'hyperion.grid',
                 'hyperion.grid.tests', 'hyperion.sources',
                 'hyperion.sources.tests', 'hyperion.importers'],
-      scripts=['scripts/' + x for x in scripts])
+      scripts=['scripts/' + x for x in scripts],
+      cmdclass={'build_py': build_py}
+     )
