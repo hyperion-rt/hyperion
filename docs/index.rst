@@ -14,7 +14,7 @@ code. Models are set up via Python scripts, and are run using a compiled Fortran
 
    installation/installation.rst
    setup/setup.rst
-   running/model_run.rst
+   running/running.rst
    postprocessing/model_postprocess.rst
    tutorials/index.rst
 
