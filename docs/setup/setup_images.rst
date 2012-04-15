@@ -1,5 +1,5 @@
-Images and SEDs
-===============
+Setting up images and SEDs
+==========================
 
 There are two main kinds of images/SEDs that can be produced for each model:
 images/SEDs computed by binning the photons as they escape from the density
