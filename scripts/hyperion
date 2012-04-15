@@ -4,7 +4,6 @@ import sys
 import subprocess
 import os
 from ConfigParser import SafeConfigParser
-import tempfile
 
 import h5py
 
@@ -79,16 +78,17 @@ else:
     command = '{0} -n {1} hyperion_{2}_mpi'.format(mpi_command,
                                                    n_cores, suffix)
 
-# Capture stderr to check for errors
-stderr = tempfile.TemporaryFile()
-p = subprocess.call('{0} {1} {2}'.format(command, input, output), shell=True, stderr=stderr)
+returncode = subprocess.call('{0} {1} {2}'.format(command, input, output), shell=True)
 
-# Check if any errors were output
-if stderr.tell() > 0 or p != 0:
-
-    # Print errors (since they were captured)
-    stderr.seek(0)
-    print stderr.read()
-
-    # Return failure code
+# If errors are raised by the fortran code, these are printed to stderr, but
+# the return code may still be zero. The easiest way to check whether the run
+# completed successfully is to try and read in the final attribute that was
+# written to the output file..
+try:
+    f = h5py.File(output, 'r')
+    f.attrs['date_ended']
+except:
+    print("Run did not complete successfully: output file appears to be corrupt")
     sys.exit(1)
+else:
+    sys.exit(returncode)
