@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 import string
 import random
 import os
@@ -186,7 +188,7 @@ def delete_dir(dir_name):
         if reply == 'y':
             shutil.rmtree(dir_name)
         else:
-            print "Aborting..."
+            print("Aborting...")
             sys.exit()
 
 
@@ -197,7 +199,7 @@ def delete_file(file_name):
         if reply == 'y':
             os.remove(file_name)
         else:
-            print "Aborting..."
+            print("Aborting...")
             sys.exit()
 
 def is_numpy_array(variable):

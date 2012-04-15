@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 from copy import deepcopy
 
 import numpy as np
@@ -193,7 +195,7 @@ class AnalyticalYSOModel(Model):
             if disk.mass > 0.:
                 tau = disk.midplane_cumulative_density(np.array([disk.rmax])) \
                     * disk.dust.interp_chi_wav(wavelength)
-                print "Disk %i: %.5e" % (i + 1, tau)
+                print("Disk %i: %.5e" % (i + 1, tau))
 
     def get_midplane_tau(self, r):
 

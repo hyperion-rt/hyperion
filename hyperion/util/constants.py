@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 # Numerical constants, in cgs
 
 from numpy import pi

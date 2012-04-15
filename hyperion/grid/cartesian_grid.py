@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 import hashlib
 
 import h5py

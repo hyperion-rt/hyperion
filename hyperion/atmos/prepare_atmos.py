@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 import os
 
 import numpy as np
@@ -21,7 +23,7 @@ def prepare_atmos(filename, output=None):
     t.sort('nu')
 
     if output:
-        print "-> Writing %s" % os.path.basename(output)
+        print("-> Writing %s" % os.path.basename(output))
         t.write(output, overwrite=True)
     else:
         return t

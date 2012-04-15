@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 import hyperion.densities
 import hyperion.dust
 import hyperion.util

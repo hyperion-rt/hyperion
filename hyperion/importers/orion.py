@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 import numpy as np
 from hyperion.util.logger import logger
 from hyperion.grid.amr_grid import Grid, Level, AMRGrid
