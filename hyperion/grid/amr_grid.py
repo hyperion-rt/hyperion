@@ -59,6 +59,11 @@ class Level(FreezableClass):
 
         self._freeze()
 
+    def add_grid(self):
+        grid = Grid()
+        self.grids.append(grid)
+        return grid
+
 
 class AMRGrid(FreezableClass):
 
@@ -72,9 +77,9 @@ class AMRGrid(FreezableClass):
         # Copy geometry if provided
         if amr_grid is not None:
             for level in amr_grid.levels:
-                level_ref = Level()
+                level_ref = self.add_level()
                 for grid in level.grids:
-                    grid_ref = Grid()
+                    grid_ref = level_ref.add_grid()
                     grid_ref.nx = grid.nx
                     grid_ref.ny = grid.ny
                     grid_ref.nz = grid.nz
@@ -82,8 +87,11 @@ class AMRGrid(FreezableClass):
                     grid_ref.ymin, grid_ref.ymax = grid.ymin, grid.ymax
                     grid_ref.zmin, grid_ref.zmax = grid.zmin, grid.zmax
                     grid_ref.quantities = {}
-                    level_ref.grids.append(grid_ref)
-                self.levels.append(level_ref)
+
+    def add_level(self):
+        level = Level()
+        self.levels.append(level)
+        return level
 
     def __getattr__(self, attribute):
         if attribute == 'shape':
@@ -178,7 +186,7 @@ class AMRGrid(FreezableClass):
             g_level = g_geometry[level_path]
 
             # Initialize level
-            level = Level()
+            level = self.add_level()
 
             # Loop over grids
             for igrid in range(g_level.attrs['ngrids']):
@@ -188,7 +196,7 @@ class AMRGrid(FreezableClass):
                 g_grid = g_level[grid_path]
 
                 # Initialize grid
-                grid = Grid()
+                grid = level.add_grid()
 
                 # Retrieve real-world grid boundaries
                 grid.xmin = g_grid.attrs['xmin']
@@ -209,12 +217,6 @@ class AMRGrid(FreezableClass):
                     if quantities == 'all' or quantity in quantities:
                         # TODO - if array is 4D, need to convert to list
                         grid.quantities[quantity] = np.array(g_grid_quantities[quantity])
-
-                # Append grid to current level
-                level.grids.append(grid)
-
-            # Append level to overall grid
-            self.levels.append(level)
 
         # Check that advertised hash matches real hash
         if g_geometry.attrs['geometry'] != self.get_geometry_id():
@@ -327,9 +329,9 @@ class AMRGrid(FreezableClass):
             if self.levels == [] and value.levels != []:
                 logger.warn("No geometry in target grid - copying from original grid")
                 for level in value.levels:
-                    level_ref = Level()
+                    level_ref = value.add_level()
                     for grid in level.grids:
-                        grid_ref = Grid()
+                        grid_ref = value.add_grid()
                         grid_ref.nx = grid.nx
                         grid_ref.ny = grid.ny
                         grid_ref.nz = grid.nz
@@ -337,8 +339,6 @@ class AMRGrid(FreezableClass):
                         grid_ref.ymin, grid_ref.ymax = grid.ymin, grid.ymax
                         grid_ref.zmin, grid_ref.zmax = grid.zmin, grid.zmax
                         grid_ref.quantities = {}
-                        level_ref.grids.append(grid_ref)
-                    self.levels.append(level_ref)
             for ilevel, level_ref in enumerate(self.levels):
                 level = value.levels[ilevel]
                 for igrid, grid_ref in enumerate(level_ref.grids):
@@ -384,9 +384,9 @@ class AMRGridView(AMRGrid):
         AMRGrid.__init__(self)
 
         for level_ref in amr_grid.levels:
-            level = Level()
+            level = self.add_level()
             for grid_ref in level_ref.grids:
-                grid = Grid()
+                grid = level.add_grid()
                 grid.nx = grid_ref.nx
                 grid.ny = grid_ref.ny
                 grid.nz = grid_ref.nz
@@ -395,8 +395,6 @@ class AMRGridView(AMRGrid):
                 grid.zmin, grid.zmax = grid_ref.zmin, grid_ref.zmax
                 grid.quantities = {}
                 grid.quantities[quantity] = grid_ref.quantities[quantity]
-                level.grids.append(grid)
-            self.levels.append(level)
 
     def append(self, amr_grid_view):
         '''
