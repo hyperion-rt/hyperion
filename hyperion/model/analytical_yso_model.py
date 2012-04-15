@@ -1,7 +1,6 @@
 from copy import deepcopy
 
 import numpy as np
-from scipy.interpolate import interp1d
 
 from hyperion.model import Model
 from hyperion.densities import FlaredDisk, AlphaDiskWhitney, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
