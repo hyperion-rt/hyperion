@@ -5,7 +5,6 @@ import multiprocessing
 
 import h5py
 import numpy as np
-import matplotlib.pyplot as plt
 
 import hyperion
 from hyperion.util.functions import delete_file
@@ -1031,6 +1030,8 @@ class ModelOutput(FreezableClass):
 
         '''
 
+        import matplotlib.pyplot as plt
+
         # TODO: make this routine work when origin='detailed' and source_id or
         # dust_id are 'all'
 
@@ -1549,6 +1550,8 @@ class ModelOutput(FreezableClass):
         figure : matplotlib.pyplot.Figure instance (if `axes` and `filename` were not set)
             The matplotlib Figure created
         '''
+
+        import matplotlib.pyplot as plt
 
         if axes is None:
             fig = plt.figure()

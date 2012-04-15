@@ -2,7 +2,6 @@ from copy import deepcopy
 
 import numpy as np
 from scipy.interpolate import interp1d
-import matplotlib.pyplot as mpl
 
 from hyperion.model import Model
 from hyperion.densities import FlaredDisk, AlphaDiskWhitney, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
@@ -226,9 +225,11 @@ class AnalyticalYSOModel(Model):
 
     def plot_midplane_tau(self, filename):
 
+        import matplotlib.pyplot as plt
+
         tau_midplane = self.get_midplane_tau(self.grid.r_wall[1:])
 
-        fig = mpl.figure()
+        fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
         ax.loglog(self.grid.r[1:] / self.grid.r[1] - 1.,
                   tau_midplane[1:] - tau_midplane[:-1],
@@ -324,10 +325,6 @@ class AnalyticalYSOModel(Model):
         # Get cumulative midplane optical depth
         tau_midplane = self.get_midplane_tau(r)
 
-        # Create interpolating function to find radius from optical depth
-        # Can't do log interpolation because first element is zero
-        r_interp = interp1d(tau_midplane, r)
-
         # Find where the second wall after rmin would be if grid cells were
         # spaced equally
         r_next_real = rmin * ((rmax / rmin) ** (1. / n_r) - 1.)
@@ -336,7 +333,7 @@ class AnalyticalYSOModel(Model):
         if tau_midplane[-1] <= 0.1:
             r_next_tau = rmax - rmin
         else:
-            r_next_tau = r_interp(0.1) - rmin
+            r_next_tau = np.interp(0.1, tau_midplane, r) - rmin
 
         # Pick the smallest
         rnext = min(r_next_real, r_next_tau)

@@ -1,7 +1,6 @@
 
 import atpy
 import numpy as np
-import matplotlib.pyplot as plt
 
 from hyperion.util.integrate import integrate_loglog
 from hyperion.util.interpolate import interp1d_fast_loglog
@@ -143,6 +142,8 @@ class Emissivities(FreezableClass):
         self.var = temissvar[self.var_name]
 
     def plot(self, figure, subplot):
+
+        import matplotlib.pyplot as plt
 
         self.normalize()
         peak = self.jnu.max()

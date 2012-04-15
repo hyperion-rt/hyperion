@@ -15,15 +15,6 @@ from hyperion.dust.optical_properties import OpticalProperties
 from hyperion.dust.emissivities import Emissivities
 from hyperion.dust.mean_opacities import MeanOpacities
 
-import matplotlib.pyplot as plt
-
-plt.rc('axes', titlesize='x-small')
-plt.rc('axes', labelsize='x-small')
-plt.rc('xtick', labelsize='xx-small')
-plt.rc('ytick', labelsize='xx-small')
-plt.rc('axes', linewidth=0.5)
-plt.rc('patch', linewidth=0.5)
-
 
 def henyey_greenstein(mu, g, p_lin_max):
     P1 = (1. - g * g) / (1. + g * g - 2. * g * mu) ** 1.5
@@ -56,6 +47,15 @@ class SphericalDust(FreezableClass):
             raise Exception("SphericalDust cannot take more than one argument")
 
     def plot(self, filename):
+
+        import matplotlib.pyplot as plt
+
+        plt.rc('axes', titlesize='x-small')
+        plt.rc('axes', labelsize='x-small')
+        plt.rc('xtick', labelsize='xx-small')
+        plt.rc('ytick', labelsize='xx-small')
+        plt.rc('axes', linewidth=0.5)
+        plt.rc('patch', linewidth=0.5)
 
         # Check that emissivities are set (before computing mean opacities)
         if not self.emissivities.set:

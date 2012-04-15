@@ -1,7 +1,6 @@
 
 import atpy
 import numpy as np
-import matplotlib.pyplot as plt
 
 from hyperion.util.integrate import integrate_loglog, integrate_linlog_subset
 from hyperion.util.interpolate import interp1d_fast, interp1d_fast_loglog, \
@@ -213,6 +212,8 @@ class OpticalProperties(FreezableClass):
         return interp1d_fast_loglog(self.nu, self.kappa, nu)
 
     def plot(self, figure, subplots):
+
+        import matplotlib.pyplot as plt
 
         self._sort()
 
