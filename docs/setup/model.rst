@@ -186,36 +186,43 @@ General notes
 -------------
 
 Sources can be added to the model using methods of the form
-``m.add_*_source(arguments)``. For example adding a point source can be
-done with::
+``m.add_*_source()``. For example adding a point source can be done with::
 
-    m.add_point_source(luminosity=lsun, temperature=10000.)
+    source = m.add_point_source()
 
 These methods return a handle to the source object, which if captured allow
-the user to set and modify the source parameters. The following example is equivalent to the previous command::
+the user to set and modify the source parameters::
 
     source = m.add_point_source()
     source.luminosity = lsun
     source.temperature = 10000.
+    source.position = (0., 0., 0.)
 
-In the rest of this section, the second notation will be used, as although it is not as concise, it is easier to read.
+.. note:: it is also possible to specify the parameters using keyword
+          arguments during initalization, e.g.::
 
-All sources require a luminosity, given by the ``luminosity=`` argument or the
-``luminosity`` attribute, and the emission spectrum can be defined in one of
+              m.add_point_source(luminosity=lsun, temperature=10000.,
+                                 position=(0., 0., 0.))
+
+          though this can be longer to read for sources with many arguments.
+
+All sources require a luminosity, given by the ``luminosity`` attribute (or
+``luminosity=`` argument), and the emission spectrum can be defined in one of
 three ways:
 
-* by specifying a spectrum using the ``spectrum=`` argument or ``spectrum``
-  attribute. The spectrum should either be a tuple of (nu, fnu) or an instance
-  of an atpy.Table with two columns named 'nu' and 'fnu'. For example, given a
-  file ``spectrum.txt`` with two columns listing frequency and flux, the
-  spectrum can be set using::
+* by specifying a spectrum using the ``spectrum`` attribute (or ``spectrum=``
+  argument). The spectrum should either be a tuple of (nu, fnu) or an instance
+  of an ``atpy.Table`` with two columns named 'nu' and 'fnu'. For example,
+  given a file ``spectrum.txt`` with two columns listing frequency and flux,
+  the spectrum can be set using::
 
     import numpy
-    spectrum = np.loadtxt('spectrum.txt', dtype=[('nu', float), ('fnu', float)])
+    spectrum = np.loadtxt('spectrum.txt', dtype=[('nu', float),
+                                                 ('fnu', float)])
     source.spectrum = (spectrum['nu'], spectrum['fnu'])
 
-* by specifying a blackbody temperature using the ``temperature=`` argument or
-  ``temperature`` attribute. This should be a floating point value.
+* by specifying a blackbody temperature using the ``temperature`` attribute
+  (or ``temperature=`` argument). This should be a floating point value.
 
 * by using the local dust emissivity if neither a spectrum or temperature are
   specified.
@@ -224,8 +231,8 @@ Point Sources
 -------------
 
 A point source is defined by a luminosity, a 3-d cartesian position (set to
-the origin by default), and a spectrum or temperature. The following
-examples demonstrate adding different point sources:
+the origin by default), and a spectrum or temperature. The following examples
+demonstrate adding different point sources:
 
 * Set up a 1 solar luminosity 10,000K point source at the origin::
 
@@ -233,7 +240,8 @@ examples demonstrate adding different point sources:
     source.luminosity = lsun  # [ergs/s]
     source.temperature = 10000.  # [K]
 
-* Set up two 0.1 solar luminosity 1,300K point sources at +/- 1 AU in the x direction::
+* Set up two 0.1 solar luminosity 1,300K point sources at +/- 1 AU in the x
+  direction::
 
     # Set up the first source
     source1 = m.add_point_source()
@@ -247,7 +255,8 @@ examples demonstrate adding different point sources:
     source2.position = (-au, 0, 0)  # [cm]
     source2.temperature = 1300.  # [K]
 
-* Set up a 10 solar luminosity source at the origin with a Kurucz spectrum read in from a file with two columns giving wav (in microns) and fnu::
+* Set up a 10 solar luminosity source at the origin with a spectrum read in
+  from a file with two columns giving wav (in microns) and fnu::
 
     # Use NumPy to read in the spectrum
     import numpy as np
@@ -275,12 +284,14 @@ exception that a radius can be specified::
 
 It is possible to add limb darkening, using::
 
-    source.limb_darkening = True
+    source.limb = True
 
 Spots
 -----
 
-Adding spots to a spherical source is straightforward. Spots behave the same as other sources, requiring a luminosity, spectrum, and additional geometrical parameters::
+Adding spots to a spherical source is straightforward. Spots behave the same
+as other sources, requiring a luminosity, spectrum, and additional geometrical
+parameters::
 
     source = m.add_spherical_source()
     source.luminosity = lsun  # [ergs/s]
@@ -307,6 +318,46 @@ will add a source which emits photons from all cells equally::
     source.map = np.ones((10, 10, 10))
 
 .. note:: The ``map`` array does not need to be normalized.
+
+External sources
+----------------
+
+There are two kinds of external illumination sources, spherical and box
+sources - the former being more suited to spherical polar grids, and the
+latter to cartesian, AMR, and octree grids (there is no cylindrical external
+source for cylindrical grids at this time). For example, an external spherical source can be added with::
+
+    source = m.add_external_spherical_source()
+    source.luminosity = lsun  # [ergs/s]
+    source.radius = pc  # [cm]
+    source.temperature = 10000.  # [K]
+
+As for point and spherical sources, the position of the center can also be
+set, and defaults to the origin. External box sources have a ``bounds`` attribute instead of ``radius`` and ``position``::
+
+    source = m.add_external_box_source()
+    source.luminosity = lsun  # [ergs/s]
+    source.bounds = [[-pc, pc], [-pc, pc], [-pc, pc]]  # [cm]
+    source.temperature = 10000.  # [K]
+
+where the ``bounds`` attribute is given as
+``[[xmin, xmax], [ymin, ymax], [zmin, zmax]]``.
+
+Plane parallel sources
+----------------------
+
+Finally, it is possible to add circular plane parallel sources (essentially a
+circular beam with a given origin and direction)::
+
+    source = m.add_external_spherical_source()
+    source.luminosity = lsun  # [ergs/s]
+    source.radius = rsun  # [cm]
+    source.temperature = 10000.  # [K]
+    source.position = (au, 0., 0.)  # [cm]
+    source.direction = (45., 0.)  # [degrees]
+
+where ``direction`` is a tuple of (theta, phi) that gives the direction of the
+beam.
 
 Configuration
 =============
