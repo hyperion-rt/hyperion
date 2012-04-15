@@ -1,8 +1,5 @@
-.. _getsed:
-
-=================
-``Model.get_sed``
-=================
+``ModelOutput.get_sed``
+=======================
 
 .. automodule:: hyperion.model
-.. automethod:: Model.get_sed
+.. automethod:: ModelOutput.get_sed

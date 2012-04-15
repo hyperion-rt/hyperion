@@ -40,7 +40,7 @@ A number of arguments can be passed to ``get_sed()``, for example to select
 specific Stokes parameters, inclinations, apertures, to scale the SED to a
 specific distance, to convert it to certain units, to extract the SED
 originating from different components, etc. For full details about the
-available arguments, see the :ref:`getsed` documentation.
+available arguments, see the :doc:`../api/get_sed` documentation.
 
 What the method returns will depend on the options specified. By default, the
 I stokes parameter is returned for all inclinations and apertures. Thus,
@@ -66,7 +66,7 @@ To extract SEDs, use the ``get_sed`` method::
     wav, nufnu = m.get_image()
 
 As for SEDs, a number of arguments can be passed to ``get_image()``. For full
-details about the available arguments, see the :ref:`getimage` documentation.
+details about the available arguments, see the :doc:`../api/get_image` documentation.
 
 As for SEDs, the output of the function depends on the options specified. The main difference compared to SEDs is that there are two dimensions for the x and y position in the image instead of the aperture dimension.
 
