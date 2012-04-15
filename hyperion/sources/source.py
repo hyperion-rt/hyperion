@@ -85,10 +85,10 @@ class Source(FreezableClass):
 
         handle.attrs['luminosity'] = self.luminosity
 
-        handle.attrs['peeloff'] = 'yes' if self.peeloff else 'no'
+        handle.attrs['peeloff'] = 'yes'.encode('utf-8') if self.peeloff else 'no'.encode('utf-8')
 
         if self.spectrum is not None:
-            handle.attrs['spectrum'] = 'spectrum'
+            handle.attrs['spectrum'] = 'spectrum'.encode('utf-8')
             if isinstance(self.spectrum, atpy.Table):
                 self.spectrum.table_name = 'Spectrum'
                 self.spectrum.write(handle, type='hdf5')
@@ -98,10 +98,10 @@ class Source(FreezableClass):
                 table.add_column('fnu', self.spectrum[1])
                 table.write(handle, type='hdf5')
         elif self.temperature is not None:
-            handle.attrs['spectrum'] = 'temperature'
+            handle.attrs['spectrum'] = 'temperature'.encode('utf-8')
             handle.attrs['temperature'] = self.temperature
         else:
-            handle.attrs['spectrum'] = 'lte'
+            handle.attrs['spectrum'] = 'lte'.encode('utf-8')
 
     def has_lte_spectrum(self):
         return self.spectrum is None and self.temperature is None
@@ -225,7 +225,7 @@ class SpotSource(Source):
     def write(self, handle, name):
         self._check_all_set()
         g = handle.create_group(name)
-        g.attrs['type'] = 'spot'
+        g.attrs['type'] = 'spot'.encode('utf-8')
         g.attrs['longitude'] = self.longitude
         g.attrs['latitude'] = self.latitude
         g.attrs['radius'] = self.radius
@@ -308,7 +308,7 @@ class PointSource(Source):
     def write(self, handle, name):
         self._check_all_set()
         g = handle.create_group(name)
-        g.attrs['type'] = 'point'
+        g.attrs['type'] = 'point'.encode('utf-8')
         g.attrs['x'] = self.position[0]
         g.attrs['y'] = self.position[1]
         g.attrs['z'] = self.position[2]
@@ -392,15 +392,15 @@ class SphericalSource(Source):
         self._check_all_set()
 
         g = handle.create_group(name)
-        g.attrs['type'] = 'sphere'
+        g.attrs['type'] = 'sphere'.encode('utf-8')
         g.attrs['x'] = self.position[0]
         g.attrs['y'] = self.position[1]
         g.attrs['z'] = self.position[2]
         g.attrs['r'] = self.radius
         if self.limb:
-            g.attrs['limb'] = 'yes'
+            g.attrs['limb'] = 'yes'.encode('utf-8')
         else:
-            g.attrs['limb'] = 'no'
+            g.attrs['limb'] = 'no'.encode('utf-8')
         Source.write(self, g)
 
         for i, spot in enumerate(self.spots):
@@ -574,7 +574,7 @@ class ExternalBoxSource(Source):
         self._check_all_set()
 
         g = handle.create_group(name)
-        g.attrs['type'] = 'extern_box'
+        g.attrs['type'] = 'extern_box'.encode('utf-8')
         g.attrs['xmin'] = self.bounds[0][0]
         g.attrs['xmax'] = self.bounds[0][1]
         g.attrs['ymin'] = self.bounds[1][0]
@@ -632,7 +632,7 @@ class MapSource(Source):
         self._check_all_set()
 
         g = handle.create_group(name)
-        g.attrs['type'] = 'map'
+        g.attrs['type'] = 'map'.encode('utf-8')
         grid.write_physical_array(g, self.map, "Luminosity map", dust=False,
                                   compression=compression,
                                   physics_dtype=map_dtype)
@@ -698,7 +698,7 @@ class PlaneParallelSource(Source):
     def write(self, handle, name):
         self._check_all_set()
         g = handle.create_group(name)
-        g.attrs['type'] = 'plane_parallel'
+        g.attrs['type'] = 'plane_parallel'.encode('utf-8')
         g.attrs['x'] = self.position[0]
         g.attrs['y'] = self.position[1]
         g.attrs['z'] = self.position[2]

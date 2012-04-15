@@ -2,7 +2,12 @@ from __future__ import print_function, division
 
 import os
 import logging
-from ConfigParser import SafeConfigParser
+import sys
+
+if sys.version_info[0] == 2:
+    from ConfigParser import SafeConfigParser
+else:
+    from configparser import SafeConfigParser
 
 # Read in configuration file
 config = SafeConfigParser()

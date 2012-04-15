@@ -90,16 +90,9 @@ def mc_circular_polarization(I, sigma_I, V, sigma_V):
 
 def bool2str(value):
     if value:
-        return "yes"
+        return "yes".encode('utf-8')
     else:
-        return "no"
-
-
-class File(file):
-
-    def __init__(self, filename, *args, **kwargs):
-        self.abspath = os.path.abspath(filename)
-        file.__init__(self, filename, *args, **kwargs)
+        return "no".encode('utf-8')
 
 
 class Configuration(FreezableClass):
@@ -212,7 +205,7 @@ class Model(FreezableClass):
     def _write_monochromatic(self, group, compression=True, dtype=np.float64):
         group.attrs['monochromatic'] = bool2str(self._monochromatic)
         if self._monochromatic:
-            group.create_dataset('Frequencies', data=np.array(zip(self._frequencies), dtype=[('nu', dtype)]), compression=compression)
+            group.create_dataset('Frequencies', data=np.array(list(zip(self._frequencies)), dtype=[('nu', dtype)]), compression=compression)
 
     def use_geometry(self, filename):
         '''
@@ -237,18 +230,18 @@ class Model(FreezableClass):
             raise Exception("No grid found in file: %s" % filename)
 
         # Determine grid type
-        if g_grid['Geometry'].attrs['grid_type'] == 'car':
+        if g_grid['Geometry'].attrs['grid_type'].decode('utf-8') == 'car':
             grid = CartesianGrid()
-        elif g_grid['Geometry'].attrs['grid_type'] == 'sph_pol':
+        elif g_grid['Geometry'].attrs['grid_type'].decode('utf-8') == 'sph_pol':
             grid = SphericalPolarGrid()
-        elif g_grid['Geometry'].attrs['grid_type'] == 'cyl_pol':
+        elif g_grid['Geometry'].attrs['grid_type'].decode('utf-8') == 'cyl_pol':
             grid = CylindricalPolarGrid()
-        elif g_grid['Geometry'].attrs['grid_type'] == 'amr':
+        elif g_grid['Geometry'].attrs['grid_type'].decode('utf-8') == 'amr':
             grid = AMRGrid()
-        elif g_grid['Geometry'].attrs['grid_type'] == 'oct':
+        elif g_grid['Geometry'].attrs['grid_type'].decode('utf-8') == 'oct':
             grid = OctreeGrid()
         else:
-            raise NotImplemented("Cannot read geometry type %s" % g_grid['Geometry'].attrs['grid_type'])
+            raise NotImplemented("Cannot read geometry type %s" % g_grid['Geometry'].attrs['grid_type'].decode('utf-8'))
 
         # Read in the grid
         grid.read(g_grid)
@@ -374,7 +367,7 @@ class Model(FreezableClass):
         root = h5py.File(filename, 'w')
 
         # Add Python version
-        root.attrs['python_version'] = __version__
+        root.attrs['python_version'] = __version__.encode('utf-8')
 
         # Create all the necessary groups and sub-groups
         g_grid = root.create_group('Grid')
@@ -806,7 +799,7 @@ class ModelOutput(FreezableClass):
 
         if 'track_origin' in g['seds'].attrs:
 
-            track_origin = g['seds'].attrs['track_origin']
+            track_origin = g['seds'].attrs['track_origin'].decode('utf-8')
 
             if track_origin == 'no' and component != 'total':
                 raise Exception("cannot extract component=%s - file only contains total flux" % component)
@@ -866,7 +859,7 @@ class ModelOutput(FreezableClass):
             unc = g['seds_unc'].value
 
         try:
-            inside_observer = g.attrs['inside_observer'].lower() == 'yes'
+            inside_observer = g.attrs['inside_observer'].decode('utf-8').lower() == 'yes'
         except:
             inside_observer = False
 
@@ -1332,7 +1325,7 @@ class ModelOutput(FreezableClass):
             unc = g['images_unc'].value
 
         try:
-            inside_observer = g.attrs['inside_observer'].lower() == 'yes'
+            inside_observer = g.attrs['inside_observer'].decode('utf-8').lower() == 'yes'
         except:
             inside_observer = False
 
@@ -1592,7 +1585,7 @@ class ModelOutput(FreezableClass):
             iteration = find_last_iteration(self.file)
 
         # Return components
-        components = self.file['Iteration %05i' % iteration].keys()
+        components = list(self.file['Iteration %05i' % iteration].keys())
         if 'specific_energy' in components:
             components.append('temperature')
         return components

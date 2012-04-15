@@ -174,7 +174,7 @@ class AMRGrid(FreezableClass):
         g_quantities = group['Quantities']
 
         # Check that grid is indeed AMR
-        if g_geometry.attrs['grid_type'] != 'amr':
+        if g_geometry.attrs['grid_type'].decode('utf-8') != 'amr':
             raise Exception("Grid is not AMR")
 
         # Initialize levels list
@@ -209,9 +209,9 @@ class AMRGrid(FreezableClass):
                 grid.zmax = g_grid.attrs['zmax']
 
                 # Retrieve grid dimensions
-                grid.nx = g_grid.attrs['n1']
-                grid.ny = g_grid.attrs['n2']
-                grid.nz = g_grid.attrs['n3']
+                grid.nx = int(g_grid.attrs['n1'])
+                grid.ny = int(g_grid.attrs['n2'])
+                grid.nz = int(g_grid.attrs['n3'])
 
                 # Read in desired quantities
                 g_grid_quantities = g_quantities[level_path][grid_path]
@@ -221,7 +221,7 @@ class AMRGrid(FreezableClass):
                         grid.quantities[quantity] = np.array(g_grid_quantities[quantity])
 
         # Check that advertised hash matches real hash
-        if g_geometry.attrs['geometry'] != self.get_geometry_id():
+        if g_geometry.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
             raise Exception("Calculated geometry hash does not match hash in file")
 
         # Self-consistently check geometry and physical quantities
@@ -258,7 +258,7 @@ class AMRGrid(FreezableClass):
         else:
             g_quantities = group['Quantities']
 
-        g_geometry.attrs['grid_type'] = 'amr'
+        g_geometry.attrs['grid_type'] = 'amr'.encode('utf-8')
         g_geometry.attrs['nlevels'] = len(self.levels)
 
         # Self-consistently check geometry and physical quantities
@@ -306,7 +306,7 @@ class AMRGrid(FreezableClass):
                                                   compression=compression,
                                                   dtype=physics_dtype)
 
-        g_geometry.attrs['geometry'] = self.get_geometry_id()
+        g_geometry.attrs['geometry'] = self.get_geometry_id().encode('utf-8')
 
     def get_geometry_id(self):
         geo_hash = hashlib.md5()

@@ -12,7 +12,7 @@ from .. import Source, PointSource, SpotSource, SphericalSource
 
 
 def random_id(length=32):
-    return string.join(random.sample(string.letters + string.digits, length), '')
+    return ''.join(random.sample(string.ascii_letters + string.digits, length))
 
 
 def virtual_file():
@@ -35,28 +35,28 @@ def test_luminosity_invalid1():
     # luminosity is not defined
     with pytest.raises(ValueError) as exc:
         s.write(v)
-    assert exc.value.message == 'luminosity is not set'
+    assert exc.value.args[0] == 'luminosity is not set'
 
 
 def test_luminosity_invalid2():
     s = Source()
     with pytest.raises(ValueError) as exc:
         s.luminosity = np.array([1, 2, 3])  # luminosity should be a scalar
-    assert exc.value.message == 'luminosity should be a scalar value'
+    assert exc.value.args[0] == 'luminosity should be a scalar value'
 
 
 def test_luminosity_invalid3():
     s = Source()
     with pytest.raises(ValueError) as exc:
         s.luminosity = 'invalid'  # luminosity should be a number
-    assert exc.value.message == 'luminosity should be a numerical value'
+    assert exc.value.args[0] == 'luminosity should be a numerical value'
 
 
 def test_luminosity_invalid4():
     s = Source()
     with pytest.raises(ValueError) as exc:
         s.luminosity = -1.  # luminosity should be positive
-    assert exc.value.message == 'luminosity should be positive'
+    assert exc.value.args[0] == 'luminosity should be positive'
 
 
 def test_spectrum_atpy():
@@ -72,7 +72,7 @@ def test_spectrum_atpy_invalid():
     s = Source()
     with pytest.raises(TypeError) as exc:
         s.spectrum = t
-    assert exc.value.message == 'spectrum ATpy Table does not contain a \'nu\' column'
+    assert exc.value.args[0] == 'spectrum ATpy Table does not contain a \'nu\' column'
 
 
 
@@ -89,7 +89,7 @@ def test_spectrum_tuple_invalid1():
     s = Source()
     with pytest.raises(TypeError) as exc:
         s.spectrum = (nu, fnu)
-    assert exc.value.message == 'nu should be specified as a 1-D Numpy array'
+    assert exc.value.args[0] == 'nu should be specified as a 1-D Numpy array'
 
 
 def test_spectrum_tuple_invalid2():
@@ -98,7 +98,7 @@ def test_spectrum_tuple_invalid2():
     s = Source()
     with pytest.raises(TypeError) as exc:
         s.spectrum = (nu, fnu)
-    assert exc.value.message == 'fnu should be specified as a 1-D Numpy array'
+    assert exc.value.args[0] == 'fnu should be specified as a 1-D Numpy array'
 
 
 
@@ -108,7 +108,7 @@ def test_spectrum_tuple_invalid3():
     s = Source()
     with pytest.raises(TypeError) as exc:
         s.spectrum = (nu, fnu)
-    assert exc.value.message == 'nu and fnu should have the same shape'
+    assert exc.value.args[0] == 'nu and fnu should have the same shape'
 
 
 def test_spectrum_tuple_invalid4():
@@ -117,7 +117,7 @@ def test_spectrum_tuple_invalid4():
     s = Source()
     with pytest.raises(TypeError) as exc:
         s.spectrum = (nu, fnu)
-    assert exc.value.message == 'nu should be specified as a 1-D Numpy array'
+    assert exc.value.args[0] == 'nu should be specified as a 1-D Numpy array'
 
 
 def test_spectrum_tuple_invalid5():
@@ -126,7 +126,7 @@ def test_spectrum_tuple_invalid5():
     s = Source()
     with pytest.raises(TypeError) as exc:
         s.spectrum = (nu, fnu, fnu)  # too many items
-    assert exc.value.message == 'spectrum tuple or list should contain two elements'
+    assert exc.value.args[0] == 'spectrum tuple or list should contain two elements'
 
 
 # SpotSource
@@ -151,35 +151,35 @@ def test_spot_longitude_invalid1():
     s.luminosity = 1.
     with pytest.raises(ValueError) as exc:
         s.write(v, 'test')
-    assert exc.value.message == 'longitude is not set'
+    assert exc.value.args[0] == 'longitude is not set'
 
 
 def test_spot_longitude_invalid2():
     s = SpotSource()
     with pytest.raises(ValueError) as exc:
         s.longitude = np.array([1, 2, 3])  # longitude should be a scalar
-    assert exc.value.message == 'longitude should be a scalar value'
+    assert exc.value.args[0] == 'longitude should be a scalar value'
 
 
 def test_spot_longitude_invalid3():
     s = SpotSource()
     with pytest.raises(ValueError) as exc:
         s.longitude = 'invalid'  # longitude should be a number
-    assert exc.value.message == 'longitude should be a numerical value'
+    assert exc.value.args[0] == 'longitude should be a numerical value'
 
 
 def test_spot_longitude_invalid4():
     s = SpotSource()
     with pytest.raises(ValueError) as exc:
         s.longitude = -1.  # longitude should be in the range [0:360]
-    assert exc.value.message == 'longitude should be in the range [0:360]'
+    assert exc.value.args[0] == 'longitude should be in the range [0:360]'
 
 
 def test_spot_longitude_invalid5():
     s = SpotSource()
     with pytest.raises(ValueError) as exc:
         s.longitude = 366.  # longitude should be in the range [0:360]
-    assert exc.value.message == 'longitude should be in the range [0:360]'
+    assert exc.value.args[0] == 'longitude should be in the range [0:360]'
 
 
 def test_spot_latitude_none():
@@ -207,35 +207,35 @@ def test_spot_latitude_invalid1():
     s.luminosity = 1.
     with pytest.raises(ValueError) as exc:
         s.write(v, 'test')
-    assert exc.value.message == 'latitude is not set'
+    assert exc.value.args[0] == 'latitude is not set'
 
 
 def test_spot_latitude_invalid2():
     s = SpotSource()
     with pytest.raises(ValueError) as exc:
         s.latitude = np.array([1, 2, 3])  # latitude should be a scalar
-    assert exc.value.message == 'latitude should be a scalar value'
+    assert exc.value.args[0] == 'latitude should be a scalar value'
 
 
 def test_spot_latitude_invalid3():
     s = SpotSource()
     with pytest.raises(ValueError) as exc:
         s.latitude = 'invalid'  # latitude should be a number
-    assert exc.value.message == 'latitude should be a numerical value'
+    assert exc.value.args[0] == 'latitude should be a numerical value'
 
 
 def test_spot_latitude_invalid4():
     s = SpotSource()
     with pytest.raises(ValueError) as exc:
         s.latitude = -92.  # latitude should be in the range [-90:90]
-    assert exc.value.message == 'latitude should be in the range [-90:90]'
+    assert exc.value.args[0] == 'latitude should be in the range [-90:90]'
 
 
 def test_spot_latitude_invalid5():
     s = SpotSource()
     with pytest.raises(ValueError) as exc:
         s.latitude = 100  # latitude should be in the range [-90:90]
-    assert exc.value.message == 'latitude should be in the range [-90:90]'
+    assert exc.value.args[0] == 'latitude should be in the range [-90:90]'
 
 
 def test_spot_radius_none():
@@ -258,28 +258,28 @@ def test_spot_radius_invalid1():
     s.luminosity = 1.
     with pytest.raises(ValueError) as exc:
         s.write(v, 'test')
-    assert exc.value.message == 'radius is not set'
+    assert exc.value.args[0] == 'radius is not set'
 
 
 def test_spot_radius_invalid2():
     s = SpotSource()
     with pytest.raises(ValueError) as exc:
         s.radius = np.array([1, 2, 3])  # radius should be a scalar
-    assert exc.value.message == 'radius should be a scalar value'
+    assert exc.value.args[0] == 'radius should be a scalar value'
 
 
 def test_spot_radius_invalid3():
     s = SpotSource()
     with pytest.raises(ValueError) as exc:
         s.radius = 'invalid'  # radius should be a number
-    assert exc.value.message == 'radius should be a numerical value'
+    assert exc.value.args[0] == 'radius should be a numerical value'
 
 
 def test_spot_radius_invalid4():
     s = SpotSource()
     with pytest.raises(ValueError) as exc:
         s.radius = -1.  # radius should be positive
-    assert exc.value.message == 'radius should be positive'
+    assert exc.value.args[0] == 'radius should be positive'
 
 
 # PointSource
@@ -292,7 +292,7 @@ def test_point_spectrum_tuple_invalid():
     s = Source()
     with pytest.raises(TypeError) as exc:
         s.spectrum = (nu, fnu, fnu)  # too many items
-    assert exc.value.message == 'spectrum tuple or list should contain two elements'
+    assert exc.value.args[0] == 'spectrum tuple or list should contain two elements'
 
 
 def test_point_position_none():
@@ -309,7 +309,7 @@ def test_point_position_tuple_invalid():
     s = PointSource()
     with pytest.raises(ValueError) as exc:
         s.position = (0., 1., 2., 4.)  # too many elements
-    assert exc.value.message == 'position should be a sequence of 3 values'
+    assert exc.value.args[0] == 'position should be a sequence of 3 values'
 
 
 def test_point_position_list():
@@ -321,7 +321,7 @@ def test_point_position_list_invalid():
     s = PointSource()
     with pytest.raises(ValueError) as exc:
         s.position = [1., 2.]  # too few elements
-    assert exc.value.message == 'position should be a sequence of 3 values'
+    assert exc.value.args[0] == 'position should be a sequence of 3 values'
 
 
 def test_point_position_numpy():
@@ -333,14 +333,14 @@ def test_point_position_numpy_invalid1():
     s = PointSource()
     with pytest.raises(ValueError) as exc:
         s.position = np.array([2.])  # too few elements
-    assert exc.value.message == 'position should be a sequence of 3 values'
+    assert exc.value.args[0] == 'position should be a sequence of 3 values'
 
 
 def test_point_position_numpy_invalid2():
     s = PointSource()
     with pytest.raises(ValueError) as exc:
         s.position = np.array([[1., 2., 3.]])  # wrong dimensionality
-    assert exc.value.message == 'position should be a 1-D sequence'
+    assert exc.value.args[0] == 'position should be a 1-D sequence'
 
 # SphericalSource
 
@@ -359,7 +359,7 @@ def test_spherical_position_tuple_invalid():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.position = (0., 1., 2., 4.)  # too many elements
-    assert exc.value.message == 'position should be a sequence of 3 values'
+    assert exc.value.args[0] == 'position should be a sequence of 3 values'
 
 
 def test_spherical_position_list():
@@ -371,7 +371,7 @@ def test_spherical_position_list_invalid():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.position = [1., 2.]  # too few elements
-    assert exc.value.message == 'position should be a sequence of 3 values'
+    assert exc.value.args[0] == 'position should be a sequence of 3 values'
 
 
 def test_spherical_position_numpy():
@@ -383,14 +383,14 @@ def test_spherical_position_numpy_invalid1():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.position = np.array([2.])  # too few elements
-    assert exc.value.message == 'position should be a sequence of 3 values'
+    assert exc.value.args[0] == 'position should be a sequence of 3 values'
 
 
 def test_spherical_position_numpy_invalid2():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.position = np.array([[1., 2., 3.]])  # wrong dimensionality
-    assert exc.value.message == 'position should be a 1-D sequence'
+    assert exc.value.args[0] == 'position should be a 1-D sequence'
 
 
 def test_spherical_radius_none():
@@ -413,28 +413,28 @@ def test_spherical_radius_invalid1():
     s.luminosity = 1.
     with pytest.raises(ValueError) as exc:
         s.write(v, 'test')
-    assert exc.value.message == 'radius is not set'
+    assert exc.value.args[0] == 'radius is not set'
 
 
 def test_spherical_radius_invalid2():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.radius = np.array([1, 2, 3])  # radius should be a scalar
-    assert exc.value.message == 'radius should be a scalar value'
+    assert exc.value.args[0] == 'radius should be a scalar value'
 
 
 def test_spherical_radius_invalid3():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.radius = 'invalid'  # radius should be a number
-    assert exc.value.message == 'radius should be a numerical value'
+    assert exc.value.args[0] == 'radius should be a numerical value'
 
 
 def test_spherical_radius_invalid4():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.radius = -1.  # radius should be positive
-    assert exc.value.message == 'radius should be positive'
+    assert exc.value.args[0] == 'radius should be positive'
 
 
 def test_spherical_limb_none():
@@ -456,28 +456,28 @@ def test_spherical_limb_invalid2():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.limb = np.array([1, 2, 3])  # limb should be a boolean
-    assert exc.value.message == 'limb should be a boolean value (True/False)'
+    assert exc.value.args[0] == 'limb should be a boolean value (True/False)'
 
 
 def test_spherical_limb_invalid3():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.limb = 'invalid'  # limb should be a boolean
-    assert exc.value.message == 'limb should be a boolean value (True/False)'
+    assert exc.value.args[0] == 'limb should be a boolean value (True/False)'
 
 
 def test_spherical_limb_invalid4():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.limb = 1  # limb should be a boolean
-    assert exc.value.message == 'limb should be a boolean value (True/False)'
+    assert exc.value.args[0] == 'limb should be a boolean value (True/False)'
 
 
 def test_spherical_limb_invalid5():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.limb = 1.  # limb should be a boolean
-    assert exc.value.message == 'limb should be a boolean value (True/False)'
+    assert exc.value.args[0] == 'limb should be a boolean value (True/False)'
 
 
 # ExternalSpherical
@@ -496,7 +496,7 @@ def test_external_spherical_position_tuple_invalid():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.position = (0., 1., 2., 4.)  # too many elements
-    assert exc.value.message == 'position should be a sequence of 3 values'
+    assert exc.value.args[0] == 'position should be a sequence of 3 values'
 
 
 def test_external_spherical_position_list():
@@ -508,7 +508,7 @@ def test_external_spherical_position_list_invalid():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.position = [1., 2.]  # too few elements
-    assert exc.value.message == 'position should be a sequence of 3 values'
+    assert exc.value.args[0] == 'position should be a sequence of 3 values'
 
 
 def test_external_spherical_position_numpy():
@@ -520,14 +520,14 @@ def test_external_spherical_position_numpy_invalid1():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.position = np.array([2.])  # too few elements
-    assert exc.value.message == 'position should be a sequence of 3 values'
+    assert exc.value.args[0] == 'position should be a sequence of 3 values'
 
 
 def test_external_spherical_position_numpy_invalid2():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.position = np.array([[1., 2., 3.]])  # wrong dimensionality
-    assert exc.value.message == 'position should be a 1-D sequence'
+    assert exc.value.args[0] == 'position should be a 1-D sequence'
 
 
 def test_external_spherical_radius_none():
@@ -550,25 +550,25 @@ def test_external_spherical_radius_invalid1():
     s.luminosity = 1.
     with pytest.raises(ValueError) as exc:
         s.write(v, 'test')
-    assert exc.value.message == 'radius is not set'
+    assert exc.value.args[0] == 'radius is not set'
 
 
 def test_external_spherical_radius_invalid2():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.radius = np.array([1, 2, 3])  # radius should be a scalar
-    assert exc.value.message == 'radius should be a scalar value'
+    assert exc.value.args[0] == 'radius should be a scalar value'
 
 
 def test_external_spherical_radius_invalid3():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.radius = 'invalid'  # radius should be a number
-    assert exc.value.message == 'radius should be a numerical value'
+    assert exc.value.args[0] == 'radius should be a numerical value'
 
 
 def test_external_spherical_radius_invalid4():
     s = SphericalSource()
     with pytest.raises(ValueError) as exc:
         s.radius = -1.  # radius should be positive
-    assert exc.value.message == 'radius should be positive'
+    assert exc.value.args[0] == 'radius should be positive'

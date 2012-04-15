@@ -128,4 +128,4 @@ class TestSimpleModelInside(object):
     def test_distance_fail(self):
         with pytest.raises(ValueError) as e:
             wav, nufnu = self.m.get_image(distance=1.)
-        assert e.value.message == 'Cannot specify distance for inside observers'
+        assert e.value.args[0] == 'Cannot specify distance for inside observers'

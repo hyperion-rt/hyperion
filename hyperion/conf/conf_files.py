@@ -6,7 +6,7 @@ from ..util.functions import FreezableClass
 
 
 def bool2str(value):
-    return 'yes' if value else 'no'
+    return 'yes'.encode('utf-8') if value else 'no'.encode('utf-8')
 
 
 class OutputConf(FreezableClass):
@@ -22,10 +22,10 @@ class OutputConf(FreezableClass):
         self._freeze()
 
     def write(self, group):
-        group.attrs['output_density'] = self.output_density
-        group.attrs['output_density_diff'] = self.output_density_diff
-        group.attrs['output_specific_energy'] = self.output_specific_energy
-        group.attrs['output_n_photons'] = self.output_n_photons
+        group.attrs['output_density'] = self.output_density.encode('utf-8')
+        group.attrs['output_density_diff'] = self.output_density_diff.encode('utf-8')
+        group.attrs['output_specific_energy'] = self.output_specific_energy.encode('utf-8')
+        group.attrs['output_n_photons'] = self.output_n_photons.encode('utf-8')
 
 
 class RunConf(FreezableClass):
@@ -355,10 +355,10 @@ class RunConf(FreezableClass):
         kill_on_absorb : bool
             Whether to kill absorbed photons
         '''
-        self.kill_on_absorb = bool2str(kill_on_absorb)
+        self.kill_on_absorb = kill_on_absorb
 
     def _write_kill_on_absorb(self, group):
-        group.attrs['kill_on_absorb'] = self.kill_on_absorb
+        group.attrs['kill_on_absorb'] = bool2str(self.kill_on_absorb)
 
     def set_forced_first_scattering(self, forced_first_scattering):
         '''
@@ -375,10 +375,10 @@ class RunConf(FreezableClass):
         ----------
         Wood & Reynolds, 1999, The Astrophysical Journal, 525, 799
         '''
-        self.forced_first_scattering = bool2str(forced_first_scattering)
+        self.forced_first_scattering = forced_first_scattering
 
     def _write_forced_first_scattering(self, group):
-        group.attrs['forced_first_scattering'] = self.forced_first_scattering
+        group.attrs['forced_first_scattering'] = bool2str(self.forced_first_scattering)
 
     def set_enforce_energy_range(self, enforce):
         '''
@@ -450,7 +450,7 @@ class RunConf(FreezableClass):
         self.sample_sources_evenly = sample_sources_evenly
 
     def _write_sample_sources_evenly(self, group):
-        group.attrs['sample_sources_evenly'] = 'yes' if self.sample_sources_evenly else 'no'
+        group.attrs['sample_sources_evenly'] = bool2str(self.sample_sources_evenly)
 
     def write(self, group):
         '''
@@ -641,7 +641,7 @@ class ImageConf(FreezableClass):
         self.track_origin = track_origin
 
     def _write_track_origin(self, group):
-        group.attrs['track_origin'] = self.track_origin
+        group.attrs['track_origin'] = self.track_origin.encode('utf-8')
 
     def set_uncertainties(self, uncertainties):
         '''
@@ -742,7 +742,7 @@ class PeeledImageConf(ImageConf):
         '''
         if len(theta) != len(phi):
             raise Exception("Length of theta and phi arrays do not match")
-        self.viewing_angles = zip(theta, phi)
+        self.viewing_angles = list(zip(theta, phi))
         self.n_view = len(self.viewing_angles)
 
     def _write_viewing_angles(self, group):
@@ -829,7 +829,7 @@ class PeeledImageConf(ImageConf):
             raise Exception("Cannot specify inside observer and peeloff origin at the same time")
 
         if self.inside_observer is not None:
-            group.attrs['inside_observer'] = 'yes'
+            group.attrs['inside_observer'] = bool2str(True)
             self._write_inside_observer(group)
             if self.viewing_angles == []:
                 self.set_viewing_angles([90.], [0.])
@@ -837,7 +837,7 @@ class PeeledImageConf(ImageConf):
                 raise ValueError("longitudes should increase towards the left for inside observers")
 
         elif len(self.viewing_angles) > 0:
-            group.attrs['inside_observer'] = 'no'
+            group.attrs['inside_observer'] = bool2str(False)
             if self.peeloff_origin is None:
                 self.set_peeloff_origin((0., 0., 0.))
             self._write_peeloff_origin(group)

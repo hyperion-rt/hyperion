@@ -5,7 +5,7 @@ import numpy as np
 
 def meshgrid_nd(*arrs):
     arrs = tuple(reversed(arrs))  #edit
-    lens = map(len, arrs)
+    lens = list(map(len, arrs))
     dim = len(arrs)
 
     sz = 1

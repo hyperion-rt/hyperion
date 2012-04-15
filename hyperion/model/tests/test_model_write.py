@@ -17,14 +17,14 @@ def test_write_noname_nofilename():
     m = Model()
     with pytest.raises(ValueError) as e:
         m.write()
-    assert e.value.message == "filename= has not been specified and model has no name"
+    assert e.value.args[0] == "filename= has not been specified and model has no name"
 
 
 def test_write_nogrid():
     m = Model()
     with pytest.raises(Exception) as e:
         m.write('test')
-    assert e.value.message == 'No coordinate grid has been set up'
+    assert e.value.args[0] == 'No coordinate grid has been set up'
 
 
 class TestWriteDustCopy(object):
@@ -59,7 +59,7 @@ class TestWriteDustCopy(object):
         self.model.add_density_grid(self.density, self.dust)
         with pytest.raises(ValueError) as e:
             self.model.write(random_filename(), copy=False)
-        assert e.value.message == 'Dust properties are not located in a file, so cannot link. Use copy=True or write the dust properties to a file first'
+        assert e.value.args[0] == 'Dust properties are not located in a file, so cannot link. Use copy=True or write the dust properties to a file first'
 
 
 @pytest.mark.parametrize(('write_copy'), [True, False])
@@ -74,7 +74,7 @@ def test_input_link(write_copy):
 
     # Check that copy parameter is there
     f = h5py.File(input_file, 'r')
-    assert f.attrs['copy_input'] == 'no'
+    assert f.attrs['copy_input'].decode('utf-8') == 'no'
     f.close()
 
     # Run the model
@@ -83,7 +83,7 @@ def test_input_link(write_copy):
     # Check that attributes from input can still be accessed, then check that
     # 'Input' is a link
     f = h5py.File(output_file, 'r')
-    assert f['Input'].attrs['copy_input'] == 'no'
+    assert f['Input'].attrs['copy_input'].decode('utf-8') == 'no'
     assert f.file != f['Input'].file
     f.close()
 
@@ -100,7 +100,7 @@ def test_input_copy(write_copy):
 
     # Check that copy parameter is there
     f = h5py.File(input_file, 'r')
-    assert f.attrs['copy_input'] == 'yes'
+    assert f.attrs['copy_input'].decode('utf-8') == 'yes'
     f.close()
 
     # Run the model
@@ -109,6 +109,6 @@ def test_input_copy(write_copy):
     # Check that attributes from input can still be accessed, then check that
     # 'Input' is a not a link
     f = h5py.File(output_file, 'r')
-    assert f['Input'].attrs['copy_input'] == 'yes'
+    assert f['Input'].attrs['copy_input'].decode('utf-8') == 'yes'
     assert f.file == f['Input'].file
     f.close()

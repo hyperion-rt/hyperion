@@ -169,7 +169,7 @@ def filename2hdf5(filename):
 
 
 def random_id(length=32):
-    return string.join(random.sample(string.letters + string.digits, length),'')
+    return ''.join(random.sample(string.ascii_letters + string.digits, length))
 
 
 def random_filename():

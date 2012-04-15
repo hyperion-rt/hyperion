@@ -28,7 +28,7 @@ def test_flared_disk_negative(parameter):
     else:
         with pytest.raises(ValueError) as exc:
             d.__setattr__(parameter, -1.)  # negative values are not valid
-        assert exc.value.message == parameter + ' should be positive'
+        assert exc.value.args[0] == parameter + ' should be positive'
 
 @pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0'])
 def test_flared_disk_optthin(parameter):
@@ -38,7 +38,7 @@ def test_flared_disk_optthin(parameter):
     else:
         with pytest.raises(ValueError) as exc:
             d.__setattr__(parameter, OptThinRadius(1.))  # not valid for these parameters
-        assert exc.value.message == parameter + ' should be a scalar value'
+        assert exc.value.args[0] == parameter + ' should be a scalar value'
 
 
 @pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0'])
@@ -47,9 +47,9 @@ def test_flared_disk_invalid1(parameter):
     with pytest.raises(ValueError) as exc:
         d.__setattr__(parameter, 'a')  # can't be string
     if parameter in ['rmin', 'rmax']:
-        assert exc.value.message == parameter + ' should be a numerical value or an OptThinRadius instance'
+        assert exc.value.args[0] == parameter + ' should be a numerical value or an OptThinRadius instance'
     else:
-        assert exc.value.message == parameter + ' should be a numerical value'
+        assert exc.value.args[0] == parameter + ' should be a numerical value'
 
 
 @pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0'])
@@ -58,9 +58,9 @@ def test_flared_disk_invalid2(parameter):
     with pytest.raises(ValueError) as exc:
         d.__setattr__(parameter, [1., 2.])  # should be scalar
     if parameter in ['rmin', 'rmax']:
-        assert exc.value.message == parameter + ' should be a scalar value or an OptThinRadius instance'
+        assert exc.value.args[0] == parameter + ' should be a scalar value or an OptThinRadius instance'
     else:
-        assert exc.value.message == parameter + ' should be a scalar value'
+        assert exc.value.args[0] == parameter + ' should be a scalar value'
 
 # Power Law Envelope
 
@@ -79,7 +79,7 @@ def test_power_law_envelope_negative(parameter):
     else:
         with pytest.raises(ValueError) as exc:
             e.__setattr__(parameter, -1.)  # negative values are not valid
-        assert exc.value.message == parameter + ' should be positive'
+        assert exc.value.args[0] == parameter + ' should be positive'
 
 
 @pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'power', 'rho_0', 'r_0'])
@@ -90,7 +90,7 @@ def test_power_law_envelope_optthin(parameter):
     else:
         with pytest.raises(ValueError) as exc:
             e.__setattr__(parameter, OptThinRadius(1.))  # not valid for these parameters
-        assert exc.value.message == parameter + ' should be a scalar value'
+        assert exc.value.args[0] == parameter + ' should be a scalar value'
 
 
 @pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'power', 'rho_0', 'r_0'])
@@ -99,9 +99,9 @@ def test_power_law_envelope_invalid1(parameter):
     with pytest.raises(ValueError) as exc:
         e.__setattr__(parameter, 'a')  # can't be string
     if parameter in ['rmin', 'rmax']:
-        assert exc.value.message == parameter + ' should be a numerical value or an OptThinRadius instance'
+        assert exc.value.args[0] == parameter + ' should be a numerical value or an OptThinRadius instance'
     else:
-        assert exc.value.message == parameter + ' should be a numerical value'
+        assert exc.value.args[0] == parameter + ' should be a numerical value'
 
 @pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'power', 'rho_0', 'r_0'])
 def test_power_law_envelope_invalid2(parameter):
@@ -109,9 +109,9 @@ def test_power_law_envelope_invalid2(parameter):
     with pytest.raises(ValueError) as exc:
         e.__setattr__(parameter, [1., 2.])  # should be scalar
     if parameter in ['rmin', 'rmax']:
-        assert exc.value.message == parameter + ' should be a scalar value or an OptThinRadius instance'
+        assert exc.value.args[0] == parameter + ' should be a scalar value or an OptThinRadius instance'
     else:
-        assert exc.value.message == parameter + ' should be a scalar value'
+        assert exc.value.args[0] == parameter + ' should be a scalar value'
 
 def test_power_law_envelope_swap1():
     e = PowerLawEnvelope()
@@ -159,14 +159,14 @@ def test_power_law_cavity_invalid1():
     e = PowerLawEnvelope()
     with pytest.raises(ValueError) as exc:
         e.cavity = 1.  # should be BipolarCavity instance
-    assert exc.value.message == 'cavity should be an instance of BipolarCavity'
+    assert exc.value.args[0] == 'cavity should be an instance of BipolarCavity'
 
 
 def test_power_law_cavity_invalid2():
     e = PowerLawEnvelope()
     with pytest.raises(ValueError) as exc:
         e.cavity = np.array([1, 2, 3])  # should be BipolarCavity instance
-    assert exc.value.message == 'cavity should be an instance of BipolarCavity'
+    assert exc.value.args[0] == 'cavity should be an instance of BipolarCavity'
 
 
 # Ulrich Envelope
@@ -186,7 +186,7 @@ def test_ulrich_envelope_negative(parameter):
     else:
         with pytest.raises(ValueError) as exc:
             e.__setattr__(parameter, -1.)  # negative values are not valid
-        assert exc.value.message == parameter + ' should be positive'
+        assert exc.value.args[0] == parameter + ' should be positive'
 
 
 @pytest.mark.parametrize(('parameter'), ['mdot', 'rmin', 'rmax', 'rho_0', 'rc', 'rho_amb'])
@@ -197,7 +197,7 @@ def test_ulrich_envelope_optthin(parameter):
     else:
         with pytest.raises(ValueError) as exc:
             e.__setattr__(parameter, OptThinRadius(1.))  # not valid for these parameters
-        assert exc.value.message == parameter + ' should be a scalar value'
+        assert exc.value.args[0] == parameter + ' should be a scalar value'
 
 
 @pytest.mark.parametrize(('parameter'), ['mdot', 'rmin', 'rmax', 'rho_0', 'rc', 'rho_amb'])
@@ -206,9 +206,9 @@ def test_ulrich_envelope_invalid1(parameter):
     with pytest.raises(ValueError) as exc:
         e.__setattr__(parameter, 'a')  # can't be string
     if parameter in ['rmin', 'rmax']:
-        assert exc.value.message == parameter + ' should be a numerical value or an OptThinRadius instance'
+        assert exc.value.args[0] == parameter + ' should be a numerical value or an OptThinRadius instance'
     else:
-        assert exc.value.message == parameter + ' should be a numerical value'
+        assert exc.value.args[0] == parameter + ' should be a numerical value'
 
 
 @pytest.mark.parametrize(('parameter'), ['mdot', 'rmin', 'rmax', 'rho_0', 'rc', 'rho_amb'])
@@ -217,9 +217,9 @@ def test_ulrich_envelope_invalid2(parameter):
     with pytest.raises(ValueError) as exc:
         e.__setattr__(parameter, [1., 2.])  # should be scalar
     if parameter in ['rmin', 'rmax']:
-        assert exc.value.message == parameter + ' should be a scalar value or an OptThinRadius instance'
+        assert exc.value.args[0] == parameter + ' should be a scalar value or an OptThinRadius instance'
     else:
-        assert exc.value.message == parameter + ' should be a scalar value'
+        assert exc.value.args[0] == parameter + ' should be a scalar value'
 
 
 def test_ulrich_envelope_swap():
@@ -270,14 +270,14 @@ def test_ulrich_cavity_invalid1():
     e = UlrichEnvelope()
     with pytest.raises(ValueError) as exc:
         e.cavity = 1.  # should be BipolarCavity instance
-    assert exc.value.message == 'cavity should be an instance of BipolarCavity'
+    assert exc.value.args[0] == 'cavity should be an instance of BipolarCavity'
 
 
 def test_ulrich_cavity_invalid2():
     e = UlrichEnvelope()
     with pytest.raises(ValueError) as exc:
         e.cavity = np.array([1, 2, 3])  # should be BipolarCavity instance
-    assert exc.value.message == 'cavity should be an instance of BipolarCavity'
+    assert exc.value.args[0] == 'cavity should be an instance of BipolarCavity'
 
 
 # Bipolar Cavities
@@ -296,7 +296,7 @@ def test_bipolar_cavity_negative(parameter):
     else:
         with pytest.raises(ValueError) as exc:
             c.__setattr__(parameter, -1.)  # negative values are not valid
-        assert exc.value.message == parameter + ' should be positive'
+        assert exc.value.args[0] == parameter + ' should be positive'
 
 
 @pytest.mark.parametrize(('parameter'), ['theta_0', 'r_0', 'rho_0', 'rho_exp'])
@@ -304,7 +304,7 @@ def test_bipolar_cavity_invalid1(parameter):
     c = BipolarCavity()
     with pytest.raises(ValueError) as exc:
         c.__setattr__(parameter, 'a')  # can't be string
-    assert exc.value.message == parameter + ' should be a numerical value'
+    assert exc.value.args[0] == parameter + ' should be a numerical value'
 
 
 @pytest.mark.parametrize(('parameter'), ['theta_0', 'r_0', 'rho_0', 'rho_exp'])
@@ -312,4 +312,4 @@ def test_bipolar_cavity_invalid2(parameter):
     c = BipolarCavity()
     with pytest.raises(ValueError) as exc:
         c.__setattr__(parameter, [1., 2.])  # should be scalar
-    assert exc.value.message == parameter + ' should be a scalar value'
+    assert exc.value.args[0] == parameter + ' should be a scalar value'

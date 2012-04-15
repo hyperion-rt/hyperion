@@ -139,7 +139,7 @@ class OctreeGrid(FreezableClass):
 
         # Read in geometry
 
-        if g_geometry.attrs['grid_type'] != 'oct':
+        if g_geometry.attrs['grid_type'].decode('utf-8') != 'oct':
             raise ValueError("Grid is not an oct-tree")
 
         self.set_walls(g_geometry.attrs['x'],
@@ -161,7 +161,7 @@ class OctreeGrid(FreezableClass):
                         self.quantities[quantity] = array
 
         # Check that advertised hash matches real hash
-        if g_geometry.attrs['geometry'] != self.get_geometry_id():
+        if g_geometry.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
             raise Exception("Calculated geometry hash does not match hash in file")
 
         # Self-consistently check geometry and physical quantities
@@ -200,8 +200,8 @@ class OctreeGrid(FreezableClass):
 
         # Write out geometry
 
-        g_geometry.attrs['grid_type'] = 'oct'
-        g_geometry.attrs['geometry'] = self.get_geometry_id()
+        g_geometry.attrs['grid_type'] = 'oct'.encode('utf-8')
+        g_geometry.attrs['geometry'] = self.get_geometry_id().encode('utf-8')
 
         g_geometry.attrs['x'] = self.x
         g_geometry.attrs['y'] = self.y
@@ -210,7 +210,7 @@ class OctreeGrid(FreezableClass):
         g_geometry.attrs['dy'] = self.dy
         g_geometry.attrs['dz'] = self.dz
 
-        dset = g_geometry.create_dataset("cells", data=np.array(zip(self.refined), dtype=[('refined', np.int32)]), compression=compression)
+        dset = g_geometry.create_dataset("cells", data=np.array(list(zip(self.refined)), dtype=[('refined', np.int32)]), compression=compression)
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()
@@ -225,7 +225,7 @@ class OctreeGrid(FreezableClass):
                     dset = g_quantities.create_dataset(quantity, data=self.quantities[quantity],
                                                        compression=compression,
                                                        dtype=physics_dtype)
-                    dset.attrs['geometry'] = self.get_geometry_id()
+                    dset.attrs['geometry'] = self.get_geometry_id().encode('utf-8')
 
     def get_geometry_id(self):
         geo_hash = hashlib.md5()

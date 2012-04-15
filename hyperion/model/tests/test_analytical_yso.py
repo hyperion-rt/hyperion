@@ -40,7 +40,7 @@ def test_nogrid_invalid():
     m = AnalyticalYSOModel()
     with pytest.raises(Exception) as e:
         m.write(random_filename())
-    assert e.value.message == 'The coordinate grid needs to be defined before calling AnalyticalModelYSO.write(...)'
+    assert e.value.args[0] == 'The coordinate grid needs to be defined before calling AnalyticalModelYSO.write(...)'
 
 
 def test_nostar_invalid():
@@ -48,4 +48,4 @@ def test_nostar_invalid():
     m = AnalyticalYSOModel()
     with pytest.raises(Exception) as e:
         m.set_spherical_polar_grid_auto(1, 1, 1)
-    assert e.value.message == 'The central source radius need to be defined before the grid can be set up'
+    assert e.value.args[0] == 'The central source radius need to be defined before the grid can be set up'

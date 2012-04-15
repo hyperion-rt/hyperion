@@ -208,7 +208,7 @@ class CylindricalPolarGrid(FreezableClass):
 
         # Read in geometry
 
-        if g_geometry.attrs['grid_type'] != 'cyl_pol':
+        if g_geometry.attrs['grid_type'].decode('utf-8') != 'cyl_pol':
             raise ValueError("Grid is not cylindrical polar")
 
         self.set_walls(g_geometry['walls_1']['w'],
@@ -226,7 +226,7 @@ class CylindricalPolarGrid(FreezableClass):
                         self.quantities[quantity] = array
 
         # Check that advertised hash matches real hash
-        if g_geometry.attrs['geometry'] != self.get_geometry_id():
+        if g_geometry.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
             raise Exception("Calculated geometry hash does not match hash in file")
 
         # Self-consistently check geometry and physical quantities
@@ -265,17 +265,17 @@ class CylindricalPolarGrid(FreezableClass):
 
         # Write out geometry
 
-        g_geometry.attrs['grid_type'] = 'cyl_pol'
-        g_geometry.attrs['geometry'] = self.get_geometry_id()
+        g_geometry.attrs['grid_type'] = 'cyl_pol'.encode('utf-8')
+        g_geometry.attrs['geometry'] = self.get_geometry_id().encode('utf-8')
 
-        dset = g_geometry.create_dataset("walls_1", data=np.array(zip(self.w_wall), dtype=[('w', wall_dtype)]), compression=compression)
-        dset.attrs['Unit'] = 'cm'
+        dset = g_geometry.create_dataset("walls_1", data=np.array(list(zip(self.w_wall)), dtype=[('w', wall_dtype)]), compression=compression)
+        dset.attrs['Unit'] = 'cm'.encode('utf-8')
 
-        dset = g_geometry.create_dataset("walls_2", data=np.array(zip(self.z_wall), dtype=[('z', wall_dtype)]), compression=compression)
-        dset.attrs['Unit'] = 'cm'
+        dset = g_geometry.create_dataset("walls_2", data=np.array(list(zip(self.z_wall)), dtype=[('z', wall_dtype)]), compression=compression)
+        dset.attrs['Unit'] = 'cm'.encode('utf-8')
 
-        dset = g_geometry.create_dataset("walls_3", data=np.array(zip(self.p_wall), dtype=[('p', wall_dtype)]), compression=compression)
-        dset.attrs['Unit'] = 'cm'
+        dset = g_geometry.create_dataset("walls_3", data=np.array(list(zip(self.p_wall)), dtype=[('p', wall_dtype)]), compression=compression)
+        dset.attrs['Unit'] = 'rad'.encode('utf-8')
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()
@@ -290,7 +290,7 @@ class CylindricalPolarGrid(FreezableClass):
                     dset = g_quantities.create_dataset(quantity, data=self.quantities[quantity],
                                                     compression=compression,
                                                     dtype=physics_dtype)
-                    dset.attrs['geometry'] = self.get_geometry_id()
+                    dset.attrs['geometry'] = self.get_geometry_id().encode('utf-8')
 
     def get_geometry_id(self):
         geo_hash = hashlib.md5()

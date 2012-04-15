@@ -186,7 +186,7 @@ class CartesianGrid(FreezableClass):
 
         # Read in geometry
 
-        if g_geometry.attrs['grid_type'] != 'car':
+        if g_geometry.attrs['grid_type'].decode('utf-8') != 'car':
             raise ValueError("Grid is not cartesian")
 
         self.set_walls(g_geometry['walls_1']['x'],
@@ -204,7 +204,7 @@ class CartesianGrid(FreezableClass):
                         self.quantities[quantity] = array
 
         # Check that advertised hash matches real hash
-        if g_geometry.attrs['geometry'] != self.get_geometry_id():
+        if g_geometry.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
             raise Exception("Calculated geometry hash does not match hash in file")
 
         # Self-consistently check geometry and physical quantities
@@ -243,17 +243,17 @@ class CartesianGrid(FreezableClass):
 
         # Write out geometry
 
-        g_geometry.attrs['grid_type'] = 'car'
-        g_geometry.attrs['geometry'] = self.get_geometry_id()
+        g_geometry.attrs['grid_type'] = 'car'.encode('utf-8')
+        g_geometry.attrs['geometry'] = self.get_geometry_id().encode('utf-8')
 
-        dset = g_geometry.create_dataset("walls_1", data=np.array(zip(self.x_wall), dtype=[('x', wall_dtype)]), compression=compression)
-        dset.attrs['Unit'] = 'cm'
+        dset = g_geometry.create_dataset("walls_1", data=np.array(list(zip(self.x_wall)), dtype=[('x', wall_dtype)]), compression=compression)
+        dset.attrs['Unit'] = 'cm'.encode('utf-8')
 
-        dset = g_geometry.create_dataset("walls_2", data=np.array(zip(self.y_wall), dtype=[('y', wall_dtype)]), compression=compression)
-        dset.attrs['Unit'] = 'cm'
+        dset = g_geometry.create_dataset("walls_2", data=np.array(list(zip(self.y_wall)), dtype=[('y', wall_dtype)]), compression=compression)
+        dset.attrs['Unit'] = 'cm'.encode('utf-8')
 
-        dset = g_geometry.create_dataset("walls_3", data=np.array(zip(self.z_wall), dtype=[('z', wall_dtype)]), compression=compression)
-        dset.attrs['Unit'] = 'cm'
+        dset = g_geometry.create_dataset("walls_3", data=np.array(list(zip(self.z_wall)), dtype=[('z', wall_dtype)]), compression=compression)
+        dset.attrs['Unit'] = 'cm'.encode('utf-8')
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()
@@ -268,7 +268,7 @@ class CartesianGrid(FreezableClass):
                     dset = g_quantities.create_dataset(quantity, data=self.quantities[quantity],
                                                     compression=compression,
                                                     dtype=physics_dtype)
-                    dset.attrs['geometry'] = self.get_geometry_id()
+                    dset.attrs['geometry'] = self.get_geometry_id().encode('utf-8')
 
     def get_geometry_id(self):
         geo_hash = hashlib.md5()

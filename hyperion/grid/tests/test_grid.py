@@ -44,7 +44,7 @@ def test_grid_invalid1(grid):
         grid('hello',  # invalid entry
              (0., 1.),
              (0., 1.))
-    assert e.value.message == WALL[grid][0] + ' should be a 1-D sequence'
+    assert e.value.args[0] == WALL[grid][0] + ' should be a 1-D sequence'
 
 
 @pytest.mark.parametrize(('grid'), GRIDS)
@@ -53,7 +53,7 @@ def test_grid_invalid2(grid):
         grid((0., 1.),
              1.233,  # invalid entry
              (0., 1.))
-    assert e.value.message == WALL[grid][1] + ' should be a 1-D sequence'
+    assert e.value.args[0] == WALL[grid][1] + ' should be a 1-D sequence'
 
 
 @pytest.mark.parametrize(('grid'), GRIDS)
@@ -62,7 +62,7 @@ def test_grid_invalid3(grid):
         grid((0., 1.),
              (0., 1.),
              set([1, 2, 3]))  # invalid entry
-    assert e.value.message == WALL[grid][2] + ' should be a 1-D sequence'
+    assert e.value.args[0] == WALL[grid][2] + ' should be a 1-D sequence'
 
 
 @pytest.mark.parametrize(('grid'), GRIDS)
@@ -71,7 +71,7 @@ def test_grid_invalid4(grid):
         grid([[0., 1.]],  # lists should be 1D
               (0., 1.),
               np.array([0., 1.]))
-    assert e.value.message == WALL[grid][0] + ' should be a 1-D sequence'
+    assert e.value.args[0] == WALL[grid][0] + ' should be a 1-D sequence'
 
 
 @pytest.mark.parametrize(('grid'), GRIDS)
@@ -80,7 +80,7 @@ def test_grid_invalid5(grid):
         grid([0., 1.],
              ((0., 1.),),  # tuples should be 1D
              np.array([0., 1.]))
-    assert e.value.message == WALL[grid][1] + ' should be a 1-D sequence'
+    assert e.value.args[0] == WALL[grid][1] + ' should be a 1-D sequence'
 
 
 @pytest.mark.parametrize(('grid'), GRIDS)
@@ -89,7 +89,7 @@ def test_grid_invalid6(grid):
         grid([0., 1.],
              (0., 1.),
              np.array([[0., 1.]]))  # arrays should be 1D
-    assert e.value.message == WALL[grid][2] + ' should be a 1-D sequence'
+    assert e.value.args[0] == WALL[grid][2] + ' should be a 1-D sequence'
 
 
 @pytest.mark.parametrize(('grid'), GRIDS)
@@ -98,7 +98,7 @@ def test_grid_invalid7(grid):
         grid([-1., -2., 1.],  # should be increasing
              [0., 1.],
              [0., 1.])
-    assert e.value.message == WALL[grid][0] + ' should be monotonically increasing'
+    assert e.value.args[0] == WALL[grid][0] + ' should be monotonically increasing'
 
 
 @pytest.mark.parametrize(('grid'), GRIDS)
@@ -107,7 +107,7 @@ def test_grid_invalid8(grid):
         grid([0., 1.],
              [2., -1.],  # should be increasing
              [0., 1.])
-    assert e.value.message == WALL[grid][1] + ' should be monotonically increasing'
+    assert e.value.args[0] == WALL[grid][1] + ' should be monotonically increasing'
 
 
 @pytest.mark.parametrize(('grid'), GRIDS)
@@ -116,7 +116,7 @@ def test_grid_invalid9(grid):
         grid([0., 1.],
              [0., 1.],
              [4., -1., 5.])  # should be increasing
-    assert e.value.message == WALL[grid][2] + ' should be monotonically increasing'
+    assert e.value.args[0] == WALL[grid][2] + ' should be monotonically increasing'
 
 
 @pytest.mark.parametrize(('grid'), GRIDS)
@@ -136,7 +136,7 @@ def test_grid_cylindrical_ranges():
 def test_grid_cylindrical_ranges_invalid():
     with pytest.raises(ValueError) as e:
         g = CylindricalPolarGrid([-10., 10.], [-10., 10.], [-10., 10.])
-    assert e.value.message == 'p_wall values be in the range [0:2*pi]'
+    assert e.value.args[0] == 'p_wall values be in the range [0:2*pi]'
 
 
 def test_grid_spherical_ranges():
@@ -146,10 +146,10 @@ def test_grid_spherical_ranges():
 def test_grid_spherical_ranges_invalid1():
     with pytest.raises(ValueError) as e:
         g = SphericalPolarGrid([-10., 10.], [-10., 10.], [0., 2. * np.pi])
-    assert e.value.message == 't_wall values be in the range [0:pi]'
+    assert e.value.args[0] == 't_wall values be in the range [0:pi]'
 
 
 def test_grid_spherical_ranges_invalid2():
     with pytest.raises(ValueError) as e:
         g = SphericalPolarGrid([-10., 10.], [0., np.pi], [-10., 10.])
-    assert e.value.message == 'p_wall values be in the range [0:2*pi]'
+    assert e.value.args[0] == 'p_wall values be in the range [0:2*pi]'
