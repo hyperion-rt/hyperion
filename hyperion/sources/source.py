@@ -10,17 +10,31 @@ import atpy
 
 class Source(FreezableClass):
 
-    def __init__(self, luminosity=None, spectrum=None, temperature=None,
-                 name=None, peeloff=True):
+    def __init__(self, name=None, peeloff=True, **kwargs):
+        '''
+        This class is not meant to be used directly, but forms the basis for all other source types.
 
-        self.luminosity = luminosity
-        self.spectrum = None
-        self.temperature = None
+        Parameters
+        ----------
+        name: str, optional
+            The name of the source
+        peeloff: bool, optional
+            Whether to peel-off photons from this source
 
-        if spectrum:
-            self.set_spectrum(spectrum)
-        elif temperature:
-            self.set_temperature(temperature)
+        Any additional arguments are are used to initialize attributes.
+
+        Attributes
+        ----------
+        luminosity: float
+            The luminosity of the source (in ergs/s)
+        spectrum:
+            The spectrum of the source, specified either as an ATpy table with
+            ``nu`` and ``fnu`` columns, or as a ``(nu, fnu)`` tuple (``nu``
+            should be in Hz, and the units for ``fnu`` are not important,
+            since the luminosity determined the absolute scaling``
+        temperature:
+            The temperature of the source (in K)
+        '''
 
         if name:
             self.name = name
@@ -29,20 +43,21 @@ class Source(FreezableClass):
 
         self.peeloff = peeloff
 
+        # Initialize attributes
+        self.luminosity = None
+        self.spectrum = None
+        self.temperature = None
+
+        # Prevent new attributes from being created
         self._freeze()
+
+        # Set attributes from remaining keyword arguments
+        for kwarg in kwargs:
+            self.__setattr__(kwarg, kwargs[kwarg])
 
     def _check_all_set(self):
         if self.luminosity is None:
             raise ValueError("luminosity is not set")
-
-    def set_spectrum(self, spectrum):
-        self.spectrum = spectrum
-
-    def set_temperature(self, temperature):
-        self.temperature = temperature
-
-    def set_luminosity(self, luminosity):
-        self.luminosity = luminosity
 
     def get_spectrum(self):
 
@@ -156,14 +171,44 @@ class Source(FreezableClass):
 
 class SpotSource(Source):
 
-    def __init__(self, luminosity=None, longitude=None, latitude=None,
-                 radius=None, spectrum=None, temperature=None, name=None, peeloff=True):
+    def __init__(self, name=None, peeloff=True, **kwargs):
+        '''
+        A spot on a spherical source
 
-        self.longitude = longitude
-        self.latitude = latitude
-        self.radius = radius
-        Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name, peeloff=peeloff)
+        Parameters
+        ----------
+        name: str, optional
+            The name of the source
+        peeloff: bool, optional
+            Whether to peel-off photons from this source
+
+        Any additional arguments are are used to initialize attributes.
+
+        Attributes
+        ----------
+        luminosity: float
+            The luminosity of the source (in ergs/s)
+        spectrum: atpy.Table or tuple
+            The spectrum of the source, specified either as:
+                * an ATpy table with ``nu`` and ``fnu`` column
+                * a ``(nu, fnu)`` tuple
+            ``nu`` should be in Hz, and the units for ``fnu`` are not
+            important, since the luminosity determined the absolute scaling``
+        temperature: float
+            The temperature of the source (in K)
+        longitude: float
+            The longitude of the spot on the spherical source (in degrees)
+        latitude: float
+            The latitude of the spot on the spherical source (in degrees)
+        radius: float
+            The radius of the spherical source (in cm)
+        '''
+
+        self.longitude = None
+        self.latitude = None
+        self.radius = None
+
+        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
     def _check_all_set(self):
         if self.longitude is None:
@@ -219,11 +264,38 @@ class SpotSource(Source):
 
 class PointSource(Source):
 
-    def __init__(self, luminosity=None, position=(0., 0., 0.), spectrum=None,
-                 temperature=None, name=None, peeloff=True):
-        self.position = position
-        Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name, peeloff=peeloff)
+    def __init__(self, name=None, peeloff=True, **kwargs):
+        '''
+        A point source
+
+        Parameters
+        ----------
+        name: str, optional
+            The name of the source
+        peeloff: bool, optional
+            Whether to peel-off photons from this source
+
+        Any additional arguments are are used to initialize attributes.
+
+        Attributes
+        ----------
+        luminosity: float
+            The luminosity of the source (in ergs/s)
+        spectrum: atpy.Table or tuple
+            The spectrum of the source, specified either as:
+                * an ATpy table with ``nu`` and ``fnu`` column
+                * a ``(nu, fnu)`` tuple
+            ``nu`` should be in Hz, and the units for ``fnu`` are not
+            important, since the luminosity determined the absolute scaling``
+        temperature: float
+            The temperature of the source (in K)
+        position: tuple of three values
+            The coordinates of the source, specified as (x, y, z) (in cm)
+        '''
+
+        self.position = (0., 0., 0.)
+
+        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
     def _check_all_set(self):
         if self.position is None:
@@ -261,15 +333,47 @@ class PointSource(Source):
 
 class SphericalSource(Source):
 
-    def __init__(self, luminosity=None, position=(0., 0., 0.), radius=None,
-                 limb_darkening=False, spectrum=None, temperature=None,
-                 name=None, peeloff=True):
-        self.position = position
-        self.radius = radius
-        self.limb = limb_darkening
+    def __init__(self, name=None, peeloff=True, **kwargs):
+        '''
+        A spherical source
+
+        Parameters
+        ----------
+        name: str, optional
+            The name of the source
+        peeloff: bool, optional
+            Whether to peel-off photons from this source
+
+        Any additional arguments are are used to initialize attributes.
+
+        Attributes
+        ----------
+        luminosity: float
+            The luminosity of the source (in ergs/s)
+        spectrum: atpy.Table or tuple
+            The spectrum of the source, specified either as:
+                * an ATpy table with ``nu`` and ``fnu`` column
+                * a ``(nu, fnu)`` tuple
+            ``nu`` should be in Hz, and the units for ``fnu`` are not
+            important, since the luminosity determined the absolute scaling``
+        temperature: float
+            The temperature of the source (in K)
+        position: tuple of three values
+            The coordinates of the source, specified as (x, y, z) (in cm)
+        radius: float
+            The radius of the source (in cm)
+        limb: bool
+            Whether to include limb darkening
+        spots: list
+            A list of spots
+        '''
+
+        self.position = (0., 0., 0.)
+        self.radius = None
+        self.limb = False
         self.spots = []
-        Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name, peeloff=peeloff)
+
+        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
     def _check_all_set(self):
         if self.position is None:
@@ -338,12 +442,41 @@ class SphericalSource(Source):
 
 class ExternalSphericalSource(Source):
 
-    def __init__(self, luminosity=None, position=(0., 0., 0.), radius=None,
-                 spectrum=None, temperature=None, name=None, peeloff=True):
-        self.position = position
-        self.radius = radius
-        Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name, peeloff=peeloff)
+    def __init__(self, name=None, peeloff=True, **kwargs):
+        '''
+        A spherical external illumination source
+
+        Parameters
+        ----------
+        name: str, optional
+            The name of the source
+        peeloff: bool, optional
+            Whether to peel-off photons from this source
+
+        Any additional arguments are are used to initialize attributes.
+
+        Attributes
+        ----------
+        luminosity: float
+            The luminosity of the source (in ergs/s)
+        spectrum: atpy.Table or tuple
+            The spectrum of the source, specified either as:
+                * an ATpy table with ``nu`` and ``fnu`` column
+                * a ``(nu, fnu)`` tuple
+            ``nu`` should be in Hz, and the units for ``fnu`` are not
+            important, since the luminosity determined the absolute scaling``
+        temperature: float
+            The temperature of the source (in K)
+        position: tuple of three values
+            The coordinates of the source, specified as (x, y, z) (in cm)
+        radius: float
+            The radius of the source (in cm)
+        '''
+
+        self.position = (0., 0., 0.)
+        self.radius = None
+
+        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
     def _check_all_set(self):
         if self.position is None:
@@ -395,11 +528,38 @@ class ExternalSphericalSource(Source):
 
 class ExternalBoxSource(Source):
 
-    def __init__(self, luminosity=None, bounds=None,
-                 spectrum=None, temperature=None, name=None, peeloff=True):
-        self.bounds = bounds
-        Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name, peeloff=peeloff)
+    def __init__(self, name=None, peeloff=True, **kwargs):
+        '''
+        A cubic external illumination source
+
+        Parameters
+        ----------
+        name: str, optional
+            The name of the source
+        peeloff: bool, optional
+            Whether to peel-off photons from this source
+
+        Any additional arguments are are used to initialize attributes.
+
+        Attributes
+        ----------
+        luminosity: float
+            The luminosity of the source (in ergs/s)
+        spectrum: atpy.Table or tuple
+            The spectrum of the source, specified either as:
+                * an ATpy table with ``nu`` and ``fnu`` column
+                * a ``(nu, fnu)`` tuple
+            ``nu`` should be in Hz, and the units for ``fnu`` are not
+            important, since the luminosity determined the absolute scaling``
+        temperature: float
+            The temperature of the source (in K)
+        bounds: list
+            The boundaries of the source, given as [[xmin, xmax], [ymin, ymax], [zmin, zmax]]
+        '''
+
+        self.bounds = None
+
+        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
     def _check_all_set(self):
         if self.bounds is None:
@@ -425,11 +585,39 @@ class ExternalBoxSource(Source):
 
 class MapSource(Source):
 
-    def __init__(self, luminosity=None, map=None, spectrum=None,
-                 temperature=None, name=None, peeloff=True):
-        self.map = map
-        Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name, peeloff=peeloff)
+    def __init__(self, name=None, peeloff=True, **kwargs):
+        '''
+        A diffuse source
+
+        Parameters
+        ----------
+        name: str, optional
+            The name of the source
+        peeloff: bool, optional
+            Whether to peel-off photons from this source
+
+        Any additional arguments are are used to initialize attributes.
+
+        Attributes
+        ----------
+        luminosity: float
+            The luminosity of the source (in ergs/s)
+        spectrum: atpy.Table or tuple
+            The spectrum of the source, specified either as:
+                * an ATpy table with ``nu`` and ``fnu`` column
+                * a ``(nu, fnu)`` tuple
+            ``nu`` should be in Hz, and the units for ``fnu`` are not
+            important, since the luminosity determined the absolute scaling``
+        temperature: float
+            The temperature of the source (in K)
+        map: np.ndarray
+            The probability distribution function for emission in each cell.
+            This should have the same dimensions as the grid.
+        '''
+
+        self.map = None
+
+        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
     def _check_all_set(self):
         if self.map is None:
@@ -452,16 +640,48 @@ class MapSource(Source):
 
 class PlaneParallelSource(Source):
 
-    def __init__(self, luminosity=None, position=(0., 0., 0.), radius=None,
-                 direction=(0., 0.), spectrum=None,
-                 temperature=None, name=None, peeloff=False):
+    def __init__(self, name=None, peeloff=False, **kwargs):
+
+        '''
+        A circular plane parallel source
+
+        Parameters
+        ----------
+        name: str, optional
+            The name of the source
+        peeloff: bool, optional
+            Whether to peel-off photons from this source
+
+        Any additional arguments are are used to initialize attributes.
+
+        Attributes
+        ----------
+        luminosity: float
+            The luminosity of the source (in ergs/s)
+        spectrum: atpy.Table or tuple
+            The spectrum of the source, specified either as:
+                * an ATpy table with ``nu`` and ``fnu`` column
+                * a ``(nu, fnu)`` tuple
+            ``nu`` should be in Hz, and the units for ``fnu`` are not
+            important, since the luminosity determined the absolute scaling``
+        temperature: float
+            The temperature of the source (in K)
+        position: tuple of three values
+            The coordinates of the source, specified as (x, y, z) (in cm)
+        radius: float
+            The radius of the source (in cm)
+        direction: tuple of two values
+            The direction of emission, given as (theta, phi) in degrees.
+        '''
+
         if peeloff:
-            raise Exception("Cannot peeloff plane parallel source")
-        self.position = position
-        self.radius = range
-        self.direction = direction
-        Source.__init__(self, luminosity=luminosity, spectrum=spectrum,
-                        temperature=temperature, name=name, peeloff=peeloff)
+            raise ValueError("Cannot peeloff plane parallel source")
+
+        self.position = (0., 0., 0.)
+        self.radius = None
+        self.direction = None
+
+        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
     def _check_all_set(self):
         if self.position is None:
