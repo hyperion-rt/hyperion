@@ -6,16 +6,16 @@ import hashlib
 import atpy
 import numpy as np
 
-import hyperion
+from ..version import __version__
 
-from hyperion.util.constants import c
-from hyperion.util.functions import FreezableClass
-from hyperion.util.interpolate import interp1d_fast_loglog
-from hyperion.util.logger import logger
+from ..util.constants import c
+from ..util.functions import FreezableClass
+from ..util.interpolate import interp1d_fast_loglog
+from ..util.logger import logger
 
-from hyperion.dust.optical_properties import OpticalProperties
-from hyperion.dust.emissivities import Emissivities
-from hyperion.dust.mean_opacities import MeanOpacities
+from .optical_properties import OpticalProperties
+from .emissivities import Emissivities
+from .mean_opacities import MeanOpacities
 
 
 def henyey_greenstein(mu, g, p_lin_max):
@@ -172,7 +172,7 @@ class SphericalDust(FreezableClass):
         # Add standard keywords to header
         ts.add_keyword('version', 1)
         ts.add_keyword('type', 1)
-        ts.add_keyword('python_version', hyperion.__version__)
+        ts.add_keyword('python_version', __version__)
         if self.md5:
             ts.add_keyword('asciimd5', self.md5)
 

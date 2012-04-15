@@ -7,13 +7,13 @@ import numpy as np
 from atpy import Table
 
 import hyperion
-from hyperion.util.parfile import parse
-from hyperion import atmos
-from hyperion.dust import SimpleSphericalDust
-from hyperion.model import AnalyticalYSOModel
-from hyperion.util.functions import filename2hdf5
-from hyperion.util.constants import msun, rsun, au, year, k, m_h, G, pi, sigma, c
-from hyperion.util.logger import logger
+from ..util.parfile import parse
+from .. import atmos
+from ..dust import SimpleSphericalDust
+from . import AnalyticalYSOModel
+from ..util.functions import filename2hdf5
+from ..util.constants import msun, rsun, au, year, k, m_h, G, pi, sigma, c
+from ..util.logger import logger
 
 
 class TtsreModel(AnalyticalYSOModel):

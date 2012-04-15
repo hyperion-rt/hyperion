@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 
-import numpy as np
 import h5py
+import numpy as np
 
 
 def single_grid_dims(data):

@@ -10,7 +10,7 @@ import tempfile
 import h5py
 import numpy as np
 
-from hyperion.util.constants import h, c, k
+from .constants import h, c, k
 
 TMPDIR = tempfile.mkdtemp()
 

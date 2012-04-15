@@ -1,19 +1,14 @@
 from __future__ import print_function, division
 
-import hyperion.densities
-import hyperion.dust
-import hyperion.util
-import hyperion.atmos
-import hyperion.model
-
-__version__ = '0.8.4'
-
-data_dir = __path__[0] + '/data/'
-
 import os
 import glob
 import hashlib
+
 import h5py
+
+from .version import __version__
+
+data_dir = __path__[0] + '/data/'
 
 datafiles = {}
 for datafile in glob.glob(os.path.join(data_dir, '*.hdf5')):

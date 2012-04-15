@@ -1,11 +1,11 @@
 from __future__ import print_function, division
 
+import struct
+
+import pytest
 import numpy as np
 
 from ..integrate import *
-
-import pytest
-import struct
 
 
 def almost_equal(a, b):

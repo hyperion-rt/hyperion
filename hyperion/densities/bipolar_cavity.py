@@ -2,9 +2,9 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from hyperion.util.functions import FreezableClass
-from hyperion.dust import SphericalDust
-from hyperion.densities.envelope import Envelope
+from ..util.functions import FreezableClass
+from ..dust import SphericalDust
+from ..densities.envelope import Envelope
 
 
 class BipolarCavity(FreezableClass):

@@ -1,13 +1,12 @@
 from __future__ import print_function, division
 
+import atpy
 import numpy as np
 
-from hyperion.util.functions import B_nu, random_id
-from hyperion.util.functions import FreezableClass, is_numpy_array
-from hyperion.util.integrate import integrate_loglog
-from hyperion.util.constants import c
-
-import atpy
+from ..util.functions import B_nu, random_id
+from ..util.functions import FreezableClass, is_numpy_array
+from ..util.integrate import integrate_loglog
+from ..util.constants import c
 
 
 class Source(FreezableClass):

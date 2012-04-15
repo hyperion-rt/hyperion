@@ -5,10 +5,10 @@ import hashlib
 import h5py
 import numpy as np
 
-from hyperion.util.meshgrid import meshgrid_nd
-from hyperion.util.functions import FreezableClass, is_numpy_array, monotonically_increasing, link_or_copy
-from hyperion.util.logger import logger
-from hyperion.grid.grid_helpers import single_grid_dims
+from ..util.meshgrid import meshgrid_nd
+from ..util.functions import FreezableClass, is_numpy_array, monotonically_increasing, link_or_copy
+from ..util.logger import logger
+from .grid_helpers import single_grid_dims
 
 
 class SphericalPolarGrid(FreezableClass):

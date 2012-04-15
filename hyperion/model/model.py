@@ -8,15 +8,15 @@ import multiprocessing
 import h5py
 import numpy as np
 
-import hyperion
-from hyperion.util.functions import delete_file
-from hyperion.grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid
-from hyperion.sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource
-from hyperion.conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
-from hyperion.util.constants import c, pi
-from hyperion.util.functions import FreezableClass, link_or_copy
-from hyperion.dust import SphericalDust
-from hyperion.util.logger import logger
+from ..version import __version__
+from ..util.functions import delete_file
+from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid
+from ..sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource
+from ..conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
+from ..util.constants import c, pi
+from ..util.functions import FreezableClass, link_or_copy
+from ..dust import SphericalDust
+from ..util.logger import logger
 
 STOKESD = {}
 STOKESD['I'] = 0
@@ -374,7 +374,7 @@ class Model(FreezableClass):
         root = h5py.File(filename, 'w')
 
         # Add Python version
-        root.attrs['python_version'] = hyperion.__version__
+        root.attrs['python_version'] = __version__
 
         # Create all the necessary groups and sub-groups
         g_grid = root.create_group('Grid')

@@ -1,8 +1,9 @@
 from __future__ import print_function, division
 
 import numpy as np
-from hyperion.util.logger import logger
-from hyperion.grid.amr_grid import Grid, Level, AMRGrid
+
+from ..util.logger import logger
+from ..grid.amr_grid import Grid, Level, AMRGrid
 
 
 def parse_multi_tuple(string):

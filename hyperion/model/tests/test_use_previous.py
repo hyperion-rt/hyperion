@@ -6,7 +6,7 @@ import numpy as np
 from .. import Model
 from ...grid.amr_grid import AMRGrid, Level, Grid
 from ...util.functions import random_filename
-from test_helpers import get_test_dust
+from .test_helpers import get_test_dust
 
 
 @pytest.mark.parametrize(('grid_type', 'copy'), [(x, y) for x in ['car', 'sph', 'cyl', 'amr', 'oct'] for y in [True, False]])

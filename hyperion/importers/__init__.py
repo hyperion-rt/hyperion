@@ -1,1 +1,1 @@
-from orion import parse_orion
+from .orion import parse_orion

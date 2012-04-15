@@ -3,13 +3,13 @@ from __future__ import print_function, division
 import atpy
 import numpy as np
 
-from hyperion.util.integrate import integrate_loglog, integrate_linlog_subset
-from hyperion.util.interpolate import interp1d_fast, interp1d_fast_loglog, \
+from ..util.integrate import integrate_loglog, integrate_linlog_subset
+from ..util.interpolate import interp1d_fast, interp1d_fast_loglog, \
                                       interp1d_fast_linlog
-from hyperion.util.functions import extrap1d_log10, B_nu, FreezableClass, \
+from ..util.functions import extrap1d_log10, B_nu, FreezableClass, \
                                     nu_common, planck_nu_range
-from hyperion.util.constants import c, sigma
-from hyperion.util.logger import logger
+from ..util.constants import c, sigma
+from ..util.logger import logger
 
 
 class OpticalProperties(FreezableClass):

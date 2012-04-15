@@ -2,12 +2,12 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from hyperion.util.constants import G, pi
-from hyperion.densities.envelope import Envelope
-from hyperion.densities.bipolar_cavity import BipolarCavity
-from hyperion.util.convenience import OptThinRadius
-from hyperion.dust import SphericalDust
-from hyperion.util.logger import logger
+from ..util.constants import G, pi
+from ..densities.envelope import Envelope
+from ..densities.bipolar_cavity import BipolarCavity
+from ..util.convenience import OptThinRadius
+from ..dust import SphericalDust
+from ..util.logger import logger
 
 
 def delta_neg(r, q):

@@ -7,10 +7,10 @@ import hashlib
 import h5py
 import numpy as np
 
-from hyperion.util.meshgrid import meshgrid_nd
-from hyperion.util.functions import FreezableClass, link_or_copy
-from hyperion.util.logger import logger
-from hyperion.grid.grid_helpers import single_grid_dims
+from ..util.meshgrid import meshgrid_nd
+from ..util.functions import FreezableClass, link_or_copy
+from ..util.logger import logger
+from ..grid.grid_helpers import single_grid_dims
 
 
 def zero_density(grid, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, zmin=np.inf, zmax=np.inf):

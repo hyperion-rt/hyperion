@@ -1,8 +1,9 @@
 from __future__ import print_function, division
 
 import numpy as np
-from interpolate import interp1d_fast, interp1d_fast_loglog, \
-                        interp1d_fast_linlog, interp1d_fast_loglin
+
+from .interpolate import interp1d_fast, interp1d_fast_loglog, \
+                         interp1d_fast_linlog, interp1d_fast_loglin
 
 
 def integrate_subset(x, y, xmin, xmax):

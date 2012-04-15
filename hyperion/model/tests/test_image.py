@@ -1,12 +1,12 @@
 from __future__ import print_function, division
 
-import tempfile
 import os
-import string
 import random
+import string
+import tempfile
 
-import numpy as np
 import pytest
+import numpy as np
 
 from .. import Model
 from ...util.functions import random_filename

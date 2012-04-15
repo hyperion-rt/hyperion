@@ -1,9 +1,9 @@
 from __future__ import print_function, division
 
-import numpy as np
 import atpy
+import numpy as np
 
-from hyperion.util.constants import c
+from ..util.constants import c
 
 variable = {}
 variable['T'] = 'temperature'

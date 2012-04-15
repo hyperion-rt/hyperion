@@ -4,14 +4,14 @@ from copy import deepcopy
 
 import numpy as np
 
-from hyperion.model import Model
-from hyperion.densities import FlaredDisk, AlphaDiskWhitney, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
-from hyperion.util.interpolate import interp1d_fast_loglog
-from hyperion.util.constants import pi, sigma, c, G
-from hyperion.sources import SphericalSource, SpotSource
-from hyperion.util.functions import FreezableClass
-from hyperion.util.convenience import OptThinRadius
-from hyperion.util.logger import logger
+from . import Model
+from ..densities import FlaredDisk, AlphaDiskWhitney, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
+from ..util.interpolate import interp1d_fast_loglog
+from ..util.constants import pi, sigma, c, G
+from ..sources import SphericalSource, SpotSource
+from ..util.functions import FreezableClass
+from ..util.convenience import OptThinRadius
+from ..util.logger import logger
 
 
 def _min_none(*args):

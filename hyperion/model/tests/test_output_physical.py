@@ -1,10 +1,10 @@
 from __future__ import print_function, division
 
-import numpy as np
 import pytest
+import numpy as np
 
 from ...util.functions import random_filename
-from test_helpers import get_test_model_noimaging, get_test_dust
+from .test_helpers import get_test_model_noimaging, get_test_dust
 
 
 @pytest.mark.parametrize(('output'), ['density', 'density_diff',

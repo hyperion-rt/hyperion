@@ -2,11 +2,11 @@ from __future__ import print_function, division
 
 import os
 
-import numpy as np
 import atpy
+import numpy as np
 
-from hyperion.util.constants import c
-from hyperion.util.logger import logger
+from ..util.constants import c
+from ..util.logger import logger
 
 
 def prepare_atmos(filename, output=None):

@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 
 from .. import Model
-from test_helpers import random_filename
+from .test_helpers import random_filename
 
 
 def test_basic():

@@ -6,9 +6,9 @@ import hashlib
 import h5py
 import numpy as np
 
-from hyperion.util.functions import FreezableClass, is_numpy_array, link_or_copy
-from hyperion.util.logger import logger
-from hyperion.grid.grid_helpers import single_grid_dims
+from ..util.functions import FreezableClass, is_numpy_array, link_or_copy
+from ..util.logger import logger
+from .grid_helpers import single_grid_dims
 
 
 class OctreeGrid(FreezableClass):

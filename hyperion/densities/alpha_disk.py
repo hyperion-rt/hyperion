@@ -2,12 +2,12 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from hyperion.util.constants import pi, G
-from hyperion.util.functions import FreezableClass
-from hyperion.util.convenience import OptThinRadius
-from hyperion.util.integrate import integrate_powerlaw
-from hyperion.dust import SphericalDust
-from hyperion.util.logger import logger
+from ..util.constants import pi, G
+from ..util.functions import FreezableClass
+from ..util.convenience import OptThinRadius
+from ..util.integrate import integrate_powerlaw
+from ..dust import SphericalDust
+from ..util.logger import logger
 
 
 class AlphaDiskWhitney(FreezableClass):

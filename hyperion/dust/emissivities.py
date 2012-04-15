@@ -3,12 +3,12 @@ from __future__ import print_function, division
 import atpy
 import numpy as np
 
-from hyperion.util.integrate import integrate_loglog
-from hyperion.util.interpolate import interp1d_fast_loglog
-from hyperion.util.functions import B_nu, FreezableClass, nu_common, \
+from ..util.integrate import integrate_loglog
+from ..util.interpolate import interp1d_fast_loglog
+from ..util.functions import B_nu, FreezableClass, nu_common, \
                                     planck_nu_range
-from hyperion.util.constants import sigma
-from hyperion.util.logger import logger
+from ..util.constants import sigma
+from ..util.logger import logger
 
 
 class Emissivities(FreezableClass):

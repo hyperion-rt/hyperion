@@ -2,6 +2,7 @@ from __future__ import print_function, division
 
 import os
 import tempfile
+
 import numpy as np
 
 from ...dust import IsotropicSphericalDust

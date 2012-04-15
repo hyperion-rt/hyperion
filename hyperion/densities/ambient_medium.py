@@ -2,9 +2,9 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from hyperion.util.functions import FreezableClass
-from hyperion.util.convenience import OptThinRadius
-from hyperion.dust import SphericalDust
+from ..util.functions import FreezableClass
+from ..util.convenience import OptThinRadius
+from ..dust import SphericalDust
 
 
 class AmbientMedium(FreezableClass):
