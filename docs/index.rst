@@ -13,7 +13,7 @@ code. Models are set up via Python scripts, and are run using a compiled Fortran
    :maxdepth: 1
 
    installation/installation.rst
-   setup/model_setup.rst
+   setup/setup.rst
    running/model_run.rst
    postprocessing/model_postprocess.rst
    tutorials/index.rst
