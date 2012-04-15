@@ -68,7 +68,6 @@ class OctreeGrid(FreezableClass):
             refined = np.array(refined)
 
         if not is_numpy_array(refined) or refined.ndim != 1 or refined.dtype != bool:
-            print refined
             raise ValueError("refined should be a 1-D boolean sequence")
 
         self.x = x
@@ -282,7 +281,6 @@ class OctreeGridView(OctreeGrid):
         elif type(grid) is np.ndarray:
             if grid.ndim == 1:
                 grid = grid.reshape((1, 1, grid.shape[0]))
-            print grid.shape
             self.quantities[self.viewed_quantity].append(grid)
         else:
             raise ValueError("grid should be a Numpy array or a OctreeGridView object")
