@@ -12,6 +12,11 @@ from .test_helpers import get_test_dust
 @pytest.mark.parametrize(('grid_type', 'copy'), [(x, y) for x in ['car', 'sph', 'cyl', 'amr', 'oct'] for y in [True, False]])
 def test_use_quantities_cartesian(grid_type, copy):
 
+    input_file_1 = random_filename()
+    output_file_1 = random_filename()
+    input_file_2 = random_filename()
+    output_file_2 = random_filename()
+
     # Get a dust object
     dust = get_test_dust()
     dust_file = random_filename()
@@ -61,17 +66,17 @@ def test_use_quantities_cartesian(grid_type, copy):
     m.set_n_photons(initial=1000, imaging=1000)
 
     # Write out and run the model
-    m.write('test_%s.rtin' % grid_type, overwrite=True, copy=copy)
-    m.run('test_%s.rtout' % grid_type, overwrite=True)
+    m.write(input_file_1, overwrite=True, copy=copy)
+    m.run(output_file_1, overwrite=True)
 
     # Set up a second model that uses the properties from the first
     m2 = Model()
 
     # Use the geometry from the initial model
-    m2.use_geometry('test_%s.rtout' % grid_type)
+    m2.use_geometry(output_file_1)
 
     # Use the density and specific_energy from the initial model
-    m2.use_quantities('test_%s.rtout' % grid_type)
+    m2.use_quantities(output_file_1)
 
     # Set up source again
     s = m2.add_point_source()
@@ -82,5 +87,5 @@ def test_use_quantities_cartesian(grid_type, copy):
     m2.set_n_photons(initial=1000, imaging=1000)
 
     # Write out and run to test that the file is coherent
-    m2.write('test_%s_2.rtin' % grid_type, overwrite=True, copy=copy)
-    m2.run('test_%s_2.rtout' % grid_type, overwrite=True)
+    m2.write(input_file_2, overwrite=True, copy=copy)
+    m2.run(output_file_2, overwrite=True)
