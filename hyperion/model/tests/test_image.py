@@ -40,7 +40,6 @@ class TestImageSimpleModel(object):
 
         self.m = m.run()
 
-    @pytest.mark.xfail
     def test_image_group(self):
         wav, nufnu = self.m.get_image(group=0)
 
@@ -49,7 +48,6 @@ class TestImageSimpleModel(object):
             wav, nufnu = self.m.get_image(group=-2)
             # negative indexing allowed, but only one group present
 
-    @pytest.mark.xfail
     def test_image_group_invalid2(self):
         with pytest.raises(Exception):
             wav, nufnu = self.m.get_image(group=1)

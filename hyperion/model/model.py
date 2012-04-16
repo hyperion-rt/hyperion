@@ -670,7 +670,7 @@ class ModelOutput(FreezableClass):
         # (but don't read in the contents yet)
         self.file = h5py.File(filename, 'r')
 
-    def get_sed(self, stokes='I', group=1, technique='peeled',
+    def get_sed(self, stokes='I', group=0, technique='peeled',
                 distance=None, component='total', inclination='all',
                 aperture='all', uncertainties=False, units=None,
                 source_id=None, dust_id=None):
@@ -694,9 +694,10 @@ class ModelOutput(FreezableClass):
             ('peeled') or binning ('binned'). Default is 'peeled'.
 
         group : int, optional
-            The peeloff group. If multiple peeloff image groups were required,
-            this can be used to select between them. The default is to return
-            the first group. This option is only used if technique='peeled'.
+            The peeloff group (zero-based). If multiple peeloff image groups
+            were requested, this can be used to select between them. The
+            default is to return the first group. This option is only used if
+            technique='peeled'.
 
         distance : float, optional
             The distance to the observer, in cm.
@@ -786,7 +787,7 @@ class ModelOutput(FreezableClass):
             raise Exception("Cannot scale linear or circular polarization degree by distance")
 
         if technique == 'peeled':
-            g = self.file['Peeled/Group %05i' % group]
+            g = self.file['Peeled/Group %05i' % (group + 1)]
         else:
             g = self.file['Binned']
 
@@ -1139,7 +1140,7 @@ class ModelOutput(FreezableClass):
         else:
             return ax
 
-    def get_image(self, stokes='I', group=1, technique='peeled',
+    def get_image(self, stokes='I', group=0, technique='peeled',
                   distance=None, component='total', inclination='all',
                   uncertainties=False, units=None,
                   source_id=None, dust_id=None):
@@ -1163,9 +1164,10 @@ class ModelOutput(FreezableClass):
             ('peeled') or binning ('binned'). Default is 'peeled'.
 
         group : int, optional
-            The peeloff group. If multiple peeloff image groups were required,
-            this can be used to select between them. The default is to return
-            the first group. This option is only used if technique='peeled'.
+            The peeloff group (zero-based). If multiple peeloff image groups
+            were requested, this can be used to select between them. The
+            default is to return the first group. This option is only used if
+            technique='peeled'.
 
         distance : float, optional
             The distance to the observer, in cm.
@@ -1252,7 +1254,7 @@ class ModelOutput(FreezableClass):
             raise Exception("Cannot scale linear or circular polarization degree by distance")
 
         if technique == 'peeled':
-            g = self.file['Peeled/Group %05i' % group]
+            g = self.file['Peeled/Group %05i' % (group + 1)]
         else:
             g = self.file['Binned']
 
@@ -1462,7 +1464,7 @@ class ModelOutput(FreezableClass):
         else:
             return wav, flux
 
-    def plot_image(self, wavelength, axes=None, filename=None, stokes='I', group=1,
+    def plot_image(self, wavelength, axes=None, filename=None, stokes='I', group=0,
                    technique='peeled', distance=None, component='total',
                    inclination=0, vmin=None, vmax=None, cmap=None,
                    labels=True, source_id=None, dust_id=None, **kwargs):
@@ -1494,9 +1496,10 @@ class ModelOutput(FreezableClass):
             ('peeled') or binning ('binned'). Default is 'peeled'.
 
         group : int, optional
-            The peeloff group. If multiple peeloff image groups were required,
-            this can be used to select between them. The default is to return
-            the first group. This option is only used if technique='peeled'.
+            The peeloff group (zero-based). If multiple peeloff image groups
+            were requested, this can be used to select between them. The
+            default is to return the first group. This option is only used if
+            technique='peeled'.
 
         distance : float, optional
             The distance to the observer, in cm.
