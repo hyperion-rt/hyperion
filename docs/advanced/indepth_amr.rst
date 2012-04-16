@@ -9,8 +9,6 @@ AMR grids are specified by nested objects in the Python, with a layout described
 Programmatically
 ================
 
-.. highlight_language:: python
-
 The following example demonstrates how an AMR grid can be built programmatically from scratch::
 
     from hyperion.grid import AMRGrid

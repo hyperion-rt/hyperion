@@ -4,8 +4,8 @@ Running models
 Using the `hyperion` command-line wrapper
 -----------------------------------------
 
-Once an .rtin file has been created (see :doc:`../setup`), the model can be
-run using the compiled Fortran code. Note that the model can be run on a
+Once an .rtin file has been created (see :doc:`../setup/setup`), the model can
+be run using the compiled Fortran code. Note that the model can be run on a
 different computer/cluster to the computer on which is was set up, because the
 ``.rtin`` files are portable.
 

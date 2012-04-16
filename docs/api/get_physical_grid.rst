@@ -1,8 +1,8 @@
 .. _getphysics:
 
-=============================
-``Model.get_physical_grid``
-=============================
+=================================
+``ModelOutput.get_physical_grid``
+=================================
 
 .. automodule:: hyperion.model
-.. automethod:: Model.get_physical_grid
+.. automethod:: ModelOutput.get_physical_grid
