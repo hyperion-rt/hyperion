@@ -34,13 +34,13 @@ To set the number of initial iterations used to compute the dust specific
 energy, use e.g.::
 
     m.set_n_initial_iterations(5)
-    
+
 Note that this can also be zero, in which case the temperature is not solved, and the radiative transfer calculation proceeds to the image/SED calculation (this is useful for example if one is making images at wavelengths where thermal emission is negligible, or if a specific energy/temperature was specified as input).
 
 It is also possible to tell the radiative transfer algorithm to exit these iterations early if the specific energy has converged. To do this, use::
 
     m.set_convergence(True, percentile=100., absolute=0., relative=0.)
-    
+
 where the boolean value indicates whether to use convergence detection
 (``False`` by default), and ``percentile``, ``absolute``, and ``relative``
 arguments are explained in more detail in Section 2.4 of `Robitaille (2011)`_.
@@ -65,7 +65,7 @@ simply use::
 
 This algorithm is described in Section 2.6.3 of `Robitaille (2011)`_. If raytracing is used, you will need to add the ``raytracing_sources`` and ``raytracing_dust`` arguments to the call to ``set_n_photons``, i.e.::
 
-    m.set_n_photons(initial=1000000, imaging=1000000, 
+    m.set_n_photons(initial=1000000, imaging=1000000,
                     raytracing_sources=1000000, raytracing_dust=1000000)
 
 Diffusion
@@ -107,6 +107,30 @@ specified will be reset to the one given), ``slow`` (dust with temperatures in
 excess of the one specified will be gradually destroyed), or ``fast`` (dust
 with temperatures in excess of the one specified will be immediately
 destroyed). For more information, see Section 2.7.3 of `Robitaille (2011)`_.
+
+Outputting physical quantities
+-----------------------------
+
+It is possible to write out a number of physical arrays for each iteration, or
+just the last iteration. To do this, you will need to set the parameters in
+``Models.conf.output``::
+
+    # Density
+    m.conf.output.output_density = 'last'
+
+    # Density difference (shows where dust was destroyed)
+    m.conf.output.output_density_diff = 'none'
+
+    # Energy absorbed (using pathlengths)
+    m.conf.output.output_specific_energy = 'last'
+
+    # Number of unique photons that passed through the cell
+    m.conf.output.output_n_photons = 'last'
+
+Each value can be set to ``all`` (output all iterations), ``last`` (output
+only after last iteration), or ``none`` (do not output). The default is to
+output only the last iteration of ``specific_energy``. To find out how to view
+these values, see :doc:`../postprocessing/postprocessing`
 
 Advanced parameters
 -------------------
