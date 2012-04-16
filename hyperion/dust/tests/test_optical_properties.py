@@ -161,7 +161,7 @@ def test_set_array_invalid_shape2(attribute):
     o.mu = [-0.5, 0.5]
     with pytest.raises(ValueError) as exc:
         setattr(o, attribute, np.ones((4, 5)))
-    assert exc.value.args[0] == attribute + ' has an incorrect shape: (4, 5), but expected (3, 2)'
+    assert exc.value.args[0] == attribute + ' has an incorrect shape: (4, 5) but expected (3, 2)'
 
 
 @pytest.mark.parametrize(('attribute'), ARRAY_ATTRIBUTES)

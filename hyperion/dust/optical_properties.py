@@ -7,7 +7,7 @@ from ..util.integrate import integrate_loglog, integrate_linlog_subset
 from ..util.interpolate import interp1d_fast, interp1d_fast_loglog, \
                                       interp1d_fast_linlog
 from ..util.functions import extrap1d_log10, B_nu, FreezableClass, \
-                                    nu_common, planck_nu_range
+                                    nu_common, planck_nu_range, is_numpy_array, monotonically_increasing
 from ..util.constants import c, sigma
 from ..util.logger import logger
 
@@ -385,3 +385,30 @@ class OpticalProperties(FreezableClass):
         kappa_planck = self.kappa_planck_temperature(temperature)
 
         return 4. * sigma * temperature ** 4. * kappa_planck
+
+    def __setattr__(self, attribute, value):
+        if attribute in ['nu', 'chi', 'albedo', 'mu'] and value is not None:
+            if type(value) in [list, tuple]:
+                value = np.array(value)
+            if not is_numpy_array(value) or value.ndim != 1:
+                raise ValueError(attribute + " should be a 1-D sequence")
+            if not monotonically_increasing(value):
+                raise ValueError(attribute + " should be monotonically increasing")
+        if attribute == 'nu' and value is not None:
+            if value[0] <= 0.:
+                raise ValueError('nu should be strictly positive')
+        if attribute == 'mu' and value is not None:
+            if value[0] < -1. or value[-1] > 1.:
+                raise ValueError('mu should be in the range [-1:1]')
+        if attribute in ['P1', 'P2', 'P3', 'P4'] and value is not None:
+            if self.nu is None:
+                raise ValueError("nu needs to be set before " + attribute)
+            if self.mu is None:
+                raise ValueError("mu needs to be set before " + attribute)
+            if type(value) in [list, tuple]:
+                value = np.array(value)
+            if not is_numpy_array(value) or value.ndim != 2:
+                raise ValueError(attribute + " should be a 2-D array")
+            if value.shape[0] != len(self.nu) or value.shape[1] != len(self.mu):
+                raise ValueError(attribute + " has an incorrect shape: %s but expected (%i, %i)" % (value.shape, len(self.nu), len(self.mu)))
+        FreezableClass.__setattr__(self, attribute, value)
