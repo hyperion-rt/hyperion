@@ -24,3 +24,9 @@ def get_HDF5_datafile(filename):
         return datafiles[h]
     else:
         raise Exception("File does not exist")
+
+# Set up the test function
+from .testing.helper import TestRunner
+_test_runner = TestRunner(__path__[0])
+del TestRunner
+test = _test_runner.run_tests

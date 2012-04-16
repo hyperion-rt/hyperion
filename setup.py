@@ -7,6 +7,8 @@ try:  # Python 3.x
 except ImportError:  # Python 2.x
     from distutils.command.build_py import build_py
 
+from hyperion.testing.helper import HyperionTest
+
 scripts = ['ttsre2rtin', 'ttsre2rtin_auto', 'hyperion', 'hyperion2fits', 'mctherm2hyperion']
 
 setup(name='hyperion',
@@ -16,7 +18,8 @@ setup(name='hyperion',
                 'hyperion.densities.tests', 'hyperion.dust', 'hyperion.util',
                 'hyperion.util.tests', 'hyperion.atmos', 'hyperion.grid',
                 'hyperion.grid.tests', 'hyperion.sources',
-                'hyperion.sources.tests', 'hyperion.importers'],
+                'hyperion.sources.tests', 'hyperion.importers',
+                'hyperion.testing'],
       scripts=['scripts/' + x for x in scripts],
-      cmdclass={'build_py': build_py}
+      cmdclass={'build_py': build_py, 'test':HyperionTest}
      )
