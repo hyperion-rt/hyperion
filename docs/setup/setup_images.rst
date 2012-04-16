@@ -117,11 +117,11 @@ Example
 
 The following example creates two sets of peeled SEDs/images. The first is used to produce an SED with 250 wavelengths from 0.01 to 5000. microns with uncertainties, and the second is used to produce images at 5 wavelengths between 10 and 100 microns, with image size 100x100 and extending +/-1pc in each direction::
 
-    image1 = m.add_peeled_images()
+    image1 = m.add_peeled_images(image=False)
     image1.set_wavelength_range(250, 0.01, 5000.)
     image1.set_uncertainties(True)
 
-    image2 = m.add_peeled_images()
+    image2 = m.add_peeled_images(sed=False)
     image2.set_wavelength_range(5, 10., 100.)
     image2.set_image_size(100, 100)
     image2.set_image_limits(-pc, +pc, -pc, +pc)

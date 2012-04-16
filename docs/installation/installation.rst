@@ -2,7 +2,7 @@
 Installation
 ============
 
-.. note:: This section contains information on setting up the dependencies for
+.. important:: This section contains information on setting up the dependencies for
           Hyperion as well as Hyperion itself. If you have any issues with the
           installation of any of the dependencies or Hyperion, please first
           talk to your system administrator to see if they can help you get
