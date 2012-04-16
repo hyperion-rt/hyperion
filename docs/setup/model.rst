@@ -25,6 +25,7 @@ are described in the following sections.
 .. toctree::
    :maxdepth: 1
 
+   setup_dust
    setup_grid
    setup_sources
    setup_images

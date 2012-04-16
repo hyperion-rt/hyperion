@@ -26,6 +26,7 @@ class)
 .. toctree::
    :maxdepth: 1
 
+   setup_dust
    setup_yso
    setup_images
    setup_conf
