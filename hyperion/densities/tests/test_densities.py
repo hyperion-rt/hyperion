@@ -113,14 +113,15 @@ def test_power_law_envelope_invalid2(parameter):
     else:
         assert exc.value.args[0] == parameter + ' should be a scalar value'
 
+
 def test_power_law_envelope_swap1():
     e = PowerLawEnvelope()
     e.mass = 1.
-    assert not hasattr(e, 'rho_0') and hasattr(e, 'mass')
+    assert not 'rho_0' in e.__dict__ and 'mass' in e.__dict__
     e.rho_0 = 1.
-    assert not hasattr(e, 'mass') and hasattr(e, 'rho_0')
+    assert not 'mass' in e.__dict__ and 'rho_0' in e.__dict__
     e.mass = 1.
-    assert not hasattr(e, 'rho_0') and hasattr(e, 'mass')
+    assert not 'rho_0' in e.__dict__ and 'mass' in e.__dict__
 
 
 def test_power_law_envelope_swap2():
@@ -225,11 +226,11 @@ def test_ulrich_envelope_invalid2(parameter):
 def test_ulrich_envelope_swap():
     e = UlrichEnvelope()
     e.mdot = 1.
-    assert not hasattr(e, 'rho_0') and hasattr(e, 'mdot')
+    assert not 'rho_0' in e.__dict__ and 'mdot' in e.__dict__
     e.rho_0 = 1.
-    assert not hasattr(e, 'mdot') and hasattr(e, 'rho_0')
+    assert not 'mdot' in e.__dict__ and 'rho_0' in e.__dict__
     e.mdot = 1.
-    assert not hasattr(e, 'rho_0') and hasattr(e, 'mdot')
+    assert not 'rho_0' in e.__dict__ and 'mdot' in e.__dict__
 
 
 def test_ulrich_envelope_swap2():
