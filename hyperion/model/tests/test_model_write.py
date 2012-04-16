@@ -9,7 +9,7 @@ import numpy as np
 
 from .. import Model
 from ...util.functions import random_filename
-from ...dust import IsotropicSphericalDust
+from ...dust import IsotropicDust
 from .test_helpers import get_test_model_noimaging, get_test_dust
 
 

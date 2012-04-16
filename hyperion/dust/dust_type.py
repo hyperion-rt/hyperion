@@ -229,24 +229,17 @@ class SphericalDust(FreezableClass):
         self.emissivities.from_table_set(ts)
 
 
-class IsotropicSphericalDust(SphericalDust):
+class IsotropicDust(SphericalDust):
 
-    def __init__(self, wav, chi, albedo):
+    def __init__(self, nu, albedo, chi):
 
         SphericalDust.__init__(self)
-
-        if type(wav) in [list, tuple]:
-            wav = np.array(wav)
-        if type(chi) in [list, tuple]:
-            chi = np.array(chi)
-        if type(albedo) in [list, tuple]:
-            albedo = np.array(albedo)
 
         # Set cos(theta) grid for computing the scattering matrix elements
         self.optical_properties.mu = np.linspace(-1., 1., 2)
 
         # Set optical properties
-        self.optical_properties.nu = c / wav * 1.e4
+        self.optical_properties.nu = nu
         self.optical_properties.albedo = albedo
         self.optical_properties.chi = chi
 
@@ -263,9 +256,9 @@ class IsotropicSphericalDust(SphericalDust):
         self.optical_properties._sort()
 
 
-class SimpleSphericalDust(SphericalDust):
+class HenyeyGreensteinDust(SphericalDust):
 
-    def __init__(self, filename):
+    def __init__(self, nu, albedo, chi, g, p_lin_max):
 
         SphericalDust.__init__(self)
 
@@ -273,16 +266,10 @@ class SimpleSphericalDust(SphericalDust):
         n_mu = 100
         self.optical_properties.mu = np.linspace(-1., 1., n_mu)
 
-        # Read in dust file
-        dustfile = np.loadtxt(filename, dtype=[('wav', float), ('c_ext', float), \
-                              ('c_sca', float), ('chi', float), ('g', float), \
-                              ('p_lin_max', float)], usecols=[0, 1, 2, 3, 4, 5])
-
-        self.optical_properties.nu = c / dustfile['wav'] * 1.e4
-        self.optical_properties.albedo = dustfile['c_sca'] / dustfile['c_ext']
-        self.optical_properties.chi = dustfile['chi']
-
-        self.md5 = hashlib.md5(open(filename, 'rb').read()).hexdigest()
+        # Set optical properties
+        self.optical_properties.nu = nu
+        self.optical_properties.albedo = albedo
+        self.optical_properties.chi = chi
 
         # Compute scattering matrix elements
         self.optical_properties.initialize_scattering_matrix()
@@ -291,7 +278,24 @@ class SimpleSphericalDust(SphericalDust):
             self.optical_properties.P1[:, i], \
             self.optical_properties.P2[:, i], \
             self.optical_properties.P3[:, i], \
-            self.optical_properties.P4[:, i] = henyey_greenstein(self.optical_properties.mu[i], dustfile['g'], dustfile['p_lin_max'])
+            self.optical_properties.P4[:, i] = henyey_greenstein(self.optical_properties.mu[i], g, p_lin_max)
+
+
+class TtsreDust(HenyeyGreensteinDust):
+
+    def __init__(self, filename):
+
+        # Read in dust file
+        dustfile = np.loadtxt(filename, dtype=[('wav', float), ('c_ext', float), \
+                              ('c_sca', float), ('chi', float), ('g', float), \
+                              ('p_lin_max', float)], usecols=[0, 1, 2, 3, 4, 5])
+
+        nu = c / dustfile['wav'] * 1.e4
+        albedo = dustfile['c_sca'] / dustfile['c_ext']
+
+        self.md5 = hashlib.md5(open(filename, 'rb').read()).hexdigest()
+
+        HenyeyGreensteinDust.__init__(self, nu, albedo, dustfile['chi'], dustfile['g'], dustfile['p_lin_max'])
 
 
 class CoatsphSingle(SphericalDust):

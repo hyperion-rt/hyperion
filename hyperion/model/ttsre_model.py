@@ -9,7 +9,7 @@ from atpy import Table
 import hyperion
 from ..util.parfile import parse
 from .. import atmos
-from ..dust import SimpleSphericalDust
+from ..dust import TtsreDust
 from . import AnalyticalYSOModel
 from ..util.functions import filename2hdf5
 from ..util.constants import msun, rsun, au, year, k, m_h, G, pi, sigma, c
