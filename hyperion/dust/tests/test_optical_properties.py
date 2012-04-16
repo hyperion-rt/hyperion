@@ -57,7 +57,7 @@ def test_set_vector_invalid_shape2(attribute):
     assert exc.value.args[0] == attribute + ' should be a 1-D sequence'
 
 
-@pytest.mark.parametrize(('attribute'), VECTOR_ATTRIBUTES)
+@pytest.mark.parametrize(('attribute'), ['nu', 'mu'])
 def test_set_vector_invalid_order(attribute):
     o = OpticalProperties()
     with pytest.raises(ValueError) as exc:
@@ -82,6 +82,42 @@ def test_range_nu_invalid2():
     with pytest.raises(ValueError) as exc:
         o.nu = [-1., 0.5, 0.8]
     assert exc.value.args[0] == 'nu should be strictly positive'
+
+
+def test_range_chi_valid1():
+    o = OpticalProperties()
+    o.chi = [0.1, 0.5, 0.8]
+
+
+def test_range_chi_valid2():
+    o = OpticalProperties()
+    o.chi = [0., 0.5, 0.8]
+
+
+def test_range_chi_invalid1():
+    o = OpticalProperties()
+    with pytest.raises(ValueError) as exc:
+        o.chi = [-1., 0.5, 0.8]
+    assert exc.value.args[0] == 'chi should be positive'
+
+
+def test_range_albedo_valid1():
+    o = OpticalProperties()
+    o.albedo = [0., 0.5, 1.]
+
+
+def test_range_albedo_invalid1():
+    o = OpticalProperties()
+    with pytest.raises(ValueError) as exc:
+        o.albedo = [-1., 0.5, 0.8]
+    assert exc.value.args[0] == 'albedo should be in the range [0:1]'
+
+
+def test_range_albedo_invalid2():
+    o = OpticalProperties()
+    with pytest.raises(ValueError) as exc:
+        o.albedo = [0., 0.5, 1.1]
+    assert exc.value.args[0] == 'albedo should be in the range [0:1]'
 
 
 def test_range_mu_valid1():

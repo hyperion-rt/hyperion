@@ -392,11 +392,18 @@ class OpticalProperties(FreezableClass):
                 value = np.array(value)
             if not is_numpy_array(value) or value.ndim != 1:
                 raise ValueError(attribute + " should be a 1-D sequence")
+        if attribute in ['nu', 'mu'] and value is not None:
             if not monotonically_increasing(value):
                 raise ValueError(attribute + " should be monotonically increasing")
         if attribute == 'nu' and value is not None:
             if value[0] <= 0.:
                 raise ValueError('nu should be strictly positive')
+        if attribute == 'chi' and value is not None:
+            if value[0] < 0.:
+                raise ValueError('chi should be positive')
+        if attribute == 'albedo' and value is not None:
+            if value[0] < 0. or value[-1] > 1.:
+                raise ValueError('albedo should be in the range [0:1]')
         if attribute == 'mu' and value is not None:
             if value[0] < -1. or value[-1] > 1.:
                 raise ValueError('mu should be in the range [-1:1]')
