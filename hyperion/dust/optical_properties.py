@@ -180,6 +180,10 @@ class OpticalProperties(FreezableClass):
 
     def from_table_set(self, table_set):
 
+        # Read in the scattering angles
+        tmu = table_set['Scattering angles']
+        self.mu = tmu['mu']
+
         # Read in the optical properties
         topt = table_set['Optical properties']
 
@@ -192,9 +196,6 @@ class OpticalProperties(FreezableClass):
         self.P3 = topt['P3']
         self.P4 = topt['P4']
 
-        # Read in the scattering angles
-        tmu = table_set['Scattering angles']
-        self.mu = tmu['mu']
 
     def interp_chi_wav(self, wav):
         "Interpolate the opacity to extinction to a given wavelength"

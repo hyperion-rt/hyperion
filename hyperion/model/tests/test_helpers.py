@@ -15,7 +15,7 @@ def random_filename():
 
 
 def get_test_dust():
-    dust = IsotropicDust([1.e-2, 1.e5], [1., 1.], [0.5, 0.5])
+    dust = IsotropicDust([3.e9, 3.e16], [0.5, 0.5], [1., 1.])
     dust.emissivities.set_lte(dust.optical_properties, n_temp=10, temp_min=0.1, temp_max=1600.)
     return dust
 
