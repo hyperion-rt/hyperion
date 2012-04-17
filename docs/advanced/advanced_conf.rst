@@ -6,10 +6,10 @@ In :doc:`../setup/setup_conf`, we saw how to set some of the basic parameters th
 Monochromatic radiative transfer
 --------------------------------
 
-.. note:: This section still needs to be written
+.. note:: This section is being written
 
-Scattering-only radiative transfer
-----------------------------------
+Scattered-light images
+----------------------
 
 In some cases, one might want to compute scattered light images at wavelengths where there is no dust emission. In this case, there is no need to compute the specific energy of the dust, and there is also no need in re-emitting photons when computing images/SEDs. Therefore, one can set::
 
@@ -18,6 +18,11 @@ In some cases, one might want to compute scattered light images at wavelengths w
     m.set_raytracing(True)
 
 which turns off the specific energy calculation, kills photons as soon as they are first absorbed, and enables raytracing for the source emission. For the photon numbers, one can set ``raytracing_dust=0`` to zero, since this is not needed (there is no dust emission).
+
+.. note:: This cannot be used for *all* scattered light images. For example,
+          in a protostar, a K-band image may have a non-negligeable amount of
+          scattered light flux originating from the inner rim of the disk.
+          This technique can only be used when there is no dust emission.
 
 Miscellaneous Settings
 ----------------------

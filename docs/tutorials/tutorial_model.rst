@@ -65,11 +65,13 @@ directory, then set up the model with::
 This will create a file named ``tutorial_model.rtin``. You can then
 run the model either with::
 
-    $ hyperion_car tutorial_model.rtin tutorial_model.rtout
+    $ hyperion tutorial_model.rtin tutorial_model.rtout
 
 or if you want to use the parallel version of the code::
 
-    $ mpirun -n 8 hyperion_car_mpi tutorial_model.rtin tutorial_model.rtout
+    $ hyperion -m 24 tutorial_model.rtin tutorial_model.rtout
 
-This will create a file named ``tutorial_model.rtout``. You are now
-ready to follow the :ref:`tutorials-post-processing` tutorials!
+In the above case, the model would run on 24 cores, but you can change this to
+match the number of cores you can use. This will create a file named
+``tutorial_model.rtout``. You are now ready to follow the
+:ref:`tutorials-post-processing` tutorials!

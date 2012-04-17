@@ -1,8 +1,6 @@
-.. _dustfile:
-
-==========
-Dust files
-==========
+=================
+Dust HDF5 Format
+=================
 
 Overview
 ========
