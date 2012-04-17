@@ -27,7 +27,7 @@ The following script describes how to generate PNG frames for an animation::
     m = Model('tutorial_model')
 
     # Read image from model
-    wav, nufnu = m.get_image(group=3, distance=300 * pc)
+    wav, nufnu = m.get_image(group=2, distance=300 * pc)
 
     # nufnu is now an array with four dimensions (n_view, n_wav, n_y, n_x)
 

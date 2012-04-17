@@ -144,8 +144,8 @@ extracted, we can write them out to a FITS file using
     m = Model('tutorial_model')
 
     # Extract the image for the first inclination, and scale to 300pc. We
-    # have to specify group=2 as there is no image in group 1
-    wav, nufnu = m.get_image(group=2, inclination=0, distance=300 * pc)
+    # have to specify group=1 as there is no image in group 0
+    wav, nufnu = m.get_image(group=1, inclination=0, distance=300 * pc)
 
     # The image extracted above is a 3D array. We can write it out to FITS
     pyfits.writeto('image_cube.fits', nufnu, clobber=True)
@@ -163,7 +163,7 @@ Adding World Coordinate System (WCS) information is easy using
     from hyperion.util.constants import pc
 
     m = Model('tutorial_model')
-    wav, nufnu = m.get_image(group=2, inclination=0, distance=300 * pc)
+    wav, nufnu = m.get_image(group=1, inclination=0, distance=300 * pc)
 
     # Initialize WCS information
     wcs = pywcs.WCS(naxis=2)
