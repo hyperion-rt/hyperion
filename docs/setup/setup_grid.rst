@@ -94,6 +94,30 @@ be specified in reverse order, i.e. ``(n_z, n_y, n_x)`` for a cartesian grid,
 ``(n_phi, n_theta, n_r)`` for a spherical polar grid, or ``(n_phi, n_z, n_r)``
 for a cylindrical polar grid.
 
+Note that once you have set the grid geometry on a model, you can access
+variables that make it easy (if you wish) to set up densities from analytical
+equations:
+
+* ``m.grid.gx``, ``m.grid.gy``, and ``m.grid.gz`` for cartesian grids
+* ``m.grid.gr``, ``m.grid.gt``, and ``m.grid.gp`` for spherical polar grids
+* ``m.grid.gw``, ``m.grid.gz``, and ``m.grid.gp`` for cylindrical polar grids
+
+These variables are the coordinates of the center of the cells, and each of
+these variables is a full 3-d array. For example, ``m.grid.gx`` is the x
+position of the center of *all* the cells, and has the same shape as the
+density array needs to have. In addition, the ``m.grid.shape`` variable
+contains the shape of the grid. This makes it easy to use analytical
+prescriptions for the density. For example, to set up a sphere of dust with
+radius R in a cartesian grid, you could do::
+
+    density = np.zeros(m.grid.shape)
+    density[(m.grid.gx ** 2 + m.grid.gy ** 2 + m.grid.gz ** 2) < R ** 2] = 1.
+
+This grid would have a density of 0 outside R, and 1 inside R. Note that of
+course you should probably be using a spherical polar grid if you want to set
+up a sphere of dust, but the above example can be applied to more complicated
+analytical dust structures.
+
 AMR grids
 ---------
 
