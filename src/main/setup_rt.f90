@@ -122,7 +122,7 @@ contains
     ! FREQUENCIES
 
     if(use_exact_nu) then
-       call mp_table_read_column_auto(input_handle, 'Frequencies', 'nu', frequencies)
+       call mp_table_read_column_auto(input_handle, 'frequencies', 'nu', frequencies)
     end if
 
     ! SOURCES

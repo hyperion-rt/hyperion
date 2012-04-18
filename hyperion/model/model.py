@@ -138,7 +138,7 @@ class Model(FreezableClass):
     def _write_monochromatic(self, group, compression=True, dtype=np.float64):
         group.attrs['monochromatic'] = bool2str(self._monochromatic)
         if self._monochromatic:
-            group.create_dataset('Frequencies', data=np.array(list(zip(self._frequencies)), dtype=[('nu', dtype)]), compression=compression)
+            group.create_dataset('frequencies', data=np.array(list(zip(self._frequencies)), dtype=[('nu', dtype)]), compression=compression)
 
     def use_geometry(self, filename):
         '''
@@ -312,21 +312,21 @@ class Model(FreezableClass):
         # Output sources
         for i, source in enumerate(self.sources):
             if isinstance(source, MapSource):
-                source.write(g_sources, 'Source %05i' % i, self.grid,
+                source.write(g_sources, 'source_%05i' % (i + 1), self.grid,
                              compression=compression, map_dtype=physics_dtype)
             else:
-                source.write(g_sources, 'Source %05i' % i)
+                source.write(g_sources, 'source_%05i' % (i + 1))
 
         # Output configuration for peeled images/SEDs
         for i, peel in enumerate(self.peeled_output):
             if not self._frequencies is None:
                 if not peel._monochromatic:
                     raise Exception("Peeled images need to be set to monochromatic mode")
-            peel.write(g_peeled.create_group('Group %05i' % (i + 1)))
+            peel.write(g_peeled.create_group('group_%05i' % (i + 1)))
 
         # Output configuration for binned images/SEDs
         if self.binned_output is not None:
-            self.binned_output.write(g_binned.create_group('Group 00001'))
+            self.binned_output.write(g_binned.create_group('group_00001'))
 
         # Write monochromatic configuration
         self._write_monochromatic(root, compression=compression)

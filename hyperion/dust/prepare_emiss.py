@@ -66,14 +66,14 @@ def prepare_emiss(files, values, emissvar, filename_out):
     ts = atpy.TableSet()
 
     # Create a table with frequency and emissivity
-    t = atpy.Table(name='Emissivities')
+    t = atpy.Table(name='emissivities')
     t.add_column('nu', c * 1.e4 / wav)
     t.add_column('jnu', jnu)
     t.sort('nu')
     ts.append(t)
 
     # Create a table with the independent variable
-    t = atpy.Table(name='Emissivity variable')
+    t = atpy.Table(name='emissivity_variable')
     t.add_column(variable[emissvar], values)
     ts.append(t)
 

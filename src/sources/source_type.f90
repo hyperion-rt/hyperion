@@ -269,8 +269,8 @@ contains
 
     select case(trim(spec_type))
     case('spectrum')
-       call mp_table_read_column_auto(group, 'Spectrum', 'nu', nu)
-       call mp_table_read_column_auto(group, 'Spectrum', 'fnu', fnu)
+       call mp_table_read_column_auto(group, 'spectrum', 'nu', nu)
+       call mp_table_read_column_auto(group, 'spectrum', 'fnu', fnu)
        call set_pdf(spectrum,nu,fnu,log=.true.)
        freq_type = 1
     case('temperature')

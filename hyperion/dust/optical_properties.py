@@ -155,7 +155,7 @@ class OpticalProperties(FreezableClass):
     def to_table_set(self, table_set):
 
         # Create optical properties table
-        topt = atpy.Table(name='Optical properties')
+        topt = atpy.Table(name='optical_properties')
         topt.add_column('nu', self.nu)
         topt.add_column('albedo', self.albedo)
         topt.add_column('chi', self.chi)
@@ -171,7 +171,7 @@ class OpticalProperties(FreezableClass):
         topt.sort('nu')
 
         # Create scattering angles table and add to table set
-        tmu = atpy.Table(name='Scattering angles')
+        tmu = atpy.Table(name='scattering_angles')
         tmu.add_column('mu', self.mu)
 
         # Add to table set
@@ -181,11 +181,11 @@ class OpticalProperties(FreezableClass):
     def from_table_set(self, table_set):
 
         # Read in the scattering angles
-        tmu = table_set['Scattering angles']
+        tmu = table_set['scattering_angles']
         self.mu = tmu['mu']
 
         # Read in the optical properties
-        topt = table_set['Optical properties']
+        topt = table_set['optical_properties']
 
         self.nu = topt['nu']
         self.albedo = topt['albedo']

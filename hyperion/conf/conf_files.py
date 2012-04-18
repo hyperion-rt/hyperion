@@ -747,7 +747,7 @@ class PeeledImageConf(ImageConf):
 
     def _write_viewing_angles(self, group):
         group.attrs['n_view'] = len(self.viewing_angles)
-        group.create_dataset('Angles', data=np.array(self.viewing_angles, dtype=[('theta', float), ('phi', float)]))
+        group.create_dataset('angles', data=np.array(self.viewing_angles, dtype=[('theta', float), ('phi', float)]))
 
     def set_inside_observer(self, position):
         '''

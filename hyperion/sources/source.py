@@ -90,10 +90,10 @@ class Source(FreezableClass):
         if self.spectrum is not None:
             handle.attrs['spectrum'] = 'spectrum'.encode('utf-8')
             if isinstance(self.spectrum, atpy.Table):
-                self.spectrum.table_name = 'Spectrum'
+                self.spectrum.table_name = 'spectrum'
                 self.spectrum.write(handle, type='hdf5')
             else:
-                table = atpy.Table(name='Spectrum')
+                table = atpy.Table(name='spectrum')
                 table.add_column('nu', self.spectrum[0])
                 table.add_column('fnu', self.spectrum[1])
                 table.write(handle, type='hdf5')

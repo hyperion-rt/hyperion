@@ -118,7 +118,7 @@ contains
 
     ! OPTICAL PROPERTIES
 
-    path = 'Optical properties'
+    path = 'optical_properties'
     call mp_table_read_column_auto(group,path,'nu',d%nu)
     call mp_table_read_column_auto(group,path,'albedo',d%albedo_nu)
     call mp_table_read_column_auto(group,path,'chi',d%chi_nu)
@@ -153,7 +153,7 @@ contains
        d%I_max(j) = maxval(d%P1(:,j)+abs(d%P2(:,j)))
     end do
 
-    path = 'Scattering angles'
+    path = 'scattering_angles'
     call mp_table_read_column_auto(group,path,'mu',d%mu)
 
     ! Check for NaN values
@@ -202,7 +202,7 @@ contains
 
     ! MEAN OPACITIES
 
-    path = 'Mean opacities'
+    path = 'mean_opacities'
     call mp_table_read_column_auto(group,path,'specific_energy',d%specific_energy)
     call mp_table_read_column_auto(group,path,'chi_planck',d%chi_planck)
     call mp_table_read_column_auto(group,path,'kappa_planck',d%kappa_planck)
@@ -231,7 +231,7 @@ contains
 
     ! EMISSIVITIES
 
-    path = 'Emissivities'
+    path = 'emissivities'
     call mp_table_read_column_auto(group,path,'nu',emiss_nu)
     call mp_table_read_column_auto(group,path,'jnu',emiss_jnu)
 
@@ -239,7 +239,7 @@ contains
     if(any(emiss_nu.ne.emiss_nu)) call error("dust_setup","emiss_nu array contains NaN values")
     if(any(emiss_jnu.ne.emiss_jnu)) call error("dust_setup","emiss_jnu array contains NaN values")
 
-    path = 'Emissivity variable'
+    path = 'emissivity_variable'
     select case(d%emiss_var)
     case('E')
        call mp_table_read_column_auto(group,path,'specific_energy',d%j_nu_var)

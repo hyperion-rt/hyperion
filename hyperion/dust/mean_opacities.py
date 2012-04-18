@@ -95,7 +95,7 @@ class MeanOpacities(FreezableClass):
     def to_table_set(self, table_set):
 
         # Create mean opacities table
-        tmean = atpy.Table(name='Mean opacities')
+        tmean = atpy.Table(name='mean_opacities')
         tmean.add_keyword('var_name', self.var_name)
         tmean.add_column(self.var_name, self.var)
         tmean.add_column('chi_planck', self.chi_planck)
@@ -108,7 +108,7 @@ class MeanOpacities(FreezableClass):
 
     def from_table_set(self, table_set):
 
-        tmean = table_set['Mean opacities']
+        tmean = table_set['mean_opacities']
         self.var_name = tmean.keywords['var_name']
         self.var = tmean[self.var_name]
         self.chi_planck = tmean['chi_planck']

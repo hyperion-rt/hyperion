@@ -254,8 +254,8 @@ contains
        end if
 
        call mp_read_keyword(handle, paths(ig), 'n_view', n_view)
-       call mp_table_read_column_auto(handle, trim(paths(ig))//'/Angles', 'theta', theta)
-       call mp_table_read_column_auto(handle, trim(paths(ig))//'/Angles', 'phi', phi)
+       call mp_table_read_column_auto(handle, trim(paths(ig))//'/angles', 'theta', theta)
+       call mp_table_read_column_auto(handle, trim(paths(ig))//'/angles', 'phi', phi)
 
        call image_setup(handle,paths(ig),peeled_image(ig),n_view,n_sources,n_dust,use_exact_nu,frequencies)
 
@@ -314,7 +314,7 @@ contains
     character(len=100) :: group_name
 
     do ig=1,n_groups
-       write(group_name, '("Group ",I5.5)') ig
+       write(group_name, '("group_",I5.5)') ig
        g_indiv = mp_create_group(group, group_name)
        call image_write(peeled_image(ig),g_indiv)
        call mp_write_keyword(g_indiv, '.', 'inside_observer', inside_observer(ig))

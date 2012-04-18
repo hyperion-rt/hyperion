@@ -211,7 +211,7 @@ class ModelOutput(FreezableClass):
             raise Exception("Cannot scale linear or circular polarization degree by distance")
 
         if technique == 'peeled':
-            g = self.file['Peeled/Group %05i' % (group + 1)]
+            g = self.file['Peeled/group_%05i' % (group + 1)]
         else:
             g = self.file['Binned']
 
@@ -680,7 +680,7 @@ class ModelOutput(FreezableClass):
             raise Exception("Cannot scale linear or circular polarization degree by distance")
 
         if technique == 'peeled':
-            g = self.file['Peeled/Group %05i' % (group + 1)]
+            g = self.file['Peeled/group_%05i' % (group + 1)]
         else:
             g = self.file['Binned']
 

@@ -35,14 +35,14 @@ class Emissivities(FreezableClass):
         self.is_lte = False
 
         # Read in existing emissivities
-        te = atpy.Table(filename, table='Emissivities')
+        te = atpy.Table(filename, table='emissivities')
 
         # Set frequency scale and emissivities
         self.nu = te.nu
         self.jnu = te.jnu
 
         # Read in emissivity variable
-        tev = atpy.Table(filename, table='Emissivity variable')
+        tev = atpy.Table(filename, table='emissivity_variable')
 
         # Only specific energy is considered a valid emissivity variable
         if tev.names[0] != 'specific_energy':
@@ -104,7 +104,7 @@ class Emissivities(FreezableClass):
     def to_table_set(self, table_set):
 
         # Create emissivities table
-        temiss = atpy.Table(name='Emissivities')
+        temiss = atpy.Table(name='emissivities')
         temiss.add_column('nu', self.nu)
         temiss.add_column('jnu', self.jnu)
         table_set.add_keyword('lte', 'yes' if self.is_lte else 'no')
@@ -116,7 +116,7 @@ class Emissivities(FreezableClass):
             raise Exception("Unknown emissivity variable: %s" % self.var_name)
 
         # Create emissivity variable table
-        temissvar = atpy.Table(name='Emissivity variable')
+        temissvar = atpy.Table(name='emissivity_variable')
         temissvar.add_column(self.var_name, self.var)
 
         # Add to table set
@@ -126,7 +126,7 @@ class Emissivities(FreezableClass):
     def from_table_set(self, table_set):
 
         # Read emissivities
-        temiss = table_set['Emissivities']
+        temiss = table_set['emissivities']
         self.nu = temiss['nu']
         self.jnu = temiss['jnu']
         self.is_lte = table_set.keywords['lte'] == 'yes'
@@ -139,7 +139,7 @@ class Emissivities(FreezableClass):
                             table_set.keywords['emissvar'])
 
         # Read in emissivity variable
-        temissvar = table_set['Emissivity variable']
+        temissvar = table_set['emissivity_variable']
         self.var = temissvar[self.var_name]
 
     def plot(self, figure, subplot):
