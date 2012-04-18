@@ -76,7 +76,7 @@ grid types
 
 * A 3-d 100x100x10 cylindrical polar grid::
 
-    w = np.logpsace(np.log10(rsun), np.log10(100*au), 101)
+    w = np.logspace(np.log10(rsun), np.log10(100*au), 101)
     z = np.linspace(-10*au, 10*au, 101)
     phi = np.linspace(0, 2*pi, 11)
     m.set_cylindrical_polar_grid(w, z, phi)
