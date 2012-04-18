@@ -281,7 +281,7 @@ class HenyeyGreensteinDust(SphericalDust):
             self.optical_properties.P4[:, i] = henyey_greenstein(self.optical_properties.mu[i], g, p_lin_max)
 
 
-class TtsreDust(HenyeyGreensteinDust):
+class TTsreDust(HenyeyGreensteinDust):
 
     def __init__(self, filename):
 
