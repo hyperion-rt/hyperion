@@ -46,7 +46,7 @@ Hyperion currently supports five types of 3-d grids:
 The following sections show how the different kinds of grids should be set up.
 
 Regular 3-d grids
-----------------
+-----------------
 
 Geometry
 ^^^^^^^^

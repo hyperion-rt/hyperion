@@ -109,7 +109,7 @@ with temperatures in excess of the one specified will be immediately
 destroyed). For more information, see Section 2.7.3 of `Robitaille (2011)`_.
 
 Outputting physical quantities
------------------------------
+------------------------------
 
 It is possible to write out a number of physical arrays for each iteration, or
 just the last iteration. To do this, you will need to set the parameters in
