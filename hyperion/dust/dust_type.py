@@ -52,6 +52,12 @@ class SphericalDust(FreezableClass):
 
         import matplotlib.pyplot as plt
 
+        # Save original rc parameters
+        rc_orig = plt.rcParams
+
+        # Reset to defaults
+        plt.rcdefaults()
+        plt.rc('legend', fontsize=7)
         plt.rc('axes', titlesize='x-small')
         plt.rc('axes', labelsize='x-small')
         plt.rc('xtick', labelsize='xx-small')
@@ -69,7 +75,7 @@ class SphericalDust(FreezableClass):
             self.mean_opacities.compute(self.emissivities, self.optical_properties)
 
         # Initialize figure
-        fig = plt.figure(figsize=(8, 8))
+        fig = plt.figure(figsize=(10, 12))
 
         # Plot optical properties
         fig = self.optical_properties.plot(fig, [421, 423, 424, 425, 426])
@@ -78,13 +84,19 @@ class SphericalDust(FreezableClass):
         fig = self.emissivities.plot(fig, 427)
 
         # Plot mean opacities
-        fig = self.mean_opacities.plot(fig, 422)
+        fig = self.mean_opacities.plot(fig, 428)
+
+        # Adjust spacing between subplots
+        fig.subplots_adjust(left=0.08, right=0.92, wspace=0.22, hspace=0.30)
 
         # Save figure
-        fig.savefig(filename)
+        fig.savefig(filename, bbox_inches='tight')
 
         # Close figure to save RAM
         plt.close(fig)
+
+        # Restore rc parameters
+        plt.rc(rc_orig)
 
     def set_sublimation_temperature(self, mode, temperature=0.):
         '''

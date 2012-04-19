@@ -120,10 +120,13 @@ class MeanOpacities(FreezableClass):
 
         ax = figure.add_subplot(subplot)
 
-        ax.loglog(self.var, self.chi_planck, color='red')
-        ax.loglog(self.var, self.kappa_planck, color='orange')
-        ax.loglog(self.var, self.chi_rosseland, color='blue')
-        ax.loglog(self.var, self.kappa_rosseland, color='lightblue')
+        ax.loglog(self.var, self.chi_planck, color='red', label='Planck Extinction')
+        ax.loglog(self.var, self.kappa_planck, color='orange', label='Planck Absorption')
+        ax.loglog(self.var, self.chi_rosseland, color='blue', label='Rosseland Extinction')
+        ax.loglog(self.var, self.kappa_rosseland, color='lightblue', label='Rosseland Absorption')
+        ax.legend(loc=2)
+        ax.set_xlabel("Specific energy (ergs/s/g)")
+        ax.set_ylabel("Mean opacity (cm^2/g)")
         ax.set_xlim(self.var.min(), self.var.max())
 
         return figure

@@ -223,7 +223,9 @@ class OpticalProperties(FreezableClass):
         ax.set_xlim(self.wav.min(), self.wav.max())
         ax2.set_xlim(self.wav.min(), self.wav.max())
         ax2.set_ylim(0., 1.)
-
+        ax.set_xlabel('Wavelength (microns)')
+        ax.set_ylabel('Opacity to extinction (cm^2/g)', color='blue')
+        ax2.set_ylabel('Albedo', color='red', rotation=-90)
         self.normalize_scattering_matrix()
 
         m = plt.cm.gist_heat
@@ -237,6 +239,8 @@ class OpticalProperties(FreezableClass):
         ax.set_xlim(self.wav.min(), self.wav.max())
         ax.set_ylim(-1., 1.)
         ax.set_title('S11', y=0.9, verticalalignment='top', color='white')
+        ax.set_xlabel('Wavelength (microns)')
+        ax.set_ylabel('mu')
 
         ax = figure.add_subplot(subplots[2])
         ax.patch.set_facecolor('black')
@@ -247,6 +251,8 @@ class OpticalProperties(FreezableClass):
         ax.set_xlim(self.wav.min(), self.wav.max())
         ax.set_ylim(-1., 1.)
         ax.set_title('S12', y=0.9, verticalalignment='top', color='white')
+        ax.set_xlabel('Wavelength (microns)')
+        ax.set_ylabel('mu')
 
         ax = figure.add_subplot(subplots[3])
         ax.patch.set_facecolor('black')
@@ -257,6 +263,8 @@ class OpticalProperties(FreezableClass):
         ax.set_xlim(self.wav.min(), self.wav.max())
         ax.set_ylim(-1., 1.)
         ax.set_title('S33', y=0.9, verticalalignment='top', color='white')
+        ax.set_xlabel('Wavelength (microns)')
+        ax.set_ylabel('mu')
 
         ax = figure.add_subplot(subplots[4])
         ax.patch.set_facecolor('black')
@@ -267,6 +275,8 @@ class OpticalProperties(FreezableClass):
         ax.set_xlim(self.wav.min(), self.wav.max())
         ax.set_ylim(-1., 1.)
         ax.set_title('S34', y=0.9, verticalalignment='top', color='white')
+        ax.set_xlabel('Wavelength (microns)')
+        ax.set_ylabel('mu')
 
         return figure
 
