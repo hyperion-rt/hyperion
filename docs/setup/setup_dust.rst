@@ -23,6 +23,11 @@ It is also possible to plot the dust properties::
 
     d.plot('mydust.png')
 
+which gives a plot that can be used to get an overview of all the dust
+properties:
+
+.. image:: example_dust.png
+
 Dust with isotropic scattering
 ------------------------------
 
