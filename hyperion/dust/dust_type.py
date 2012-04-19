@@ -512,14 +512,40 @@ class BHDust(SphericalDust):
 
         SphericalDust.__init__(self)
 
-        self.optical_properties.nu = c / np.loadtxt('%s.wav' % model) * 1.e4
-        self.optical_properties.mu = np.loadtxt('%s.mu' % model)
-        self.optical_properties.albedo = np.loadtxt('%s.alb' % model)
-        self.optical_properties.chi = np.loadtxt('%s.chi' % model)
+        mu = np.loadtxt('%s.mu' % model)
 
-        self.optical_properties.initialize_scattering_matrix()
+        nu = c / np.loadtxt('%s.wav' % model) * 1.e4
+        albedo = np.loadtxt('%s.alb' % model)
+        chi = np.loadtxt('%s.chi' % model)
 
-        self.optical_properties.P1 = np.loadtxt('%s.f11' % model)
-        self.optical_properties.P2 = np.loadtxt('%s.f12' % model)
-        self.optical_properties.P3 = np.loadtxt('%s.f33' % model)
-        self.optical_properties.P4 = np.loadtxt('%s.f34' % model)
+        P1 = np.loadtxt('%s.f11' % model)
+        P2 = np.loadtxt('%s.f12' % model)
+        P3 = np.loadtxt('%s.f33' % model)
+        P4 = np.loadtxt('%s.f34' % model)
+
+        if nu[-1] < nu[0]:
+            nu = nu[::-1]
+            albedo = albedo[::-1]
+            chi = chi[::-1]
+            P1 = P1[::-1, :]
+            P2 = P2[::-1, :]
+            P3 = P3[::-1, :]
+            P4 = P4[::-1, :]
+
+        if mu[-1] < mu[0]:
+            mu = mu[::-1]
+            P1 = P1[:, ::-1]
+            P2 = P2[:, ::-1]
+            P3 = P3[:, ::-1]
+            P4 = P4[:, ::-1]
+
+        self.optical_properties.mu = mu
+
+        self.optical_properties.nu = nu
+        self.optical_properties.albedo = albedo
+        self.optical_properties.chi = chi
+
+        self.optical_properties.P1 = P1
+        self.optical_properties.P2 = P2
+        self.optical_properties.P3 = P3
+        self.optical_properties.P4 = P4
