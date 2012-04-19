@@ -27,5 +27,5 @@ models:
 
 .. note:: it is possible to write model input files yourself directly in HDF5
           and bypass the Python library entirely (but this is reserved for
-          advanced users!). See :doc:`../advanced/model_input` for more
+          advanced users!). See :doc:`../advanced/advanced` for more
           information.

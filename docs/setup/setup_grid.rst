@@ -12,9 +12,9 @@ form::
 
 where ``<grid_type>`` is the grid type being used, and ``dust`` is a dust file
 in HDF5 format specified either by filename, or as a dust object. See
-:ref:`dustfile` for more details about creating and using dust files. For
-example, if you are using a dust file named ``kmh.hdf5``, you can specify this
-with::
+:doc:`advanced/advanced` for more details about creating and using dust files.
+For example, if you are using a dust file named ``kmh.hdf5``, you can specify
+this with::
 
     m.add_density_grid(density, 'kmh.hdf5')
 

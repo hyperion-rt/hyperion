@@ -36,8 +36,8 @@ arrays (4 = 32-bit, 8 = 64-bit)::
 
     m.set_output_bytes(4)
 
-For the :doc:`model` class, one can set a minimum temperature to which
-temperatures below this will be reset::
+For the :doc:`../setup/model` class, one can set a minimum temperature to
+which temperatures below this will be reset::
 
     m.add_density_grid(density, dust, minimum_temperature=100.)
 
@@ -45,6 +45,6 @@ and in terms of specific energy::
 
     m.add_density_grid(density, dust, minimum_specific_energy=100.)
 
-For the :doc:`analytical_yso_model`, this can be done with::
+For the :doc:`../setup/analytical_yso_model`, this can be done with::
 
     m.set_minimum_temperature(100.)
