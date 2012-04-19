@@ -9,17 +9,26 @@ except ImportError:  # Python 2.x
 
 from hyperion.testing.helper import HyperionTest
 
-scripts = ['ttsre2rtin', 'ttsre2rtin_auto', 'hyperion', 'hyperion2fits', 'mctherm2hyperion']
+scripts = ['hyperion', 'hyperion2fits', 'mctherm2hyperion']
 
 setup(name='hyperion',
-      version='0.8.4',
-      packages=['hyperion', 'hyperion.model', 'hyperion.model.tests',
-                'hyperion.conf', 'hyperion.densities',
-                'hyperion.densities.tests', 'hyperion.dust', 'hyperion.util',
-                'hyperion.util.tests', 'hyperion.atmos', 'hyperion.grid',
-                'hyperion.grid.tests', 'hyperion.sources',
-                'hyperion.sources.tests', 'hyperion.importers',
-                'hyperion.testing'],
+      version='0.8.5',
+      packages=['hyperion',
+                'hyperion.conf',
+                'hyperion.densities',
+                'hyperion.densities.tests',
+                'hyperion.dust',
+                'hyperion.dust.tests',
+                'hyperion.grid',
+                'hyperion.grid.tests',
+                'hyperion.importers',
+                'hyperion.model',
+                'hyperion.model.tests',
+                'hyperion.sources',
+                'hyperion.sources.tests',
+                'hyperion.testing',
+                'hyperion.util',
+                'hyperion.util.tests'],
       scripts=['scripts/' + x for x in scripts],
       cmdclass={'build_py': build_py, 'test':HyperionTest}
      )
