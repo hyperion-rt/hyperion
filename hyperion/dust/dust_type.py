@@ -290,6 +290,11 @@ class TTsreDust(HenyeyGreensteinDust):
                               ('c_sca', float), ('chi', float), ('g', float), \
                               ('p_lin_max', float)], usecols=[0, 1, 2, 3, 4, 5])
 
+        # Ensure file is ordered in increasing frequency
+        if dustfile['wav'][-1] > dustfile['wav'][0]:
+            dustfile = dustfile[::-1]
+
+        # Compute frequency and albedo
         nu = c / dustfile['wav'] * 1.e4
         albedo = dustfile['c_sca'] / dustfile['c_ext']
 

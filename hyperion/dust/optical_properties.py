@@ -57,7 +57,6 @@ class OpticalProperties(FreezableClass):
 
         if self.nu[-1] < self.nu[0]:
 
-            self.wav = self.wav[::-1]
             self.nu = self.nu[::-1]
             self.albedo = self.albedo[::-1]
             self.chi = self.chi[::-1]
@@ -68,21 +67,21 @@ class OpticalProperties(FreezableClass):
 
     def initialize_scattering_matrix(self):
 
-        self.P1 = np.zeros((len(self.wav), len(self.mu)))
-        self.P2 = np.zeros((len(self.wav), len(self.mu)))
-        self.P3 = np.zeros((len(self.wav), len(self.mu)))
-        self.P4 = np.zeros((len(self.wav), len(self.mu)))
+        self.P1 = np.zeros((len(self.nu), len(self.mu)))
+        self.P2 = np.zeros((len(self.nu), len(self.mu)))
+        self.P3 = np.zeros((len(self.nu), len(self.mu)))
+        self.P4 = np.zeros((len(self.nu), len(self.mu)))
 
     def normalize_scattering_matrix(self):
 
-        for iw in range(len(self.nu)):
+        for inu in range(len(self.nu)):
 
-            norm = interp1d_fast_linlog(self.mu, self.P1[iw, :], 0.)
+            norm = interp1d_fast_linlog(self.mu, self.P1[inu, :], 0.)
 
-            self.P1[iw, :] /= norm
-            self.P2[iw, :] /= norm
-            self.P3[iw, :] /= norm
-            self.P4[iw, :] /= norm
+            self.P1[inu, :] /= norm
+            self.P2[inu, :] /= norm
+            self.P3[inu, :] /= norm
+            self.P4[inu, :] /= norm
 
     def truncate_scattering_matrix(self, mu_max):
         '''
@@ -92,35 +91,35 @@ class OpticalProperties(FreezableClass):
         self._sort()
 
         # Loop over wavelengths and reduce scattering cross section
-        for iw in range(len(self.wav)):
+        for inu in range(len(self.nu)):
 
             # Find fraction remaining
-            frac = integrate_linlog_subset(self.mu, self.P1[iw, :],
+            frac = integrate_linlog_subset(self.mu, self.P1[inu, :],
                                            self.mu[0], mu_max) \
-                 / integrate_linlog_subset(self.mu, self.P1[iw, :],
+                 / integrate_linlog_subset(self.mu, self.P1[inu, :],
                                            self.mu[0], self.mu[-1])
 
             logger.info("Removing fraction %g" % frac)
 
             # Find scattering and absorption opacities
-            sigma_nu = self.chi[iw] * self.albedo[iw]
-            kappa_nu = self.chi[iw] - sigma
+            sigma_nu = self.chi[inu] * self.albedo[inu]
+            kappa_nu = self.chi[inu] - sigma
 
             # Decrease scattering opacity, total opacity, and hence albedo
             sigma_nu *= frac
-            self.albedo[iw] = sigma_nu / (sigma_nu + kappa_nu)
-            self.chi[iw] = sigma_nu + kappa_nu
+            self.albedo[inu] = sigma_nu / (sigma_nu + kappa_nu)
+            self.chi[inu] = sigma_nu + kappa_nu
 
         # Interpolate scattering matrix at mu_max
-        P1_max = np.zeros((len(self.wav), 1))
-        P2_max = np.zeros((len(self.wav), 1))
-        P3_max = np.zeros((len(self.wav), 1))
-        P4_max = np.zeros((len(self.wav), 1))
-        for iw in range(len(self.wav)):
-            P1_max[iw, 0] = interp1d_fast_linlog(self.mu, self.P1[iw, :], mu_max)
-            P2_max[iw, 0] = interp1d_fast(self.mu, self.P2[iw, :], mu_max)
-            P3_max[iw, 0] = interp1d_fast(self.mu, self.P3[iw, :], mu_max)
-            P4_max[iw, 0] = interp1d_fast(self.mu, self.P4[iw, :], mu_max)
+        P1_max = np.zeros((len(self.nu), 1))
+        P2_max = np.zeros((len(self.nu), 1))
+        P3_max = np.zeros((len(self.nu), 1))
+        P4_max = np.zeros((len(self.nu), 1))
+        for inu in range(len(self.nu)):
+            P1_max[inu, 0] = interp1d_fast_linlog(self.mu, self.P1[inu, :], mu_max)
+            P2_max[inu, 0] = interp1d_fast(self.mu, self.P2[inu, :], mu_max)
+            P3_max[inu, 0] = interp1d_fast(self.mu, self.P3[inu, :], mu_max)
+            P4_max[inu, 0] = interp1d_fast(self.mu, self.P4[inu, :], mu_max)
 
         # Now truncate scattering matrix elements
         cut = np.searchsorted(self.mu, mu_max)
@@ -143,14 +142,12 @@ class OpticalProperties(FreezableClass):
 
         self.albedo = np.hstack([self.albedo[0], self.albedo, self.albedo[-1]])
         self.chi = np.hstack([ex_c(nu1), self.chi, ex_c(nu2)])
+        self.nu = np.hstack([nu1, self.nu, nu2])
 
         self.P1 = np.vstack([self.P1[0, :], self.P1, self.P1[-1, :]])
         self.P2 = np.vstack([self.P2[0, :], self.P2, self.P2[-1, :]])
         self.P3 = np.vstack([self.P3[0, :], self.P3, self.P3[-1, :]])
         self.P4 = np.vstack([self.P4[0, :], self.P4, self.P4[-1, :]])
-
-        self.nu = np.hstack([nu1, self.nu, nu2])
-        self.wav = c / self.nu * 1.e4
 
     def to_table_set(self, table_set):
 
