@@ -547,13 +547,13 @@ class Model(FreezableClass):
             self.binned_output = BinnedImageConf(**kwargs)
             return self.binned_output
 
-    def run(self, filename=None, logfile=None, mpi=False, n_cores=multiprocessing.cpu_count(), overwrite=False):
+    def run(self, filename=None, logfile=None, mpi=False, n_processes=multiprocessing.cpu_count(), overwrite=False):
 
         if self.filename is None:
             raise ValueError("Input file does not exist - write() needs to be called before run()")
 
         if mpi:
-            option = '-m {0}'.format(n_cores)
+            option = '-m {0}'.format(n_processes)
         else:
             option = ''
 
