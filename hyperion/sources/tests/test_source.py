@@ -59,6 +59,35 @@ def test_luminosity_invalid4():
     assert exc.value.args[0] == 'luminosity should be positive'
 
 
+def test_temperature():
+    v = virtual_file()
+    s = Source()
+    s.luminosity = 1.
+    s.temperature = 1.
+    s.write(v)
+
+
+def test_temperature_invalid2():
+    s = Source()
+    with pytest.raises(ValueError) as exc:
+        s.temperature = np.array([1, 2, 3])  # temperature should be a scalar
+    assert exc.value.args[0] == 'temperature should be a scalar value'
+
+
+def test_temperature_invalid3():
+    s = Source()
+    with pytest.raises(ValueError) as exc:
+        s.temperature = 'invalid'  # temperature should be a number
+    assert exc.value.args[0] == 'temperature should be a numerical value'
+
+
+def test_temperature_invalid4():
+    s = Source()
+    with pytest.raises(ValueError) as exc:
+        s.temperature = -1.  # temperature should be positive
+    assert exc.value.args[0] == 'temperature should be positive'
+
+
 def test_spectrum_atpy():
     t = atpy.Table()
     t.add_column('nu', [1, 2, 3])
@@ -73,7 +102,6 @@ def test_spectrum_atpy_invalid():
     with pytest.raises(TypeError) as exc:
         s.spectrum = t
     assert exc.value.args[0] == 'spectrum ATpy Table does not contain a \'nu\' column'
-
 
 
 def test_spectrum_tuple():
@@ -101,7 +129,6 @@ def test_spectrum_tuple_invalid2():
     assert exc.value.args[0] == 'fnu should be specified as a 1-D Numpy array'
 
 
-
 def test_spectrum_tuple_invalid3():
     nu = np.array([1, 2, 3])
     fnu = np.array([1, 2, 3, 4])  # sizes don't agree
@@ -127,6 +154,22 @@ def test_spectrum_tuple_invalid5():
     with pytest.raises(TypeError) as exc:
         s.spectrum = (nu, fnu, fnu)  # too many items
     assert exc.value.args[0] == 'spectrum tuple or list should contain two elements'
+
+
+def test_set_temperature_spectrum():
+    s = Source()
+    s.temperature = 1000.
+    with pytest.raises(Exception) as exc:
+        s.spectrum = (np.array([1, 2, 3]), np.array([4, 5, 6]))  # temperature has already been specified
+    assert exc.value.args[0] == 'A temperature has already been set, so cannot set a spectrum'
+
+
+def test_set_spectrum_temperature():
+    s = Source()
+    s.spectrum = (np.array([1, 2, 3]), np.array([4, 5, 6]))
+    with pytest.raises(Exception) as exc:
+        s.temperature = 1000.  # spectrum has already been specified
+    assert exc.value.args[0] == 'A spectrum has already been set, so cannot set a temperature'
 
 
 # SpotSource

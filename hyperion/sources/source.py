@@ -60,7 +60,7 @@ class Source(FreezableClass):
         if self.luminosity is None:
             raise ValueError("luminosity is not set")
 
-    def get_spectrum(self):
+    def get_spectrum(self, nu_range=None):
 
         self._check_all_set()
 
@@ -71,8 +71,12 @@ class Source(FreezableClass):
                 nu, fnu = self.spectrum
             else:
                 raise Exception("Spectrum should be tuple or ATpy table")
-        elif self.temperature:
-            nu = np.logspace(np.log10(c), np.log10(c * 1.e6))
+            if nu_range is not None:
+                raise NotImplemented("nu_range not yet implemented for spectrum")
+        elif self.temperature is not None:
+            if nu_range is None:
+                raise ValueError("nu_range is needed for sources with Planck spectra")
+            nu = np.logspace(np.log10(nu_range[0]), np.log10(nu_range[1]))
             fnu = B_nu(nu, self.temperature)
         else:
             raise Exception("Not implemented")
@@ -121,6 +125,9 @@ class Source(FreezableClass):
 
         elif attribute == 'spectrum' and value is not None:
 
+            if hasattr(self, 'temperature') and self.temperature is not None:
+                raise Exception("A temperature has already been set, so cannot set a spectrum")
+
             if isinstance(value, atpy.Table):
 
                 if 'nu' not in value.columns:
@@ -164,6 +171,20 @@ class Source(FreezableClass):
                 raise TypeError('spectrum should be specified either as an '
                                 'atpy.Table instance, or a tuple of two 1-D'
                                 'Numpy arrays (nu, fnu) with the same length')
+
+        elif attribute == 'temperature' and value is not None:
+
+            if hasattr(self, 'spectrum') and self.spectrum is not None:
+                raise Exception("A spectrum has already been set, so cannot set a temperature")
+
+            if not np.isscalar(value):
+                raise ValueError("temperature should be a scalar value")
+            if not np.isreal(value):
+                raise ValueError("temperature should be a numerical value")
+            if value < 0.:
+                raise ValueError("temperature should be positive")
+
+            object.__setattr__(self, attribute, value)
 
         else:
 

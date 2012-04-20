@@ -60,13 +60,25 @@ class Star(FreezableClass):
         "Return the effective temperature of the star, including accretion"
         return (self.total_luminosity() / (4. * pi * self.radius ** 2. * sigma)) ** 0.25
 
-    def total_spectrum(self):
-        "Return the total spectrum of the star, including accretion"
+    def total_spectrum(self, bnu_range=None):
+        '''
+        Return the total spectrum of the star, including accretion
+
+        Parameters
+        ----------
+        bnu_range : tuple
+            Range of frequencies to cover for sources that have Planck spectra
+        '''
 
         # Retrieve all the spectra for the sources of emission
         nu_all, fnu_all = [], []
         for source in self.sources:
-            nu, fnu = self.sources[source].get_spectrum()
+            if self.sources[source].temperature is not None:
+                if bnu_range is None:
+                    raise ValueError("bnu_range is needed for sources with Planck spectra")
+                nu, fnu = self.sources[source].get_spectrum(nu_range=bnu_range)
+            else:
+                nu, fnu = self.sources[source].get_spectrum()
             nu_all.append(nu)
             fnu_all.append(fnu)
 
@@ -210,7 +222,9 @@ class AnalyticalYSOModel(Model):
             if disk.mass > 0.:
                 if disk.dust is None:
                     raise Exception("Disk %i dust not set" % i)
-                nu, fnu = self.star.total_spectrum()
+                nu_min, nu_max = disk.dust.optical_properties.nu[0], \
+                                 disk.dust.optical_properties.nu[-1]
+                nu, fnu = self.star.total_spectrum(bnu_range=[nu_min, nu_max])
                 tau_midplane += disk.midplane_cumulative_density(r) \
                               * disk.dust.optical_properties.chi_planck_spectrum(nu, fnu)
 
@@ -218,7 +232,9 @@ class AnalyticalYSOModel(Model):
             if envelope.exists():
                 if envelope.dust is None:
                     raise Exception("envelope %i dust not set" % i)
-                nu, fnu = self.star.total_spectrum()
+                nu_min, nu_max = envelope.dust.optical_properties.nu[0], \
+                                 envelope.dust.optical_properties.nu[-1]
+                nu, fnu = self.star.total_spectrum(bnu_range=[nu_min, nu_max])
                 tau_midplane += envelope.midplane_cumulative_density(r) \
                               * envelope.dust.optical_properties.chi_planck_spectrum(nu, fnu)
 
