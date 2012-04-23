@@ -1,5 +1,7 @@
 from __future__ import print_function, division
 
+import hashlib
+
 import atpy
 import numpy as np
 
@@ -168,3 +170,12 @@ class Emissivities(FreezableClass):
         ax.set_ylabel("Wavelength (microns)")
 
         return figure
+
+    def hash(self):
+        h = hashlib.md5()
+        h.update(str(self.is_lte))
+        h.update(self.var_name)
+        h.update(self.var)
+        h.update(self.nu)
+        h.update(self.jnu)
+        return h.hexdigest()

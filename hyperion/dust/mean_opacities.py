@@ -1,5 +1,7 @@
 from __future__ import print_function, division
 
+import hashlib
+
 import atpy
 import numpy as np
 
@@ -142,3 +144,13 @@ class MeanOpacities(FreezableClass):
         ax.set_xlim(self.var.min(), self.var.max())
 
         return figure
+
+    def hash(self):
+        h = hashlib.md5()
+        h.update(self.var_name)
+        h.update(self.var)
+        h.update(self.chi_planck)
+        h.update(self.kappa_planck)
+        h.update(self.chi_rosseland)
+        h.update(self.kappa_rosseland)
+        return h.hexdigest()

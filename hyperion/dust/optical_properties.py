@@ -1,5 +1,7 @@
 from __future__ import print_function, division
 
+import hashlib
+
 import atpy
 import numpy as np
 
@@ -393,6 +395,18 @@ class OpticalProperties(FreezableClass):
         kappa_planck = self.kappa_planck_temperature(temperature)
 
         return 4. * sigma * temperature ** 4. * kappa_planck
+
+    def hash(self):
+        h = hashlib.md5()
+        h.update(self.nu)
+        h.update(self.chi)
+        h.update(self.albedo)
+        h.update(self.mu)
+        h.update(self.P1)
+        h.update(self.P2)
+        h.update(self.P3)
+        h.update(self.P4)
+        return h.hexdigest()
 
     def __setattr__(self, attribute, value):
         if attribute in ['nu', 'chi', 'albedo', 'mu'] and value is not None:
