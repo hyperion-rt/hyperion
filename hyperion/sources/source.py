@@ -77,6 +77,8 @@ class Source(FreezableClass):
             if nu_range is None:
                 raise ValueError("nu_range is needed for sources with Planck spectra")
             nu = np.logspace(np.log10(nu_range[0]), np.log10(nu_range[1]))
+            nu[0] = nu_range[0]  # fix roundoff
+            nu[-1] = nu_range[1]  # fix roundoff
             fnu = B_nu(nu, self.temperature)
         else:
             raise Exception("Not implemented")
