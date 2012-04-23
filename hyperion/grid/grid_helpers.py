@@ -47,7 +47,9 @@ def single_grid_dims(data):
 
     elif isinstance(data, h5py.ExternalLink):
 
-        shape = h5py.File(data.filename, 'r')[data.path].shape
+        f = h5py.File(data.filename, 'r')
+        shape = f[data.path].shape
+        f.close()
 
         if len(shape) == 3:
             n_pop = None

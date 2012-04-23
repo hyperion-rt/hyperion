@@ -9,6 +9,7 @@ from ..util.constants import c, pi
 from ..util.functions import FreezableClass
 from ..dust import SphericalDust
 from ..util.logger import logger
+from ..util.decorator import decorator
 
 from .helpers import find_last_iteration
 
@@ -72,6 +73,25 @@ def mc_circular_polarization(I, sigma_I, V, sigma_V):
     else:
         return 0., 0.
 
+# We now define a decorator for methods that needs access to the output HDF5
+# file. This is necessary because h5py has issues with links pointing to
+# groups that are in open files.
+
+
+def on_the_fly_hdf5(f):
+    return decorator(_on_the_fly_hdf5, f)
+
+
+def _on_the_fly_hdf5(f, *args, **kwargs):
+    preset = args[0].file is not None
+    if not preset:
+        args[0].file = h5py.File(args[0].filename, 'r')
+    results = f(*args, **kwargs)
+    if not preset:
+        args[0].file.close()
+        args[0].file = None
+    return results
+
 
 class ModelOutput(FreezableClass):
 
@@ -92,8 +112,10 @@ class ModelOutput(FreezableClass):
 
         # Open file and store handle to object
         # (but don't read in the contents yet)
-        self.file = h5py.File(filename, 'r')
+        self.filename = filename
+        self.file = None
 
+    @on_the_fly_hdf5
     def get_sed(self, stokes='I', group=0, technique='peeled',
                 distance=None, component='total', inclination='all',
                 aperture='all', uncertainties=False, units=None,
@@ -405,6 +427,7 @@ class ModelOutput(FreezableClass):
         else:
             return wav, flux
 
+
     def plot_sed(self, axes=None, filename=None,
                  wmin=0.01, wmax=5000., fmin=None, fmax=None,
                  color='black', labels=True, **kwargs):
@@ -564,6 +587,8 @@ class ModelOutput(FreezableClass):
         else:
             return ax
 
+
+    @on_the_fly_hdf5
     def get_image(self, stokes='I', group=0, technique='peeled',
                   distance=None, component='total', inclination='all',
                   uncertainties=False, units=None,
@@ -890,6 +915,7 @@ class ModelOutput(FreezableClass):
         else:
             return wav, flux
 
+
     def plot_image(self, wavelength, axes=None, filename=None, vmin=None,
                    vmax=None, cmap=None, labels=True, **kwargs):
         '''
@@ -947,7 +973,7 @@ class ModelOutput(FreezableClass):
 
         # Retrieved the necessary image
         wav, nufnu = self.get_image(**kwargs)
-        
+
         # Find index closest to wavelength requested
         iw = np.argmin(np.abs(wav - wavelength))
 
@@ -965,6 +991,8 @@ class ModelOutput(FreezableClass):
         else:
             return ax
 
+
+    @on_the_fly_hdf5
     def get_available_components(self, iteration=-1):
         '''
         Find out what physical components are available in the output file
@@ -986,6 +1014,8 @@ class ModelOutput(FreezableClass):
             components.append('temperature')
         return components
 
+
+    @on_the_fly_hdf5
     def get_physical_grid(self, name, iteration=-1, dust_id='all'):
         '''
         Retrieve one of the physical grids for the model

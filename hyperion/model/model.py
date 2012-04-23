@@ -186,6 +186,9 @@ class Model(FreezableClass):
         # Set the grid
         self.set_grid(grid)
 
+        # Close the file
+        f.close()
+
     def use_quantities(self, filename, quantities='all',
                        use_minimum_specific_energy=True, use_dust=True):
         '''
@@ -244,12 +247,15 @@ class Model(FreezableClass):
         # Minimum specific energy
         if use_minimum_specific_energy:
             logger.info("Using minimum_specific_energy from %s" % filename)
-            self.set_minimum_specific_energy([float(x) for x in h5py.File(file_path, 'r')['/Input/Grid/Quantities'].attrs['minimum_specific_energy']])
+            self.set_minimum_specific_energy([float(x) for x in f['/Input/Grid/Quantities'].attrs['minimum_specific_energy']])
 
         # Dust properties
         if use_dust:
             logger.info("Using dust properties from %s" % filename)
             self.dust = h5py.ExternalLink(file_path, '/Input/Dust')
+
+        # Close the file
+        f.close()
 
     def write(self, filename=None, compression=True, copy=True,
               absolute_paths=False, wall_dtype=float,

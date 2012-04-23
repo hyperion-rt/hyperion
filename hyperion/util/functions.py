@@ -34,7 +34,9 @@ def link_or_copy(group, path, link, copy, absolute_paths=False):
         are used in the link, otherwise the path relative to the file is used.
     '''
     if copy:
-        group.copy(h5py.File(link.filename, 'r')[link.path], path)
+        f = h5py.File(link.filename, 'r')
+        group.copy(f[link.path], path)
+        f.close()
     else:
         if absolute_paths:
             group[path] = h5py.ExternalLink(os.path.abspath(link.filename), link.path)

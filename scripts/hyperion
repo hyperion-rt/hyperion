@@ -35,6 +35,7 @@ else:
 
 f = h5py.File(input, 'r')
 coord_type = f['Grid']['Geometry'].attrs['grid_type'].decode('utf-8')
+f.close()
 
 # Determine grid type
 if coord_type == 'cyl_pol':
@@ -92,6 +93,7 @@ returncode = subprocess.call('{0} {1} {2}'.format(command, input, output), shell
 try:
     f = h5py.File(output, 'r')
     f.attrs['date_ended']
+    f.close()
 except:
     print("Run did not complete successfully: output file appears to be corrupt")
     sys.exit(1)
