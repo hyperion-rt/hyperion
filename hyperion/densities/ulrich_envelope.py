@@ -8,6 +8,7 @@ from ..densities.bipolar_cavity import BipolarCavity
 from ..util.convenience import OptThinRadius
 from ..dust import SphericalDust
 from ..util.logger import logger
+from ..util.validator import validate_scalar
 
 
 def delta_neg(r, q):
@@ -290,22 +291,12 @@ class UlrichEnvelope(Envelope):
 
             # Positive scalars
             if attribute in ['rc', 'rho_amb', 'rho_0', 'mdot']:
-                if not np.isscalar(value):
-                    raise ValueError("{0:s} should be a scalar value".format(attribute))
-                if not np.isreal(value):
-                    raise ValueError("{0:s} should be a numerical value".format(attribute))
-                if value < 0.:
-                    raise ValueError("{0:s} should be positive".format(attribute))
+                validate_scalar(attribute, value, domain='positive')
 
             # Radii (positive scalars or OptThinRadius instance)
             if attribute in ['rmin', 'rmax']:
                 if not isinstance(value, OptThinRadius):
-                    if not np.isscalar(value):
-                        raise ValueError("{0:s} should be a scalar value or an OptThinRadius instance".format(attribute))
-                    if not np.isreal(value):
-                        raise ValueError("{0:s} should be a numerical value or an OptThinRadius instance".format(attribute))
-                    if value < 0.:
-                        raise ValueError("{0:s} should be positive".format(attribute))
+                    validate_scalar(attribute, value, domain='positive', extra=' or an OptThinRadius instance')
 
             # Bipolar cavity
             if attribute == 'cavity':

@@ -5,6 +5,7 @@ import numpy as np
 from ..util.functions import FreezableClass
 from ..dust import SphericalDust
 from ..densities.envelope import Envelope
+from ..util.validator import validate_scalar
 
 
 class BipolarCavity(FreezableClass):
@@ -111,19 +112,11 @@ class BipolarCavity(FreezableClass):
 
             # Positive scalars
             if attribute in ['theta_0', 'r_0', 'rho_0']:
-                if not np.isscalar(value):
-                    raise ValueError("{0:s} should be a scalar value".format(attribute))
-                if not np.isreal(value):
-                    raise ValueError("{0:s} should be a numerical value".format(attribute))
-                if value < 0.:
-                    raise ValueError("{0:s} should be positive".format(attribute))
+                validate_scalar(attribute, value, domain='positive')
 
             # Scalars
             if attribute in ['power', 'rho_exp']:
-                if not np.isscalar(value):
-                    raise ValueError("{0:s} should be a scalar value".format(attribute))
-                if not np.isreal(value):
-                    raise ValueError("{0:s} should be a numerical value".format(attribute))
+                validate_scalar(attribute, value, domain='real')
 
             # Bipolar cavity
             if attribute == 'envelope':

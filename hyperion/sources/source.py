@@ -7,7 +7,7 @@ from ..util.functions import B_nu, random_id
 from ..util.functions import FreezableClass, is_numpy_array
 from ..util.integrate import integrate_loglog
 from ..util.constants import c
-
+from ..util.validator import validate_scalar
 
 class Source(FreezableClass):
 
@@ -114,12 +114,7 @@ class Source(FreezableClass):
 
         if attribute == 'luminosity' and value is not None:
 
-            if not np.isscalar(value):
-                raise ValueError("luminosity should be a scalar value")
-            if not np.isreal(value):
-                raise ValueError("luminosity should be a numerical value")
-            if value < 0.:
-                raise ValueError("luminosity should be positive")
+            validate_scalar('luminosity', value, domain='positive')
 
             object.__setattr__(self, attribute, value)
 
@@ -177,12 +172,7 @@ class Source(FreezableClass):
             if hasattr(self, 'spectrum') and self.spectrum is not None:
                 raise Exception("A spectrum has already been set, so cannot set a temperature")
 
-            if not np.isscalar(value):
-                raise ValueError("temperature should be a scalar value")
-            if not np.isreal(value):
-                raise ValueError("temperature should be a numerical value")
-            if value < 0.:
-                raise ValueError("temperature should be positive")
+            validate_scalar('temperature', value, domain='positive')
 
             object.__setattr__(self, attribute, value)
 
@@ -255,31 +245,11 @@ class SpotSource(Source):
     def __setattr__(self, attribute, value):
 
         if attribute == 'longitude' and value is not None:
-
-            if not np.isscalar(value):
-                raise ValueError("longitude should be a scalar value")
-            if not np.isreal(value):
-                raise ValueError("longitude should be a numerical value")
-            if value < 0. or value > 360.:
-                raise ValueError("longitude should be in the range [0:360]")
-
+            validate_scalar('longitude', value, domain=[0, 360])
         elif attribute == 'latitude' and value is not None:
-
-            if not np.isscalar(value):
-                raise ValueError("latitude should be a scalar value")
-            if not np.isreal(value):
-                raise ValueError("latitude should be a numerical value")
-            if value < -90. or value > 90.:
-                raise ValueError("latitude should be in the range [-90:90]")
-
+            validate_scalar('latitude', value, domain=[-90, 90])
         elif attribute == 'radius' and value is not None:
-
-            if not np.isscalar(value):
-                raise ValueError("radius should be a scalar value")
-            if not np.isreal(value):
-                raise ValueError("radius should be a numerical value")
-            if value < 0.:
-                raise ValueError("radius should be positive")
+            validate_scalar('radius', value, domain='positive')
 
         Source.__setattr__(self, attribute, value)
 
@@ -447,12 +417,7 @@ class SphericalSource(Source):
 
         elif attribute == 'radius' and value is not None:
 
-            if not np.isscalar(value):
-                raise ValueError("radius should be a scalar value")
-            if not np.isreal(value):
-                raise ValueError("radius should be a numerical value")
-            if value < 0.:
-                raise ValueError("radius should be positive")
+            validate_scalar('radius', value, domain='positive')
 
         elif attribute == 'limb' and value is not None:
 
@@ -538,12 +503,7 @@ class ExternalSphericalSource(Source):
 
         elif attribute == 'radius' and value is not None:
 
-            if not np.isscalar(value):
-                raise ValueError("radius should be a scalar value")
-            if not np.isreal(value):
-                raise ValueError("radius should be a numerical value")
-            if value < 0.:
-                raise ValueError("radius should be positive")
+            validate_scalar('radius', value, domain='positive')
 
         Source.__setattr__(self, attribute, value)
 

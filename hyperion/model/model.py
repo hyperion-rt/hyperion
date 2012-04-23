@@ -16,6 +16,7 @@ from ..util.constants import c
 from ..util.functions import FreezableClass, link_or_copy
 from ..dust import SphericalDust
 from ..util.logger import logger
+from ..util.validator import validate_scalar
 
 from .helpers import find_last_iteration
 from .model_output import ModelOutput
@@ -57,7 +58,10 @@ class Model(FreezableClass):
         self.reset_dust()
         self.reset_sources()
         self.reset_images()
-        self.minimum_specific_energy = []
+
+        self._minimum_temperature = None
+        self._minimum_specific_energy = None
+
         self.set_monochromatic(False)
 
         self.grid = None
@@ -182,7 +186,8 @@ class Model(FreezableClass):
         # Set the grid
         self.set_grid(grid)
 
-    def use_quantities(self, filename, quantities='all', use_dust=True):
+    def use_quantities(self, filename, quantities='all',
+                       use_minimum_specific_energy=True, use_dust=True):
         '''
         Use physical quantities from an existing output file
 
@@ -197,6 +202,9 @@ class Model(FreezableClass):
         copy: bool
             Whether to copy the quantities into the new input file, or whether
             to just link to them.
+        use_minimum_specific_energy: bool
+            Whether to also use the minimum specific energy values from the
+            file specified
         use_dust: bool
             Whether to also use the dust properties from the file specified
         '''
@@ -234,8 +242,9 @@ class Model(FreezableClass):
                 self.grid[quantity] = h5py.ExternalLink(file_path, array_path)
 
         # Minimum specific energy
-        logger.info("Using minimum_specific_energy from %s" % filename)
-        self.minimum_specific_energy = [float(x) for x in h5py.File(file_path, 'r')['/Input/Grid/Quantities'].attrs['minimum_specific_energy']]
+        if use_minimum_specific_energy:
+            logger.info("Using minimum_specific_energy from %s" % filename)
+            self.set_minimum_specific_energy([float(x) for x in h5py.File(file_path, 'r')['/Input/Grid/Quantities'].attrs['minimum_specific_energy']])
 
         # Dust properties
         if use_dust:
@@ -344,11 +353,6 @@ class Model(FreezableClass):
             if self.dust is None:
                 raise Exception("No dust properties specified")
 
-            # Write minimum specific energy
-            if len(self.minimum_specific_energy) != self.grid.n_dust:
-                raise Exception("Number of minimum_specific_energy values should match number of dust types")
-            g_grid['Quantities'].attrs["minimum_specific_energy"] = [float(x) for x in self.minimum_specific_energy]
-
             if isinstance(self.dust, h5py.ExternalLink):
 
                 link_or_copy(root, 'Dust', self.dust, copy, absolute_paths=absolute_paths)
@@ -372,7 +376,7 @@ class Model(FreezableClass):
 
                     if copy:
 
-                        if type(dust) == str:
+                        if isinstance(dust, basestring):
                             dust = SphericalDust(dust)
 
                         if id(dust) in present:
@@ -403,6 +407,38 @@ class Model(FreezableClass):
         else:
 
             root.create_group('Dust')
+
+        _n_dust = len(root['Dust'])
+
+        # Write minimum specific energy
+        if self._minimum_temperature is not None:
+
+            if np.isscalar(self._minimum_temperature):
+                _minimum_temperature = [self._minimum_temperature for i in range(_n_dust)]
+            elif len(self._minimum_temperature) != _n_dust:
+                raise Exception("Number of minimum_temperature values should match number of dust types")
+            else:
+                _minimum_temperature = self._minimum_temperature
+
+            _minimum_specific_energy = []
+            for dust in root['Dust']:
+                mo = SphericalDust(root['Dust'][dust]).mean_opacities
+                _minimum_specific_energy.append(mo._temperature2specific_energy(_minimum_temperature[i]))
+
+        elif self._minimum_specific_energy is not None:
+
+            if np.isscalar(self._minimum_specific_energy):
+                _minimum_specific_energy = [self._minimum_specific_energy for i in range(_n_dust)]
+            elif len(self._minimum_specific_energy) != _n_dust:
+                raise Exception("Number of minimum_specific_energy values should match number of dust types")
+            else:
+                _minimum_specific_energy = self._minimum_specific_energy
+
+        else:
+
+            _minimum_specific_energy = [0. for i in range(_n_dust)]
+
+        g_grid['Quantities'].attrs["minimum_specific_energy"] = [float(x) for x in _minimum_specific_energy]
 
         root.close()
 
@@ -441,7 +477,7 @@ class Model(FreezableClass):
     def add_source(self, source):
         self.sources.append(source)
 
-    def add_density_grid(self, density, dust, specific_energy=None, minimum_specific_energy=None, minimum_temperature=None, merge_if_possible=True):
+    def add_density_grid(self, density, dust, specific_energy=None, merge_if_possible=True):
 
         # TODO - check that density is array, except it doesn't have to be, for AMR objects
 
@@ -471,38 +507,20 @@ class Model(FreezableClass):
             if specific_energy is not None:
                 self.grid['specific_energy'] = []
 
-        if minimum_specific_energy is not None and minimum_temperature is not None:
-            raise Exception("Cannot specify both the minimum specific energy and temperature")
-        elif minimum_temperature is not None:
-            d = SphericalDust(dust) if type(dust) == str else dust
-            minimum_specific_energy = d.mean_opacities._temperature2specific_energy(minimum_temperature)
-
         # Check whether the density can be added to an existing one
         if merge_if_possible:
 
             # Only consider this if the specific energy is not specified
             if specific_energy is None:
 
-                    # Only do it if the dust type already exists
+                # Only do it if the dust type already exists
                 if dust in self.dust:
 
+                    logger.info("Merging densities")
+
                     ip = self.dust.index(dust)
-
-                    # Check whether the minimum_specific_energy values differ
-                    if minimum_specific_energy is not None:
-                        if self.minimum_specific_energy[ip] != minimum_specific_energy:
-                            logger.warn("Cannot merge density grids because minimum_specific_energy values differ")
-                            merge = False
-                        else:
-                            merge = True
-                    else:
-                        merge = True
-
-                    # Merge the densities
-                    if merge:
-                        logger.info("Merging densities")
-                        self.grid.quantities['density'][ip] += density
-                        return
+                    self.grid.quantities['density'][ip] += density
+                    return
 
         # Set the density and dust
         self.grid['density'].append(density)
@@ -511,12 +529,6 @@ class Model(FreezableClass):
         # Set specific energy if specified
         if specific_energy is not None:
             self.grid['specific_energy'].append(specific_energy)
-
-        # Set minimum specific energy
-        if minimum_specific_energy is not None:
-            self.minimum_specific_energy.append(minimum_specific_energy)
-        else:
-            self.minimum_specific_energy.append(0.)
 
     def set_cartesian_grid(self, x_wall, y_wall, z_wall):
         self.set_grid(CartesianGrid(x_wall, y_wall, z_wall))
@@ -546,6 +558,52 @@ class Model(FreezableClass):
         else:
             self.binned_output = BinnedImageConf(**kwargs)
             return self.binned_output
+
+    def set_minimum_temperature(self, temperature):
+        '''
+        Set the minimum temperature for the dust
+
+        Parameters
+        ----------
+        temperature : float, list, tuple, or Numpy array
+
+        Notes
+        -----
+        This method should not be used in conjunction with
+        ``set_minimum_specific_energy`` - only one of the two should be used.
+        '''
+        if np.isscalar(temperature):
+            validate_scalar('temperature', temperature, domain='positive')
+        elif type(temperature) in [list, tuple] or is_numpy_array(temperature):
+            temperature = list(temperature)
+            for value in temperature:
+                validate_scalar('temperature', value, domain='positive')
+        if self._minimum_specific_energy is not None:
+            raise Exception("minimum specific_energy has already been set")
+        self._minimum_temperature = temperature
+
+    def set_minimum_specific_energy(self, specific_energy):
+        '''
+        Set the minimum specific energy for the dust
+
+        Parameters
+        ----------
+        specific_energy : float, list, tuple, or Numpy array
+
+        Notes
+        -----
+        This method should not be used in conjunction with
+        ``set_minimum_temperature`` - only one of the two should be used.
+        '''
+        if np.isscalar(specific_energy):
+            validate_scalar('specific_energy', specific_energy, domain='positive')
+        elif type(specific_energy) in [list, tuple] or is_numpy_array(specific_energy):
+            specific_energy = list(specific_energy)
+            for value in specific_energy:
+                validate_scalar('specific_energy', value, domain='positive')
+        if self._minimum_temperature is not None:
+            raise Exception("minimum temperature has already been set")
+        self._minimum_specific_energy = specific_energy
 
     def run(self, filename=None, logfile=None, mpi=False, n_processes=multiprocessing.cpu_count(), overwrite=False):
 

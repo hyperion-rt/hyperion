@@ -8,6 +8,7 @@ from ..util.convenience import OptThinRadius
 from ..util.integrate import integrate_powerlaw
 from ..dust import SphericalDust
 from ..util.logger import logger
+from ..util.validator import validate_scalar
 
 
 class FlaredDisk(FreezableClass):
@@ -209,28 +210,15 @@ class FlaredDisk(FreezableClass):
 
             # Positive scalars
             if attribute in ['mass', 'h_0', 'r_0']:
-                if not np.isscalar(value):
-                    raise ValueError("{0:s} should be a scalar value".format(attribute))
-                if not np.isreal(value):
-                    raise ValueError("{0:s} should be a numerical value".format(attribute))
-                if value < 0.:
-                    raise ValueError("{0:s} should be positive".format(attribute))
+                validate_scalar(attribute, value, domain='positive')
 
             # Scalars
             if attribute in ['p', 'beta']:
-                if not np.isscalar(value):
-                    raise ValueError("{0:s} should be a scalar value".format(attribute))
-                if not np.isreal(value):
-                    raise ValueError("{0:s} should be a numerical value".format(attribute))
+                validate_scalar(attribute, value, domain='real')
 
             # Radii (positive scalars or OptThinRadius instance)
             if attribute in ['rmin', 'rmax']:
                 if not isinstance(value, OptThinRadius):
-                    if not np.isscalar(value):
-                        raise ValueError("{0:s} should be a scalar value or an OptThinRadius instance".format(attribute))
-                    if not np.isreal(value):
-                        raise ValueError("{0:s} should be a numerical value or an OptThinRadius instance".format(attribute))
-                    if value < 0.:
-                        raise ValueError("{0:s} should be positive".format(attribute))
+                    validate_scalar(attribute, value, domain='positive', extra=' or an OptThinRadius instance')
 
         FreezableClass.__setattr__(self, attribute, value)
