@@ -12,7 +12,7 @@ from hyperion.testing.helper import HyperionTest
 scripts = ['hyperion', 'hyperion2fits', 'mctherm2hyperion']
 
 setup(name='hyperion',
-      version='0.8.5',
+      version='0.8.6',
       packages=['hyperion',
                 'hyperion.conf',
                 'hyperion.densities',
