@@ -36,15 +36,16 @@ arrays (4 = 32-bit, 8 = 64-bit)::
 
     m.set_output_bytes(4)
 
-For the :doc:`../setup/model` class, one can set a minimum temperature to
-which temperatures below this will be reset::
+To set the minimum temperature for dust::
 
-    m.add_density_grid(density, dust, minimum_temperature=100.)
+    m.set_minimum_temperature(10.)
+    m.set_minimum_temperature([10., 5., 20.])
 
-and in terms of specific energy::
+If a scalar value is specified, the same value is used for all dust types. If
+a list is specified, the list should have as many items as dust types, and
+each item corresponds to the minimum temperature for each dust type.
 
-    m.add_density_grid(density, dust, minimum_specific_energy=100.)
+Similarly, to set the minimum specific energy::
 
-For the :doc:`../setup/analytical_yso_model`, this can be done with::
-
-    m.set_minimum_temperature(100.)
+    m.set_minimum_specific_energy(1.e-4)
+    m.set_minimum_specific_energy([1.e-4, 1.e-5, 2.e-5])

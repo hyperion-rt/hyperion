@@ -427,7 +427,7 @@ class Model(FreezableClass):
                 _minimum_temperature = self._minimum_temperature
 
             _minimum_specific_energy = []
-            for dust in root['Dust']:
+            for i, dust in enumerate(root['Dust']):
                 mo = SphericalDust(root['Dust'][dust]).mean_opacities
                 _minimum_specific_energy.append(mo._temperature2specific_energy(_minimum_temperature[i]))
 
