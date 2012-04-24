@@ -11,8 +11,6 @@ import subprocess
 
 from distutils.core import Command
 
-import pytest
-
 
 class TestRunner(object):
 
@@ -21,44 +19,6 @@ class TestRunner(object):
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None):
-        """
-        Run Hyperion tests using py.test. A proper set of arguments is
-        constructed and passed to `pytest.main`.
-
-        Parameters
-        ----------
-        package : str, optional
-            The name of a specific package to test, e.g. 'model' or
-            'densities'. If nothing is specified all default Hyperion tests
-            are run.
-
-        test_path : str, optional
-            Specify location to test by path. May be a single file or
-            directory. Must be specified absolutely or relative to the
-            calling directory.
-
-        args : str, optional
-            Additional arguments to be passed to `pytest.main` in the `args`
-            keyword argument.
-
-        plugins : list, optional
-            Plugins to be passed to `pytest.main` in the `plugins` keyword
-            argument.
-
-        verbose : bool, optional
-            Convenience option to turn on verbose output from py.test. Passing
-            True is the same as specifying `-v` in `args`.
-
-        pastebin : {'failed','all',None}, optional
-            Convenience option for turning on py.test pastebin output. Set to
-            'failed' to upload info for failed tests, or 'all' to upload info
-            for all tests.
-
-        See Also
-        --------
-        pytest.main : py.test function wrapped by `run_tests`.
-
-        """
 
         if package is None:
             package_path = self.base_path
@@ -93,6 +53,7 @@ class TestRunner(object):
         all_args = shlex.split(all_args,
                                posix=not sys.platform.startswith('win'))
 
+        import pytest
         return pytest.main(args=all_args, plugins=plugins)
 
 
