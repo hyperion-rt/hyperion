@@ -24,10 +24,10 @@ Ds9 version x.x or later is required to be able to navigate FITS cubes with more
 Extracting Information
 ======================
 
-The first step to extracting information from the models is to create an instance of the ``Model`` class, giving it the name of the output file minus the extension::
+The first step to extracting information from the models is to create an instance of the ``ModelOutput`` class, giving it the name of the output file minus the extension::
 
-    from hyperion.model import Model
-    m = Model('simple_model')
+    from hyperion.model import ModelOutput
+    m = ModelOutput('simple_model')
 
 SEDs
 ----
