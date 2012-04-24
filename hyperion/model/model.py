@@ -410,41 +410,41 @@ class Model(FreezableClass):
             else:
                 raise ValueError("Unknown type for dust attribute: %s" % type(self.dust))
 
+            _n_dust = len(root['Dust'])
+
+            # Write minimum specific energy
+            if self._minimum_temperature is not None:
+
+                if np.isscalar(self._minimum_temperature):
+                    _minimum_temperature = [self._minimum_temperature for i in range(_n_dust)]
+                elif len(self._minimum_temperature) != _n_dust:
+                    raise Exception("Number of minimum_temperature values should match number of dust types")
+                else:
+                    _minimum_temperature = self._minimum_temperature
+
+                _minimum_specific_energy = []
+                for i, dust in enumerate(root['Dust']):
+                    mo = SphericalDust(root['Dust'][dust]).mean_opacities
+                    _minimum_specific_energy.append(mo._temperature2specific_energy(_minimum_temperature[i]))
+
+            elif self._minimum_specific_energy is not None:
+
+                if np.isscalar(self._minimum_specific_energy):
+                    _minimum_specific_energy = [self._minimum_specific_energy for i in range(_n_dust)]
+                elif len(self._minimum_specific_energy) != _n_dust:
+                    raise Exception("Number of minimum_specific_energy values should match number of dust types")
+                else:
+                    _minimum_specific_energy = self._minimum_specific_energy
+
+            else:
+
+                _minimum_specific_energy = [0. for i in range(_n_dust)]
+
+            g_grid['Quantities'].attrs["minimum_specific_energy"] = [float(x) for x in _minimum_specific_energy]
+
         else:
 
             root.create_group('Dust')
-
-        _n_dust = len(root['Dust'])
-
-        # Write minimum specific energy
-        if self._minimum_temperature is not None:
-
-            if np.isscalar(self._minimum_temperature):
-                _minimum_temperature = [self._minimum_temperature for i in range(_n_dust)]
-            elif len(self._minimum_temperature) != _n_dust:
-                raise Exception("Number of minimum_temperature values should match number of dust types")
-            else:
-                _minimum_temperature = self._minimum_temperature
-
-            _minimum_specific_energy = []
-            for i, dust in enumerate(root['Dust']):
-                mo = SphericalDust(root['Dust'][dust]).mean_opacities
-                _minimum_specific_energy.append(mo._temperature2specific_energy(_minimum_temperature[i]))
-
-        elif self._minimum_specific_energy is not None:
-
-            if np.isscalar(self._minimum_specific_energy):
-                _minimum_specific_energy = [self._minimum_specific_energy for i in range(_n_dust)]
-            elif len(self._minimum_specific_energy) != _n_dust:
-                raise Exception("Number of minimum_specific_energy values should match number of dust types")
-            else:
-                _minimum_specific_energy = self._minimum_specific_energy
-
-        else:
-
-            _minimum_specific_energy = [0. for i in range(_n_dust)]
-
-        g_grid['Quantities'].attrs["minimum_specific_energy"] = [float(x) for x in _minimum_specific_energy]
 
         root.close()
 
