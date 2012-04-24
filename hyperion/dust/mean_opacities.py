@@ -123,12 +123,15 @@ class MeanOpacities(FreezableClass):
     def from_table_set(self, table_set):
 
         tmean = table_set['mean_opacities']
-        self.var_name = tmean.keywords['var_name']
+        self.var_name = str(tmean.keywords['var_name'])
         self.var = tmean[self.var_name]
         self.chi_planck = tmean['chi_planck']
         self.kappa_planck = tmean['kappa_planck']
         self.chi_rosseland = tmean['chi_rosseland']
         self.kappa_rosseland = tmean['kappa_rosseland']
+
+        # Indicate that mean opacities have been set
+        self.set = True
 
     def plot(self, figure, subplot):
 

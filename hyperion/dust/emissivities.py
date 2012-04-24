@@ -144,6 +144,9 @@ class Emissivities(FreezableClass):
         temissvar = table_set['emissivity_variable']
         self.var = temissvar[self.var_name]
 
+        # Indicate that emissivites have been set
+        self.set = True
+
     def plot(self, figure, subplot):
 
         import matplotlib.pyplot as plt

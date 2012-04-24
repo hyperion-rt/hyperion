@@ -72,6 +72,7 @@ class SphericalDust(FreezableClass):
 
         # Compute mean opacities if not already existent
         if not self.mean_opacities.set:
+            logger.info("Computing mean opacities")
             self.mean_opacities.compute(self.emissivities, self.optical_properties)
 
         # Initialize figure
