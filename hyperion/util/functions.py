@@ -15,7 +15,7 @@ from .constants import h, c, k
 TMPDIR = tempfile.mkdtemp()
 
 
-def link_or_copy(group, path, link, copy, absolute_paths=False):
+def link_or_copy(group, name, link, copy, absolute_paths=False):
     '''
     Link or copy a dataaset or group
 
@@ -23,8 +23,8 @@ def link_or_copy(group, path, link, copy, absolute_paths=False):
     ----------
     group: h5py.Group
         The group to create the link, dataset, or group in
-    path: str
-        The path of the link, dataset, or group in the new file
+    name: str
+        The name of the link, dataset, or group in the new file
     link: h5py.ExternalLink
         A link to the group or dataset to include
     copy: bool
@@ -35,13 +35,13 @@ def link_or_copy(group, path, link, copy, absolute_paths=False):
     '''
     if copy:
         f = h5py.File(link.filename, 'r')
-        group.copy(f[link.path], path)
+        f.copy(link.path, group, name=name)
         f.close()
     else:
         if absolute_paths:
-            group[path] = h5py.ExternalLink(os.path.abspath(link.filename), link.path)
+            group[name] = h5py.ExternalLink(os.path.abspath(link.filename), link.path)
         else:
-            group[path] = h5py.ExternalLink(os.path.relpath(link.filename, os.path.dirname(group.file.filename)), link.path)
+            group[name] = h5py.ExternalLink(os.path.relpath(link.filename, os.path.dirname(group.file.filename)), link.path)
 
 
 class FreezableClass(object):
