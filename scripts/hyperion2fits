@@ -36,7 +36,7 @@ for filename in arguments:
         if 'Peeled' in f:
             n_groups = len(f['Peeled'])
             for ig in range(n_groups):
-                group = f['Peeled/Group %05i' % (ig + 1)]
+                group = f['Peeled/group_%05i' % (ig + 1)]
                 if 'images' in group:
                     image = np.array(group['images'])
                     image = image.swapaxes(-1, -2)
