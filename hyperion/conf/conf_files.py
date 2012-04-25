@@ -6,7 +6,7 @@ from ..util.functions import FreezableClass
 
 
 def bool2str(value):
-    return 'yes'.encode('utf-8') if value else 'no'.encode('utf-8')
+    return np.string_('yes'.encode('utf-8')) if value else np.string_('no'.encode('utf-8'))
 
 
 class OutputConf(FreezableClass):
@@ -22,10 +22,10 @@ class OutputConf(FreezableClass):
         self._freeze()
 
     def write(self, group):
-        group.attrs['output_density'] = self.output_density.encode('utf-8')
-        group.attrs['output_density_diff'] = self.output_density_diff.encode('utf-8')
-        group.attrs['output_specific_energy'] = self.output_specific_energy.encode('utf-8')
-        group.attrs['output_n_photons'] = self.output_n_photons.encode('utf-8')
+        group.attrs['output_density'] = np.string_(self.output_density.encode('utf-8'))
+        group.attrs['output_density_diff'] = np.string_(self.output_density_diff.encode('utf-8'))
+        group.attrs['output_specific_energy'] = np.string_(self.output_specific_energy.encode('utf-8'))
+        group.attrs['output_n_photons'] = np.string_(self.output_n_photons.encode('utf-8'))
 
 
 class RunConf(FreezableClass):
@@ -641,7 +641,7 @@ class ImageConf(FreezableClass):
         self.track_origin = track_origin
 
     def _write_track_origin(self, group):
-        group.attrs['track_origin'] = self.track_origin.encode('utf-8')
+        group.attrs['track_origin'] = np.string_(self.track_origin.encode('utf-8'))
 
     def set_uncertainties(self, uncertainties):
         '''

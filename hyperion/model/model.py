@@ -24,9 +24,9 @@ from .model_output import ModelOutput
 
 def bool2str(value):
     if value:
-        return "yes".encode('utf-8')
+        return np.string_("yes".encode('utf-8'))
     else:
-        return "no".encode('utf-8')
+        return np.string_("no".encode('utf-8'))
 
 
 class Configuration(FreezableClass):
@@ -315,7 +315,7 @@ class Model(FreezableClass):
         root = h5py.File(filename, 'w')
 
         # Add Python version
-        root.attrs['python_version'] = __version__.encode('utf-8')
+        root.attrs['python_version'] = np.string_(__version__.encode('utf-8'))
 
         # Create all the necessary groups and sub-groups
         g_grid = root.create_group('Grid')
