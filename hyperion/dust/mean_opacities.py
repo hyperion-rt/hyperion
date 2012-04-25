@@ -124,7 +124,7 @@ class MeanOpacities(FreezableClass):
 
         tmean = table_set['mean_opacities']
         self.var_name = np.string_(tmean.keywords['var_name'])
-        self.var = tmean[self.var_name]
+        self.var = tmean[tmean.keywords['var_name']]
         self.chi_planck = tmean['chi_planck']
         self.kappa_planck = tmean['kappa_planck']
         self.chi_rosseland = tmean['chi_rosseland']
