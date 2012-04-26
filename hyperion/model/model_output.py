@@ -233,7 +233,11 @@ class ModelOutput(FreezableClass):
             raise Exception("Cannot scale linear or circular polarization degree by distance")
 
         if technique == 'peeled':
-            g = self.file['Peeled/group_%05i' % (group + 1)]
+            n_groups = len(self.file['Peeled'])
+            if (group < 0 and -group <= n_groups) or (group >= 0 and group < n_groups):
+                g = self.file['Peeled/group_%05i' % (group + 1)]
+            else:
+                raise ValueError('File only contains %i image/SED group(s)' % n_groups)
         else:
             g = self.file['Binned']
 
@@ -705,7 +709,11 @@ class ModelOutput(FreezableClass):
             raise Exception("Cannot scale linear or circular polarization degree by distance")
 
         if technique == 'peeled':
-            g = self.file['Peeled/group_%05i' % (group + 1)]
+            n_groups = len(self.file['Peeled'])
+            if (group < 0 and -group <= n_groups) or (group >= 0 and group < n_groups):
+                g = self.file['Peeled/group_%05i' % (group + 1)]
+            else:
+                raise ValueError('File only contains %i image/SED group(s)' % n_groups)
         else:
             g = self.file['Binned']
 

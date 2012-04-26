@@ -44,14 +44,16 @@ class TestImageSimpleModel(object):
         wav, nufnu = self.m.get_image(group=0)
 
     def test_image_group_invalid1(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError) as exc:
             wav, nufnu = self.m.get_image(group=-2)
             # negative indexing allowed, but only one group present
+        assert exc.value.args[0] == 'File only contains 1 image/SED group(s)'
 
     def test_image_group_invalid2(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError) as exc:
             wav, nufnu = self.m.get_image(group=1)
             # zero-based, and only one group present
+        assert exc.value.args[0] == 'File only contains 1 image/SED group(s)'
 
     def test_image_dim(self):
         wav, nufnu = self.m.get_image()
