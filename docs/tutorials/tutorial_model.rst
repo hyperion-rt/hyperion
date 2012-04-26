@@ -14,7 +14,7 @@ can create the model by running the following script::
     from hyperion.util.constants import pc, lsun
 
     # Initialize model
-    m = Model('tutorial_model')
+    m = Model()
 
     # Set one-cell cartesian grid
     w = np.linspace(-pc, pc, 32)
@@ -44,7 +44,7 @@ can create the model by running the following script::
     # Add a fly-around at 500 microns
     image = m.add_peeled_images(sed=False, image=True)
     image.set_wavelength_range(1, 499., 501.)
-    image.set_viewing_angles(np.repeat(45., 36), np.linspace(0., 350., 36))
+    image.set_viewing_angles(np.repeat(45., 36), np.linspace(5., 355., 36))
     image.set_image_size(200, 200)
     image.set_image_limits(-1.5 * pc, 1.5 * pc, -1.5 * pc, 1.5 * pc)
 
@@ -55,7 +55,7 @@ can create the model by running the following script::
                     raytracing_sources=1e6, raytracing_dust=1e6)
 
     # Write out input file
-    m.write()
+    m.write('tutorial_model.rtin')
 
 Copy the above script into a file, say ``setup.py``, and download the :download:`kmh_lite.hdf5 <kmh_lite.hdf5>` dust file into the same
 directory, then set up the model with::

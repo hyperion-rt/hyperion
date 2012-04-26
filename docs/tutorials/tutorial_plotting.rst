@@ -89,11 +89,11 @@ aperture, we can do::
     mpl.use('Agg')
     import matplotlib.pyplot as plt
 
-    from hyperion.model import Model
+    from hyperion.model import ModelOutput
     from hyperion.util.constants import pc
 
     # Open the model - we specify the name without the .rtout extension
-    m = Model('tutorial_model')
+    m = ModelOutput('tutorial_model.rtout')
 
     # Create the plot
     fig = plt.figure()
@@ -133,10 +133,10 @@ Now let's say that we want to plot the SED for all inclinations. We can either c
     mpl.use('Agg')
     import matplotlib.pyplot as plt
 
-    from hyperion.model import Model
+    from hyperion.model import ModelOutput
     from hyperion.util.constants import pc
 
-    m = Model('tutorial_model')
+    m = ModelOutput('tutorial_model.rtout')
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
@@ -175,10 +175,10 @@ you can plot the individual components. The following example retrieves each sep
     mpl.use('Agg')
     import matplotlib.pyplot as plt
 
-    from hyperion.model import Model
+    from hyperion.model import ModelOutput
     from hyperion.util.constants import pc
 
-    m = Model('tutorial_model')
+    m = ModelOutput('tutorial_model.rtout')
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)

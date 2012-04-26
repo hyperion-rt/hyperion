@@ -16,7 +16,7 @@ The following script describes how to generate PNG frames for an animation::
     mpl.use('Agg')
     import matplotlib.pyplot as plt
 
-    from hyperion.model import Model
+    from hyperion.model import ModelOutput
     from hyperion.util.constants import pc
 
     # Create output directory if it does not already exist
@@ -24,7 +24,7 @@ The following script describes how to generate PNG frames for an animation::
         os.mkdir('frames')
 
     # Open model
-    m = Model('tutorial_model')
+    m = ModelOutput('tutorial_model.rtout')
 
     # Read image from model
     wav, nufnu = m.get_image(group=2, distance=300 * pc)

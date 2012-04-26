@@ -97,11 +97,11 @@ for the first inclination and the largest aperture, we can do::
 
     import numpy as np
 
-    from hyperion.model import Model
+    from hyperion.model import ModelOutput
     from hyperion.util.constants import pc
 
     # Open the model - we specify the name without the .rtout extension
-    m = Model('tutorial_model')
+    m = ModelOutput('tutorial_model.rtout')
 
     # Extract the SED for the smallest inclination and largest aperture, and
     # scale to 300pc. In Python, negative indices can be used for lists and
@@ -137,11 +137,11 @@ extracted, we can write them out to a FITS file using
 
     import pyfits
 
-    from hyperion.model import Model
+    from hyperion.model import ModelOutput
     from hyperion.util.constants import pc
 
     # Open the model - we specify the name without the .rtout extension
-    m = Model('tutorial_model')
+    m = ModelOutput('tutorial_model.rtout')
 
     # Extract the image for the first inclination, and scale to 300pc. We
     # have to specify group=1 as there is no image in group 0
@@ -159,10 +159,10 @@ Adding World Coordinate System (WCS) information is easy using
     import pywcs
     import pyfits
 
-    from hyperion.model import Model
+    from hyperion.model import ModelOutput
     from hyperion.util.constants import pc
 
-    m = Model('tutorial_model')
+    m = ModelOutput('tutorial_model.rtout')
     wav, nufnu = m.get_image(group=1, inclination=0, distance=300 * pc)
 
     # Initialize WCS information
