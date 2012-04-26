@@ -11,7 +11,7 @@ from ..util.logger import logger
 class BipolarCavity(FreezableClass):
 
     def __init__(self, theta_0=0., power=1.5, r_0=None,
-                 rho_0=None, rho_exp=0., rho_amb=0., envelope=None):
+                 rho_0=None, rho_exp=0., envelope=None):
         '''
         Initialize a Bipolar Cavity instance. The required parameters are:
 
@@ -20,7 +20,6 @@ class BipolarCavity(FreezableClass):
             r_0: base radius in the cavity (cm)
             rho_0: base density in the cavity (g/cm^3)
             rho_exp: vertical density exponent
-            rho_amb: ambient density (g/cm^3)
             cap_to_envelope_density: whether to use the envelope density as an upper limit
 
             envelope: the parent envelope
