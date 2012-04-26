@@ -27,6 +27,30 @@ def test_write_nogrid():
     assert e.value.args[0] == 'No coordinate grid has been set up'
 
 
+def test_write_nophotons():
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    with pytest.raises(Exception) as e:
+        m.write('test')
+    assert e.value.args[0] == 'Photon numbers not set'
+
+
+def test_write_incomplete_photons_1():
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    with pytest.raises(Exception) as e:
+        m.set_n_photons(initial=1)
+    assert e.value.args[0] == '[n_photons] imaging should bet set'
+
+
+def test_write_incomplete_photons_2():
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    with pytest.raises(Exception) as e:
+        m.set_n_photons(imaging=1)
+    assert e.value.args[0] == '[n_photons] initial should be set since the initial iterations are being computed'
+
+
 class TestWriteDustCopy(object):
 
     def setup_method(self, method):
