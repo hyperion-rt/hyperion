@@ -72,7 +72,7 @@ class PowerLawEnvelope(Envelope):
     def exists(self):
         return self.rho_0 > 0.
 
-    def density(self, grid):
+    def density(self, grid, ignore_cavity=False):
         '''
         Find the density of a power-law envelope
 
@@ -98,7 +98,7 @@ class PowerLawEnvelope(Envelope):
 
         rho = rho * norm
 
-        if self.cavity is not None:
+        if not ignore_cavity and self.cavity is not None:
             mask = self.cavity.mask(grid)
             rho[~mask] = 0.
 

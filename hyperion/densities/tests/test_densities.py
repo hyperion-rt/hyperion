@@ -173,13 +173,13 @@ def test_power_law_cavity_invalid2():
 # Ulrich Envelope
 
 
-@pytest.mark.parametrize(('parameter'), ['mdot', 'rmin', 'rmax', 'rho_0', 'rc', 'rho_amb'])
+@pytest.mark.parametrize(('parameter'), ['mdot', 'rmin', 'rmax', 'rho_0', 'rc'])
 def test_ulrich_envelope_positive(parameter):
     e = UlrichEnvelope()
     e.__setattr__(parameter, 1.)
 
 
-@pytest.mark.parametrize(('parameter'), ['mdot', 'rmin', 'rmax', 'rho_0', 'rc', 'rho_amb'])
+@pytest.mark.parametrize(('parameter'), ['mdot', 'rmin', 'rmax', 'rho_0', 'rc'])
 def test_ulrich_envelope_negative(parameter):
     e = UlrichEnvelope()
     if parameter in ['power']:
@@ -190,7 +190,7 @@ def test_ulrich_envelope_negative(parameter):
         assert exc.value.args[0] == parameter + ' should be positive'
 
 
-@pytest.mark.parametrize(('parameter'), ['mdot', 'rmin', 'rmax', 'rho_0', 'rc', 'rho_amb'])
+@pytest.mark.parametrize(('parameter'), ['mdot', 'rmin', 'rmax', 'rho_0', 'rc'])
 def test_ulrich_envelope_optthin(parameter):
     e = UlrichEnvelope()
     if parameter in ['rmin', 'rmax']:
@@ -201,7 +201,7 @@ def test_ulrich_envelope_optthin(parameter):
         assert exc.value.args[0] == parameter + ' should be a scalar value'
 
 
-@pytest.mark.parametrize(('parameter'), ['mdot', 'rmin', 'rmax', 'rho_0', 'rc', 'rho_amb'])
+@pytest.mark.parametrize(('parameter'), ['mdot', 'rmin', 'rmax', 'rho_0', 'rc'])
 def test_ulrich_envelope_invalid1(parameter):
     e = UlrichEnvelope()
     with pytest.raises(ValueError) as exc:
@@ -212,7 +212,7 @@ def test_ulrich_envelope_invalid1(parameter):
         assert exc.value.args[0] == parameter + ' should be a numerical value'
 
 
-@pytest.mark.parametrize(('parameter'), ['mdot', 'rmin', 'rmax', 'rho_0', 'rc', 'rho_amb'])
+@pytest.mark.parametrize(('parameter'), ['mdot', 'rmin', 'rmax', 'rho_0', 'rc'])
 def test_ulrich_envelope_invalid2(parameter):
     e = UlrichEnvelope()
     with pytest.raises(ValueError) as exc:

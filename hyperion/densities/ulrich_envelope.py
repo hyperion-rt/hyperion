@@ -129,7 +129,6 @@ class UlrichEnvelope(Envelope):
         self.rmin = rmin
         self.rmax = rmax
         self.rc = rc
-        self.rho_amb = ambient_density
 
         # Envelope Infall
         if mdot is not None and rho_0 is not None:
@@ -161,8 +160,6 @@ class UlrichEnvelope(Envelope):
             raise Exception("rmax is not set")
         if self.rc is None:
             raise Exception("rc is not set")
-        if self.rho_amb is None:
-            raise Exception("rho_amb is not set")
 
         if isinstance(self.rmin, OptThinRadius):
             raise Exception("Inner envelope radius needs to be computed first")
@@ -173,9 +170,9 @@ class UlrichEnvelope(Envelope):
             raise Exception("star is not set")
 
     def exists(self):
-        return self.rho_0 > 0. or self.rho_amb > 0.
+        return self.rho_0 > 0.
 
-    def density(self, grid):
+    def density(self, grid, ignore_cavity=False):
         '''
         Find the density of a Ulrich envelope
 
@@ -213,12 +210,10 @@ class UlrichEnvelope(Envelope):
         if np.any((np.abs(mu) < 1.e-10) & (grid.gr == self.rc)):
             raise Exception("Grid point too close to Ulrich singularity")
 
-        rho[rho < self.rho_amb] = self.rho_amb
-
         rho[grid.gr < self.rmin] = 0.
         rho[grid.gr > self.rmax] = 0.
 
-        if self.cavity is not None:
+        if not ignore_cavity and self.cavity is not None:
             mask = self.cavity.mask(grid)
             rho[~mask] = 0.
 
@@ -290,7 +285,7 @@ class UlrichEnvelope(Envelope):
                 return
 
             # Positive scalars
-            if attribute in ['rc', 'rho_amb', 'rho_0', 'mdot']:
+            if attribute in ['rc', 'rho_0', 'mdot']:
                 validate_scalar(attribute, value, domain='positive')
 
             # Radii (positive scalars or OptThinRadius instance)
