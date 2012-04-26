@@ -110,8 +110,8 @@ class MeanOpacities(FreezableClass):
 
         # Create mean opacities table
         tmean = atpy.Table(name='mean_opacities')
-        tmean.add_keyword('var_name', np.string_(self.var_name))
-        tmean.add_column(str(self.var_name), self.var)
+        tmean.add_keyword('var_name', self.var_name)
+        tmean.add_column(self.var_name, self.var)
         tmean.add_column('chi_planck', self.chi_planck)
         tmean.add_column('kappa_planck', self.kappa_planck)
         tmean.add_column('chi_rosseland', self.chi_rosseland)
@@ -123,8 +123,8 @@ class MeanOpacities(FreezableClass):
     def from_table_set(self, table_set):
 
         tmean = table_set['mean_opacities']
-        self.var_name = np.string_(tmean.keywords['var_name'])
-        self.var = tmean[tmean.keywords['var_name']]
+        self.var_name = tmean.keywords['var_name']
+        self.var = tmean[self.var_name]
         self.chi_planck = tmean['chi_planck']
         self.kappa_planck = tmean['kappa_planck']
         self.chi_rosseland = tmean['chi_rosseland']
