@@ -129,6 +129,8 @@ class AMRGrid(FreezableClass):
         if amr_grid is None:
             amr_grid = self
 
+        n_pop_ref = None
+
         # Loop over levels
         for ilevel, level_ref in enumerate(self.levels):
 
@@ -150,6 +152,12 @@ class AMRGrid(FreezableClass):
                         raise ValueError("Quantity arrays do not have the right "
                                          "dimensions: %s instead of %s"
                                          % (shape, grid.shape))
+
+                    if n_pop is not None:
+                        if n_pop_ref is None:
+                            n_pop_ref = n_pop
+                        elif n_pop != n_pop_ref:
+                            raise ValueError("Not all dust lists in the grid have the same size")
 
     def read(self, group, quantities='all'):
         '''

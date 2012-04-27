@@ -110,6 +110,8 @@ class OctreeGrid(FreezableClass):
             dimensions and meta-data.
         '''
 
+        n_pop_ref = None
+
         for quantity in self.quantities:
 
             n_pop, shape = single_grid_dims(self.quantities[quantity])
@@ -118,6 +120,12 @@ class OctreeGrid(FreezableClass):
                 raise ValueError("Quantity arrays do not have the right "
                                  "dimensions: %s instead of %s"
                                  % (shape, self.shape))
+
+            if n_pop is not None:
+                if n_pop_ref is None:
+                    n_pop_ref = n_pop
+                elif n_pop != n_pop_ref:
+                    raise ValueError("Not all dust lists in the grid have the same size")
 
     def read(self, group, quantities='all'):
         '''

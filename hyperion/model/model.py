@@ -3,6 +3,7 @@ from __future__ import print_function, division
 import os
 import subprocess
 import multiprocessing
+from copy import deepcopy
 
 import h5py
 import numpy as np
@@ -350,6 +351,9 @@ class Model(FreezableClass):
         self.conf.run.write(root)
         self.conf.output.write(g_output)
 
+        # Check self-consistency of grid
+        self.grid._check_array_dimensions()
+
         # Write the geometry and physical quantity arrays to the input file
         self.grid.write(g_grid, copy=copy, absolute_paths=absolute_paths, compression=compression, physics_dtype=physics_dtype)
 
@@ -550,7 +554,10 @@ class Model(FreezableClass):
         self.set_grid(AMRGrid(description))
 
     def set_grid(self, grid):
-        self.grid = grid
+        if isinstance(grid, AMRGrid):
+            self.grid = AMRGrid(grid)
+        else:
+            self.grid = deepcopy(grid)
 
     def add_peeled_images(self, **kwargs):
         self.peeled_output.append(PeeledImageConf(**kwargs))
