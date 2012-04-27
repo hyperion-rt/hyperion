@@ -6,6 +6,7 @@ import pytest
 from .. import Model
 from .test_helpers import random_filename, get_test_dust
 from ...grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid, AMRGrid, OctreeGrid
+from ...dust import IsotropicDust
 
 
 def test_basic():
@@ -102,8 +103,73 @@ class TestDensitySpecificEnergy(object):
         m = Model()
         m.set_grid(self.grid[grid_type])
         m.add_density_grid(self.density[grid_type], self.dust, specific_energy=self.density[grid_type])
-        m.add_density_grid(self.density[grid_type], self.dust, merge_if_possible=False)
+        m.add_density_grid(self.density[grid_type], self.dust)
         m.set_n_photons(initial=100, imaging=100)
         with pytest.raises(Exception) as exc:
             m.write(random_filename())
         assert exc.value.args[0] == "Not all dust lists in the grid have the same size"
+
+
+class TestMerge(object):
+
+    @classmethod
+    def setup_class(self):
+
+        self.dust1_filename = random_filename()
+        self.dust1 = get_test_dust()
+        self.dust1.write(self.dust1_filename)
+
+        self.dust2_filename = random_filename()
+        self.dust2 = get_test_dust()
+        self.dust2.write(self.dust2_filename)
+
+        self.dust3_filename = random_filename()
+        self.dust3 = IsotropicDust([3.e9, 3.e16], [0.5, 0.5], [1., 0.5])
+        self.dust3.emissivities.set_lte(self.dust3.optical_properties, n_temp=10, temp_min=0.1, temp_max=1600.)
+
+        self.dust3.write(self.dust3_filename)
+
+    def test_merge_no(self):
+
+        m = Model()
+        m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+        m.set_n_photons(initial=100, imaging=100)
+        m.add_density_grid(np.array([[[1.]]]), self.dust1_filename)
+        m.add_density_grid(np.array([[[1.]]]), self.dust2_filename, merge_if_possible=True)
+        assert m.grid.n_dust == 2
+
+    def test_merge_filename(self):
+
+        m = Model()
+        m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+        m.set_n_photons(initial=100, imaging=100)
+        m.add_density_grid(np.array([[[1.]]]), self.dust1_filename)
+        m.add_density_grid(np.array([[[1.]]]), self.dust1_filename, merge_if_possible=True)
+        assert m.grid.n_dust == 1
+
+    def test_merge_object_identical(self):
+
+        m = Model()
+        m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+        m.set_n_photons(initial=100, imaging=100)
+        m.add_density_grid(np.array([[[1.]]]), self.dust1)
+        m.add_density_grid(np.array([[[1.]]]), self.dust1, merge_if_possible=True)
+        assert m.grid.n_dust == 1
+
+    def test_merge_object_samehash(self):
+
+        m = Model()
+        m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+        m.set_n_photons(initial=100, imaging=100)
+        m.add_density_grid(np.array([[[1.]]]), self.dust1)
+        m.add_density_grid(np.array([[[1.]]]), self.dust2, merge_if_possible=True)
+        assert m.grid.n_dust == 1
+
+    def test_merge_object_diffhash(self):
+
+        m = Model()
+        m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+        m.set_n_photons(initial=100, imaging=100)
+        m.add_density_grid(np.array([[[1.]]]), self.dust1)
+        m.add_density_grid(np.array([[[1.]]]), self.dust3, merge_if_possible=True)
+        assert m.grid.n_dust == 2

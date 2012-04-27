@@ -529,7 +529,7 @@ class AnalyticalYSOModel(Model):
         overwrite: bool
             Whether to overwrite any pre-existing file
         merge_if_possible: bool
-            Whether to merge densities for the same dust populations
+            Whether to merge density arrays that have the same dust type
         '''
 
         if self.grid is None:

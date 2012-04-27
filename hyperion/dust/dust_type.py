@@ -48,6 +48,13 @@ class SphericalDust(FreezableClass):
         else:
             raise Exception("SphericalDust cannot take more than one argument")
 
+    def hash(self):
+        h = hashlib.md5()
+        h.update(self.optical_properties.hash())
+        h.update(self.emissivities.hash())
+        h.update(self.mean_opacities.hash())
+        return h.hexdigest()
+
     def plot(self, filename):
 
         import matplotlib.pyplot as plt

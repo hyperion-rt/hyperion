@@ -14,7 +14,7 @@ from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, Octr
 from ..sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource
 from ..conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from ..util.constants import c
-from ..util.functions import FreezableClass, link_or_copy
+from ..util.functions import FreezableClass, link_or_copy, is_numpy_array
 from ..dust import SphericalDust
 from ..util.logger import logger
 from ..util.validator import validate_scalar
@@ -487,9 +487,32 @@ class Model(FreezableClass):
     def add_source(self, source):
         self.sources.append(source)
 
-    def add_density_grid(self, density, dust, specific_energy=None, merge_if_possible=True):
+    def add_density_grid(self, density, dust, specific_energy=None, merge_if_possible=False):
+        '''
+        Add a density grid to the model
 
-        # TODO - check that density is array, except it doesn't have to be, for AMR objects
+        Parameters
+        ----------
+        density : np.ndarray or grid quantity
+            The density of the dust. This can be specified either as a 3-d
+            Numpy array for cartesian, cylindrical polar, or spherical polar
+            grids, as a 1-d array for octree grids, or as a grid quantity
+            object for all grid types. Grid quantity objects are obtained by
+            taking an instance of a grid class (e.g. ``AMRGrid``,
+            ``CartesianGrid``, ...) and specifying the quantity as an index,
+            e.g. ``amr['density']`` where ``amr`` is an ``AMRGrid`` object.
+        dust : str or dust instance
+            The dust properties, specified either as a string giving the
+            filename of the dust properties, or a as an instance of a dust
+            class (e.g. ``SphericalDust``, ``IsotropicDust``, ...).
+        specific_energy : np.ndarray or grid quantity, optional
+            The specific energy of the density grid. Note that in order for
+            this to be useful, the number of initial iterations should be set
+            to zero, otherwise these values will be overwritten after the
+            first initial iteration.
+        merge_if_possible : bool
+            Whether to merge density arrays that have the same dust type
+        '''
 
         # Check that grid has been previously defined
         if not self.grid:
@@ -521,14 +544,33 @@ class Model(FreezableClass):
             # Only consider this if the specific energy is not specified
             if specific_energy is None:
 
-                # Only do it if the dust type already exists
-                if dust in self.dust:
+                if isinstance(dust, basestring):
 
-                    logger.info("Merging densities")
+                    if dust in self.dust:
 
-                    ip = self.dust.index(dust)
-                    self.grid.quantities['density'][ip] += density
-                    return
+                        logger.info("Merging densities (identical filenames)")
+
+                        ip = self.dust.index(dust)
+                        self.grid.quantities['density'][ip] += density
+                        return
+
+
+                else:
+
+                    dust_hashes = []
+                    for d in self.dust:
+                        if not isinstance(d, basestring):
+                            dust_hashes.append(d.hash())
+                        else:
+                            dust_hashes.append(None)
+
+                    if dust.hash() in dust_hashes:
+
+                        logger.info("Merging densities (identical hashes)")
+
+                        ip = dust_hashes.index(dust.hash())
+                        self.grid.quantities['density'][ip] += density
+                        return
 
         # Set the density and dust
         self.grid['density'].append(density)

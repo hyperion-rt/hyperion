@@ -96,7 +96,7 @@ def test_minimum_temperature_scalar_2():
 
     model = get_test_model_noimaging()
     model.add_density_grid(density, dust_file)
-    model.add_density_grid(density, dust_file, merge_if_possible=False)
+    model.add_density_grid(density, dust_file)
     model.set_minimum_temperature(10.)
     model.write(input_file)
     out = model.run(output_file)
@@ -112,7 +112,7 @@ def test_minimum_temperature_scalar_list_2():
 
     model = get_test_model_noimaging()
     model.add_density_grid(density, dust_file)
-    model.add_density_grid(density, dust_file, merge_if_possible=False)
+    model.add_density_grid(density, dust_file)
     model.set_minimum_temperature([10., 8.])
     model.write(input_file)
     out = model.run(output_file)
@@ -127,7 +127,7 @@ def test_minimum_temperature_scalar_list_2_invalid():
 
     model = get_test_model_noimaging()
     model.add_density_grid(density, dust_file)
-    model.add_density_grid(density, dust_file, merge_if_possible=False)
+    model.add_density_grid(density, dust_file)
     model.set_minimum_temperature([10., 8., 6.])
     with pytest.raises(Exception) as exc:
         model.write(input_file)
@@ -217,7 +217,7 @@ def test_minimum_specific_energy_scalar_2():
 
     model = get_test_model_noimaging()
     model.add_density_grid(density, dust_file)
-    model.add_density_grid(density, dust_file, merge_if_possible=False)
+    model.add_density_grid(density, dust_file)
     model.set_minimum_specific_energy(2.)
     model.write(input_file)
     out = model.run(output_file)
@@ -233,7 +233,7 @@ def test_minimum_specific_energy_scalar_list_2():
 
     model = get_test_model_noimaging()
     model.add_density_grid(density, dust_file)
-    model.add_density_grid(density, dust_file, merge_if_possible=False)
+    model.add_density_grid(density, dust_file)
     model.set_minimum_specific_energy([2., 3.])
     model.write(input_file)
     out = model.run(output_file)
@@ -248,7 +248,7 @@ def test_minimum_specific_energy_scalar_list_2_invalid():
 
     model = get_test_model_noimaging()
     model.add_density_grid(density, dust_file)
-    model.add_density_grid(density, dust_file, merge_if_possible=False)
+    model.add_density_grid(density, dust_file)
     model.set_minimum_specific_energy([2., 3., 4.])
     with pytest.raises(Exception) as exc:
         model.write(input_file)
