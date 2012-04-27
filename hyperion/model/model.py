@@ -505,8 +505,6 @@ class Model(FreezableClass):
         if 'density' in self.grid:
             if specific_energy is not None and 'specific_energy' not in self.grid:
                 raise Exception("Cannot add specific energy as it was not added for previous density arrays")
-            if specific_energy is None and 'specific_energy' in self.grid:
-                raise Exception("Specific energy was added for previous density arrays, so should be added for all arrays")
         else:
             self.dust = []
             self.grid['density'] = []

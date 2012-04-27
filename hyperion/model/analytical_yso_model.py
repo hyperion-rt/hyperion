@@ -535,7 +535,8 @@ class AnalyticalYSOModel(Model):
         if self.grid is None:
             raise Exception("The coordinate grid needs to be defined before calling AnalyticalModelYSO.write(...)")
 
-        self.grid.reset_quantities()
+        if 'density' in self.grid:
+            raise Exception("Density grid has already been set")
 
         for i, disk in enumerate(self.disks):
 
