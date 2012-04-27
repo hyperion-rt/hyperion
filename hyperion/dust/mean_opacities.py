@@ -15,7 +15,6 @@ class MeanOpacities(FreezableClass):
 
     def __init__(self):
 
-        self.set = False
         self.var_name = None
         self.var = None
         self.chi_planck = None
@@ -75,9 +74,6 @@ class MeanOpacities(FreezableClass):
             self.kappa_rosseland[ivar] = integrate_loglog(nu, inu) \
                                        / integrate_loglog(nu, inu / kappa_nu)
 
-        # Indicate that mean opacities have been set
-        self.set = True
-
     def _temperature2specific_energy(self, temperature):
         temperatures = np.sqrt(np.sqrt((self.var / (4. * sigma * self.kappa_planck))))
         specific_energy = interp1d_fast_loglog(temperatures, self.var, temperature,
@@ -108,6 +104,9 @@ class MeanOpacities(FreezableClass):
 
     def to_table_set(self, table_set):
 
+        if not self.all_set():
+            raise Exception("Not all attributes of the mean opacities are set")
+
         # Create mean opacities table
         tmean = atpy.Table(name='mean_opacities')
         tmean.add_keyword('var_name', self.var_name)
@@ -130,10 +129,18 @@ class MeanOpacities(FreezableClass):
         self.chi_rosseland = tmean['chi_rosseland']
         self.kappa_rosseland = tmean['kappa_rosseland']
 
-        # Indicate that mean opacities have been set
-        self.set = True
+    def all_set(self):
+        return self.var_name is not None and \
+               self.var is not None and \
+               self.chi_planck is not None and \
+               self.kappa_planck is not None and \
+               self.chi_rosseland is not None and \
+               self.kappa_rosseland is not None
 
     def plot(self, figure, subplot):
+
+        if not self.all_set():
+            raise Exception("Not all attributes of the mean opacities are set")
 
         ax = figure.add_subplot(subplot)
 

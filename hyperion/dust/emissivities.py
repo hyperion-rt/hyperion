@@ -17,7 +17,6 @@ class Emissivities(FreezableClass):
 
     def __init__(self):
 
-        self.set = False
         self.is_lte = None
         self.var_name = None
         self.var = None
@@ -55,9 +54,6 @@ class Emissivities(FreezableClass):
 
         # Find specific energy emissivity variable
         self.var = tev.specific_energy
-
-        # Indicate that emissivites have been set
-        self.set = True
 
     def set_lte(self, optical_properties, n_temp=1200, temp_min=0.1, temp_max=100000.):
 
@@ -100,10 +96,10 @@ class Emissivities(FreezableClass):
             # Compute specific energy absorbed
             self.var[it] = 4. * sigma * T ** 4. * kappa_planck
 
-        # Indicate that emissivites have been set
-        self.set = True
-
     def to_table_set(self, table_set):
+
+        if not self.all_set():
+            raise Exception("Not all attributes of the emissivities are set")
 
         # Create emissivities table
         temiss = atpy.Table(name='emissivities')
@@ -144,10 +140,17 @@ class Emissivities(FreezableClass):
         temissvar = table_set['emissivity_variable']
         self.var = temissvar[self.var_name]
 
-        # Indicate that emissivites have been set
-        self.set = True
+    def all_set(self):
+        return self.is_lte is not None and \
+               self.var_name is not None and \
+               self.var is not None and \
+               self.nu is not None and \
+               self.jnu is not None
 
     def plot(self, figure, subplot):
+
+        if not self.all_set():
+            raise Exception("Not all attributes of the emissivities are set")
 
         import matplotlib.pyplot as plt
 

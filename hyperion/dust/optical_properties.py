@@ -153,6 +153,9 @@ class OpticalProperties(FreezableClass):
 
     def to_table_set(self, table_set):
 
+        if not self.all_set():
+            raise Exception("Not all attributes of the optical properties are set")
+
         # Create optical properties table
         topt = atpy.Table(name='optical_properties')
         topt.add_column('nu', self.nu)
@@ -212,7 +215,20 @@ class OpticalProperties(FreezableClass):
         "Interpolate the opacity to absorption to a given wavelength"
         return interp1d_fast_loglog(self.nu, self.kappa, nu)
 
+    def all_set(self):
+        return self.nu is not None and \
+               self.chi is not None and \
+               self.albedo is not None and \
+               self.mu is not None and \
+               self.P1 is not None and \
+               self.P2 is not None and \
+               self.P3 is not None and \
+               self.P4 is not None
+
     def plot(self, figure, subplots):
+
+        if not self.all_set():
+            raise Exception("Not all attributes of the optical properties are set")
 
         import matplotlib.pyplot as plt
 

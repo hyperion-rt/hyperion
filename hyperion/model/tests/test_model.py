@@ -126,8 +126,12 @@ class TestMerge(object):
         self.dust3_filename = random_filename()
         self.dust3 = IsotropicDust([3.e9, 3.e16], [0.5, 0.5], [1., 0.5])
         self.dust3.emissivities.set_lte(self.dust3.optical_properties, n_temp=10, temp_min=0.1, temp_max=1600.)
-
         self.dust3.write(self.dust3_filename)
+
+        # The following dust file does not have emissivities and mean
+        # opacities since it has never been written to a file
+        self.dust4 = get_test_dust()
+
 
     def test_merge_no(self):
 
@@ -172,4 +176,13 @@ class TestMerge(object):
         m.set_n_photons(initial=100, imaging=100)
         m.add_density_grid(np.array([[[1.]]]), self.dust1)
         m.add_density_grid(np.array([[[1.]]]), self.dust3, merge_if_possible=True)
+        assert m.grid.n_dust == 2
+
+    def test_merge_object_incomplete(self):
+
+        m = Model()
+        m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+        m.set_n_photons(initial=100, imaging=100)
+        m.add_density_grid(np.array([[[1.]]]), self.dust1)
+        m.add_density_grid(np.array([[[1.]]]), self.dust4, merge_if_possible=True)
         assert m.grid.n_dust == 2

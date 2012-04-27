@@ -49,10 +49,24 @@ class SphericalDust(FreezableClass):
             raise Exception("SphericalDust cannot take more than one argument")
 
     def hash(self):
+
         h = hashlib.md5()
-        h.update(self.optical_properties.hash())
-        h.update(self.emissivities.hash())
-        h.update(self.mean_opacities.hash())
+
+        if self.optical_properties is None or not self.optical_properties.all_set():
+            h.update('none')
+        else:
+            h.update(self.optical_properties.hash())
+
+        if self.emissivities is None or not self.emissivities.all_set():
+            h.update('none')
+        else:
+            h.update(self.emissivities.hash())
+
+        if self.mean_opacities is None or not self.mean_opacities.all_set():
+            h.update('none')
+        else:
+            h.update(self.mean_opacities.hash())
+
         return h.hexdigest()
 
     def plot(self, filename):
@@ -73,12 +87,12 @@ class SphericalDust(FreezableClass):
         plt.rc('patch', linewidth=0.5)
 
         # Check that emissivities are set (before computing mean opacities)
-        if not self.emissivities.set:
+        if not self.emissivities.all_set():
             logger.info("Computing emissivities assuming LTE")
             self.emissivities.set_lte(self.optical_properties)
 
         # Compute mean opacities if not already existent
-        if not self.mean_opacities.set:
+        if not self.mean_opacities.all_set():
             logger.info("Computing mean opacities")
             self.mean_opacities.compute(self.emissivities, self.optical_properties)
 
@@ -178,12 +192,12 @@ class SphericalDust(FreezableClass):
         '''
 
         # Check that emissivities are set (before computing mean opacities)
-        if not self.emissivities.set:
+        if not self.emissivities.all_set():
             logger.info("Computing emissivities assuming LTE")
             self.emissivities.set_lte(self.optical_properties)
 
         # Compute mean opacities if not already existent
-        if not self.mean_opacities.set:
+        if not self.mean_opacities.all_set():
             self.mean_opacities.compute(self.emissivities, self.optical_properties)
 
         # Create dust table set
