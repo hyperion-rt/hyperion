@@ -130,6 +130,9 @@ class AnalyticalYSOModel(Model):
                     self.star.sources.pop('xray')
         Model.__setattr__(self, attribute, value)
 
+    def add_density_grid(self, *args, **kwargs):
+        raise NotImplementedError("add_density_grid cannot be used for AnalyticalYSOModel")
+
     # DENSITY COMPONENTS
 
     def add_ambient_medium(self):
@@ -548,7 +551,7 @@ class AnalyticalYSOModel(Model):
 
                 if not disk.dust:
                     raise Exception("Disk %i dust not set" % (i + 1))
-                self.add_density_grid(disk.density(self.grid), disk.dust,
+                Model.add_density_grid(self, disk.density(self.grid), disk.dust,
                                       merge_if_possible=merge_if_possible)
 
         for i, envelope in enumerate(self.envelopes):
@@ -563,8 +566,8 @@ class AnalyticalYSOModel(Model):
 
                 if not envelope.dust:
                     raise Exception("Envelope dust not set")
-                self.add_density_grid(envelope.density(self.grid), envelope.dust,
-                                      merge_if_possible=merge_if_possible)
+                Model.add_density_grid(self, envelope.density(self.grid), envelope.dust,
+                                       merge_if_possible=merge_if_possible)
 
                 if envelope.cavity is not None:
                     if envelope.cavity.theta_0 == 0.:
@@ -574,7 +577,7 @@ class AnalyticalYSOModel(Model):
                     else:
                         if not envelope.cavity.dust:
                             raise Exception("Cavity dust not set")
-                        self.add_density_grid(envelope.cavity.density(self.grid), envelope.cavity.dust,
+                        Model.add_density_grid(self, envelope.cavity.density(self.grid), envelope.cavity.dust,
                                               merge_if_possible=merge_if_possible)
 
         # AMBIENT MEDIUM

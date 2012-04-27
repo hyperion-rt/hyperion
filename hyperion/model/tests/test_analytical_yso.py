@@ -8,7 +8,7 @@ from ...util.functions import random_filename
 from .test_helpers import get_test_dust
 from ...util.convenience import OptThinRadius
 
-def test_full_analytical_yso():
+def test_analytical_yso_full():
 
     dust = get_test_dust()
 
@@ -35,7 +35,7 @@ def test_full_analytical_yso():
     m.write(random_filename())
 
 
-def test_nogrid_invalid():
+def test_analytical_yso_nogrid_invalid():
 
     m = AnalyticalYSOModel()
     with pytest.raises(Exception) as e:
@@ -43,7 +43,7 @@ def test_nogrid_invalid():
     assert e.value.args[0] == 'The coordinate grid needs to be defined before calling AnalyticalModelYSO.write(...)'
 
 
-def test_nostar_invalid():
+def test_analytical_yso_nostar_invalid():
 
     m = AnalyticalYSOModel()
     with pytest.raises(Exception) as e:
@@ -74,3 +74,10 @@ def test_analytical_yso_optthinradius():
     m.set_n_photons(initial=100, imaging=100)
 
     m.write(random_filename())
+
+
+def test_analytical_yso_add_density():
+    m = AnalyticalYSOModel()
+    with pytest.raises(NotImplementedError) as exc:
+        m.add_density_grid()
+    assert exc.value.args[0] == 'add_density_grid cannot be used for AnalyticalYSOModel'
