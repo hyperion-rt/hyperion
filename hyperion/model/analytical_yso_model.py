@@ -133,6 +133,18 @@ class AnalyticalYSOModel(Model):
     def add_density_grid(self, *args, **kwargs):
         raise NotImplementedError("add_density_grid cannot be used for AnalyticalYSOModel")
 
+    def use_quantities(self, filename, quantities=['density', 'specific_energy'],
+                       use_minimum_specific_energy=True, use_dust=True):
+
+        if 'density' in quantities:
+            raise NotImplementedError("Cannot use previous density in AnalyticalYSOModel. If you want to use just the previous specific_energy, specify quantities=['specific_energy'].")
+
+        Model.use_quantities(self, filename, quantities=quantities,
+                             use_minimum_specific_energy=use_minimum_specific_energy,
+                             use_dust=use_dust)
+
+    use_quantities.__doc__ = Model.use_quantities.__doc__
+
     # DENSITY COMPONENTS
 
     def add_ambient_medium(self):

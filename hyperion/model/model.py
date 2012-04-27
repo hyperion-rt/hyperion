@@ -182,7 +182,7 @@ class Model(FreezableClass):
             raise NotImplemented("Cannot read geometry type %s" % g_grid['Geometry'].attrs['grid_type'].decode('utf-8'))
 
         # Read in the grid
-        grid.read(g_grid)
+        grid.read(g_grid, quantities=[])
 
         # Set the grid
         self.set_grid(grid)
@@ -190,7 +190,7 @@ class Model(FreezableClass):
         # Close the file
         f.close()
 
-    def use_quantities(self, filename, quantities='all',
+    def use_quantities(self, filename, quantities=['density', 'specific_energy'],
                        use_minimum_specific_energy=True, use_dust=True):
         '''
         Use physical quantities from an existing output file
@@ -200,9 +200,9 @@ class Model(FreezableClass):
         filename: str
             The file to read the quantities from. This should be the output
             file of a radiation transfer run.
-        quantities: 'all' or list
-            Which physical quantities to read in. Use 'all' to read in all
-            quantities or a list of strings to read only specific quantities.
+        quantities: list
+            Which physical quantities to read in. Can include 'density' and
+            'specific_energy'.
         copy: bool
             Whether to copy the quantities into the new input file, or whether
             to just link to them.
@@ -232,7 +232,7 @@ class Model(FreezableClass):
         # Loop over quantities
         for quantity in ['density', 'specific_energy']:
 
-            if quantities == 'all' or quantity in quantities:
+            if quantity in quantities:
 
                 # Set the path to the quantity
                 if quantity in ['density']:
