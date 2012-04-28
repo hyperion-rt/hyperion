@@ -351,10 +351,9 @@ contains
 
     if(make_binned_images) then
 
-       allocate(cube4d(binned_image%n_nu,binned_image%n_ap,binned_image%n_view,binned_image%n_orig))
-       allocate(cube5d(binned_image%n_nu,binned_image%n_x,binned_image%n_y,binned_image%n_view,binned_image%n_orig))
-
        if(binned_image%compute_sed) then
+
+          allocate(cube4d(binned_image%n_nu,binned_image%n_ap,binned_image%n_view,binned_image%n_orig))
 
           call mpi_reduce(binned_image%sed%i, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%sed%i = cube4d
           call mpi_reduce(binned_image%sed%q, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%sed%q = cube4d
@@ -372,9 +371,13 @@ contains
 
           end if
 
+          deallocate(cube4d)
+
        end if
 
        if(binned_image%compute_image) then
+
+          allocate(cube5d(binned_image%n_nu,binned_image%n_x,binned_image%n_y,binned_image%n_view,binned_image%n_orig))
 
           call mpi_reduce(binned_image%img%i, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%img%i = cube5d
           call mpi_reduce(binned_image%img%q, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%img%q = cube5d
@@ -392,10 +395,9 @@ contains
 
           end if
 
-       end if
+          deallocate(cube5d)
 
-       deallocate(cube4d)
-       deallocate(cube5d)
+       end if
 
     end if
 
