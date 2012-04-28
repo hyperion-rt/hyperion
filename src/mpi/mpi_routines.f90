@@ -405,10 +405,9 @@ contains
 
        do ip=1,n_groups
 
-          allocate(cube4d(peeled_image(ip)%n_nu,peeled_image(ip)%n_ap,peeled_image(ip)%n_view,peeled_image(ip)%n_orig))
-          allocate(cube5d(peeled_image(ip)%n_nu,peeled_image(ip)%n_x,peeled_image(ip)%n_y,peeled_image(ip)%n_view,peeled_image(ip)%n_orig))
-
           if(peeled_image(ip)%compute_sed) then
+
+             allocate(cube4d(peeled_image(ip)%n_nu,peeled_image(ip)%n_ap,peeled_image(ip)%n_view,peeled_image(ip)%n_orig))
 
              call mpi_reduce(peeled_image(ip)%sed%i, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%sed%i = cube4d
              call mpi_reduce(peeled_image(ip)%sed%q, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%sed%q = cube4d
@@ -426,9 +425,13 @@ contains
 
              end if
 
+             deallocate(cube4d)
+
           end if
 
           if(peeled_image(ip)%compute_image) then
+
+             allocate(cube5d(peeled_image(ip)%n_nu,peeled_image(ip)%n_x,peeled_image(ip)%n_y,peeled_image(ip)%n_view,peeled_image(ip)%n_orig))
 
              call mpi_reduce(peeled_image(ip)%img%i, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%img%i = cube5d
              call mpi_reduce(peeled_image(ip)%img%q, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%img%q = cube5d
@@ -446,10 +449,9 @@ contains
 
              end if
 
-          end if
+             deallocate(cube5d)
 
-          deallocate(cube4d)
-          deallocate(cube5d)
+          end if
 
        end do
 
