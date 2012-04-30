@@ -60,26 +60,41 @@ coordinate grid using methods of the form ``set_x_grid(walls_1, walls_2,
 walls_3)``. The following examples demonstrate how to do this for the various
 grid types
 
-* A 10x10x10 cartesian grid from -1 pc to +1 pc in each direction::
+* A 10x10x10 cartesian grid from -1pc to 1pc in each direction::
 
     x = np.linspace(-pc, pc, 11)
     y = np.linspace(-pc, pc, 11)
     z = np.linspace(-pc, pc, 11)
     m.set_cartesian_grid(x, y, z)
 
-* A 2-d 399x199 spherical polar grid::
+* A 2-d 400x200x1 spherical polar grid with radial grid cells logarithmically
+  spaced between one solar radius and 100AU, and the first grid cell wall
+  located at 0::
 
-    r = np.logspace(np.log10(rsun), np.log10(100*au), 400)
-    theta = np.linspace(0., pi., 199)
-    phi = np.array([0., 2*pi])
+    r = np.logspace(np.log10(rsun), np.log10(100 * au), 400)
+    r = np.hstack([0., r])  # add cell wall at r=0
+    theta = np.linspace(0., pi, 201)
+    phi = np.array([0., 2 * pi])
     m.set_spherical_polar_grid(r, theta, phi)
 
-* A 3-d 100x100x10 cylindrical polar grid::
+* A 3-d 100x100x10 cylindrical polar grid with radial grid cells
+  logarithmically spaced between one solar radius and 100AU, and the first
+  grid cell wall located at 0::
 
-    w = np.logspace(np.log10(rsun), np.log10(100*au), 101)
-    z = np.linspace(-10*au, 10*au, 101)
-    phi = np.linspace(0, 2*pi, 11)
+    w = np.logspace(np.log10(rsun), np.log10(100 * au), 100)
+    w = np.hstack([0., w])  # add cell wall at w=0
+    z = np.linspace(-10 * au, 10 * au, 101)
+    phi = np.linspace(0, 2 * pi, 11)
     m.set_cylindrical_polar_grid(w, z, phi)
+
+.. note:: Spherical and cylindrical polar grids do not have to start at
+          ``r=0`` or ``w=0``, but you need to make sure that all sources are
+          located inside the grid. For example, if you place a point source at
+          the origin, you will need the first grid cell wall to be at ``r=0``
+          or ``w=0``. In the above cases, since the grid cell walls are
+          distributed logarithmically, the first grid cell wall has to be
+          added separately, hence the use of ``hstack``, which is used to add
+          a 0 at the start of the array.
 
 Density and Specific Energy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
