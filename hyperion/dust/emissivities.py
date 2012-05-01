@@ -179,8 +179,8 @@ class Emissivities(FreezableClass):
 
     def hash(self):
         h = hashlib.md5()
-        h.update(str(self.is_lte))
-        h.update(self.var_name)
+        h.update(str(self.is_lte).encode('utf-8'))
+        h.update(self.var_name.encode('utf-8'))
         h.update(self.var)
         h.update(self.nu)
         h.update(self.jnu)

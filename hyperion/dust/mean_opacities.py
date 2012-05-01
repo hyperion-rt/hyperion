@@ -157,7 +157,7 @@ class MeanOpacities(FreezableClass):
 
     def hash(self):
         h = hashlib.md5()
-        h.update(self.var_name)
+        h.update(self.var_name.encode('utf-8'))
         h.update(self.var)
         h.update(self.chi_planck)
         h.update(self.kappa_planck)

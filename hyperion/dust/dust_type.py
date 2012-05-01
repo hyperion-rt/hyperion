@@ -53,19 +53,19 @@ class SphericalDust(FreezableClass):
         h = hashlib.md5()
 
         if self.optical_properties is None or not self.optical_properties.all_set():
-            h.update('none')
+            h.update('none'.encode('utf-8'))
         else:
-            h.update(self.optical_properties.hash())
+            h.update(self.optical_properties.hash().encode('utf-8'))
 
         if self.emissivities is None or not self.emissivities.all_set():
-            h.update('none')
+            h.update('none'.encode('utf-8'))
         else:
-            h.update(self.emissivities.hash())
+            h.update(self.emissivities.hash().encode('utf-8'))
 
         if self.mean_opacities is None or not self.mean_opacities.all_set():
-            h.update('none')
+            h.update('none'.encode('utf-8'))
         else:
-            h.update(self.mean_opacities.hash())
+            h.update(self.mean_opacities.hash().encode('utf-8'))
 
         return h.hexdigest()
 
