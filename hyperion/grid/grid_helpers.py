@@ -4,7 +4,7 @@ import h5py
 import numpy as np
 
 
-def single_grid_dims(data):
+def single_grid_dims(data, ndim=3):
     '''
     Find the number of populations
 
@@ -31,15 +31,15 @@ def single_grid_dims(data):
             elif item.shape != shape:
                 raise ValueError("Grids in list/tuple should have the same "
                                  "dimensions")
-        if shape is not None and len(shape) != 3:
-            raise ValueError("Grids should be 3-dimensional")
+        if shape is not None and len(shape) != ndim:
+            raise ValueError("Grids should be %i-dimensional" % ndim)
 
     elif isinstance(data, np.ndarray):
 
-        if data.ndim == 3:
+        if data.ndim == ndim:
             n_pop = None
             shape = data.shape
-        elif data.ndim == 4:
+        elif data.ndim == ndim + 1:
             n_pop = data.shape[0]
             shape = data[0].shape
         else:
@@ -51,13 +51,13 @@ def single_grid_dims(data):
         shape = f[data.path].shape
         f.close()
 
-        if len(shape) == 3:
+        if len(shape) == ndim:
             n_pop = None
-        elif len(shape) == 4:
+        elif len(shape) == ndim + 1:
             n_pop = shape[0]
             shape = shape[1:]
         else:
-            raise Exception("Unexpected number of dimensions: %i" % shape)
+            raise Exception("Unexpected number of dimensions: %i" % len(shape))
     else:
         raise ValueError("Data should be a list or a Numpy array or an "
                          "external HDF5 link")
