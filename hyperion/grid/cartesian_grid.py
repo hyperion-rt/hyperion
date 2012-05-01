@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 import hashlib
+from copy import deepcopy
 
 import h5py
 import numpy as np
@@ -161,7 +162,10 @@ class CartesianGrid(FreezableClass):
 
         for quantity in self.quantities:
 
-            n_pop, shape = single_grid_dims(self.quantities[quantity])
+            if array is None:
+                n_pop, shape = single_grid_dims(self.quantities[quantity])
+            else:
+                n_pop, shape = single_grid_dims(array)
 
             if shape != self.shape:
                 raise ValueError("Quantity arrays do not have the right "
@@ -293,9 +297,9 @@ class CartesianGrid(FreezableClass):
             if self.x_wall is None and self.y_wall is None and self.z_wall is None:
                 logger.warn("No geometry in target grid - copying from original grid")
                 self.set_walls(value.x_wall, value.y_wall, value.z_wall)
-            self.quantities[item] = value.quantities[value.viewed_quantity]
+            self.quantities[item] = deepcopy(value.quantities[value.viewed_quantity])
         elif isinstance(value, h5py.ExternalLink):
-            self.quantities[item] = value
+            self.quantities[item] = deepcopy(value)
         elif value == []:
             self.quantities[item] = []
         else:
@@ -326,8 +330,44 @@ class CartesianGridView(CartesianGrid):
             The grid to copy the quantity from
         '''
         if isinstance(grid, CartesianGridView):
-            self.quantities[self.viewed_quantity].append(grid.quantities[grid.viewed_quantity])
+            if self.quantities[self.viewed_quantity] is grid.quantities[grid.viewed_quantity]:
+                raise Exception("Calling append recursively")
+            if type(grid.quantities[grid.viewed_quantity]) is list:
+                raise Exception("Can only append a single grid")
+            self._check_array_dimensions(grid.quantities[grid.viewed_quantity])
+            self.quantities[self.viewed_quantity].append(deepcopy(grid.quantities[grid.viewed_quantity]))
         elif type(grid) is np.ndarray:
-            self.quantities[self.viewed_quantity].append(grid)
+            self._check_array_dimensions(grid)
+            self.quantities[self.viewed_quantity].append(deepcopy(grid))
         else:
             raise ValueError("grid should be a Numpy array or a CartesianGridView object")
+
+    def add(self, grid):
+        '''
+        Used to add quantities from another grid
+
+        Parameters
+        ----------
+        grid: 3D Numpy array or CartesianGridView instance
+            The grid to copy the quantity from
+        '''
+        if type(self.quantities[self.viewed_quantity]) is list:
+            raise Exception("need to first specify the item to add to")
+        if isinstance(grid, CartesianGridView):
+            if type(grid.quantities[grid.viewed_quantity]) is list:
+                raise Exception("need to first specify the item to add")
+            self._check_array_dimensions(grid.quantities[grid.viewed_quantity])
+            self.quantities[self.viewed_quantity] += grid.quantities[grid.viewed_quantity]
+        elif type(grid) is np.ndarray:
+            self._check_array_dimensions(grid)
+            self.quantities[self.viewed_quantity] += grid
+        else:
+            raise ValueError("grid should be a Numpy array or a CartesianGridView object")
+
+    def __getitem__(self, item):
+        if type(item) is int:
+            grid = CartesianGridView(self, self.viewed_quantity)
+            grid.quantities = {grid.viewed_quantity: grid.quantities[grid.viewed_quantity][item]}
+            return grid
+        else:
+            return CartesianGrid.__getitem__(self, item)

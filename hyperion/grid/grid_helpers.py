@@ -31,7 +31,7 @@ def single_grid_dims(data):
             elif item.shape != shape:
                 raise ValueError("Grids in list/tuple should have the same "
                                  "dimensions")
-        if len(shape) != 3:
+        if shape is not None and len(shape) != 3:
             raise ValueError("Grids should be 3-dimensional")
 
     elif isinstance(data, np.ndarray):

@@ -3,6 +3,7 @@ from __future__ import print_function, division
 import os
 import struct
 import hashlib
+from copy import deepcopy
 
 import h5py
 import numpy as np
@@ -131,8 +132,13 @@ class AMRGrid(FreezableClass):
 
         n_pop_ref = None
 
+        if amr_grid is None:
+            levels = self.levels
+        else:
+            levels = amr_grid.levels
+
         # Loop over levels
-        for ilevel, level_ref in enumerate(self.levels):
+        for ilevel, level_ref in enumerate(levels):
 
             # Read in level
             level = amr_grid.levels[ilevel]
@@ -148,10 +154,10 @@ class AMRGrid(FreezableClass):
 
                     n_pop, shape = single_grid_dims(grid.quantities[quantity])
 
-                    if shape != grid.shape:
+                    if shape != self.levels[ilevel].grids[igrid].shape:
                         raise ValueError("Quantity arrays do not have the right "
                                          "dimensions: %s instead of %s"
-                                         % (shape, grid.shape))
+                                         % (shape, self.levels[ilevel].grids[igrid].shape))
 
                     if n_pop is not None:
                         if n_pop_ref is None:
@@ -339,9 +345,9 @@ class AMRGrid(FreezableClass):
             if self.levels == [] and value.levels != []:
                 logger.warn("No geometry in target grid - copying from original grid")
                 for level in value.levels:
-                    level_ref = value.add_level()
+                    level_ref = self.add_level()
                     for grid in level.grids:
-                        grid_ref = value.add_grid()
+                        grid_ref = level_ref.add_grid()
                         grid_ref.nx = grid.nx
                         grid_ref.ny = grid.ny
                         grid_ref.nz = grid.nz
@@ -353,7 +359,7 @@ class AMRGrid(FreezableClass):
                 level = value.levels[ilevel]
                 for igrid, grid_ref in enumerate(level_ref.grids):
                     grid = level.grids[igrid]
-                    grid_ref.quantities[item] = grid.quantities[value.viewed_quantity]
+                    grid_ref.quantities[item] = deepcopy(grid.quantities[value.viewed_quantity])
         elif isinstance(value, h5py.ExternalLink):
             filename = value.filename
             base_path = os.path.dirname(value.path)
@@ -417,8 +423,46 @@ class AMRGridView(AMRGrid):
         '''
         if not isinstance(amr_grid_view, AMRGridView):
             raise ValueError("amr_grid_view should be an AMRGridView object")
+        self._check_array_dimensions(amr_grid_view[amr_grid_view.viewed_quantity])
         for ilevel, level_ref in enumerate(self.levels):
             level = amr_grid_view.levels[ilevel]
             for igrid, grid_ref in enumerate(level_ref.grids):
                 grid = level.grids[igrid]
-                grid_ref.quantities[self.viewed_quantity].append(grid.quantities[amr_grid_view.viewed_quantity])
+                if grid_ref.quantities[self.viewed_quantity] is grid.quantities[amr_grid_view.viewed_quantity]:
+                    raise Exception("Calling append recursively")
+                if type(grid.quantities[amr_grid_view.viewed_quantity]) is list:
+                    raise Exception("Can only append a single grid")
+                grid_ref.quantities[self.viewed_quantity].append(deepcopy(grid.quantities[amr_grid_view.viewed_quantity]))
+
+
+    def add(self, amr_grid_view):
+        '''
+        Used to add quantities from another grid
+
+        Parameters
+        ----------
+        grid: 3D Numpy array or OctreeGridView instance
+            The grid to copy the quantity from
+        '''
+        if not isinstance(amr_grid_view, AMRGridView):
+            raise ValueError("amr_grid_view should be an AMRGridView object")
+        self._check_array_dimensions(amr_grid_view[amr_grid_view.viewed_quantity])
+        for ilevel, level_ref in enumerate(self.levels):
+            level = amr_grid_view.levels[ilevel]
+            for igrid, grid_ref in enumerate(level_ref.grids):
+                grid = level.grids[igrid]
+                if type(grid_ref.quantities[self.viewed_quantity]) is list:
+                    raise Exception("need to first specify the item to add to")
+                if type(grid.quantities[amr_grid_view.viewed_quantity]) is list:
+                    raise Exception("need to first specify the item to add")
+                grid_ref.quantities[self.viewed_quantity] += grid.quantities[amr_grid_view.viewed_quantity]
+
+    def __getitem__(self, item):
+        if type(item) is int:
+            amr_grid = AMRGridView(self, self.viewed_quantity)
+            for level in amr_grid.levels:
+                for grid in level.grids:
+                    grid.quantities = {amr_grid.viewed_quantity: grid.quantities[amr_grid.viewed_quantity][item]}
+            return amr_grid
+        else:
+            return AMRGrid.__getitem__(self, item)
