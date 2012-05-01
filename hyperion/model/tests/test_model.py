@@ -55,7 +55,7 @@ def test_incomplete_photons_2():
     assert e.value.args[0] == '[n_photons] initial should be set since the initial iterations are being computed'
 
 
-class TestDensitySpecificEnergy(object):
+class TestAllGridTypes(object):
 
     @classmethod
     def setup_class(self):
@@ -109,6 +109,18 @@ class TestDensitySpecificEnergy(object):
             m.write(random_filename())
         assert exc.value.args[0] == "Not all dust lists in the grid have the same size"
 
+    @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
+    def test_merge_density(self, grid_type):
+        m = Model()
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 5000.
+        m.set_grid(self.grid[grid_type])
+        m.add_density_grid(self.density[grid_type], self.dust)
+        m.add_density_grid(self.density[grid_type], self.dust, merge_if_possible=True)
+        m.set_n_photons(initial=100, imaging=100)
+        m.write(random_filename())
+        m.run(random_filename())
 
 class TestMerge(object):
 
