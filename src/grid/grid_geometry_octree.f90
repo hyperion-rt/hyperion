@@ -205,11 +205,6 @@ contains
     ! Find number of cells
     geo%n_cells = size(refined)
 
-    ! Set dimensions
-    geo%n1 = geo%n_cells
-    geo%n2 = 1
-    geo%n3 = 1
-
     ! Allocate cells
     allocate(geo%cells(geo%n_cells))
 

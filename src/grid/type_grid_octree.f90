@@ -21,7 +21,7 @@ module type_grid
   public :: grid_geometry_desc
   type grid_geometry_desc
      character(len=32) :: id
-     integer :: n_cells, n_dim, n1=0, n2=0, n3=0
+     integer :: n_cells, n_dim
      type(cell),allocatable,dimension(:) :: cells
      real(dp), allocatable :: volume(:)
      character(len=10) :: type

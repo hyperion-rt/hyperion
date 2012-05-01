@@ -1,4 +1,4 @@
-! MD5 of template: 41c046fbc5b05a383338861ecd9610f5
+! MD5 of template: d391eca44de1bf600f23e91f9dab6ebf
 module mpi_hdf5_io
 
   use core_lib
@@ -98,6 +98,34 @@ module mpi_hdf5_io
      module procedure mp_table_write_column_2d_mpi_integer4
      module procedure mp_table_write_column_2d_mpi_integer8
   end interface mp_table_write_column
+
+  public :: mp_read_array
+  interface mp_read_array
+     module procedure mp_read_array_1d_mpi_real4
+     module procedure mp_read_array_1d_mpi_real8
+     module procedure mp_read_array_1d_mpi_integer4
+     module procedure mp_read_array_1d_mpi_integer8
+     module procedure mp_read_array_2d_mpi_real4
+     module procedure mp_read_array_2d_mpi_real8
+     module procedure mp_read_array_2d_mpi_integer4
+     module procedure mp_read_array_2d_mpi_integer8
+     module procedure mp_read_array_3d_mpi_real4
+     module procedure mp_read_array_3d_mpi_real8
+     module procedure mp_read_array_3d_mpi_integer4
+     module procedure mp_read_array_3d_mpi_integer8
+     module procedure mp_read_array_4d_mpi_real4
+     module procedure mp_read_array_4d_mpi_real8
+     module procedure mp_read_array_4d_mpi_integer4
+     module procedure mp_read_array_4d_mpi_integer8
+     module procedure mp_read_array_5d_mpi_real4
+     module procedure mp_read_array_5d_mpi_real8
+     module procedure mp_read_array_5d_mpi_integer4
+     module procedure mp_read_array_5d_mpi_integer8
+     module procedure mp_read_array_6d_mpi_real4
+     module procedure mp_read_array_6d_mpi_real8
+     module procedure mp_read_array_6d_mpi_integer4
+     module procedure mp_read_array_6d_mpi_integer8
+  end interface mp_read_array
 
   public :: mp_read_array_auto
   interface mp_read_array_auto
@@ -449,6 +477,60 @@ contains
     if(main_process()) call hdf5_table_write_column(handle, path, name, array)
   end subroutine mp_table_write_column_2d_mpi_integer8
 
+  subroutine mp_read_array_1d_mpi_integer8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer(idp),intent(out) :: array(:)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_integer8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_1d_mpi_integer8
+
+  subroutine mp_read_array_2d_mpi_integer8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer(idp),intent(out) :: array(:, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_integer8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_2d_mpi_integer8
+
+  subroutine mp_read_array_3d_mpi_integer8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer(idp),intent(out) :: array(:, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_integer8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_3d_mpi_integer8
+
+  subroutine mp_read_array_4d_mpi_integer8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer(idp),intent(out) :: array(:, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_integer8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_4d_mpi_integer8
+
+  subroutine mp_read_array_5d_mpi_integer8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer(idp),intent(out) :: array(:, :, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_integer8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_5d_mpi_integer8
+
+  subroutine mp_read_array_6d_mpi_integer8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer(idp),intent(out) :: array(:, :, :, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_integer8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_6d_mpi_integer8
+
   subroutine mp_read_array_auto_1d_mpi_integer8(handle,path,array)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -714,6 +796,60 @@ contains
     integer,intent(in) :: array(:, :)
     if(main_process()) call hdf5_table_write_column(handle, path, name, array)
   end subroutine mp_table_write_column_2d_mpi_integer4
+
+  subroutine mp_read_array_1d_mpi_integer4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer,intent(out) :: array(:)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_integer4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_1d_mpi_integer4
+
+  subroutine mp_read_array_2d_mpi_integer4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer,intent(out) :: array(:, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_integer4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_2d_mpi_integer4
+
+  subroutine mp_read_array_3d_mpi_integer4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer,intent(out) :: array(:, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_integer4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_3d_mpi_integer4
+
+  subroutine mp_read_array_4d_mpi_integer4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer,intent(out) :: array(:, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_integer4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_4d_mpi_integer4
+
+  subroutine mp_read_array_5d_mpi_integer4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer,intent(out) :: array(:, :, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_integer4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_5d_mpi_integer4
+
+  subroutine mp_read_array_6d_mpi_integer4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    integer,intent(out) :: array(:, :, :, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_integer4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_6d_mpi_integer4
 
   subroutine mp_read_array_auto_1d_mpi_integer4(handle,path,array)
     implicit none
@@ -981,6 +1117,60 @@ contains
     if(main_process()) call hdf5_table_write_column(handle, path, name, array)
   end subroutine mp_table_write_column_2d_mpi_real8
 
+  subroutine mp_read_array_1d_mpi_real8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(dp),intent(out) :: array(:)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_real8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_1d_mpi_real8
+
+  subroutine mp_read_array_2d_mpi_real8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(dp),intent(out) :: array(:, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_real8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_2d_mpi_real8
+
+  subroutine mp_read_array_3d_mpi_real8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(dp),intent(out) :: array(:, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_real8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_3d_mpi_real8
+
+  subroutine mp_read_array_4d_mpi_real8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(dp),intent(out) :: array(:, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_real8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_4d_mpi_real8
+
+  subroutine mp_read_array_5d_mpi_real8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(dp),intent(out) :: array(:, :, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_real8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_5d_mpi_real8
+
+  subroutine mp_read_array_6d_mpi_real8(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(dp),intent(out) :: array(:, :, :, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_real8, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_6d_mpi_real8
+
   subroutine mp_read_array_auto_1d_mpi_real8(handle,path,array)
     implicit none
     integer(hid_t),intent(in) :: handle
@@ -1246,6 +1436,60 @@ contains
     real(sp),intent(in) :: array(:, :)
     if(main_process()) call hdf5_table_write_column(handle, path, name, array)
   end subroutine mp_table_write_column_2d_mpi_real4
+
+  subroutine mp_read_array_1d_mpi_real4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(sp),intent(out) :: array(:)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_real4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_1d_mpi_real4
+
+  subroutine mp_read_array_2d_mpi_real4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(sp),intent(out) :: array(:, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_real4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_2d_mpi_real4
+
+  subroutine mp_read_array_3d_mpi_real4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(sp),intent(out) :: array(:, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_real4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_3d_mpi_real4
+
+  subroutine mp_read_array_4d_mpi_real4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(sp),intent(out) :: array(:, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_real4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_4d_mpi_real4
+
+  subroutine mp_read_array_5d_mpi_real4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(sp),intent(out) :: array(:, :, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_real4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_5d_mpi_real4
+
+  subroutine mp_read_array_6d_mpi_real4(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    real(sp),intent(out) :: array(:, :, :, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), mpi_real4, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_6d_mpi_real4
 
   subroutine mp_read_array_auto_1d_mpi_real4(handle,path,array)
     implicit none

@@ -98,6 +98,34 @@ module mpi_hdf5_io
      module procedure mp_table_write_column_2d_mpi_integer8
   end interface mp_table_write_column
 
+  public :: mp_read_array
+  interface mp_read_array
+     module procedure mp_read_array_1d_mpi_real4
+     module procedure mp_read_array_1d_mpi_real8
+     module procedure mp_read_array_1d_mpi_integer4
+     module procedure mp_read_array_1d_mpi_integer8
+     module procedure mp_read_array_2d_mpi_real4
+     module procedure mp_read_array_2d_mpi_real8
+     module procedure mp_read_array_2d_mpi_integer4
+     module procedure mp_read_array_2d_mpi_integer8
+     module procedure mp_read_array_3d_mpi_real4
+     module procedure mp_read_array_3d_mpi_real8
+     module procedure mp_read_array_3d_mpi_integer4
+     module procedure mp_read_array_3d_mpi_integer8
+     module procedure mp_read_array_4d_mpi_real4
+     module procedure mp_read_array_4d_mpi_real8
+     module procedure mp_read_array_4d_mpi_integer4
+     module procedure mp_read_array_4d_mpi_integer8
+     module procedure mp_read_array_5d_mpi_real4
+     module procedure mp_read_array_5d_mpi_real8
+     module procedure mp_read_array_5d_mpi_integer4
+     module procedure mp_read_array_5d_mpi_integer8
+     module procedure mp_read_array_6d_mpi_real4
+     module procedure mp_read_array_6d_mpi_real8
+     module procedure mp_read_array_6d_mpi_integer4
+     module procedure mp_read_array_6d_mpi_integer8
+  end interface mp_read_array
+
   public :: mp_read_array_auto
   interface mp_read_array_auto
      module procedure mp_read_array_auto_1d_mpi_real4
@@ -448,6 +476,60 @@ contains
     @T,intent(in) :: array(:, :)
     if(main_process()) call hdf5_table_write_column(handle, path, name, array)
   end subroutine mp_table_write_column_2d_<T>
+
+  subroutine mp_read_array_1d_<T>(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    @T,intent(out) :: array(:)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), <T>, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_1d_<T>
+
+  subroutine mp_read_array_2d_<T>(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    @T,intent(out) :: array(:, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), <T>, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_2d_<T>
+
+  subroutine mp_read_array_3d_<T>(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    @T,intent(out) :: array(:, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), <T>, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_3d_<T>
+
+  subroutine mp_read_array_4d_<T>(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    @T,intent(out) :: array(:, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), <T>, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_4d_<T>
+
+  subroutine mp_read_array_5d_<T>(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    @T,intent(out) :: array(:, :, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), <T>, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_5d_<T>
+
+  subroutine mp_read_array_6d_<T>(handle,path,array)
+    implicit none
+    integer(hid_t),intent(in) :: handle
+    character(len=*),intent(in) :: path
+    @T,intent(out) :: array(:, :, :, :, :, :)
+    if(main_process()) call hdf5_read_array(handle,path,array)
+    call mpi_bcast(array, size(array), <T>, rank_main, mpi_comm_world, ierr)
+  end subroutine mp_read_array_6d_<T>
 
   subroutine mp_read_array_auto_1d_<T>(handle,path,array)
     implicit none

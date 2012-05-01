@@ -83,13 +83,13 @@ class OctreeGrid(FreezableClass):
 
         self.refined = refined
 
-        self.shape = (1, 1, len(refined))
+        self.shape = (len(refined),)
 
     def __getattr__(self, attribute):
         if attribute == 'n_dust':
             n_dust = None
             for quantity in self.quantities:
-                n_dust_q, shape_q = single_grid_dims(self.quantities[quantity])
+                n_dust_q, shape_q = single_grid_dims(self.quantities[quantity], ndim=1)
                 if n_dust is None:
                     n_dust = n_dust_q
                 else:
@@ -116,9 +116,9 @@ class OctreeGrid(FreezableClass):
         for quantity in self.quantities:
 
             if array is None:
-                n_pop, shape = single_grid_dims(self.quantities[quantity])
+                n_pop, shape = single_grid_dims(self.quantities[quantity], ndim=1)
             else:
-                n_pop, shape = single_grid_dims(array)
+                n_pop, shape = single_grid_dims(array, ndim=1)
 
             if shape != self.shape:
                 raise ValueError("Quantity arrays do not have the right "
@@ -298,8 +298,6 @@ class OctreeGridView(OctreeGrid):
             self._check_array_dimensions(grid.quantities[grid.viewed_quantity])
             self.quantities[self.viewed_quantity].append(deepcopy(grid.quantities[grid.viewed_quantity]))
         elif type(grid) is np.ndarray:
-            if grid.ndim == 1:
-                grid = grid.reshape((1, 1, grid.shape[0]))
             self._check_array_dimensions(grid)
             self.quantities[self.viewed_quantity].append(deepcopy(grid))
         else:
@@ -322,8 +320,6 @@ class OctreeGridView(OctreeGrid):
             self._check_array_dimensions(grid.quantities[grid.viewed_quantity])
             self.quantities[self.viewed_quantity] += grid.quantities[grid.viewed_quantity]
         elif type(grid) is np.ndarray:
-            if grid.ndim == 1:
-                grid = grid.reshape((1, 1, grid.shape[0]))
             self._check_array_dimensions(grid)
             self.quantities[self.viewed_quantity] += grid
         else:

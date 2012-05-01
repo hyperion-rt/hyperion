@@ -23,6 +23,7 @@ module mpi_hdf5_io
        &               mp_write_keyword_vector => hdf5_write_keyword_vector, &
        &               mp_table_read_column_auto => hdf5_table_read_column_auto, &
        &               mp_table_write_column => hdf5_table_write_column, &
+       &               mp_read_array => hdf5_read_array, &
        &               mp_read_array_auto => hdf5_read_array_auto, &
        &               mp_write_array => hdf5_write_array
 
@@ -53,6 +54,7 @@ module mpi_hdf5_io
   public :: mp_write_keyword_vector
   public :: mp_table_read_column_auto
   public :: mp_table_write_column
+  public :: mp_read_array
   public :: mp_read_array_auto
   public :: mp_write_array
 
