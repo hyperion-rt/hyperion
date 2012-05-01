@@ -75,9 +75,13 @@ class CylindricalPolarGrid(FreezableClass):
         self.p_wall = p_wall
 
         # Compute cell centers
-        self.w = 10. ** ((np.log10(w_wall[:-1]) + np.log10(w_wall[1:])) / 2.)
         if w_wall[0] == 0.:
+            self.w = np.zeros(len(w_wall) - 1)
             self.w[0] = w_wall[1] / 2.
+            self.w[1:] = 10. ** ((np.log10(w_wall[1:-1]) + np.log10(w_wall[2:])) / 2.)
+        else:
+            self.w = 10. ** ((np.log10(w_wall[:-1]) + np.log10(w_wall[1:])) / 2.)
+
         self.z = (z_wall[:-1] + z_wall[1:]) / 2.
         self.p = (p_wall[:-1] + p_wall[1:]) / 2.
 

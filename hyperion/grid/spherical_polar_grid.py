@@ -80,9 +80,13 @@ class SphericalPolarGrid(FreezableClass):
         self.p_wall = p_wall
 
         # Compute cell centers
-        self.r = 10. ** ((np.log10(r_wall[:-1]) + np.log10(r_wall[1:])) / 2.)
         if r_wall[0] == 0.:
+            self.r = np.zeros(len(r_wall) - 1)
             self.r[0] = r_wall[1] / 2.
+            self.r[1:] = 10. ** ((np.log10(r_wall[1:-1]) + np.log10(r_wall[2:])) / 2.)
+        else:
+            self.r = 10. ** ((np.log10(r_wall[:-1]) + np.log10(r_wall[1:])) / 2.)
+
         self.t = (t_wall[:-1] + t_wall[1:]) / 2.
         self.p = (p_wall[:-1] + p_wall[1:]) / 2.
 
