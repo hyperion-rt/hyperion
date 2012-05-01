@@ -551,7 +551,7 @@ class Model(FreezableClass):
                         logger.info("Merging densities (identical filenames)")
 
                         ip = self.dust.index(dust)
-                        self.grid.quantities['density'][ip] += density
+                        self.grid['density'][ip].add(density)
                         return
 
 
@@ -569,7 +569,7 @@ class Model(FreezableClass):
                         logger.info("Merging densities (identical hashes)")
 
                         ip = dust_hashes.index(dust.hash())
-                        self.grid.quantities['density'][ip] += density
+                        self.grid['density'][ip].add(density)
                         return
 
         # Set the density and dust
