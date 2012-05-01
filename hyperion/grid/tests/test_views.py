@@ -8,6 +8,15 @@ from hyperion.grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGri
 ALL_GRID_TYPES = ['car', 'sph', 'cyl', 'amr', 'oct']
 
 
+def exc_msg(exc):
+    if isinstance(exc.value, basestring):
+        return exc.value
+    elif type(exc.value) is tuple:
+        return exc.value[0]
+    else:
+        return exc.value.args[0]
+
+
 class TestView(object):
 
     def setup_method(self, method):
@@ -64,7 +73,7 @@ class TestView(object):
         g = self.grid[grid_type]
         with pytest.raises(KeyError) as exc:
             g['density']
-        assert exc.value.args[0] == "density"
+        assert exc_msg(exc) == "density"
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_setget_empty(self, grid_type):
@@ -77,7 +86,7 @@ class TestView(object):
         assert g['density']['density']['density']
         with pytest.raises(IndexError) as exc:
             assert g['density'][0]
-        assert exc.value.args[0] == 'list index out of range'
+        assert exc_msg(exc) == 'list index out of range'
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_append_single_array(self, grid_type):
@@ -88,7 +97,7 @@ class TestView(object):
         assert g['density'][-1]
         with pytest.raises(IndexError) as exc:
             assert g['density'][1]
-        assert exc.value.args[0] == 'list index out of range'
+        assert exc_msg(exc) == 'list index out of range'
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_append_single_array_invalid(self, grid_type):
@@ -96,7 +105,7 @@ class TestView(object):
         g['density'] = []
         with pytest.raises(ValueError) as exc:
             g['density'].append(self.density_invalid[grid_type])
-        assert exc.value.args[0].startswith('Quantity arrays do not have the right dimensions')
+        assert exc_msg(exc).startswith('Quantity arrays do not have the right dimensions')
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_append_double_array(self, grid_type):
@@ -110,7 +119,7 @@ class TestView(object):
         assert g['density'][-2]
         with pytest.raises(IndexError) as exc:
             assert g['density'][3]
-        assert exc.value.args[0] == 'list index out of range'
+        assert exc_msg(exc) == 'list index out of range'
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_append_double_array_invalid(self, grid_type):
@@ -119,7 +128,7 @@ class TestView(object):
         g['density'].append(self.density[grid_type])
         with pytest.raises(ValueError) as exc:
             g['density'].append(self.density_invalid[grid_type])
-        assert exc.value.args[0].startswith('Quantity arrays do not have the right dimensions')
+        assert exc_msg(exc).startswith('Quantity arrays do not have the right dimensions')
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_transfer_empty(self, grid_type):
@@ -143,7 +152,7 @@ class TestView(object):
         with pytest.raises(Exception) as exc:
             g['density'].append(self.density[grid_type])
             g['density'].append(g['density'])
-        assert exc.value.args[0] == "Calling append recursively"
+        assert exc_msg(exc) == "Calling append recursively"
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_append_single_view_invalid_list(self, grid_type):
@@ -154,7 +163,7 @@ class TestView(object):
         h['density'].append(self.density[grid_type])
         with pytest.raises(Exception) as exc:
             g['density'].append(h['density'])
-        assert exc.value.args[0] == "Can only append a single grid"
+        assert exc_msg(exc) == "Can only append a single grid"
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_append_single_view(self, grid_type):

@@ -57,7 +57,6 @@ def test_incomplete_photons_2():
 
 class TestAllGridTypes(object):
 
-    @classmethod
     def setup_class(self):
 
         self.grid = {}
@@ -124,7 +123,6 @@ class TestAllGridTypes(object):
 
 class TestMerge(object):
 
-    @classmethod
     def setup_class(self):
 
         self.dust1_filename = random_filename()
