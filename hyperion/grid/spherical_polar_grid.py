@@ -335,7 +335,7 @@ class SphericalPolarGrid(FreezableClass):
                 self.set_walls(value.r_wall, value.t_wall, value.p_wall)
             self.quantities[item] = deepcopy(value.quantities[value.viewed_quantity])
         elif isinstance(value, h5py.ExternalLink):
-            self.quantities[item] = deepcopy(value)
+            self.quantities[item] = value
         elif value == []:
             self.quantities[item] = []
         else:

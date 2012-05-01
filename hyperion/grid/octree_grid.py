@@ -260,7 +260,7 @@ class OctreeGrid(FreezableClass):
                 self.set_walls(value.x, value.y, value.z, value.dx, value.dy, value.dz, value.refined)
             self.quantities[item] = deepcopy(value.quantities[value.viewed_quantity])
         elif isinstance(value, h5py.ExternalLink):
-            self.quantities[item] = deepcopy(value)
+            self.quantities[item] = value
         elif value == []:
             self.quantities[item] = []
         else:

@@ -299,7 +299,7 @@ class CartesianGrid(FreezableClass):
                 self.set_walls(value.x_wall, value.y_wall, value.z_wall)
             self.quantities[item] = deepcopy(value.quantities[value.viewed_quantity])
         elif isinstance(value, h5py.ExternalLink):
-            self.quantities[item] = deepcopy(value)
+            self.quantities[item] = value
         elif value == []:
             self.quantities[item] = []
         else:
