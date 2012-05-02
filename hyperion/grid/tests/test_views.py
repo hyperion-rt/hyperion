@@ -74,6 +74,7 @@ class TestView(object):
         with pytest.raises(KeyError) as exc:
             g['density']
         assert exc_msg(exc) == "density"
+        assert g.n_dust is None
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_setget_empty(self, grid_type):
@@ -87,6 +88,7 @@ class TestView(object):
         with pytest.raises(IndexError) as exc:
             assert g['density'][0]
         assert exc_msg(exc) == 'list index out of range'
+        assert g.n_dust == 0
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_append_single_array(self, grid_type):
@@ -98,6 +100,7 @@ class TestView(object):
         with pytest.raises(IndexError) as exc:
             assert g['density'][1]
         assert exc_msg(exc) == 'list index out of range'
+        assert g.n_dust == 1
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_append_single_array_invalid(self, grid_type):
@@ -106,6 +109,7 @@ class TestView(object):
         with pytest.raises(ValueError) as exc:
             g['density'].append(self.density_invalid[grid_type])
         assert exc_msg(exc).startswith('Quantity arrays do not have the right dimensions')
+        assert g.n_dust == 0
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_append_double_array(self, grid_type):
@@ -120,6 +124,7 @@ class TestView(object):
         with pytest.raises(IndexError) as exc:
             assert g['density'][3]
         assert exc_msg(exc) == 'list index out of range'
+        assert g.n_dust == 2
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_append_double_array_invalid(self, grid_type):
@@ -129,6 +134,50 @@ class TestView(object):
         with pytest.raises(ValueError) as exc:
             g['density'].append(self.density_invalid[grid_type])
         assert exc_msg(exc).startswith('Quantity arrays do not have the right dimensions')
+        assert g.n_dust == 1
+
+    @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
+    def test_append_two_quantities(self, grid_type):
+        g = self.grid[grid_type]
+        g['density'] = []
+        g['energy'] = []
+        g['density'].append(self.density[grid_type])
+        g['energy'].append(self.density[grid_type])
+        assert g['density'][0]
+        assert g['density'][-1]
+        with pytest.raises(IndexError) as exc:
+            assert g['density'][1]
+        assert exc_msg(exc) == 'list index out of range'
+        assert g['energy'][0]
+        assert g['energy'][-1]
+        with pytest.raises(IndexError) as exc:
+            assert g['energy'][1]
+        assert exc_msg(exc) == 'list index out of range'
+        assert g.n_dust == 1
+
+    @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
+    def test_append_two_quantities_invalid(self, grid_type):
+        g = self.grid[grid_type]
+        g['density'] = []
+        g['energy'] = []
+        g['density'].append(self.density[grid_type])
+        g['energy'].append(self.density[grid_type])
+        g['energy'].append(self.density[grid_type])
+        assert g['density'][0]
+        assert g['density'][-1]
+        with pytest.raises(IndexError) as exc:
+            assert g['density'][1]
+        assert exc_msg(exc) == 'list index out of range'
+        assert g['energy'][0]
+        assert g['energy'][1]
+        assert g['energy'][-1]
+        assert g['energy'][-2]
+        with pytest.raises(IndexError) as exc:
+            assert g['energy'][2]
+        assert exc_msg(exc) == 'list index out of range'
+        with pytest.raises(ValueError) as exc:
+            g.n_dust
+        assert exc_msg(exc) == "Not all dust lists in the grid have the same size"
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_transfer_empty(self, grid_type):
@@ -136,6 +185,7 @@ class TestView(object):
         g['density'] = []
         h = self.grid_empty[grid_type]()
         h['density'] = g['density']
+        assert h.n_dust == 0
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_transfer_single(self, grid_type):
@@ -144,6 +194,7 @@ class TestView(object):
         g['density'].append(self.density[grid_type])
         h = self.grid_empty[grid_type]()
         h['density'] = g['density']
+        assert h.n_dust == 1
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_append_recursive(self, grid_type):
