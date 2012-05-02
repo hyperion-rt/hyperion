@@ -74,7 +74,7 @@ class TestView(object):
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_write_read_empty(self, grid_type):
         g = self.grid[grid_type]
-        f = h5py.File(random_id(), driver='core')
+        f = h5py.File(random_id(), driver='core', backing_store=False)
         g.write(f)
         h = self.grid_empty[grid_type]()
         h.read(f)
@@ -84,7 +84,7 @@ class TestView(object):
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_write_read_single(self, grid_type):
         g = self.grid[grid_type]
-        f = h5py.File(random_id(), driver='core')
+        f = h5py.File(random_id(), driver='core', backing_store=False)
         g['density'] = []
         g['density'].append(self.density[grid_type])
         g.write(f)
@@ -100,7 +100,7 @@ class TestView(object):
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_write_read_double(self, grid_type):
         g = self.grid[grid_type]
-        f = h5py.File(random_id(), driver='core')
+        f = h5py.File(random_id(), driver='core', backing_store=False)
         g['density'] = []
         g['density'].append(self.density[grid_type])
         g['density'].append(self.density[grid_type])
@@ -117,7 +117,7 @@ class TestView(object):
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_write_read_double_multiple(self, grid_type):
         g = self.grid[grid_type]
-        f = h5py.File(random_id(), driver='core')
+        f = h5py.File(random_id(), driver='core', backing_store=False)
         g['density'] = []
         g['density'].append(self.density[grid_type])
         g['density'].append(self.density[grid_type])
@@ -139,7 +139,7 @@ class TestView(object):
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_write_read_type_mismatch(self, grid_type):
         g = self.grid[grid_type]
-        f = h5py.File(random_id(), driver='core')
+        f = h5py.File(random_id(), driver='core', backing_store=False)
         g['density'] = []
         g['density'].append(self.density[grid_type])
         g.write(f)
@@ -161,7 +161,7 @@ class TestView(object):
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_write_read_hash_mismatch(self, grid_type):
         g = self.grid[grid_type]
-        f = h5py.File(random_id(), driver='core')
+        f = h5py.File(random_id(), driver='core', backing_store=False)
         g['density'] = []
         g['density'].append(self.density[grid_type])
         g.write(f)
