@@ -90,6 +90,10 @@ demonstrate adding different point sources:
     source.luminosity = 10 * lsun  # [ergs/s]
     source.spectrum = (nu, fnu)
 
+.. note:: Regardless of the grid type, the coordinates for the sources should
+          always be specified in cartesian coordinates, and in the order
+          ``(x, y, z)``.
+
 Spherical sources
 -----------------
 
@@ -144,7 +148,9 @@ External sources
 There are two kinds of external illumination sources, spherical and box
 sources - the former being more suited to spherical polar grids, and the
 latter to cartesian, AMR, and octree grids (there is no cylindrical external
-source for cylindrical grids at this time). For example, an external spherical source can be added with::
+source for cylindrical grids at this time). In both cases, photons are emitted
+inwards isotropically. For example, an external spherical source can be added
+with::
 
     source = m.add_external_spherical_source()
     source.luminosity = lsun  # [ergs/s]
@@ -162,13 +168,19 @@ set, and defaults to the origin. External box sources have a ``bounds`` attribut
 where the ``bounds`` attribute is given as
 ``[[xmin, xmax], [ymin, ymax], [zmin, zmax]]``.
 
+.. note:: Even though these sources are referred to as 'external', they have
+          to be placed inside the outermost walls of the grid. The sources are
+          not box-shared source or spherical source that can be placed outside
+          the grid, but rather sources that emit inwards instead of outwards,
+          making it possible to simulate an external radiation field.
+
 Plane parallel sources
 ----------------------
 
 Finally, it is possible to add circular plane parallel sources (essentially a
 circular beam with a given origin and direction)::
 
-    source = m.add_external_spherical_source()
+    source = m.add_plane_parallel_source()
     source.luminosity = lsun  # [ergs/s]
     source.radius = rsun  # [cm]
     source.temperature = 10000.  # [K]
