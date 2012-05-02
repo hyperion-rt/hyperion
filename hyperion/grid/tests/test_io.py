@@ -143,7 +143,7 @@ class TestView(object):
         g['density'] = []
         g['density'].append(self.density[grid_type])
         g.write(f)
-        f['Geometry'].attrs['grid_type'] = 'invalid'
+        f['Geometry'].attrs['grid_type'] = 'invalid'.encode('utf-8')
         h = self.grid_empty[grid_type]()
         with pytest.raises(Exception) as exc:
             h.read(f)
@@ -165,7 +165,7 @@ class TestView(object):
         g['density'] = []
         g['density'].append(self.density[grid_type])
         g.write(f)
-        f['Geometry'].attrs['geometry'] = 'a4e2805a72dfcf01b2fd94da0be32511'
+        f['Geometry'].attrs['geometry'] = 'a4e2805a72dfcf01b2fd94da0be32511'.encode('utf-8')
         h = self.grid_empty[grid_type]()
         with pytest.raises(Exception) as exc:
             h.read(f)
