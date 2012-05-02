@@ -97,9 +97,7 @@ class AMRGrid(FreezableClass):
         return level
 
     def __getattr__(self, attribute):
-        if attribute == 'shape':
-            return (1, 1, self.ncells)
-        elif attribute == 'n_dust':
+        if attribute == 'n_dust':
             n_dust = None
             for level in self.levels:
                 for grid in level.grids:
@@ -126,25 +124,20 @@ class AMRGrid(FreezableClass):
             dimensions and meta-data.
         '''
 
-        # If no grid is specified, do a self-consistency checks
+        # If no grid is specified, do a self-consistency check
         if amr_grid is None:
             amr_grid = self
 
         n_pop_ref = None
 
-        if amr_grid is None:
-            levels = self.levels
-        else:
-            levels = amr_grid.levels
-
         # Loop over levels
-        for ilevel, level_ref in enumerate(levels):
+        for ilevel, level_ref in enumerate(self.levels):
 
             # Read in level
             level = amr_grid.levels[ilevel]
 
             # Loop over grids
-            for igrid, grid_ref in enumerate(level.grids):
+            for igrid, grid_ref in enumerate(level_ref.grids):
 
                 # Read in grid
                 grid = level.grids[igrid]
@@ -154,10 +147,10 @@ class AMRGrid(FreezableClass):
 
                     n_pop, shape = single_grid_dims(grid.quantities[quantity])
 
-                    if shape != self.levels[ilevel].grids[igrid].shape:
+                    if shape != grid_ref.shape:
                         raise ValueError("Quantity arrays do not have the right "
                                          "dimensions: %s instead of %s"
-                                         % (shape, self.levels[ilevel].grids[igrid].shape))
+                                         % (shape, grid_ref.shape))
 
                     if n_pop is not None:
                         if n_pop_ref is None:
