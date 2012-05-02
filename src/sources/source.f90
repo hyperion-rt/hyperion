@@ -10,6 +10,8 @@ module sources
   use type_vector3d
   use settings
 
+  use grid_geometry, only : place_in_cell
+
   implicit none
   save
 
@@ -170,6 +172,9 @@ contains
     p%id = photon_counter
 
     p%last = 'sr'
+
+    call place_in_cell(p)
+    if(p%killed) call error("emit", "photon was not emitted inside a cell - this usually indicates that a source is not inside the grid")
 
   end subroutine emit
 

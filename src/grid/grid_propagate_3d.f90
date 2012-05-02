@@ -3,7 +3,7 @@ module grid_propagate
   use core_lib
   use type_photon, only : photon
   use dust_main, only : n_dust
-  use grid_geometry, only : escaped, find_wall, place_in_cell, in_correct_cell, next_cell, opposite_wall
+  use grid_geometry, only : escaped, find_wall, in_correct_cell, next_cell, opposite_wall
   use grid_physics, only : specific_energy_sum, density, n_photons, last_photon_id
   use sources
   use counters
@@ -67,10 +67,10 @@ contains
 
     ! Find what cell we are in if we don't know
 
-    if(.not.p%in_cell) then
-       call place_in_cell(p)
-       if(p%killed) return
-       if(allocated(n_photons)) then
+    if(.not.p%in_cell) call error("grid_integrate", "photon has not been placed in a cell")
+
+    if(allocated(n_photons)) then
+       if(last_photon_id(p%icell%ic).ne.p%id) then
           n_photons(p%icell%ic) = n_photons(p%icell%ic) + 1
           last_photon_id(p%icell%ic) = p%id
        end if
@@ -231,10 +231,7 @@ contains
 
     ! Find what cell we are in if we don't know
 
-    if(.not.p%in_cell) then
-       call place_in_cell(p)
-       if(p%killed) return
-    end if
+    if(.not.p%in_cell) call error("grid_integrate_noenergy", "photon has not been placed in a cell")
 
     if(tau_required==0._dp) return
 
@@ -250,7 +247,7 @@ contains
        call random(xi)
        if(xi < frac_check) then
           if(.not.in_correct_cell(p)) then
-             call warn("grid_integrate","not in correct cell - killing")
+             call warn("grid_integrate_noenergy","not in correct cell - killing")
              killed_photons_geo = killed_photons_geo + 1
              p%killed = .true.
              return
@@ -264,7 +261,7 @@ contains
        call find_wall(p,radial,tmin,id_min)
 
        if(id_min == 0) then
-          call warn("grid_integrate","cannot find next wall - killing")
+          call warn("grid_integrate_noenergy","cannot find next wall - killing")
           killed_photons_geo = killed_photons_geo + 1
           p%killed = .true.
           return
@@ -363,13 +360,7 @@ contains
 
     ! Find what cell we are in if we don't know
 
-    if(.not.p%in_cell) then
-       call place_in_cell(p)
-       if(p%killed) then
-          killed = .true.
-          return
-       end if
-    end if
+    if(.not.p%in_cell) call error("grid_escape_tau", "photon has not been placed in a cell")
 
     ! Check what the distance to the nearest source is
 
@@ -392,7 +383,7 @@ contains
        call random(xi)
        if(xi < frac_check) then
           if(.not.in_correct_cell(p)) then
-             call warn("grid_integrate","not in correct cell - killing")
+             call warn("grid_escape_tau","not in correct cell - killing")
              killed = .true.
              return
           end if
@@ -401,7 +392,7 @@ contains
        call find_wall(p,radial,tmin,id_min)
 
        if(id_min == 0) then
-          call warn("grid_integrate","cannot find next wall - killing")
+          call warn("grid_escape_tau","cannot find next wall - killing")
           killed = .true.
           return
        end if
@@ -469,13 +460,7 @@ contains
 
     ! Find what cell we are in if we don't know
 
-    if(.not.p%in_cell) then
-       call place_in_cell(p)
-       if(p%killed) then
-          killed = .true.
-          return
-       end if
-    end if
+    if(.not.p%in_cell) call error("grid_escape_column_density", "photon has not been placed in a cell")
 
     ! Check what the distance to the nearest source is
 
@@ -498,7 +483,7 @@ contains
        call random(xi)
        if(xi < frac_check) then
           if(.not.in_correct_cell(p)) then
-             call warn("grid_integrate","not in correct cell - killing")
+             call warn("grid_escape_column_density","not in correct cell - killing")
              killed = .true.
              return
           end if
@@ -507,7 +492,7 @@ contains
        call find_wall(p,radial,tmin,id_min)
 
        if(id_min == 0) then
-          call warn("grid_integrate","cannot find next wall - killing")
+          call warn("grid_escape_column_density","cannot find next wall - killing")
           killed = .true.
           return
        end if
