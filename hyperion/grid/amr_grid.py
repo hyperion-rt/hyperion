@@ -231,8 +231,12 @@ class AMRGrid(FreezableClass):
                 g_grid_quantities = g_quantities[level_path][grid_path]
                 for quantity in g_grid_quantities:
                     if quantities == 'all' or quantity in quantities:
-                        # TODO - if array is 4D, need to convert to list
-                        grid.quantities[quantity] = np.array(g_grid_quantities[quantity])
+                        array = np.array(g_grid_quantities[quantity])
+                        if array.ndim == 4:  # if array is 4D, it is a list of 3D arrays
+                            grid.quantities[quantity] = [array[i] for i in range(array.shape[0])]
+                        else:
+                            grid.quantities[quantity] = array
+
 
         # Check that advertised hash matches real hash
         if g_geometry.attrs['geometry'].decode('utf-8') != self.get_geometry_id():

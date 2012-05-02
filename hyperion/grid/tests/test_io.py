@@ -1,6 +1,4 @@
-import os
 from copy import deepcopy
-import tempfile
 
 import h5py
 import numpy as np
@@ -94,6 +92,10 @@ class TestView(object):
         h.read(f)
         f.close()
         assert h.n_dust == 1
+        if grid_type == 'amr':
+            assert type(h.levels[0].grids[0].quantities['density']) is list
+        else:
+            assert type(h.quantities['density']) is list
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_write_read_double(self, grid_type):
@@ -107,6 +109,10 @@ class TestView(object):
         h.read(f)
         f.close()
         assert h.n_dust == 2
+        if grid_type == 'amr':
+            assert type(h.levels[0].grids[0].quantities['density']) is list
+        else:
+            assert type(h.quantities['density']) is list
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_write_read_double_multiple(self, grid_type):
@@ -123,6 +129,12 @@ class TestView(object):
         h.read(f)
         f.close()
         assert h.n_dust == 2
+        if grid_type == 'amr':
+            assert type(h.levels[0].grids[0].quantities['density']) is list
+            assert type(h.levels[0].grids[0].quantities['energy']) is list
+        else:
+            assert type(h.quantities['density']) is list
+            assert type(h.quantities['energy']) is list
 
     @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
     def test_write_read_type_mismatch(self, grid_type):

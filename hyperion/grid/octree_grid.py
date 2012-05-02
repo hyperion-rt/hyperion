@@ -167,7 +167,7 @@ class OctreeGrid(FreezableClass):
             for quantity in g_quantities:
                 if quantities == 'all' or quantity in quantities:
                     array = np.array(g_quantities[quantity])
-                    if array.ndim == 4:  # if array is 4D, it is a list of 3D arrays
+                    if array.ndim == 2:  # if array is 2D, it is a list of 1D arrays
                         self.quantities[quantity] = [array[i] for i in range(array.shape[0])]
                     else:
                         self.quantities[quantity] = array
