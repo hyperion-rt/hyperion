@@ -189,7 +189,7 @@ class AMRGrid(FreezableClass):
 
         # Check that grid is indeed AMR
         if g_geometry.attrs['grid_type'].decode('utf-8') != 'amr':
-            raise Exception("Grid is not AMR")
+            raise Exception("Grid is not an AMR grid")
 
         # Initialize levels list
         self.levels = []

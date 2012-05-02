@@ -133,7 +133,7 @@ class OctreeGrid(FreezableClass):
 
     def read(self, group, quantities='all'):
         '''
-        Read in an oct-tree grid
+        Read in an octree grid
 
         Parameters
         ----------
@@ -152,7 +152,7 @@ class OctreeGrid(FreezableClass):
         # Read in geometry
 
         if g_geometry.attrs['grid_type'].decode('utf-8') != 'oct':
-            raise ValueError("Grid is not an oct-tree")
+            raise ValueError("Grid is not an octree")
 
         self.set_walls(g_geometry.attrs['x'],
                        g_geometry.attrs['y'],
@@ -181,7 +181,7 @@ class OctreeGrid(FreezableClass):
 
     def write(self, group, quantities='all', copy=True, absolute_paths=False, compression=True, wall_dtype=float, physics_dtype=float):
         '''
-        Write out the oct-tree grid
+        Write out the octree grid
 
         Parameters
         ----------
