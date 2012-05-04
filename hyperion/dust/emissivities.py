@@ -8,7 +8,7 @@ import numpy as np
 from ..util.integrate import integrate_loglog
 from ..util.interpolate import interp1d_fast_loglog
 from ..util.functions import B_nu, FreezableClass, nu_common, \
-                                    planck_nu_range
+                                    planck_nu_range, bool2str
 from ..util.constants import sigma
 from ..util.logger import logger
 
@@ -105,7 +105,7 @@ class Emissivities(FreezableClass):
         temiss = atpy.Table(name='emissivities')
         temiss.add_column('nu', self.nu)
         temiss.add_column('jnu', self.jnu)
-        table_set.add_keyword('lte', 'yes' if self.is_lte else 'no')
+        table_set.add_keyword('lte', bool2str(self.is_lte))
 
         # Write out the emissivity variable type
         if self.var_name == 'specific_energy':

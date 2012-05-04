@@ -3,8 +3,8 @@ from __future__ import print_function, division
 import atpy
 import numpy as np
 
-from ..util.functions import B_nu, random_id
-from ..util.functions import FreezableClass, is_numpy_array
+from ..util.functions import B_nu, random_id, FreezableClass, \
+                             is_numpy_array, bool2str
 from ..util.integrate import integrate_loglog
 from ..util.constants import c
 from ..util.validator import validate_scalar
@@ -91,7 +91,7 @@ class Source(FreezableClass):
 
         handle.attrs['luminosity'] = self.luminosity
 
-        handle.attrs['peeloff'] = np.string_('yes'.encode('utf-8')) if self.peeloff else np.string_('no'.encode('utf-8'))
+        handle.attrs['peeloff'] = np.string_(bool2str(self.peeloff))
 
         if self.spectrum is not None:
             handle.attrs['spectrum'] = np.string_('spectrum'.encode('utf-8'))
@@ -390,10 +390,7 @@ class SphericalSource(Source):
         g.attrs['y'] = self.position[1]
         g.attrs['z'] = self.position[2]
         g.attrs['r'] = self.radius
-        if self.limb:
-            g.attrs['limb'] = np.string_('yes'.encode('utf-8'))
-        else:
-            g.attrs['limb'] = np.string_('no'.encode('utf-8'))
+        g.attrs['limb'] = np.string_(bool2str(self.limb))
         Source.write(self, g)
 
         for i, spot in enumerate(self.spots):

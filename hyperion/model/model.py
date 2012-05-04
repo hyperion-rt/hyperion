@@ -14,20 +14,13 @@ from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, Octr
 from ..sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource
 from ..conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from ..util.constants import c
-from ..util.functions import FreezableClass, link_or_copy, is_numpy_array
+from ..util.functions import FreezableClass, link_or_copy, is_numpy_array, bool2str
 from ..dust import SphericalDust
 from ..util.logger import logger
 from ..util.validator import validate_scalar
 
 from .helpers import find_last_iteration
 from .model_output import ModelOutput
-
-
-def bool2str(value):
-    if value:
-        return np.string_("yes".encode('utf-8'))
-    else:
-        return np.string_("no".encode('utf-8'))
 
 
 class Configuration(FreezableClass):

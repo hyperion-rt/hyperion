@@ -14,6 +14,8 @@ from .constants import h, c, k
 
 TMPDIR = tempfile.mkdtemp()
 
+def bool2str(value):
+    return np.string_('yes'.encode('utf-8')) if value else np.string_('no'.encode('utf-8'))
 
 def link_or_copy(group, name, link, copy, absolute_paths=False):
     '''
