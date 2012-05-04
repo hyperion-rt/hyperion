@@ -8,6 +8,7 @@ transfer.
 .. toctree::
    :maxdepth: 1
 
+   use_previous.rst
    advanced_conf.rst
    reducing_file_sizes.rst
    indepth_oct.rst
