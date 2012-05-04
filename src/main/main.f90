@@ -1,17 +1,56 @@
 program main
 
-  use mpi_core
-  use mpi_routines
-  use setup
-  use binned_images
-  use peeled_images
-  use iteration_lucy
-  use iteration_final
-  use iteration_final_mono
-  use iteration_raytracing
-  use grid_generic
-  use settings
-  use counters
+  use core_lib, only : hid_t, dp, now, check_file_exists, warn, set_verbose_level
+
+  use mpi_core, only : main_process, mp_join, mp_stop, mp_initialize
+
+  use mpi_routines, only : mp_sync, &
+       &                   mp_set_random_seed, &
+       &                   mp_broadcast_convergence, &
+       &                   mp_collect_images
+
+  use mpi_hdf5_io, only : mp_open_read, &
+       &                  mp_open_new, &
+       &                  mp_test_version, &
+       &                  mp_create_group, &
+       &                  mp_set_compression, &
+       &                  mp_write_keyword, &
+       &                  mp_read_keyword, &
+       &                  mp_copy_group, &
+       &                  mp_create_external_link, &
+       &                  mp_close, &
+       &                  mp_finalize
+
+  use setup, only : setup_initial, &
+       &            setup_final_iteration
+
+  use binned_images, only : make_binned_images, &
+       &                    binned_images_write
+  use peeled_images, only : make_peeled_images, &
+       &                    peeled_images_write
+
+  use iteration_lucy, only : do_lucy
+  use iteration_final, only : do_final
+  use iteration_final_mono, only : do_final_mono
+  use iteration_raytracing, only : do_raytracing
+
+  use grid_generic, only : output_grid
+  use grid_physics, only : specific_energy_converged
+
+  use settings, only : n_initial_iter, &
+       &               n_initial_photons, &
+       &               n_last_photons_sources, &
+       &               n_last_photons_dust, &
+       &               n_last_photons, &
+       &               n_raytracing_photons_sources, &
+       &               n_raytracing_photons_dust, &
+       &               n_stats, &
+       &               check_convergence, &
+       &               use_exact_nu, &
+       &               use_raytracing
+
+  use counters, only : killed_photons_geo, &
+       &               killed_photons_int
 
   implicit none
 

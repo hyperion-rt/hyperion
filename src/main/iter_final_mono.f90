@@ -1,21 +1,42 @@
 module iteration_final_mono
 
   use core_lib, only : idp, dp, warn, random_exp, random, error
+
   use type_photon, only : photon
+
   use sources, only : emit
+
   use mpi_core, only : main_process, mp_join
   use mpi_routines, only : mp_reset_first, mp_n_photons
+
   use peeled_images, only : make_peeled_images, peeloff_photon
+
   use dust_main, only : n_dust
-  use grid_physics, only : energy_abs_tot, emit_from_grid, precompute_jnu_var
-  use grid_monochromatic
-  use grid_propagate, only : grid_integrate_noenergy, grid_escape_tau
   use dust_interact, only : interact
 
+  use grid_physics, only : energy_abs_tot, &
+       &                   emit_from_grid, &
+       &                   precompute_jnu_var
+
+  use grid_monochromatic, only : allocate_monochromatic_grid_pdfs, &
+       &                         setup_monochromatic_grid_pdfs, &
+       &                         emit_from_monochromatic_grid_pdf, &
+       &                         deallocate_monochromatic_grid_pdfs
+
+  use grid_propagate, only : grid_integrate_noenergy, &
+       &                     grid_escape_tau
+
   use grid_geometry, only : escaped
-  use settings, only : frequencies, n_inter_max, forced_first_scattering, n_reabs_max
-  use performance
-  use counters
+
+  use settings, only : frequencies, &
+       &               n_inter_max, &
+       &               n_reabs_max,  &
+       &               forced_first_scattering
+
+  use performance, only : perf_header, &
+       &                  perf_footer
+
+  use counters, only : killed_photons_int
 
   implicit none
   save

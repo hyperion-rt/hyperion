@@ -177,7 +177,7 @@ contains
     img%n_view = n_view
     img%n_sources = n_sources
     img%n_dust = n_dust
-    
+
     call mp_read_keyword(handle, path, 'n_wav',img%n_nu)
 
     call mp_read_keyword(handle, path, 'compute_image',img%compute_image)
@@ -200,7 +200,7 @@ contains
     end if
 
     call mp_read_keyword(handle, path, 'track_origin',img%track_origin)
-    
+
     select case(trim(img%track_origin))
     case('detailed')
        img%n_orig = 2 * (img%n_sources + img%n_dust)
@@ -394,7 +394,7 @@ contains
     end if
 
     ! Find origin flag
-    if(trim(img%track_origin) == 'detailed') then 
+    if(trim(img%track_origin) == 'detailed') then
         io = ((orig(p) - mod(orig(p),2)) * img%n_sources + (orig(p) - mod(orig(p)+1,2) - 1) * img%n_dust) / 2
         if(mod(orig(p),2)==0) then
             io = io + p%dust_id
@@ -459,7 +459,7 @@ contains
     end if
 
     ! Find origin flag
-    if(trim(img%track_origin) == 'detailed') then 
+    if(trim(img%track_origin) == 'detailed') then
         io = ((orig(p) - mod(orig(p),2)) * img%n_sources + (orig(p) - mod(orig(p)+1,2) - 1) * img%n_dust) / 2
         if(mod(orig(p),2)==0) then
             io = io + p%dust_id

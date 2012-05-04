@@ -1,16 +1,24 @@
 module iteration_raytracing
 
-  use core_lib
-  use type_photon
-  use sources
-  use type_source
-  use mpi_core
-  use mpi_routines
-  use peeled_images
-  use dust_main
-  use grid_physics
-  use grid_geometry
-  use performance
+  use core_lib, only : idp, dp
+
+  use type_photon, only : photon
+
+  use sources, only : emit, energy_total
+
+  use mpi_core, only : main_process, mp_join
+  use mpi_routines, only : mp_reset_first, mp_n_photons
+
+  use peeled_images, only : peeloff_photon
+
+  use dust_main, only : n_dust
+
+  use grid_physics, only : energy_abs_tot, &
+       &                   emit_from_grid, &
+       &                   precompute_jnu_var
+
+  use performance, only : perf_header, &
+       &                  perf_footer
 
   implicit none
   save
@@ -81,7 +89,7 @@ contains
        end if
     end if
 
-    if(n_dust==0._dp) return
+    if(n_dust == 0) return
 
     call mp_reset_first()
 

@@ -7,4 +7,4 @@ module counters
   integer :: killed_photons_int = 0
 
 end module counters
-    
+

@@ -1,22 +1,57 @@
 module iteration_lucy
 
-  use core_lib
-  use type_photon
-  use sources
-  use setup
-  use grid_geometry
-  use grid_physics
-  use mpi_core
-  use mpi_routines
-  use grid_propagate
-  use grid_generic
-  use dust_interact
-  use dust_main
-  use grid_mrw
-  use grid_pda
-  use settings
-  use performance
-  use counters
+  use core_lib, only : idp, dp, random_exp, random, error, warn
+
+  use type_photon, only : photon
+
+  use sources, only : emit, energy_current, energy_total
+
+  use mpi_core, only : main_process, mp_join
+  use mpi_routines, only : mp_reset_first, &
+       &                   mp_n_photons, &
+       &                   mp_sync, &
+       &                   mp_collect_physical_arrays, &
+       &                   mp_broadcast_specific_energy
+
+  use peeled_images, only : make_peeled_images, &
+       &                    peeloff_photon, &
+       &                    peeled_images_adjust_scale
+  use binned_images, only : make_binned_images, &
+       &                    binned_images_bin_photon, &
+       &                    binned_images_adjust_scale
+
+  use dust_interact, only : interact
+
+  use grid_geometry, only : escaped
+
+  use grid_generic, only : grid_reset_energy
+
+  use grid_physics, only : tau_rosseland_to_closest_wall, &
+       &                   precompute_jnu_var, &
+       &                   update_alpha_rosseland, &
+       &                   update_energy_abs, &
+       &                   sublimate_dust
+
+  use grid_propagate, only : grid_escape_tau, &
+       &                     grid_integrate
+
+  use grid_mrw, only : prepare_mrw, &
+       &               grid_do_mrw
+
+  use grid_pda, only : solve_pda
+
+  use settings, only : forced_first_scattering, &
+       &               kill_on_absorb, &
+       &               n_inter_max, &
+       &               mrw_gamma, &
+       &               n_mrw_max, &
+       &               n_reabs_max, &
+       &               use_mrw, &
+       &               use_pda
+
+  use performance, only : perf_header, perf_footer
+
+  use counters, only : killed_photons_int
 
   implicit none
   save

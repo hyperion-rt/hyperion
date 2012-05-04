@@ -648,7 +648,7 @@ contains
     ! Sample position in map
     call grid_sample_pdf_map(src%luminosity_map, p%icell)
     p%in_cell = .true.
-    
+
     ! Find random position inside cell
     call random_position_cell(p%icell, p%r)
 
