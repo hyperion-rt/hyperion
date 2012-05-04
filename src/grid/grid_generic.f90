@@ -38,7 +38,7 @@ contains
 
     if(main_process()) write(*,'(" [output_grid] outputting grid arrays for iteration")')
 
-    write(group_name, '("Iteration ",I5.5)') iter
+    write(group_name, '("iteration_",I5.5)') iter
     group = mp_create_group(handle, group_name)
 
     ! NUMBER OF PHOTONS IN EACH CELL

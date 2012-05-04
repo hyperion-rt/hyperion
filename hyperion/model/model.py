@@ -238,7 +238,7 @@ class Model(FreezableClass):
                 if quantity in ['density']:
                     array_path = '/Input/Grid/Quantities/%s' % quantity
                 else:
-                    array_path = '/Iteration %05i/specific_energy' % max_iteration
+                    array_path = '/iteration_%05i/specific_energy' % max_iteration
 
                 logger.info("Using %s from %s" % (quantity, filename))
 

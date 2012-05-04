@@ -1017,7 +1017,7 @@ class ModelOutput(FreezableClass):
             iteration = find_last_iteration(self.file)
 
         # Return components
-        components = list(self.file['Iteration %05i' % iteration].keys())
+        components = list(self.file['iteration_%05i' % iteration].keys())
         if 'specific_energy' in components:
             components.append('temperature')
         return components
@@ -1078,14 +1078,14 @@ class ModelOutput(FreezableClass):
 
         # Extract specific energy grid
         if name == 'temperature':
-            array = np.array(self.file['Iteration %05i' % iteration]['specific_energy'])
+            array = np.array(self.file['iteration_%05i' % iteration]['specific_energy'])
             g_dust = self.file['Input/Dust']
             for i in range(array.shape[0]):
                 dust = g_dust['dust_%03i' % (i + 1)]
                 d = SphericalDust(dust)
                 array[i, :, :, :] = d.mean_opacities._specific_energy2temperature(array[i, :, :, :])
         else:
-            array = np.array(self.file['Iteration %05i' % iteration][name])
+            array = np.array(self.file['iteration_%05i' % iteration][name])
 
         # If required, extract grid for a specific dust type
         if name == 'n_photons':
