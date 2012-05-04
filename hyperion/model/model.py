@@ -674,7 +674,7 @@ class Model(FreezableClass):
             os.remove(output_file)
 
         if logfile:
-            flog = file(logfile, 'wb')
+            flog = open(logfile, 'wb')
             returncode = subprocess.call('hyperion %s %s %s' % (option, input_file, output_file), stdout=flog, stderr=flog, shell=True)
         else:
             returncode = subprocess.call('hyperion %s %s %s' % (option, input_file, output_file), shell=True)

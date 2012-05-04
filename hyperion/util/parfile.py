@@ -33,7 +33,7 @@ def parse(filename):
     if not os.path.exists(filename):
         raise Exception('No such file or directory: ' + filename)
 
-    f = file(filename, 'rb')
+    f = open(filename, 'rb')
 
     parameters = {}
 

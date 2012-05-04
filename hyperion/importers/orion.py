@@ -96,7 +96,7 @@ class OrionAMRGrid(AMRGrid):
         AMRGrid.__init__(self)
 
         # Open file
-        f = file('%s/Header' % dirname, 'rb')
+        f = open('%s/Header' % dirname, 'rb')
 
         # Read version number
         version = f.readline().strip()
