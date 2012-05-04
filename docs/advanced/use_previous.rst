@@ -44,8 +44,9 @@ doing::
     m.use_quantities(<filename>, quantities=<quantities to use>,
                      use_minimum_specific_energy=<bool>, use_dust=<bool>)
 
-By default, both the density and the specific energy from the last iteration
-of a previous model are used, as well as the setting for the minimum specific
+In this case, the previous model has to be an output file from Hyperion. By
+default, both the density and the specific energy from the last iteration of a
+previous model are used, as well as the setting for the minimum specific
 energy (if set), and the dust properties. For example, in the above example,
 you can do::
 
