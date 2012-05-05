@@ -20,7 +20,7 @@ class check_bounds(object):
                 if bounds_error:
                     raise Exception("x value is out of interpolation bounds")
                 else:
-                    return np.nan
+                    return fill_value
             else:  # the value is in the bounds
                 return self.f(x, y, xval)
         else:  # xval is an array
