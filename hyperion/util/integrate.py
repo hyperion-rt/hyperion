@@ -2,9 +2,15 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from .interpolate import interp1d_fast, interp1d_fast_loglog, \
-                         interp1d_fast_linlog, interp1d_fast_loglin
+from .interpolate import interp1d_fast, \
+                         interp1d_fast_loglin, \
+                         interp1d_fast_linlog, \
+                         interp1d_fast_loglog
 
+from .integrate_core import integrate, \
+                            integrate_loglin, \
+                            integrate_linlog, \
+                            integrate_loglog
 
 def integrate_subset(x, y, xmin, xmax):
     '''
@@ -178,132 +184,6 @@ def integrate_loglog_subset(x, y, xmin, xmax):
 
     # Call function to integrate the whole subset
     return integrate_loglog(x, y)
-
-
-def integrate(x, y):
-    '''
-    Perform trapezium integration of a set of points (x,y). The interpolation
-    between the points is done in linear space, so this is designed for
-    functions that are piecewise linear in linear space.
-    '''
-
-    # Fix NaN values
-    y[np.isnan(y)] = 0.
-
-    # Find the integral of all the chunks
-    integrals = 0.5 * (x[1:] - x[:-1]) * (y[1:] + y[:-1])
-
-    # Sum them all up
-    integral = np.sum(integrals)
-
-    # Check if the integral is NaN or infinity
-    if np.isnan(integral) or np.isinf(integral):
-        raise Exception("Integral is NaN or Inf")
-
-    return integral
-
-
-def integrate_loglin(x, y):
-    '''
-    Perform trapezium integration of a set of points (x,y). The interpolation
-    between the points is done in log-linear space, so this is designed for
-    functions that are piecewise linear in log-linear space.
-    '''
-
-    # Fix NaN values
-    y[np.isnan(y)] = 0.
-
-    # Compute the power of the power-laws connecting the points
-    a = (y[:-1] - y[1:]) / np.log10(x[:-1] / x[1:])
-    b = y[:-1] - a * np.log10(x[:-1])
-
-    # Find the integral of all the chunks
-    integrals = a * (x[1:] * np.log10(x[1:]) - x[:-1] * np.log10(x[:-1])) \
-              + (b - a / np.log(10.)) * (x[1:] - x[:-1])
-
-    reset = x[1:] == x[:-1]
-    if np.any(reset):
-        integrals[reset] = 0.
-
-    # Sum them all up
-    integral = np.sum(integrals)
-
-    # Check if the integral is NaN or infinity
-    if np.isnan(integral) or np.isinf(integral):
-        raise Exception("Integral is NaN or Inf")
-
-    return integral
-
-
-def integrate_linlog(x, y):
-    '''
-    Perform trapezium integration of a set of points (x,y). The interpolation
-    between the points is done in linear-log space, so this is designed for
-    functions that are piecewise linear in linear-log space.
-    '''
-
-    # Fix NaN values
-    y[np.isnan(y)] = 0.
-
-    # Find which bins to ignore
-    keep = (y[:-1] > 0.) & (y[1:] > 0.)
-
-    # Find the integral of all the chunks
-    integrals = (y[1:] - y[:-1]) * (x[1:] - x[:-1]) \
-              / np.log(10.) / np.log10(y[1:] / y[:-1])
-
-    reset = x[1:] == x[:-1]
-    if np.any(reset):
-        integrals[reset] = 0.
-
-    reset = y[1:] == y[:-1]
-    if np.any(reset):
-        integrals[reset] = y[:-1] * (x[1:] - x[:-1])
-
-    # Sum them all up
-    integral = np.sum(integrals[keep])
-
-    # Check if the integral is NaN or infinity
-    if np.isnan(integral) or np.isinf(integral):
-        raise Exception("Integral is NaN or Inf")
-
-    return integral
-
-
-def integrate_loglog(x, y):
-    '''
-    Perform trapezium integration of a set of points (x,y). The interpolation
-    between the points is done in log-log space, so this is designed for
-    functions that are piecewise linear in log-log space.
-    '''
-
-    # Fix NaN values
-    y[np.isnan(y)] = 0.
-
-    # Find which bins to ignore
-    keep = (y[:-1] > 0.) & (y[1:] > 0.)
-
-    # Compute the power of the power-laws connecting the points
-    b = np.log10(y[:-1] / y[1:]) / np.log10(x[:-1] / x[1:])
-
-    # Find the integral of all the chunks
-    integrals = y[:-1] * (x[1:] * np.power(x[1:] / x[:-1], b) - x[:-1]) \
-              / (b + 1)
-
-    # Address special case
-    reset = np.abs(b + 1.) < 1e-10
-    if np.any(reset):
-        integrals[reset] = x[:-1][reset] * y[:-1][reset] \
-                         * np.log(x[1:][reset] / x[:-1][reset])
-
-    # Sum them all up
-    integral = np.sum(integrals[keep])
-
-    # Check if the integral is NaN or infinity
-    if np.isnan(integral) or np.isinf(integral):
-        raise Exception("Integral is NaN or Inf")
-
-    return integral
 
 
 def integrate_powerlaw(xmin, xmax, power):
