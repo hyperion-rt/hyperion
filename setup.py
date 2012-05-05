@@ -36,5 +36,6 @@ setup(name='hyperion',
                 'hyperion.util.tests'],
       scripts=['scripts/' + x for x in scripts],
       cmdclass={'build_py': build_py, 'test':HyperionTest, 'build_ext':build_ext},
-      ext_modules = [Extension("hyperion.util.integrate_core", ['hyperion/util/integrate_core.pyx'], include_dirs=[numpy_includes])],
+      ext_modules = [Extension("hyperion.util.integrate_core", ['hyperion/util/integrate_core.pyx'], include_dirs=[numpy_includes]),
+                     Extension("hyperion.util.interpolate_core", ['hyperion/util/interpolate_core.pyx'], include_dirs=[numpy_includes])],
      )

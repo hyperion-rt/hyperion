@@ -2,6 +2,15 @@ from __future__ import print_function, division
 
 import numpy as np
 
+from interpolate_core import interp1d_linear_scalar, \
+                             interp1d_linear_array, \
+                             interp1d_loglog_scalar, \
+                             interp1d_loglog_array, \
+                             interp1d_linlog_scalar, \
+                             interp1d_linlog_array, \
+                             interp1d_loglin_scalar, \
+                             interp1d_loglin_array
+
 
 class check_bounds(object):
     '''
@@ -47,10 +56,10 @@ def interp1d_fast(x, y, xval):
     if len(x) != len(y):
         raise Exception("x and y should have the same length")
     ipos = np.searchsorted(x, xval)
-    return (xval - x[ipos - 1]) \
-         / (x[ipos] - x[ipos - 1]) \
-         * (y[ipos] - y[ipos - 1]) \
-         + y[ipos - 1]
+    if np.isscalar(xval):
+        return interp1d_linear_scalar(x, y, np.float(xval), ipos)
+    else:
+        return interp1d_linear_array(x, y, xval, ipos)
 
 
 @check_bounds
@@ -59,16 +68,10 @@ def interp1d_fast_loglog(x, y, xval):
     if len(x) != len(y):
         raise Exception("x and y should have the same length")
     ipos = np.searchsorted(x, xval)
-    yval = 10.**((np.log10(xval) - np.log10(x[ipos - 1])) \
-              / (np.log10(x[ipos]) - np.log10(x[ipos - 1])) \
-              * (np.log10(y[ipos]) - np.log10(y[ipos - 1])) \
-              + np.log10(y[ipos - 1]))
     if np.isscalar(xval):
-        if y[ipos - 1] == 0. or y[ipos] == 0.:
-            yval = 0.
+        return interp1d_loglog_scalar(x, y, np.float(xval), ipos)
     else:
-        yval[(y[ipos - 1] == 0.) | (y[ipos] == 0.)] = 0.
-    return yval
+        return interp1d_loglog_array(x, y, xval, ipos)
 
 
 @check_bounds
@@ -77,16 +80,10 @@ def interp1d_fast_linlog(x, y, xval):
     if len(x) != len(y):
         raise Exception("x and y should have the same length")
     ipos = np.searchsorted(x, xval)
-    yval = 10.**((xval - x[ipos - 1]) \
-              / (x[ipos] - x[ipos - 1]) \
-              * (np.log10(y[ipos]) - np.log10(y[ipos - 1])) \
-              + np.log10(y[ipos - 1]))
     if np.isscalar(xval):
-        if y[ipos - 1] == 0. or y[ipos] == 0.:
-            yval = 0.
+        return interp1d_linlog_scalar(x, y, np.float(xval), ipos)
     else:
-        yval[(y[ipos - 1] == 0.) | (y[ipos] == 0.)] = 0.
-    return yval
+        return interp1d_linlog_array(x, y, xval, ipos)
 
 
 @check_bounds
@@ -95,7 +92,7 @@ def interp1d_fast_loglin(x, y, xval):
     if len(x) != len(y):
         raise Exception("x and y should have the same length")
     ipos = np.searchsorted(x, xval)
-    return ((np.log10(xval) - np.log10(x[ipos-1])) \
-           / (np.log10(x[ipos]) - np.log10(x[ipos - 1])) \
-           * (y[ipos] - y[ipos - 1]) \
-           + y[ipos - 1])
+    if np.isscalar(xval):
+        return interp1d_loglin_scalar(x, y, np.float(xval), ipos)
+    else:
+        return interp1d_loglin_array(x, y, xval, ipos)
