@@ -14,6 +14,8 @@ from .constants import h, c, k
 
 TMPDIR = tempfile.mkdtemp()
 
+MAX_FLOAT = np.log(np.finfo('d').max)
+
 def bool2str(value):
     return np.string_('yes'.encode('utf-8')) if value else np.string_('no'.encode('utf-8'))
 
@@ -153,8 +155,11 @@ class extrap1d_log10(object):
 
 
 def B_nu(nu, T):
-    return 2. * h * nu ** 3. / c ** 2. / (np.exp(h * nu / k / T) - 1.)
-
+    x = h * nu / k / T
+    keep = x < MAX_FLOAT
+    f = np.zeros(nu.shape)
+    f[keep] = 2. * h * nu[keep] ** 3. / c ** 2. / (np.exp(x[keep]) - 1.)
+    return f
 
 def filename2fits(filename):
 

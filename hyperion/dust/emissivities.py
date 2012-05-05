@@ -158,12 +158,14 @@ class Emissivities(FreezableClass):
         peak = self.jnu.max()
 
         m = plt.cm.gist_heat
+        vmin, vmax = np.log10(peak) - 6., np.log10(peak)
 
+        print(np.clip(np.abs(self.jnu.swapaxes(0, 1)), vmin, vmax))
         ax = figure.add_subplot(subplot)
         ax.patch.set_facecolor('black')
         ax.contourf(self.nu, self.var,
-                     np.log10(np.abs(self.jnu.swapaxes(0, 1))),
-                     np.linspace(np.log10(peak) - 6., np.log10(peak), 30),
+                     np.log10(np.clip(np.abs(self.jnu.swapaxes(0, 1)), 10.**vmin, 10.**vmax)),
+                     np.linspace(vmin, vmax, 30),
                      cmap=m)
         ax.set_xscale('log')
         ax.set_yscale('log')

@@ -247,12 +247,13 @@ class OpticalProperties(FreezableClass):
         self.normalize_scattering_matrix()
 
         m = plt.cm.gist_heat
+        vmin, vmax = -2., 2.
 
         ax = figure.add_subplot(subplots[1])
         ax.patch.set_facecolor('black')
         ax.contourf(self.wav, self.mu,
-                     np.log10(np.abs(self.P1.swapaxes(0, 1))),
-                     np.linspace(-2., 2., 30), cmap=m)
+                     np.log10(np.clip(np.abs(self.P1.swapaxes(0, 1)), 10.**vmin, 10.**vmax)),
+                     np.linspace(vmin, vmax, 30), cmap=m)
         ax.set_xscale('log')
         ax.set_xlim(self.wav.min(), self.wav.max())
         ax.set_ylim(-1., 1.)
@@ -263,8 +264,8 @@ class OpticalProperties(FreezableClass):
         ax = figure.add_subplot(subplots[2])
         ax.patch.set_facecolor('black')
         ax.contourf(self.wav, self.mu,
-                     np.log10(np.abs(self.P2.swapaxes(0, 1))),
-                     np.linspace(-2., 2., 30), cmap=m)
+                     np.log10(np.clip(np.abs(self.P2.swapaxes(0, 1)), 10.**vmin, 10.**vmax)),
+                     np.linspace(vmin, vmax, 30), cmap=m)
         ax.set_xscale('log')
         ax.set_xlim(self.wav.min(), self.wav.max())
         ax.set_ylim(-1., 1.)
@@ -275,8 +276,8 @@ class OpticalProperties(FreezableClass):
         ax = figure.add_subplot(subplots[3])
         ax.patch.set_facecolor('black')
         ax.contourf(self.wav, self.mu,
-                     np.log10(np.abs(self.P3.swapaxes(0, 1))),
-                     np.linspace(-2., 2., 30), cmap=m)
+                     np.log10(np.clip(np.abs(self.P3.swapaxes(0, 1)), 10.**vmin, 10.**vmax)),
+                     np.linspace(vmin, vmax, 30), cmap=m)
         ax.set_xscale('log')
         ax.set_xlim(self.wav.min(), self.wav.max())
         ax.set_ylim(-1., 1.)
@@ -287,8 +288,8 @@ class OpticalProperties(FreezableClass):
         ax = figure.add_subplot(subplots[4])
         ax.patch.set_facecolor('black')
         ax.contourf(self.wav, self.mu,
-                     np.log10(np.abs(self.P4.swapaxes(0, 1))),
-                     np.linspace(-2., 2., 30), cmap=m)
+                     np.log10(np.clip(np.abs(self.P4.swapaxes(0, 1)), 10.**vmin, 10.**vmax)),
+                     np.linspace(vmin, vmax, 30), cmap=m)
         ax.set_xscale('log')
         ax.set_xlim(self.wav.min(), self.wav.max())
         ax.set_ylim(-1., 1.)
