@@ -2,6 +2,8 @@ from __future__ import division
 import numpy as np
 cimport numpy as np
 
+from libc.math cimport log10
+
 DTYPE_F = np.float
 DTYPE_I = np.int
 ctypedef np.float_t DTYPE_F_t
@@ -9,10 +11,6 @@ ctypedef np.int_t DTYPE_I_t
 
 cdef extern from "numpy/npy_math.h":
     bint npy_isnan(double x)
-    double npy_log(double x)
-    double npy_log10(double x)
-    double npy_fabs(double x)
-    double npy_pow(double x, double y)
 
 cimport cython
 
@@ -87,10 +85,10 @@ def interp1d_loglog_scalar(np.ndarray[DTYPE_F_t, ndim=1] x,
         i1 = ipos - 1
         i2 = ipos
         if y[i1] > 0. and y[i2] > 0.:
-            yval = 10. ** ((npy_log10(xval) - npy_log10(x[i1])) \
-                         / (npy_log10(x[i2]) - npy_log10(x[i1])) \
-                         * (npy_log10(y[i2]) - npy_log10(y[i1])) \
-                         + npy_log10(y[i1]))
+            yval = 10. ** ((log10(xval) - log10(x[i1])) \
+                         / (log10(x[i2]) - log10(x[i1])) \
+                         * (log10(y[i2]) - log10(y[i1])) \
+                         + log10(y[i1]))
         else:
             yval = 0.
 
@@ -119,10 +117,10 @@ def interp1d_loglog_array(np.ndarray[DTYPE_F_t, ndim=1] x,
             i1 = ipos[i] - 1
             i2 = ipos[i]
             if y[i1] > 0. and y[i2] > 0.:
-                yval[i] = 10. ** ((npy_log10(xval[i]) - npy_log10(x[i1])) \
-                                / (npy_log10(x[i2]) - npy_log10(x[i1])) \
-                                * (npy_log10(y[i2]) - npy_log10(y[i1])) \
-                                + npy_log10(y[i1]))
+                yval[i] = 10. ** ((log10(xval[i]) - log10(x[i1])) \
+                                / (log10(x[i2]) - log10(x[i1])) \
+                                * (log10(y[i2]) - log10(y[i1])) \
+                                + log10(y[i1]))
             else:
                 yval[i] = 0.
 
@@ -150,8 +148,8 @@ def interp1d_linlog_scalar(np.ndarray[DTYPE_F_t, ndim=1] x,
         if y[i1] > 0. and y[i2] > 0.:
             yval = 10. ** ((xval - x[i1]) \
                          / (x[i2] - x[i1]) \
-                         * (npy_log10(y[i2]) - npy_log10(y[i1])) \
-                         + npy_log10(y[i1]))
+                         * (log10(y[i2]) - log10(y[i1])) \
+                         + log10(y[i1]))
         else:
             yval = 0.
 
@@ -182,8 +180,8 @@ def interp1d_linlog_array(np.ndarray[DTYPE_F_t, ndim=1] x,
             if y[i1] > 0. and y[i2] > 0.:
                 yval[i] = 10. ** ((xval[i] - x[i1]) \
                                 / (x[i2] - x[i1]) \
-                                * (npy_log10(y[i2]) - npy_log10(y[i1])) \
-                                + npy_log10(y[i1]))
+                                * (log10(y[i2]) - log10(y[i1])) \
+                                + log10(y[i1]))
             else:
                 yval[i] = 0.
 
@@ -208,8 +206,8 @@ def interp1d_loglin_scalar(np.ndarray[DTYPE_F_t, ndim=1] x,
     else:
         i1 = ipos - 1
         i2 = ipos
-        yval =  ((npy_log10(xval) - npy_log10(x[i1])) \
-               / (npy_log10(x[i2]) - npy_log10(x[i1])) \
+        yval =  ((log10(xval) - log10(x[i1])) \
+               / (log10(x[i2]) - log10(x[i1])) \
                * (y[i2] - y[i1]) \
                + y[i1])
 
@@ -237,8 +235,8 @@ def interp1d_loglin_array(np.ndarray[DTYPE_F_t, ndim=1] x,
         else:
             i1 = ipos[i] - 1
             i2 = ipos[i]
-            yval[i] =  ((npy_log10(xval[i]) - npy_log10(x[i1])) \
-                      / (npy_log10(x[i2]) - npy_log10(x[i1])) \
+            yval[i] =  ((log10(xval[i]) - log10(x[i1])) \
+                      / (log10(x[i2]) - log10(x[i1])) \
                       * (y[i2] - y[i1]) \
                       + y[i1])
 
