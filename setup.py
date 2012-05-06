@@ -13,7 +13,7 @@ except ImportError:  # Python 2.x
 from numpy import get_include as get_numpy_include
 
 from hyperion.testing.helper import HyperionTest
-from hyperion.version import __version__
+from hyperion.version import __version__, __dev__
 
 numpy_includes = get_numpy_include()
 
@@ -22,7 +22,7 @@ cmdclass['build_py'] = build_py
 cmdclass['test'] = HyperionTest
 cmdclass['sdist'] = sdist.sdist
 
-if __version__.endswith('.dev'):
+if __dev__:
     from Cython.Distutils import build_ext
     ext_modules = [Extension("hyperion.util.integrate_core",
                              ['hyperion/util/integrate_core.pyx'],
