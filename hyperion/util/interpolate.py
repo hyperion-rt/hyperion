@@ -59,7 +59,10 @@ def interp1d_fast(x, y, xval):
     if np.isscalar(xval):
         return interp1d_linear_scalar(x, y, np.float(xval), ipos)
     else:
-        return interp1d_linear_array(x, y, xval, ipos)
+        if xval.ndim > 1:
+            return interp1d_linear_array(x, y, xval.flatten(), ipos.flatten()).reshape(xval.shape)
+        else:
+            return interp1d_linear_array(x, y, xval, ipos)
 
 
 @check_bounds
@@ -71,7 +74,10 @@ def interp1d_fast_loglog(x, y, xval):
     if np.isscalar(xval):
         return interp1d_loglog_scalar(x, y, np.float(xval), ipos)
     else:
-        return interp1d_loglog_array(x, y, xval, ipos)
+        if xval.ndim > 1:
+            return interp1d_loglog_array(x, y, xval.flatten(), ipos.flatten()).reshape(xval.shape)
+        else:
+            return interp1d_loglog_array(x, y, xval, ipos)
 
 
 @check_bounds
@@ -83,7 +89,10 @@ def interp1d_fast_linlog(x, y, xval):
     if np.isscalar(xval):
         return interp1d_linlog_scalar(x, y, np.float(xval), ipos)
     else:
-        return interp1d_linlog_array(x, y, xval, ipos)
+        if xval.ndim > 1:
+            return interp1d_linlog_array(x, y, xval.flatten(), ipos.flatten()).reshape(xval.shape)
+        else:
+            return interp1d_linlog_array(x, y, xval, ipos)
 
 
 @check_bounds
@@ -95,4 +104,7 @@ def interp1d_fast_loglin(x, y, xval):
     if np.isscalar(xval):
         return interp1d_loglin_scalar(x, y, np.float(xval), ipos)
     else:
-        return interp1d_loglin_array(x, y, xval, ipos)
+        if xval.ndim > 1:
+            return interp1d_loglin_array(x, y, xval.flatten(), ipos.flatten()).reshape(xval.shape)
+        else:
+            return interp1d_loglin_array(x, y, xval, ipos)
