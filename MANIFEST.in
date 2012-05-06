@@ -5,5 +5,5 @@ recursive-include fortranlib *.f90
 include hyperion/util/integrate_core.c
 include hyperion/util/interpolate_core.c
 
-exclude *.pyx *.pyc *.o
+recursive-exclude hyperion *.pyx *.pyc *.o
 
