@@ -216,7 +216,6 @@ contains
     i1 = cell%i1
     i2 = cell%i2
     i3 = cell%i3
-    ! check if < 6 to avoid slowing down code
     select case(direction)
     case(1, 7, 9, 11, 13, 19, 21, 23, 25)
        i1 = i1 - 1
