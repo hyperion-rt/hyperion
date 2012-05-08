@@ -36,6 +36,34 @@ module grid_geometry_specific
   public :: setup_grid_geometry
   type(grid_geometry_desc),public,target :: geo
 
+  ! The following list gives the ID of the walls, edges, and vertices
+  ! xmin             = 1
+  ! xmax             = 2
+  ! ymin             = 3
+  ! ymax             = 4
+  ! zmin             = 5
+  ! zmax             = 6
+  ! xmin, ymin       = 7
+  ! xmax, ymin       = 8
+  ! xmin, ymax       = 9
+  ! xmax, ymax       = 10
+  ! xmin, zmin       = 11
+  ! xmax, zmin       = 12
+  ! xmin, zmax       = 13
+  ! xmax, zmax       = 14
+  ! ymin, zmin       = 15
+  ! ymax, zmin       = 16
+  ! ymin, zmax       = 17
+  ! ymax, zmax       = 18
+  ! xmin, ymin, zmin = 19
+  ! xmax, ymin, zmin = 20
+  ! xmin, ymax, zmin = 21
+  ! xmax, ymax, zmin = 22
+  ! xmin, ymin, zmax = 23
+  ! xmax, ymin, zmax = 24
+  ! xmin, ymax, zmax = 25
+  ! xmax, ymax, zmax = 26
+
 contains
 
   real(dp) function cell_width(cell, idir)
@@ -324,6 +352,7 @@ contains
     ! tmin to nearest wall
 
     real(dp) :: tx, ty, tz
+    real(dp) :: tx_s, ty_s, tz_s
 
     logical :: pos_vx, pos_vy, pos_vz
 
@@ -366,42 +395,20 @@ contains
     ! in min function or any kind of loop. Each iteraction comprises only
     ! three if statements and two pointer assignements.
 
-    ! xmin             = 1
-    ! xmax             = 2
-    ! ymin             = 3
-    ! ymax             = 4
-    ! zmin             = 5
-    ! zmax             = 6
-    ! xmin, ymin       = 7
-    ! xmax, ymin       = 8
-    ! xmin, ymax       = 9
-    ! xmax, ymax       = 10
-    ! xmin, zmin       = 11
-    ! xmax, zmin       = 12
-    ! xmin, zmax       = 13
-    ! xmax, zmax       = 14
-    ! ymin, zmin       = 15
-    ! ymax, zmin       = 16
-    ! ymin, zmax       = 17
-    ! ymax, zmax       = 18
-    ! xmin, ymin, zmin = 19
-    ! xmax, ymin, zmin = 20
-    ! xmin, ymax, zmin = 21
-    ! xmax, ymax, zmin = 22
-    ! xmin, ymin, zmax = 23
-    ! xmax, ymin, zmax = 24
-    ! xmin, ymax, zmax = 25
-    ! xmax, ymax, zmax = 26
+    ! Find out what the spacing between floating-point values is
+    tx_s = spacing(tx)
+    ty_s = spacing(ty)
+    tz_s = spacing(tz)
 
-    if(tx.lt.tz) then
-       if(tx.lt.ty) then
+    if(tx.lt.tz - tz_s) then
+       if(tx.lt.ty - ty_s) then
           if(pos_vx) then
              id_min = 2
           else
              id_min = 1
           end if
           tmin = tx
-       else if(tx.gt.ty) then
+       else if(tx.gt.ty + ty_s) then
           if(pos_vy) then
              id_min = 4
           else
@@ -414,15 +421,15 @@ contains
           if(pos_vy) id_min = id_min + 2
           tmin = tx
        end if
-    else if(tx.gt.tz) then
-       if(tz.lt.ty) then
+    else if(tx.gt.tz + tz_s) then
+       if(tz.lt.ty - ty_s) then
           if(pos_vz) then
              id_min = 6
           else
              id_min = 5
           end if
           tmin = tz
-       else if(tz.gt.ty) then
+       else if(tz.gt.ty + ty_s) then
           if(pos_vy) then
              id_min = 4
           else
@@ -436,21 +443,24 @@ contains
           tmin = ty
        end if
     else ! tx == tz
-       if(tx.lt.ty) then
+       if(tx.lt.ty - ty_s) then
           id_min = 11
           if(pos_vx) id_min = id_min + 1
           if(pos_vz) id_min = id_min + 2
-       else if(tx.gt.ty) then
+          tmin = tx
+       else if(tx.gt.ty + ty_s) then
           if(pos_vy) then
              id_min = 4
           else
              id_min = 3
           end if
+          tmin = ty
        else
           id_min = 19
           if(pos_vx) id_min = id_min + 1
           if(pos_vy) id_min = id_min + 2
           if(pos_vz) id_min = id_min + 4
+          tmin = tx
        end if
     end if
 
