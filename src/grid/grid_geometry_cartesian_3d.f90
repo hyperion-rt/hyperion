@@ -188,57 +188,83 @@ contains
     i1 = cell%i1
     i2 = cell%i2
     i3 = cell%i3
+    ! check if < 6 to avoid slowing down code
     select case(direction)
-    case(1)
+    case(1, 7, 9, 11, 13, 19, 21, 23, 25)
        i1 = i1 - 1
-    case(2)
+    case(2, 8, 10, 12, 14, 20, 22, 24, 26)
        i1 = i1 + 1
-    case(3)
+    end select
+    select case(direction)
+    case(3, 7, 8, 15, 17, 19, 20, 23, 24)
        i2 = i2 - 1
-    case(4)
+    case(4, 9, 10, 16, 18, 21, 22, 25, 26)
        i2 = i2 + 1
-    case(5)
+    end select
+    select case(direction)
+    case(5, 11, 12, 15, 16, 19, 20, 21, 22)
        i3 = i3 - 1
-    case(6)
+    case(6, 13, 14, 17, 18, 23, 24, 25, 26)
        i3 = i3 + 1
     end select
     next_cell = new_grid_cell(i1, i2, i3, geo)
   end function next_cell
 
   logical function in_correct_cell(p)
+
     implicit none
+
     type(photon),intent(in) :: p
     type(grid_cell) :: icell_actual
     real(dp) :: frac
+
     icell_actual = find_cell(p)
+
     if(p%on_wall) then
-       select case(p%on_wall_id)
-       case(1)
-          frac = (p%r%x - geo%w1(p%icell%i1)) / (geo%w1(p%icell%i1+1) - geo%w1(p%icell%i1))
-          in_correct_cell = icell_actual%i2 == p%icell%i2 .and. icell_actual%i3 == p%icell%i3
-       case(2)
-          frac = (p%r%x - geo%w1(p%icell%i1+1)) / (geo%w1(p%icell%i1+1) - geo%w1(p%icell%i1))
-          in_correct_cell = icell_actual%i2 == p%icell%i2 .and. icell_actual%i3 == p%icell%i3
-       case(3)
-          frac = (p%r%y - geo%w2(p%icell%i2)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i3 == p%icell%i3
-       case(4)
-          frac = (p%r%y - geo%w2(p%icell%i2+1)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i3 == p%icell%i3
-       case(5)
-          frac = (p%r%z - geo%w3(p%icell%i3)) / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i2 == p%icell%i2
-       case(6)
-          frac = (p%r%z - geo%w3(p%icell%i3+1)) / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i2 == p%icell%i2
-       case default
+
+       if(p%on_wall_id > 26 .or. p%on_wall_id < 1) then
           call warn("in_correct_cell","invalid on_wall_id")
           in_correct_cell = .false.
+          return
+       else
+          in_correct_cell = .true.
+       end if
+
+       select case(p%on_wall_id)
+       case(1, 7, 9, 11, 13, 19, 21, 23, 25)
+          frac = (p%r%x - geo%w1(p%icell%i1)) / (geo%w1(p%icell%i1+1) - geo%w1(p%icell%i1))
+       case(2, 8, 10, 12, 14, 20, 22, 24, 26)
+          frac = (p%r%x - geo%w1(p%icell%i1+1)) / (geo%w1(p%icell%i1+1) - geo%w1(p%icell%i1))
+       case default
+          in_correct_cell = in_correct_cell .and. icell_actual%i1 == p%icell%i1
        end select
-       in_correct_cell = abs(frac) < 1.e-3_dp .and. in_correct_cell
+
+       select case(p%on_wall_id)
+       case(3, 7, 8, 15, 17, 19, 20, 23, 24)
+          frac = (p%r%y - geo%w2(p%icell%i2)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
+       case(4, 9, 10, 16, 18, 21, 22, 25, 26)
+          frac = (p%r%y - geo%w2(p%icell%i2+1)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
+       case default
+          in_correct_cell = in_correct_cell .and. icell_actual%i2 == p%icell%i2
+       end select
+
+       select case(p%on_wall_id)
+       case(5, 11, 12, 15, 16, 19, 20, 21, 22)
+          frac = (p%r%z - geo%w3(p%icell%i3)) / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
+       case(6, 13, 14, 17, 18, 23, 24, 25, 26)
+          frac = (p%r%z - geo%w3(p%icell%i3+1)) / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
+       case default
+          in_correct_cell = in_correct_cell .and. icell_actual%i3 == p%icell%i3
+       end select
+
+       in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+
     else
+
        in_correct_cell = icell_actual == p%icell
+
     end if
+
   end function in_correct_cell
 
   subroutine random_position_cell(icell,pos)
@@ -340,6 +366,33 @@ contains
     ! in min function or any kind of loop. Each iteraction comprises only
     ! three if statements and two pointer assignements.
 
+    ! xmin             = 1
+    ! xmax             = 2
+    ! ymin             = 3
+    ! ymax             = 4
+    ! zmin             = 5
+    ! zmax             = 6
+    ! xmin, ymin       = 7
+    ! xmax, ymin       = 8
+    ! xmin, ymax       = 9
+    ! xmax, ymax       = 10
+    ! xmin, zmin       = 11
+    ! xmax, zmin       = 12
+    ! xmin, zmax       = 13
+    ! xmax, zmax       = 14
+    ! ymin, zmin       = 15
+    ! ymax, zmin       = 16
+    ! ymin, zmax       = 17
+    ! ymax, zmax       = 18
+    ! xmin, ymin, zmin = 19
+    ! xmax, ymin, zmin = 20
+    ! xmin, ymax, zmin = 21
+    ! xmax, ymax, zmin = 22
+    ! xmin, ymin, zmax = 23
+    ! xmax, ymin, zmax = 24
+    ! xmin, ymax, zmax = 25
+    ! xmax, ymax, zmax = 26
+
     if(tx.lt.tz) then
        if(tx.lt.ty) then
           if(pos_vx) then
@@ -348,15 +401,20 @@ contains
              id_min = 1
           end if
           tmin = tx
-       else
+       else if(tx.gt.ty) then
           if(pos_vy) then
              id_min = 4
           else
              id_min = 3
           end if
           tmin = ty
+       else ! tx == ty
+          id_min = 7
+          if(pos_vx) id_min = id_min + 1
+          if(pos_vy) id_min = id_min + 2
+          tmin = tx
        end if
-    else
+    else if(tx.gt.tz) then
        if(tz.lt.ty) then
           if(pos_vz) then
              id_min = 6
@@ -364,13 +422,35 @@ contains
              id_min = 5
           end if
           tmin = tz
-       else
+       else if(tz.gt.ty) then
           if(pos_vy) then
              id_min = 4
           else
              id_min = 3
           end if
           tmin = ty
+       else ! ty == tz
+          id_min = 15
+          if(pos_vy) id_min = id_min + 1
+          if(pos_vz) id_min = id_min + 2
+          tmin = ty
+       end if
+    else ! tx == tz
+       if(tx.lt.ty) then
+          id_min = 11
+          if(pos_vx) id_min = id_min + 1
+          if(pos_vz) id_min = id_min + 2
+       else if(tx.gt.ty) then
+          if(pos_vy) then
+             id_min = 4
+          else
+             id_min = 3
+          end if
+       else
+          id_min = 19
+          if(pos_vx) id_min = id_min + 1
+          if(pos_vy) id_min = id_min + 2
+          if(pos_vz) id_min = id_min + 4
        end if
     end if
 
