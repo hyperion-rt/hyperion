@@ -39,6 +39,21 @@ module grid_geometry_specific
 
   type(grid_geometry_desc),public,target :: geo
 
+  !    1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+  ! 1  x  x  7  9 11 13  x  x  x  x  x  x  x  x 19 21 23 25  x  x  x  x  x  x  x  x
+  ! 2  x  x  8 10 12 14  x  x  x  x  x  x  x  x 20 22 24 26  x  x  x  x  x  x  x  x
+  ! 3  7  8  x  x 15 17  x  x  x  x 19 20 23 24  x  x  x  x  x  x  x  x  x  x  x  x
+  ! 4  9 10  x  x 16 18  x  x  x  x 21 22 25 26  x  x  x  x  x  x  x  x  x  x  x  x
+  ! 5 11 12 15 16  x  x 19 20 21 22  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x
+  ! 6 13 14 17 18  x  x 23 24 25 26  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x
+
+  integer,parameter :: IDCOMB(6, 26) = (/ 0,  0,  7,  9, 11, 13,  0,  0,  0,  0,  0,  0,  0,  0, 19, 21, 23, 25,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                  0,  0,  8, 10, 12, 14,  0,  0,  0,  0,  0,  0,  0,  0, 20, 22, 24, 26,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                  7,  8,  0,  0, 15, 17,  0,  0,  0,  0, 19, 20, 23, 24,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                  9, 10,  0,  0, 16, 18,  0,  0,  0,  0, 21, 22, 25, 26,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                 11, 12, 15, 16,  0,  0, 19, 20, 21, 22,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                 13, 14, 17, 18,  0,  0, 23, 24, 25, 26,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0/)
+
 contains
 
   real(dp) function cell_width(cell, idir)
@@ -227,18 +242,22 @@ contains
     i2 = cell%i2
     i3 = cell%i3
     select case(direction)
-    case(1)
+    case(1, 7, 9, 11, 13, 19, 21, 23, 25)
        i1 = i1 - 1
-    case(2)
+    case(2, 8, 10, 12, 14, 20, 22, 24, 26)
        i1 = i1 + 1
-    case(3)
+    end select
+    select case(direction)
+    case(3, 7, 8, 15, 17, 19, 20, 23, 24)
        i2 = i2 - 1
-    case(4)
+    case(4, 9, 10, 16, 18, 21, 22, 25, 26)
        i2 = i2 + 1
-    case(5)
+    end select
+    select case(direction)
+    case(5, 11, 12, 15, 16, 19, 20, 21, 22)
        i3 = i3 - 1
        if(i3==0) i3 = geo%n3
-    case(6)
+    case(6, 13, 14, 17, 18, 23, 24, 25, 26)
        i3 = i3 + 1
        if(i3==geo%n3+1) i3 = 1
     end select
@@ -246,48 +265,70 @@ contains
   end function next_cell
 
   logical function in_correct_cell(p)
+
     implicit none
+
     type(photon),intent(in) :: p
     type(grid_cell) :: icell_actual
     real(dp) :: rad,phi,frac,dphi
+
     icell_actual = find_cell(p)
+
     if(p%on_wall) then
+
        rad = sqrt(p%r%x*p%r%x+p%r%y*p%r%y)
        phi = atan2(p%r%y,p%r%x)
        if(phi < 0._dp) phi = phi + twopi
+
+       if(p%on_wall_id > 26 .or. p%on_wall_id < 1) then
+          call warn("in_correct_cell","invalid on_wall_id")
+          in_correct_cell = .false.
+          return
+       else
+          in_correct_cell = .true.
+       end if
+
        select case(p%on_wall_id)
-       case(1)
+       case(1, 7, 9, 11, 13, 19, 21, 23, 25)
           frac = sqrt(rad / geo%w1(p%icell%i1)) - 1._dp
-          in_correct_cell = icell_actual%i2 == p%icell%i2 .and. icell_actual%i3 == p%icell%i3
-       case(2)
+       case(2, 8, 10, 12, 14, 20, 22, 24, 26)
           frac = sqrt(rad / geo%w1(p%icell%i1+1)) - 1._dp
-          in_correct_cell = icell_actual%i2 == p%icell%i2 .and. icell_actual%i3 == p%icell%i3
-       case(3)
+       case default
+          in_correct_cell = in_correct_cell .and. icell_actual%i1 == p%icell%i1
+       end select
+
+       select case(p%on_wall_id)
+       case(3, 7, 8, 15, 17, 19, 20, 23, 24)
           frac = (p%r%z - geo%w2(p%icell%i2)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i3 == p%icell%i3
-       case(4)
+       case(4, 9, 10, 16, 18, 21, 22, 25, 26)
           frac = (p%r%z - geo%w2(p%icell%i2+1)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i3 == p%icell%i3
-       case(5)
+       case default
+          in_correct_cell = in_correct_cell .and. icell_actual%i2 == p%icell%i2
+       end select
+
+       select case(p%on_wall_id)
+       case(5, 11, 12, 15, 16, 19, 20, 21, 22)
           dphi = phi - geo%w3(p%icell%i3)
           if(dphi > pi) dphi = dphi - twopi
           if(dphi < -pi) dphi = dphi + twopi
           frac = dphi / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i2 == p%icell%i2
-       case(6)
+       case(6, 13, 14, 17, 18, 23, 24, 25, 26)
           dphi = phi - geo%w3(p%icell%i3+1)
           if(dphi > pi) dphi = dphi - twopi
           if(dphi < -pi) dphi = dphi + twopi
           frac = dphi / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i2 == p%icell%i2
        case default
-          call warn("in_correct_cell","invalid on_wall_id")
-          in_correct_cell = .false.
+          in_correct_cell = in_correct_cell .and. icell_actual%i3 == p%icell%i3
        end select
+
        in_correct_cell = abs(frac) < 1.e-3_dp .and. in_correct_cell
+
     else
+
        in_correct_cell = icell_actual == p%icell
+
     end if
+
   end function in_correct_cell
 
   subroutine random_position_cell(icell,pos)
@@ -478,21 +519,29 @@ contains
     implicit none
     real(dp),intent(in)    :: t
     integer,intent(in)    :: i
+    real(dp) :: t_s
     if(debug) print *,'[debug] inserting t,i=',t,i
-    if(t < 0.) then
+    t_s = spacing(t)
+    if(t < t_s) then
        if(t > tn1) then
           tn1 = t
           in1 = i
        end if
     else
-       if(t < tp1) then
+       if(t < tp1 - t_s) then
           tp2 = tp1
           ip2 = ip1
           tp1 = t
           ip1 = i
-       else if(t < tp2) then
+       else if(t < tp1 + t_s) then
+          tp1 = t
+          ip1 = IDCOMB(i, ip1)
+       else if(t < tp2 - t_s) then
           tp2 = t
           ip2 = i
+       else if(t < tp2 + t_s) then
+          tp2 = t
+          ip2 = IDCOMB(i, ip2)
        end if
     end if
   end subroutine insert_t
