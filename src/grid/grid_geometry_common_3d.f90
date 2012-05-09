@@ -26,7 +26,6 @@ module grid_geometry
   public :: escaped
   public :: cell_width
 
-  public :: opposite_wall
   public :: random_cell
   public :: random_masked_cell
 
@@ -34,15 +33,9 @@ module grid_geometry
   public :: grid_sample_pdf_map
   public :: grid_sample_pdf_map2
 
-  integer,parameter :: OPPOSITE(26) = (/2, 1, 4, 3, 6, 5, 10, 9, 8, 7, 14, 13, 12, 11, 18, 17, 16, 15, 26, 25, 24, 23, 22, 21, 20, 19/)
+  integer,parameter, public :: opposite_wall(26) = (/2, 1, 4, 3, 6, 5, 10, 9, 8, 7, 14, 13, 12, 11, 18, 17, 16, 15, 26, 25, 24, 23, 22, 21, 20, 19/)
 
 contains
-
-  integer function opposite_wall(wall)
-    implicit none
-    integer,intent(in) :: wall
-    opposite_wall = OPPOSITE(wall)
-  end function opposite_wall
 
   subroutine grid_load_pdf_map(group, path, pdf)
 
