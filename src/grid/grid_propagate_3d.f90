@@ -3,7 +3,7 @@ module grid_propagate
   use core_lib
   use type_photon, only : photon
   use dust_main, only : n_dust
-  use grid_geometry, only : escaped, find_wall, in_correct_cell, next_cell, opposite_wall
+  use grid_geometry, only : escaped, find_wall, in_correct_cell, next_cell, opposite_wall, place_in_cell
   use grid_physics, only : specific_energy_sum, density, n_photons, last_photon_id
   use sources
   use counters
@@ -360,6 +360,7 @@ contains
 
     ! Find what cell we are in if we don't know
 
+    call place_in_cell(p)
     if(.not.p%in_cell) call error("grid_escape_tau", "photon has not been placed in a cell")
 
     ! Check what the distance to the nearest source is

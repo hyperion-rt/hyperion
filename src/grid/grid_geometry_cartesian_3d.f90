@@ -64,6 +64,21 @@ module grid_geometry_specific
   ! xmin, ymax, zmax = 25
   ! xmax, ymax, zmax = 26
 
+  !    1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+  ! 1  x  x  7  9 11 13  x  x  x  x  x  x  x  x 19 21 23 25  x  x  x  x  x  x  x  x
+  ! 2  x  x  8 10 12 14  x  x  x  x  x  x  x  x 20 22 24 26  x  x  x  x  x  x  x  x
+  ! 3  7  8  x  x 15 17  x  x  x  x 19 20 23 24  x  x  x  x  x  x  x  x  x  x  x  x
+  ! 4  9 10  x  x 16 18  x  x  x  x 21 22 25 26  x  x  x  x  x  x  x  x  x  x  x  x
+  ! 5 11 12 15 16  x  x 19 20 21 22  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x
+  ! 6 13 14 17 18  x  x 23 24 25 26  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x
+
+  integer,parameter :: IDCOMB(26, 6) = (/ 0,  0,  7,  9, 11, 13,  0,  0,  0,  0,  0,  0,  0,  0, 19, 21, 23, 25,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                  0,  0,  8, 10, 12, 14,  0,  0,  0,  0,  0,  0,  0,  0, 20, 22, 24, 26,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                  7,  8,  0,  0, 15, 17,  0,  0,  0,  0, 19, 20, 23, 24,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                  9, 10,  0,  0, 16, 18,  0,  0,  0,  0, 21, 22, 25, 26,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                 11, 12, 15, 16,  0,  0, 19, 20, 21, 22,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                 13, 14, 17, 18,  0,  0, 23, 24, 25, 26,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0/)
+
 contains
 
   real(dp) function cell_width(cell, idir)
@@ -179,9 +194,113 @@ contains
   end function find_cell
 
   subroutine place_in_cell(p)
+
     implicit none
+
     type(photon),intent(inout) :: p
+    real(dp) :: dx, dy, dz
+
+    p%on_wall = .false.
+    p%on_wall_id = 0
+
     p%icell = find_cell(p)
+
+    ! Check if the photon is on a wall - could have this as a separate routine to basically just 'fix' wall IDs
+
+    if(p%v%x .ne. 0._dp) then
+       if(p%r%x == geo%w1(p%icell%i1)) then
+          p%on_wall = .true.
+          if(p%v%x > 0._dp) then
+             p%on_wall_id = 1
+          else
+             p%on_wall_id = 2
+             p%icell%i1 = p%icell%i1 - 1
+          end if
+       else if(p%r%x == geo%w1(p%icell%i1 + 1)) then
+          p%on_wall = .true.
+          if(p%v%x > 0._dp) then
+             p%on_wall_id = 1
+             p%icell%i1 = p%icell%i1 + 1
+          else
+             p%on_wall_id = 2
+          end if
+       end if
+    end if
+
+    if(p%v%y .ne. 0._dp) then
+       if(p%r%y == geo%w2(p%icell%i2)) then
+          p%on_wall = .true.
+          if(p%v%y > 0._dp) then
+             if(p%on_wall_id == 0) then
+                p%on_wall_id = 3
+             else
+                p%on_wall_id = IDCOMB(p%on_wall_id, 3) ! can probably write a function for this
+             end if
+          else
+             if(p%on_wall_id == 0) then
+                p%on_wall_id = 4
+             else
+                p%on_wall_id = IDCOMB(p%on_wall_id, 4)
+             end if
+             p%icell%i2 = p%icell%i2 - 1
+          end if
+       else if(p%r%y == geo%w2(p%icell%i2 + 1)) then
+          p%on_wall = .true.
+          if(p%v%y > 0._dp) then
+             if(p%on_wall_id == 0) then
+                p%on_wall_id = 3
+             else
+                p%on_wall_id = IDCOMB(p%on_wall_id, 3)
+             end if
+             p%icell%i2 = p%icell%i2 + 1
+          else
+             if(p%on_wall_id == 0) then
+                p%on_wall_id = 4
+             else
+                p%on_wall_id = IDCOMB(p%on_wall_id, 4)
+             end if
+          end if
+       end if
+    end if
+
+    if(p%v%z .ne. 0._dp) then
+       if(p%r%z == geo%w3(p%icell%i3)) then
+          p%on_wall = .true.
+          if(p%v%z > 0._dp) then
+             if(p%on_wall_id == 0) then
+                p%on_wall_id = 5
+             else
+                p%on_wall_id = IDCOMB(p%on_wall_id, 5)
+             end if
+          else
+             if(p%on_wall_id == 0) then
+                p%on_wall_id = 6
+             else
+                p%on_wall_id = IDCOMB(p%on_wall_id, 6)
+             end if
+             p%icell%i3 = p%icell%i3 - 1
+          end if
+       else if(p%r%z == geo%w3(p%icell%i3 + 1)) then
+          p%on_wall = .true.
+          if(p%v%z > 0._dp) then
+             if(p%on_wall_id == 0) then
+                p%on_wall_id = 5
+             else
+                p%on_wall_id = IDCOMB(p%on_wall_id, 5)
+             end if
+             p%icell%i3 = p%icell%i3 + 1
+          else
+             if(p%on_wall_id == 0) then
+                p%on_wall_id = 6
+             else
+                p%on_wall_id = IDCOMB(p%on_wall_id, 6)
+             end if
+          end if
+       end if
+    end if
+
+    ! check that photon is not outside grid
+
     if(p%icell == invalid_cell) then
        call warn("place_in_cell","place_in_cell failed - killing")
        killed_photons_geo = killed_photons_geo + 1
@@ -189,6 +308,7 @@ contains
     else
        p%in_cell = .true.
     end if
+
   end subroutine place_in_cell
 
   logical function escaped_photon(p)
@@ -260,8 +380,10 @@ contains
        select case(p%on_wall_id)
        case(1, 7, 9, 11, 13, 19, 21, 23, 25)
           frac = (p%r%x - geo%w1(p%icell%i1)) / (geo%w1(p%icell%i1+1) - geo%w1(p%icell%i1))
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
        case(2, 8, 10, 12, 14, 20, 22, 24, 26)
           frac = (p%r%x - geo%w1(p%icell%i1+1)) / (geo%w1(p%icell%i1+1) - geo%w1(p%icell%i1))
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
        case default
           in_correct_cell = in_correct_cell .and. icell_actual%i1 == p%icell%i1
        end select
@@ -269,8 +391,10 @@ contains
        select case(p%on_wall_id)
        case(3, 7, 8, 15, 17, 19, 20, 23, 24)
           frac = (p%r%y - geo%w2(p%icell%i2)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
        case(4, 9, 10, 16, 18, 21, 22, 25, 26)
           frac = (p%r%y - geo%w2(p%icell%i2+1)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
        case default
           in_correct_cell = in_correct_cell .and. icell_actual%i2 == p%icell%i2
        end select
@@ -278,13 +402,13 @@ contains
        select case(p%on_wall_id)
        case(5, 11, 12, 15, 16, 19, 20, 21, 22)
           frac = (p%r%z - geo%w3(p%icell%i3)) / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
        case(6, 13, 14, 17, 18, 23, 24, 25, 26)
           frac = (p%r%z - geo%w3(p%icell%i3+1)) / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
        case default
           in_correct_cell = in_correct_cell .and. icell_actual%i3 == p%icell%i3
        end select
-
-       in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
 
     else
 
@@ -395,9 +519,9 @@ contains
     ! three if statements and two pointer assignements.
 
     ! Find out what the spacing between floating-point values is
-    tx_s = spacing(tx)
-    ty_s = spacing(ty)
-    tz_s = spacing(tz)
+    tx_s = spacing(tx) * 2._dp
+    ty_s = spacing(ty) * 2._dp
+    tz_s = spacing(tz) * 2._dp
 
     if(tx.lt.tz - tz_s) then
        if(tx.lt.ty - ty_s) then
