@@ -72,12 +72,12 @@ module grid_geometry_specific
   ! 5 11 12 15 16  x  x 19 20 21 22  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x
   ! 6 13 14 17 18  x  x 23 24 25 26  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x
 
-  integer,parameter :: IDCOMB(26, 6) = (/ 0,  0,  7,  9, 11, 13,  0,  0,  0,  0,  0,  0,  0,  0, 19, 21, 23, 25,  0,  0,  0,  0,  0,  0,  0,  0, &
-       &                                  0,  0,  8, 10, 12, 14,  0,  0,  0,  0,  0,  0,  0,  0, 20, 22, 24, 26,  0,  0,  0,  0,  0,  0,  0,  0, &
-       &                                  7,  8,  0,  0, 15, 17,  0,  0,  0,  0, 19, 20, 23, 24,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
-       &                                  9, 10,  0,  0, 16, 18,  0,  0,  0,  0, 21, 22, 25, 26,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
-       &                                 11, 12, 15, 16,  0,  0, 19, 20, 21, 22,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
-       &                                 13, 14, 17, 18,  0,  0, 23, 24, 25, 26,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0/)
+  integer,parameter :: combine_wall(0:26, 6) = (/ 1,  0,  0,  7,  9, 11, 13,  0,  0,  0,  0,  0,  0,  0,  0, 19, 21, 23, 25,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                          2,  0,  0,  8, 10, 12, 14,  0,  0,  0,  0,  0,  0,  0,  0, 20, 22, 24, 26,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                          3,  7,  8,  0,  0, 15, 17,  0,  0,  0,  0, 19, 20, 23, 24,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                          4,  9, 10,  0,  0, 16, 18,  0,  0,  0,  0, 21, 22, 25, 26,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                          5, 11, 12, 15, 16,  0,  0, 19, 20, 21, 22,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
+       &                                          6, 13, 14, 17, 18,  0,  0, 23, 24, 25, 26,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0/)
 
 contains
 
@@ -193,6 +193,76 @@ contains
     icell = new_grid_cell(i1, i2, i3, geo)
   end function find_cell
 
+  subroutine adjust_wall(p)
+
+    ! In future, this could be called at peeloff time instead of
+    ! place_inside_cell, but if we want to do that, we need this subroutine to
+    ! use locate to find the correct cell if the velocity is zero along one of
+    ! the components, so that it is reset to the 'default' find_cell value.
+
+    implicit none
+
+    type(photon), intent(inout) :: p
+
+    ! Initialize values
+    p%on_wall = .false.
+    p%on_wall_id = 0
+
+    ! Find whether the photon is on an x-wall
+    if(p%v%x > 0._dp) then
+       if(p%r%x == geo%w1(p%icell%i1)) then
+          p%on_wall_id = combine_wall(p%on_wall_id, 1)
+       else if(p%r%x == geo%w1(p%icell%i1 + 1)) then
+          p%on_wall_id = combine_wall(p%on_wall_id, 1)
+          p%icell%i1 = p%icell%i1 + 1
+       end if
+    else if(p%v%x < 0._dp) then
+       if(p%r%x == geo%w1(p%icell%i1)) then
+          p%on_wall_id = combine_wall(p%on_wall_id, 2)
+          p%icell%i1 = p%icell%i1 - 1
+       else if(p%r%x == geo%w1(p%icell%i1 + 1)) then
+          p%on_wall_id = combine_wall(p%on_wall_id, 2)
+       end if
+    end if
+
+    ! Find whether the photon is on a y-wall
+    if(p%v%y > 0._dp) then
+       if(p%r%y == geo%w2(p%icell%i2)) then
+          p%on_wall_id = combine_wall(p%on_wall_id, 3)
+       else if(p%r%y == geo%w2(p%icell%i2 + 1)) then
+          p%on_wall_id = combine_wall(p%on_wall_id, 3)
+          p%icell%i2 = p%icell%i2 + 1
+       end if
+    else if(p%v%y < 0._dp) then
+       if(p%r%y == geo%w2(p%icell%i2)) then
+          p%on_wall_id = combine_wall(p%on_wall_id, 4)
+          p%icell%i2 = p%icell%i2 - 1
+       else if(p%r%y == geo%w2(p%icell%i2 + 1)) then
+          p%on_wall_id = combine_wall(p%on_wall_id, 4)
+       end if
+    end if
+
+    ! Find whether the photon is on a z-wall
+    if(p%v%z > 0._dp) then
+       if(p%r%z == geo%w3(p%icell%i3)) then
+          p%on_wall_id = combine_wall(p%on_wall_id, 5)
+       else if(p%r%z == geo%w3(p%icell%i3 + 1)) then
+          p%on_wall_id = combine_wall(p%on_wall_id, 5)
+          p%icell%i3 = p%icell%i3 + 1
+       end if
+    else if(p%v%z < 0._dp) then
+       if(p%r%z == geo%w3(p%icell%i3)) then
+          p%on_wall_id = combine_wall(p%on_wall_id, 6)
+          p%icell%i3 = p%icell%i3 - 1
+       else if(p%r%z == geo%w3(p%icell%i3 + 1)) then
+          p%on_wall_id = combine_wall(p%on_wall_id, 6)
+       end if
+    end if
+
+    p%on_wall = p%on_wall_id > 0
+
+  end subroutine adjust_wall
+
   subroutine place_in_cell(p)
 
     implicit none
@@ -200,106 +270,7 @@ contains
     type(photon),intent(inout) :: p
     real(dp) :: dx, dy, dz
 
-    p%on_wall = .false.
-    p%on_wall_id = 0
-
     p%icell = find_cell(p)
-
-    ! Check if the photon is on a wall - could have this as a separate routine to basically just 'fix' wall IDs
-
-    if(p%v%x .ne. 0._dp) then
-       if(p%r%x == geo%w1(p%icell%i1)) then
-          p%on_wall = .true.
-          if(p%v%x > 0._dp) then
-             p%on_wall_id = 1
-          else
-             p%on_wall_id = 2
-             p%icell%i1 = p%icell%i1 - 1
-          end if
-       else if(p%r%x == geo%w1(p%icell%i1 + 1)) then
-          p%on_wall = .true.
-          if(p%v%x > 0._dp) then
-             p%on_wall_id = 1
-             p%icell%i1 = p%icell%i1 + 1
-          else
-             p%on_wall_id = 2
-          end if
-       end if
-    end if
-
-    if(p%v%y .ne. 0._dp) then
-       if(p%r%y == geo%w2(p%icell%i2)) then
-          p%on_wall = .true.
-          if(p%v%y > 0._dp) then
-             if(p%on_wall_id == 0) then
-                p%on_wall_id = 3
-             else
-                p%on_wall_id = IDCOMB(p%on_wall_id, 3) ! can probably write a function for this
-             end if
-          else
-             if(p%on_wall_id == 0) then
-                p%on_wall_id = 4
-             else
-                p%on_wall_id = IDCOMB(p%on_wall_id, 4)
-             end if
-             p%icell%i2 = p%icell%i2 - 1
-          end if
-       else if(p%r%y == geo%w2(p%icell%i2 + 1)) then
-          p%on_wall = .true.
-          if(p%v%y > 0._dp) then
-             if(p%on_wall_id == 0) then
-                p%on_wall_id = 3
-             else
-                p%on_wall_id = IDCOMB(p%on_wall_id, 3)
-             end if
-             p%icell%i2 = p%icell%i2 + 1
-          else
-             if(p%on_wall_id == 0) then
-                p%on_wall_id = 4
-             else
-                p%on_wall_id = IDCOMB(p%on_wall_id, 4)
-             end if
-          end if
-       end if
-    end if
-
-    if(p%v%z .ne. 0._dp) then
-       if(p%r%z == geo%w3(p%icell%i3)) then
-          p%on_wall = .true.
-          if(p%v%z > 0._dp) then
-             if(p%on_wall_id == 0) then
-                p%on_wall_id = 5
-             else
-                p%on_wall_id = IDCOMB(p%on_wall_id, 5)
-             end if
-          else
-             if(p%on_wall_id == 0) then
-                p%on_wall_id = 6
-             else
-                p%on_wall_id = IDCOMB(p%on_wall_id, 6)
-             end if
-             p%icell%i3 = p%icell%i3 - 1
-          end if
-       else if(p%r%z == geo%w3(p%icell%i3 + 1)) then
-          p%on_wall = .true.
-          if(p%v%z > 0._dp) then
-             if(p%on_wall_id == 0) then
-                p%on_wall_id = 5
-             else
-                p%on_wall_id = IDCOMB(p%on_wall_id, 5)
-             end if
-             p%icell%i3 = p%icell%i3 + 1
-          else
-             if(p%on_wall_id == 0) then
-                p%on_wall_id = 6
-             else
-                p%on_wall_id = IDCOMB(p%on_wall_id, 6)
-             end if
-          end if
-       end if
-    end if
-
-    ! check that photon is not outside grid
 
     if(p%icell == invalid_cell) then
        call warn("place_in_cell","place_in_cell failed - killing")
@@ -308,6 +279,8 @@ contains
     else
        p%in_cell = .true.
     end if
+
+    call adjust_wall(p)
 
   end subroutine place_in_cell
 

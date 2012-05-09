@@ -360,7 +360,6 @@ contains
 
     ! Find what cell we are in if we don't know
 
-    call place_in_cell(p)
     if(.not.p%in_cell) call error("grid_escape_tau", "photon has not been placed in a cell")
 
     ! Check what the distance to the nearest source is
