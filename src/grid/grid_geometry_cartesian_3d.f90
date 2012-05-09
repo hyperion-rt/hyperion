@@ -268,7 +268,6 @@ contains
     implicit none
 
     type(photon),intent(inout) :: p
-    real(dp) :: dx, dy, dz
 
     p%icell = find_cell(p)
 
