@@ -478,7 +478,7 @@ class ExternalSphericalSource(Source):
         self._check_all_set()
 
         g = handle.create_group(name)
-        g.attrs['type'] = 'extern_sph'
+        g.attrs['type'] = 'extern_sph'.encode('utf-8')
         g.attrs['x'] = self.position[0]
         g.attrs['y'] = self.position[1]
         g.attrs['z'] = self.position[2]
