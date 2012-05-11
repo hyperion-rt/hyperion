@@ -6,7 +6,7 @@ Source parameters
 
 The stellar luminosity and radius should be set via the following attributes::
 
-    m.star.luminositm = 5 * lsun
+    m.star.luminosity = 5 * lsun
     m.star.radius = 2 * rsun
 
 and either the temperature or the spectrum of the source can be set, using::
@@ -28,15 +28,15 @@ Flared disks can be added using the ``add_flared_disk`` method, and capturing th
     disk.mass = 0.01 * msun             # Disk mass
     disk.rmin = 10 * rsun               # Inner radius
     disk.rmax = 300 * au                # Outer radius
-    disk.h_star = 0.01 * rsun           # Disk scaleheigh at r_star
+    disk.h_star = 0.01 * rsun           # Disk scaleheight at r_star
     disk.alpha = 2.25                   # Radial volume density exponent
     disk.beta = 1.25                    # Disk flaring power
 
-The accretion properties of the disk can be specified in two ways. Either the disk accretion rate can be specified:
+The accretion properties of the disk can be specified in two ways. Either the disk accretion rate can be specified::
 
     disk.mdot = 1e-6 * msun / yr        # Disk accretion rate
 
-or the accretion luminosity from viscous dissipation:
+or the accretion luminosity from viscous dissipation::
 
     disk.lacc = 0.01 * lsun
 
@@ -49,7 +49,7 @@ Envelopes
 Power-law spherically symmetric envelope
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The simplest kind of envelope is a spherically symmetric envelope with a power-law distribution in densitm. A power-law envelope can be added using the ``add_powerlaw_envelope`` method, and capturing the reference to the PowerLawEnvelope object to set the parameters further::
+The simplest kind of envelope is a spherically symmetric envelope with a power-law distribution in density. A power-law envelope can be added using the ``add_powerlaw_envelope`` method, and capturing the reference to the PowerLawEnvelope object to set the parameters further::
 
     envelope = m.add_powerlaw_envelope()
     envelope.mass = 0.1 * msun          # Envelope mass
@@ -73,12 +73,12 @@ Bipolar cavities
 
 Once an envelope has been created, bipolar cavities can be carved out in it by doing::
 
-    cavitm = envelope.add_bipolar_cavities()
-    cavitm.exponent = 1.5               # Shape exponent z~w^exp
-    cavitm.r_0 = 1.e-20                 # Radius to specify rho_0 and theta_0
-    cavitm.theta_0 = 10                 # Opening angle at r_0 (degrees)
-    cavitm.rho_0 = 1.e-20               # Density at r_0
-    cavitm.rho_exp = 0.                 # Vertical density exponent
+    cavity = envelope.add_bipolar_cavities()
+    cavity.exponent = 1.5               # Shape exponent z~w^exp
+    cavity.r_0 = 1.e-20                 # Radius to specify rho_0 and theta_0
+    cavity.theta_0 = 10                 # Opening angle at r_0 (degrees)
+    cavity.rho_0 = 1.e-20               # Density at r_0
+    cavity.rho_exp = 0.                 # Vertical density exponent
 
 Dust
 ----
@@ -87,7 +87,7 @@ The dust file to use for each component should be specified using the ``dust`` a
 
     disk.dust = 'www003.hdf5'
     envelope.dust = 'kmh.hdf5'
-    cavitm.dust = 'kmh_hdf5'
+    cavity.dust = 'kmh_hdf5'
 
 Grid
 ----

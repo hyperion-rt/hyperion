@@ -6,6 +6,7 @@ Coordinate grids and physical quantities
 In general, coordinate grids and density grids are set using methods of the
 form::
 
+    from hyperion.model import Model
     m = Model()
     m.set_<grid_type>_grid(...)
     m.add_density_grid(density, dust)
@@ -102,7 +103,7 @@ Density and Specific Energy
 For regular cartesian and polar grids, a 3-d NumPy array containing
 the density array is required, for example::
 
-    m.add_density_grid(np.ones(100,100,100), 'kmh.hdf5')
+    m.add_density_grid(np.ones((100,100,100)), 'kmh.hdf5')
 
 for a 100x100x100 grid. Due to Numpy array conventions, the dimensions should
 be specified in reverse order, i.e. ``(n_z, n_y, n_x)`` for a cartesian grid,
