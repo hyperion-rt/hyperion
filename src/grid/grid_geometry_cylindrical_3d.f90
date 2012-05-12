@@ -231,6 +231,7 @@ contains
 
     real(dp) :: r2,phi, dphi,phiv
     logical :: radial
+    integer,parameter :: eps = 3
 
     ! Initialize values
     p%on_wall = .false.
@@ -242,41 +243,41 @@ contains
 
     ! Find whether the photon is on a radial wall
     if((p%r%x * p%v%x + p%r%y * p%v%y) >= 0._dp) then
-       if(equal_nulp(r2, geo%wr2(p%icell%i1), 10)) then  ! TODO: shouldn't use equal, not precise enough
+       if(equal_nulp(r2, geo%wr2(p%icell%i1), eps)) then  ! TODO: shouldn't use equal, not precise enough
           p%on_wall_id = combine_wall(p%on_wall_id, 1)
-       else if(equal_nulp(r2, geo%wr2(p%icell%i1 + 1), 10)) then
+       else if(equal_nulp(r2, geo%wr2(p%icell%i1 + 1), eps)) then
           p%on_wall_id = combine_wall(p%on_wall_id, 1)
           p%icell%i1 = p%icell%i1 + 1
        end if
     else
-       if(equal_nulp(r2, geo%wr2(p%icell%i1), 10)) then
+       if(equal_nulp(r2, geo%wr2(p%icell%i1), eps)) then
           p%on_wall_id = combine_wall(p%on_wall_id, 2)
           p%icell%i1 = p%icell%i1 - 1
-       else if(equal_nulp(r2, geo%wr2(p%icell%i1 + 1), 10)) then
+       else if(equal_nulp(r2, geo%wr2(p%icell%i1 + 1), eps)) then
           p%on_wall_id = combine_wall(p%on_wall_id, 2)
        end if
     end if
 
     ! Find whether the photon is on a vertical wall
     if(p%v%z > 0._dp) then
-       if(equal_nulp(p%r%z, geo%w2(p%icell%i2), 10)) then
+       if(equal_nulp(p%r%z, geo%w2(p%icell%i2), eps)) then
           p%on_wall_id = combine_wall(p%on_wall_id, 3)
-       else if(equal_nulp(p%r%z, geo%w2(p%icell%i2 + 1), 10)) then
+       else if(equal_nulp(p%r%z, geo%w2(p%icell%i2 + 1), eps)) then
           p%on_wall_id = combine_wall(p%on_wall_id, 3)
           p%icell%i2 = p%icell%i2 + 1
        end if
     else if(p%v%z < 0._dp) then
-       if(equal_nulp(p%r%z, geo%w2(p%icell%i2), 10)) then
+       if(equal_nulp(p%r%z, geo%w2(p%icell%i2), eps)) then
           p%on_wall_id = combine_wall(p%on_wall_id, 4)
           p%icell%i2 = p%icell%i2 - 1
-       else if(equal_nulp(p%r%z, geo%w2(p%icell%i2 + 1), 10)) then
+       else if(equal_nulp(p%r%z, geo%w2(p%icell%i2 + 1), eps)) then
           p%on_wall_id = combine_wall(p%on_wall_id, 4)
        end if
     end if
 
     ! Find whether the photon is on an azimuthal wall
     phiv = atan2(p%v%y, p%v%x)
-    if(equal_nulp(phi, geo%w3(p%icell%i3), 10)) then
+    if(equal_nulp(phi, geo%w3(p%icell%i3), eps)) then
        dphi = phiv - geo%w3(p%icell%i3)
        if(dphi < -pi) dphi = dphi + twopi
        if(dphi > 0._dp) then
@@ -286,7 +287,7 @@ contains
           p%icell%i3 = p%icell%i3 - 1
           if(p%icell%i3==0) p%icell%i3 = geo%n3
        end if
-    else if(equal_nulp(phi, geo%w3(p%icell%i3 + 1), 10)) then
+    else if(equal_nulp(phi, geo%w3(p%icell%i3 + 1), eps)) then
        dphi = phiv - geo%w3(p%icell%i3 + 1)
        if(dphi < -pi) dphi = dphi + twopi
        if(dphi > 0._dp) then
