@@ -33,9 +33,16 @@ module grid_geometry
   public :: grid_sample_pdf_map
   public :: grid_sample_pdf_map2
 
-  integer,parameter, public :: opposite_wall(26) = (/2, 1, 4, 3, 6, 5, 10, 9, 8, 7, 14, 13, 12, 11, 18, 17, 16, 15, 26, 25, 24, 23, 22, 21, 20, 19/)
+  public :: opposite_wall
 
 contains
+
+  type(wall_id) function opposite_wall(id)
+    type(wall_id),intent(in) :: id
+    opposite_wall%w1 = -id%w1
+    opposite_wall%w2 = -id%w2
+    opposite_wall%w3 = -id%w3
+  end function opposite_wall
 
   subroutine grid_load_pdf_map(group, path, pdf)
 

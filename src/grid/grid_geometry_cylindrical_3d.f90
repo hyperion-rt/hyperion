@@ -18,7 +18,6 @@ module grid_geometry_specific
   public :: cell_width
   public :: grid_geometry_debug
   public :: find_cell
-  public :: next_cell
   public :: place_in_cell
   public :: in_correct_cell
   public :: random_position_cell
@@ -28,8 +27,8 @@ module grid_geometry_specific
 
   logical :: debug = .false.
 
-  real(dp) :: tn1,tp1,tp2
-  integer :: in1,ip1,ip2
+  real(dp) :: tmin
+  type(wall_id) :: imin
 
   public :: escaped
   interface escaped
@@ -37,22 +36,13 @@ module grid_geometry_specific
      module procedure escaped_cell
   end interface escaped
 
+  public :: next_cell
+  interface next_cell
+     module procedure next_cell_int
+     module procedure next_cell_wall_id
+  end interface next_cell
+
   type(grid_geometry_desc),public,target :: geo
-
-  !    1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
-  ! 1  x  x  7  9 11 13  x  x  x  x  x  x  x  x 19 21 23 25  x  x  x  x  x  x  x  x
-  ! 2  x  x  8 10 12 14  x  x  x  x  x  x  x  x 20 22 24 26  x  x  x  x  x  x  x  x
-  ! 3  7  8  x  x 15 17  x  x  x  x 19 20 23 24  x  x  x  x  x  x  x  x  x  x  x  x
-  ! 4  9 10  x  x 16 18  x  x  x  x 21 22 25 26  x  x  x  x  x  x  x  x  x  x  x  x
-  ! 5 11 12 15 16  x  x 19 20 21 22  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x
-  ! 6 13 14 17 18  x  x 23 24 25 26  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x
-
-  integer,parameter :: combine_wall(0:26, 6) = (/ 1,  0,  0,  7,  9, 11, 13,  0,  0,  0,  0,  0,  0,  0,  0, 19, 21, 23, 25,  0,  0,  0,  0,  0,  0,  0,  0, &
-       &                                          2,  0,  0,  8, 10, 12, 14,  0,  0,  0,  0,  0,  0,  0,  0, 20, 22, 24, 26,  0,  0,  0,  0,  0,  0,  0,  0, &
-       &                                          3,  7,  8,  0,  0, 15, 17,  0,  0,  0,  0, 19, 20, 23, 24,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
-       &                                          4,  9, 10,  0,  0, 16, 18,  0,  0,  0,  0, 21, 22, 25, 26,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
-       &                                          5, 11, 12, 15, 16,  0,  0, 19, 20, 21, 22,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, &
-       &                                          6, 13, 14, 17, 18,  0,  0, 23, 24, 25, 26,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0/)
 
 contains
 
@@ -235,7 +225,7 @@ contains
 
     ! Initialize values
     p%on_wall = .false.
-    p%on_wall_id = 0
+    p%on_wall_id = no_wall
 
     r2 = p%r%x*p%r%x+p%r%y*p%r%y
     phi = atan2(p%r%y,p%r%x)
@@ -244,34 +234,34 @@ contains
     ! Find whether the photon is on a radial wall
     if((p%r%x * p%v%x + p%r%y * p%v%y) >= 0._dp) then
        if(equal_nulp(r2, geo%wr2(p%icell%i1), eps)) then  ! TODO: shouldn't use equal, not precise enough
-          p%on_wall_id = combine_wall(p%on_wall_id, 1)
+          p%on_wall_id%w1 = -1
        else if(equal_nulp(r2, geo%wr2(p%icell%i1 + 1), eps)) then
-          p%on_wall_id = combine_wall(p%on_wall_id, 1)
+          p%on_wall_id%w1 = -1
           p%icell%i1 = p%icell%i1 + 1
        end if
     else
        if(equal_nulp(r2, geo%wr2(p%icell%i1), eps)) then
-          p%on_wall_id = combine_wall(p%on_wall_id, 2)
+          p%on_wall_id%w1 = +1
           p%icell%i1 = p%icell%i1 - 1
        else if(equal_nulp(r2, geo%wr2(p%icell%i1 + 1), eps)) then
-          p%on_wall_id = combine_wall(p%on_wall_id, 2)
+          p%on_wall_id%w1 = +1
        end if
     end if
 
     ! Find whether the photon is on a vertical wall
     if(p%v%z > 0._dp) then
        if(equal_nulp(p%r%z, geo%w2(p%icell%i2), eps)) then
-          p%on_wall_id = combine_wall(p%on_wall_id, 3)
+          p%on_wall_id%w2 = -1
        else if(equal_nulp(p%r%z, geo%w2(p%icell%i2 + 1), eps)) then
-          p%on_wall_id = combine_wall(p%on_wall_id, 3)
+          p%on_wall_id%w2 = -1
           p%icell%i2 = p%icell%i2 + 1
        end if
     else if(p%v%z < 0._dp) then
        if(equal_nulp(p%r%z, geo%w2(p%icell%i2), eps)) then
-          p%on_wall_id = combine_wall(p%on_wall_id, 4)
+          p%on_wall_id%w2 = +1
           p%icell%i2 = p%icell%i2 - 1
        else if(equal_nulp(p%r%z, geo%w2(p%icell%i2 + 1), eps)) then
-          p%on_wall_id = combine_wall(p%on_wall_id, 4)
+          p%on_wall_id%w2 = +1
        end if
     end if
 
@@ -281,9 +271,9 @@ contains
        dphi = phiv - geo%w3(p%icell%i3)
        if(dphi < -pi) dphi = dphi + twopi
        if(dphi > 0._dp) then
-          p%on_wall_id = combine_wall(p%on_wall_id, 5)
+          p%on_wall_id%w3 = -1
        else
-          p%on_wall_id = combine_wall(p%on_wall_id, 6)
+          p%on_wall_id%w3 = +1
           p%icell%i3 = p%icell%i3 - 1
           if(p%icell%i3==0) p%icell%i3 = geo%n3
        end if
@@ -291,15 +281,15 @@ contains
        dphi = phiv - geo%w3(p%icell%i3 + 1)
        if(dphi < -pi) dphi = dphi + twopi
        if(dphi > 0._dp) then
-          p%on_wall_id = combine_wall(p%on_wall_id, 5)
+          p%on_wall_id%w3 = -1
           p%icell%i3 = p%icell%i3 + 1
           if(p%icell%i3==geo%n3+1) p%icell%i3 = 1
        else
-          p%on_wall_id = combine_wall(p%on_wall_id, 6)
+          p%on_wall_id%w3 = +1
        end if
     end if
 
-    p%on_wall = p%on_wall_id > 0
+    p%on_wall = p%on_wall_id%w1 /= 0 .or. p%on_wall_id%w2 /= 0 .or. p%on_wall_id%w3 /= 0
 
   end subroutine adjust_wall
 
@@ -340,7 +330,7 @@ contains
     escaped_cell = .false.
   end function escaped_cell
 
-  type(grid_cell) function next_cell(cell, direction, intersection)
+  type(grid_cell) function next_cell_int(cell, direction, intersection)
     implicit none
     type(grid_cell),intent(in) :: cell
     integer,intent(in) :: direction
@@ -350,27 +340,52 @@ contains
     i2 = cell%i2
     i3 = cell%i3
     select case(direction)
-    case(1, 7, 9, 11, 13, 19, 21, 23, 25)
+    case(1)
        i1 = i1 - 1
-    case(2, 8, 10, 12, 14, 20, 22, 24, 26)
+    case(2)
        i1 = i1 + 1
-    end select
-    select case(direction)
-    case(3, 7, 8, 15, 17, 19, 20, 23, 24)
+    case(3)
        i2 = i2 - 1
-    case(4, 9, 10, 16, 18, 21, 22, 25, 26)
+    case(4)
        i2 = i2 + 1
-    end select
-    select case(direction)
-    case(5, 11, 12, 15, 16, 19, 20, 21, 22)
+    case(5)
        i3 = i3 - 1
        if(i3==0) i3 = geo%n3
-    case(6, 13, 14, 17, 18, 23, 24, 25, 26)
+    case(6)
        i3 = i3 + 1
        if(i3==geo%n3+1) i3 = 1
     end select
-    next_cell = new_grid_cell(i1, i2, i3, geo)
-  end function next_cell
+    next_cell_int = new_grid_cell(i1, i2, i3, geo)
+  end function next_cell_int
+
+  type(grid_cell) function next_cell_wall_id(cell, direction, intersection)
+    implicit none
+    type(grid_cell),intent(in) :: cell
+    type(wall_id),intent(in) :: direction
+    type(vector3d_dp),optional,intent(in) :: intersection
+    integer :: i1, i2, i3
+    i1 = cell%i1
+    i2 = cell%i2
+    i3 = cell%i3
+    if(direction%w1 == -1) then
+       i1 = i1 - 1
+    else if(direction%w1 == +1) then
+       i1 = i1 + 1
+    end if
+    if(direction%w2 == -1) then
+       i2 = i2 - 1
+    else if(direction%w2 == +1) then
+       i2 = i2 + 1
+    end if
+    if(direction%w3 == -1) then
+       i3 = i3 - 1
+       if(i3==0) i3 = geo%n3
+    else if(direction%w3 == +1) then
+       i3 = i3 + 1
+       if(i3==geo%n3+1) i3 = 1
+    end if
+    next_cell_wall_id = new_grid_cell(i1, i2, i3, geo)
+  end function next_cell_wall_id
 
   logical function in_correct_cell(p)
 
@@ -388,56 +403,47 @@ contains
        phi = atan2(p%r%y,p%r%x)
        if(phi < 0._dp) phi = phi + twopi
 
-       if(p%on_wall_id > 26 .or. p%on_wall_id < 1) then
-          call warn("in_correct_cell","invalid on_wall_id")
-          in_correct_cell = .false.
-          return
-       else
-          in_correct_cell = .true.
-       end if
+       in_correct_cell = .true.
 
-       select case(p%on_wall_id)
-       case(1, 7, 9, 11, 13, 19, 21, 23, 25)
+       if(p%on_wall_id%w1 == -1) then
           if(geo%w1(p%icell%i1) .ne. rad) then
              frac = sqrt(rad / geo%w1(p%icell%i1)) - 1._dp
              in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
           end if
-       case(2, 8, 10, 12, 14, 20, 22, 24, 26)
+       else if(p%on_wall_id%w1 == +1) then
           if(geo%w1(p%icell%i1 + 1) .ne. rad) then
              frac = sqrt(rad / geo%w1(p%icell%i1+1)) - 1._dp
              in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
           end if
-       case default
+       else
           in_correct_cell = in_correct_cell .and. icell_actual%i1 == p%icell%i1
-       end select
+       end if
 
-       select case(p%on_wall_id)
-       case(3, 7, 8, 15, 17, 19, 20, 23, 24)
+       if(p%on_wall_id%w2 == -1) then
           frac = (p%r%z - geo%w2(p%icell%i2)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
           in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
-       case(4, 9, 10, 16, 18, 21, 22, 25, 26)
+       else if(p%on_wall_id%w2 == +1) then
           frac = (p%r%z - geo%w2(p%icell%i2+1)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
           in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
-       case default
+       else
           in_correct_cell = in_correct_cell .and. icell_actual%i2 == p%icell%i2
-       end select
+       end if
 
-       select case(p%on_wall_id)
-       case(5, 11, 12, 15, 16, 19, 20, 21, 22)
+       if(p%on_wall_id%w3 == -1) then
           dphi = phi - geo%w3(p%icell%i3)
           if(dphi > pi) dphi = dphi - twopi
           if(dphi < -pi) dphi = dphi + twopi
           frac = dphi / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
           in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
-       case(6, 13, 14, 17, 18, 23, 24, 25, 26)
+       else if(p%on_wall_id%w3 == +1) then
           dphi = phi - geo%w3(p%icell%i3+1)
           if(dphi > pi) dphi = dphi - twopi
           if(dphi < -pi) dphi = dphi + twopi
           frac = dphi / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
           in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
-       case default
+       else
           in_correct_cell = in_correct_cell .and. icell_actual%i3 == p%icell%i3
-       end select
+       end if
 
     else
 
@@ -532,7 +538,7 @@ contains
 
     logical,intent(in) :: radial
 
-    integer,intent(out) :: id_min
+    type(wall_id),intent(out) :: id_min
     ! ID of next wall
 
     real(dp),intent(out)  :: tmin
@@ -573,23 +579,43 @@ contains
     ! Inner wall
     pC_1 = pC - geo%wr2(p%icell%i1) / v2_xy
     call quadratic_pascal_reduced(pB,pC_1,t1,t2)
-    call insert_t(t1,1,e)
-    call insert_t(t2,1,e)
+    if(p%on_wall_id%w1 == -1) then
+       if(abs(t1) < abs(t2)) then
+          call insert_t(t2, 1, -1, e)
+       else
+          call insert_t(t1, 1, -1, e)
+       end if
+    else
+       call insert_t(t1,1, -1,e)
+       call insert_t(t2,1, -1,e)
+    end if
 
     ! Outer wall
     pC_2 = pC - geo%wr2(p%icell%i1+1) / v2_xy
     call quadratic_pascal_reduced(pB,pC_2,t1,t2)
-    call insert_t(t1,2,e)
-    call insert_t(t2,2,e)
+    if(p%on_wall_id%w1 == +1) then
+       if(abs(t1) < abs(t2)) then
+          call insert_t(t2, 1, +1, e)
+       else
+          call insert_t(t1, 1, +1, e)
+       end if
+    else
+       call insert_t(t1,1, +1,e)
+       call insert_t(t2,1, +1,e)
+    end if
 
     ! -------------------------------------------------
     ! z walls
     ! -------------------------------------------------
 
-    t1 = ( geo%w2(p%icell%i2)   - p%r%z ) / p%v%z
-    call insert_t(t1,3,e)
-    t2 = ( geo%w2(p%icell%i2+1) - p%r%z ) / p%v%z
-    call insert_t(t2,4,e)
+    if(p%on_wall_id%w2 /= -1) then
+       t1 = ( geo%w2(p%icell%i2)   - p%r%z ) / p%v%z
+       call insert_t(t1,2, -1,e)
+    end if
+    if(p%on_wall_id%w2 /= +1) then
+       t2 = ( geo%w2(p%icell%i2+1) - p%r%z ) / p%v%z
+       call insert_t(t2,2, +1,e)
+    end if
 
     ! -------------------------------------------------
     ! phi walls
@@ -597,27 +623,33 @@ contains
 
     if(geo%n_dim == 3) then
 
-       ! Find intersection with lower phi wall
-       t1 = - ( geo%wtanp(p%icell%i3) * p%r%x - p%r%y ) / ( geo%wtanp(p%icell%i3) * p%v%x - p%v%y )
+       if(p%on_wall_id%w3 /= -1) then
 
-       ! Find position of intersection in x,y
-       x_i = p%r%x + p%v%x * t1
-       y_i = p%r%y + p%v%y * t1
-       phi_i = atan2(y_i, x_i)
-       dphi = abs(phi_i - geo%w3(p%icell%i3))
-       if(dphi > pi) dphi = abs(dphi - twopi)
-       if(dphi < 0.5 * pi) call insert_t(t1, 5,e)
+          ! Find intersection with lower phi wall
+          t1 = - ( geo%wtanp(p%icell%i3) * p%r%x - p%r%y ) / ( geo%wtanp(p%icell%i3) * p%v%x - p%v%y )
 
-       ! Find intersection with upper phi wall
-       t2 = - ( geo%wtanp(p%icell%i3+1) * p%r%x - p%r%y ) / ( geo%wtanp(p%icell%i3+1) * p%v%x - p%v%y )
+          ! Find position of intersection in x,y
+          x_i = p%r%x + p%v%x * t1
+          y_i = p%r%y + p%v%y * t1
+          phi_i = atan2(y_i, x_i)
+          dphi = abs(phi_i - geo%w3(p%icell%i3))
+          if(dphi > pi) dphi = abs(dphi - twopi)
+          if(dphi < 0.5 * pi) call insert_t(t1, 3, -1,e)
 
-       ! Find position of intersection in x,y
-       x_i = p%r%x + p%v%x * t2
-       y_i = p%r%y + p%v%y * t2
-       phi_i = atan2(y_i, x_i)
-       dphi = abs(phi_i - geo%w3(p%icell%i3+1))
-       if(dphi > pi) dphi = abs(dphi - twopi)
-       if(dphi < 0.5 * pi) call insert_t(t2, 6,e)
+       end if
+       if(p%on_wall_id%w3 /= +1) then
+
+          ! Find intersection with upper phi wall
+          t2 = - ( geo%wtanp(p%icell%i3+1) * p%r%x - p%r%y ) / ( geo%wtanp(p%icell%i3+1) * p%v%x - p%v%y )
+          ! Find position of intersection in x,y
+          x_i = p%r%x + p%v%x * t2
+          y_i = p%r%y + p%v%y * t2
+          phi_i = atan2(y_i, x_i)
+          dphi = abs(phi_i - geo%w3(p%icell%i3+1))
+          if(dphi > pi) dphi = abs(dphi - twopi)
+          if(dphi < 0.5 * pi) call insert_t(t2, 3, +1,e)
+
+       end if
 
     end if
 
@@ -627,40 +659,24 @@ contains
 
   subroutine reset_t()
     implicit none
-    tn1 = -huge(tn1)
-    tp1 = +huge(tp1)
-    tp2 = +huge(tp2)
-    in1 = 0
-    ip1 = 0
-    ip2 = 0
+    tmin = +huge(tmin)
+    imin = no_wall
   end subroutine reset_t
 
-  subroutine insert_t(t,i,e)
+  subroutine insert_t(t, iw, i, e)
     implicit none
-    real(dp),intent(in)    :: t,e
-    integer,intent(in)    :: i
-    real(dp) :: t_s
-    if(debug) print *,'[debug] inserting t,i=',t,i,e
-    if(t < e) then
-       if(t > tn1) then
-          tn1 = t
-          in1 = i
-       end if
-    else
-       if(t < tp1 - e) then
-          tp2 = tp1
-          ip2 = ip1
-          tp1 = t
-          ip1 = i
-       else if(t < tp1 + e) then
-          tp1 = t
-          ip1 = combine_wall(i, ip1)
-       else if(t < tp2 - e) then
-          tp2 = t
-          ip2 = i
-       else if(t < tp2 + e) then
-          tp2 = t
-          ip2 = combine_wall(i, ip2)
+    real(dp),intent(in)    :: t, e
+    integer,intent(in)    :: i, iw
+    if(debug) print *,'[debug] inserting t,i=',t, iw, i
+    if(t < tmin .and. t > 0._dp) then
+       tmin = t
+       imin = no_wall
+       if(iw == 1) then
+          imin%w1 = i
+       else if(iw == 2) then
+          imin%w2 = i
+       else
+          imin%w3 = i
        end if
     end if
   end subroutine insert_t
@@ -669,19 +685,9 @@ contains
     implicit none
     logical(1),intent(in)  :: on_wall
     real(dp),intent(out)    :: t
-    integer,intent(out)    :: i
-    if(on_wall) then
-       if(abs(tn1) < abs(tp1)) then
-          t = tp1
-          i = ip1
-       else
-          t = tp2
-          i = ip2
-       end if
-    else
-       t = tp1
-       i = ip1
-    end if
+    type(wall_id),intent(out)    :: i
+    t = tmin
+    i = imin
     if(debug) print *,'[debug] selecting t,i=',t,i
   end subroutine find_next_wall
 

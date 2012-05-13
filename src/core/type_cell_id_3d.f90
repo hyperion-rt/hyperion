@@ -16,6 +16,7 @@ module type_grid_cell
   public :: operator(.eq.)
   interface operator(.eq.)
      module procedure equal
+     module procedure equal_wall
   end interface operator(.eq.)
 
   public :: new_grid_cell
@@ -24,7 +25,20 @@ module type_grid_cell
      module procedure new_grid_cell_3d
   end interface new_grid_cell
 
+  public :: wall_id
+  type wall_id
+     integer :: w1, w2, w3
+  end type wall_id
+
+  type(wall_id), parameter, public :: no_wall = wall_id(0, 0, 0)
+
 contains
+
+  logical function equal_wall(a,b)
+    implicit none
+    type(wall_id), intent(in) :: a,b
+    equal_wall = a%w1 == b%w1 .and. a%w2 == b%w2 .and. a%w3 == b%w3
+  end function equal_wall
 
   logical function equal(a,b)
     implicit none
