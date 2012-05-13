@@ -27,7 +27,7 @@ module grid_geometry_specific
 
   logical :: debug = .false.
 
-  real(dp) :: tmin
+  real(dp) :: tmin, emin
   type(wall_id) :: imin
 
   public :: escaped
@@ -529,7 +529,7 @@ contains
 
   end function distance_to_closest_wall
 
-  subroutine find_wall(p,radial,tmin,id_min)
+  subroutine find_wall(p,radial,tnearest,id_min)
 
     implicit none
 
@@ -541,7 +541,7 @@ contains
     type(wall_id),intent(out) :: id_min
     ! ID of next wall
 
-    real(dp),intent(out)  :: tmin
+    real(dp),intent(out)  :: tnearest
     ! tmin to nearest wall
 
     real(dp) :: pB,pC,pC_1,pC_2,t1,t2
@@ -581,13 +581,13 @@ contains
     call quadratic_pascal_reduced(pB,pC_1,t1,t2)
     if(p%on_wall_id%w1 == -1) then
        if(abs(t1) < abs(t2)) then
-          call insert_t(t2, 1, -1, e)
+          call insert_t(t2, 1, -1, 3 * spacing(geo%w1(p%icell%i1)))
        else
-          call insert_t(t1, 1, -1, e)
+          call insert_t(t1, 1, -1, 3 * spacing(geo%w1(p%icell%i1)))
        end if
     else
-       call insert_t(t1,1, -1,e)
-       call insert_t(t2,1, -1,e)
+       call insert_t(t1,1, -1,3 * spacing(geo%w1(p%icell%i1)))
+       call insert_t(t2,1, -1,3 * spacing(geo%w1(p%icell%i1)))
     end if
 
     ! Outer wall
@@ -595,13 +595,13 @@ contains
     call quadratic_pascal_reduced(pB,pC_2,t1,t2)
     if(p%on_wall_id%w1 == +1) then
        if(abs(t1) < abs(t2)) then
-          call insert_t(t2, 1, +1, e)
+          call insert_t(t2, 1, +1, 3 * spacing(geo%w1(p%icell%i1 + 1)))
        else
-          call insert_t(t1, 1, +1, e)
+          call insert_t(t1, 1, +1, 3 * spacing(geo%w1(p%icell%i1+1)))
        end if
     else
-       call insert_t(t1,1, +1,e)
-       call insert_t(t2,1, +1,e)
+       call insert_t(t1,1, +1, 3 * spacing(geo%w1(p%icell%i1+1)))
+       call insert_t(t2,1, +1, 3 * spacing(geo%w1(p%icell%i1+1)))
     end if
 
     ! -------------------------------------------------
@@ -610,11 +610,11 @@ contains
 
     if(p%on_wall_id%w2 /= -1) then
        t1 = ( geo%w2(p%icell%i2)   - p%r%z ) / p%v%z
-       call insert_t(t1,2, -1,e)
+       call insert_t(t1,2, -1, 0._dp)
     end if
     if(p%on_wall_id%w2 /= +1) then
        t2 = ( geo%w2(p%icell%i2+1) - p%r%z ) / p%v%z
-       call insert_t(t2,2, +1,e)
+       call insert_t(t2,2, +1, 0._dp)
     end if
 
     ! -------------------------------------------------
@@ -634,7 +634,7 @@ contains
           phi_i = atan2(y_i, x_i)
           dphi = abs(phi_i - geo%w3(p%icell%i3))
           if(dphi > pi) dphi = abs(dphi - twopi)
-          if(dphi < 0.5 * pi) call insert_t(t1, 3, -1,e)
+          if(dphi < 0.5 * pi) call insert_t(t1, 3, -1, 0._dp)
 
        end if
        if(p%on_wall_id%w3 /= +1) then
@@ -647,13 +647,13 @@ contains
           phi_i = atan2(y_i, x_i)
           dphi = abs(phi_i - geo%w3(p%icell%i3+1))
           if(dphi > pi) dphi = abs(dphi - twopi)
-          if(dphi < 0.5 * pi) call insert_t(t2, 3, +1,e)
+          if(dphi < 0.5 * pi) call insert_t(t2, 3, +1, 0._dp)
 
        end if
 
     end if
 
-    call find_next_wall(p%on_wall,tmin,id_min)
+    call find_next_wall(tnearest,id_min)
 
   end subroutine find_wall
 
@@ -667,23 +667,36 @@ contains
     implicit none
     real(dp),intent(in)    :: t, e
     integer,intent(in)    :: i, iw
-    if(debug) print *,'[debug] inserting t,i=',t, iw, i
-    if(t < tmin .and. t > 0._dp) then
-       tmin = t
-       imin = no_wall
-       if(iw == 1) then
-          imin%w1 = i
-       else if(iw == 2) then
-          imin%w2 = i
-       else
-          imin%w3 = i
+    real(dp) :: emax
+    if(debug) print *,'[debug] inserting t,i=',t, e, iw, i
+    if(t > 0._dp) then
+       emax = max(e, emin)
+       if(t < tmin - emax) then
+          tmin = t
+          imin = no_wall
+          emin = emax
+          if(iw == 1) then
+             imin%w1 = i
+          else if(iw == 2) then
+             imin%w2 = i
+          else
+             imin%w3 = i
+          end if
+       else if(t < tmin + emax) then
+          emin = emax
+          if(iw == 1) then
+             imin%w1 = i
+          else if(iw == 2) then
+             imin%w2 = i
+          else
+             imin%w3 = i
+          end if
        end if
     end if
   end subroutine insert_t
 
-  subroutine find_next_wall(on_wall,t,i)
+  subroutine find_next_wall(t,i)
     implicit none
-    logical(1),intent(in)  :: on_wall
     real(dp),intent(out)    :: t
     type(wall_id),intent(out)    :: i
     t = tmin
