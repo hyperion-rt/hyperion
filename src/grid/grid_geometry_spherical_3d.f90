@@ -28,7 +28,7 @@ module grid_geometry_specific
   logical :: debug = .false.
 
   real(dp) :: tmin, emin
-  type(wall_id) :: imin
+  type(wall_id) :: imin, iext
 
   public :: escaped
   interface escaped
@@ -272,7 +272,7 @@ contains
 
     type(photon), intent(inout) :: p
 
-    real(dp) :: r_sq,w_sq,theta,phi, dphi,phiv
+    real(dp) :: r_sq,w_sq,theta,phi, dphi,phiv, thetav
     logical :: radial
     integer,parameter :: eps = 3
 
@@ -304,7 +304,16 @@ contains
     end if
 
     ! Find whether the photon is on a theta wall
-    if(p%icell%i2 > 1 .and. equal_nulp(theta, geo%w2(p%icell%i2), eps)) then
+    if(r_sq == 0._dp) then
+       if(abs(p%v%z) < 1._dp) then
+          thetav = p%v%z / sqrt(p%v%x*p%v%x + p%v%y*p%v%y)
+          if(equal_nulp(thetav, geo%wtant(p%icell%i2), eps)) then
+             p%on_wall_id%w2 = -1
+          else if(equal_nulp(thetav, geo%wtant(p%icell%i2 + 1), eps)) then
+             p%on_wall_id%w2 = +1
+          end if
+       end if
+    else if(p%icell%i2 > 1 .and. equal_nulp(theta, geo%w2(p%icell%i2), eps)) then
        if(p%icell%i2 == geo%midplane) then
           if(p%v%z > 0._dp) then
              p%on_wall_id%w2 = +1
@@ -477,6 +486,8 @@ contains
 
        in_correct_cell = .true.
 
+       if(rad == 0._dp) return
+
        if(p%on_wall_id%w1 == -1) then
           if(geo%w1(p%icell%i1) .ne. rad) then
              frac = sqrt(rad / geo%w1(p%icell%i1)) - 1._dp
@@ -639,7 +650,6 @@ contains
     real(dp) :: x_i,y_i,phi_i, dphi
 
     ! Find the intersections with all walls:
-
     call reset_t()
 
     ! -------------------------------------------------
@@ -702,30 +712,36 @@ contains
     ! Upper wall
     if(p%icell%i2 > 1) then
 
-       if(p%icell%i2 == geo%midplane.and.p%v%z.ne.0) then
-          if(p%on_wall_id%w2 /= -1) call insert_t(-p%r%z/p%v%z,2, -1, geo%ew2(p%icell%i1))
+       ! Check if photon is on wall, and if so, whether it is moving along
+       ! wall. If so, don't check for intersections and just set iext
+       if(p%on_wall_id%w2 == -1 .and. equal_nulp(geo%wtant(p%icell%i2), sqrt(v2_xy) / p%v%z, 10)) then
+          iext%w2 = -1
        else
-          pA=v2_xy-v2_z*geo%wtant2(p%icell%i2)
-          pB=rv_xy-rv_z*geo%wtant2(p%icell%i2) ; pB = pB + pB
-          pC=r2_xy-r2_z*geo%wtant2(p%icell%i2)
-          if(pA.lt.0.or.pA.gt.0) then
-             call quadratic(pA,pB,pC,t1,t2)
-             z1=p%r%z+p%v%z*t1
-             if(z1 > 0._dp .neqv. geo%wtant(p%icell%i2) > 0._dp) t1 = huge(1._dp)
-             z2=p%r%z+p%v%z*t2
-             if(z2 > 0._dp .neqv. geo%wtant(p%icell%i2) > 0._dp) t2 = huge(1._dp)
-             if(p%on_wall_id%w2 == -1) then
-                if(abs(t1) < abs(t2)) then
-                   call insert_t(t2, 2, -1, geo%ew2(p%icell%i2))
+          if(p%icell%i2 == geo%midplane.and.p%v%z.ne.0) then
+             if(p%on_wall_id%w2 /= -1) call insert_t(-p%r%z/p%v%z,2, -1, geo%ew2(p%icell%i1))
+          else
+             pA=v2_xy-v2_z*geo%wtant2(p%icell%i2)
+             pB=rv_xy-rv_z*geo%wtant2(p%icell%i2) ; pB = pB + pB
+             pC=r2_xy-r2_z*geo%wtant2(p%icell%i2)
+             if(abs(pA) .gt. 0._dp) then
+                call quadratic(pA,pB,pC,t1,t2)
+                z1=p%r%z+p%v%z*t1
+                if(z1 > 0._dp .neqv. geo%wtant(p%icell%i2) > 0._dp) t1 = huge(1._dp)
+                z2=p%r%z+p%v%z*t2
+                if(z2 > 0._dp .neqv. geo%wtant(p%icell%i2) > 0._dp) t2 = huge(1._dp)
+                if(p%on_wall_id%w2 == -1) then
+                   if(abs(t1) < abs(t2)) then
+                      call insert_t(t2, 2, -1, geo%ew2(p%icell%i2))
+                   else
+                      call insert_t(t1, 2, -1, geo%ew2(p%icell%i2))
+                   end if
                 else
-                   call insert_t(t1, 2, -1, geo%ew2(p%icell%i2))
+                   call insert_t(t1,2, -1,geo%ew2(p%icell%i2))
+                   call insert_t(t2,2, -1,geo%ew2(p%icell%i2))
                 end if
-             else
-                call insert_t(t1,2, -1,geo%ew2(p%icell%i2))
-                call insert_t(t2,2, -1,geo%ew2(p%icell%i2))
+             else if(abs(pB) .gt. 0._dp) then
+                if(p%on_wall_id%w2 /= -1) call insert_t(-pC/pB,2, -1, geo%ew2(p%icell%i2))
              end if
-          else if(pB.lt.0..or.pB.gt.0.) then
-             if(p%on_wall_id%w2 /= -1) call insert_t(-pC/pB,2, -1, geo%ew2(p%icell%i2))
           end if
        end if
 
@@ -734,33 +750,38 @@ contains
     ! Lower wall
     if(p%icell%i2+1 < geo%n2+1) then
 
-       if(p%icell%i2+1 == geo%midplane.and.p%v%z.ne.0) then
-          if(p%on_wall_id%w2 /= +1) call insert_t(-p%r%z/p%v%z,2, +1, geo%ew2(p%icell%i2+1))
+       ! Check if photon is on wall, and if so, whether it is moving along
+       ! wall. If so, don't check for intersections and just set iext
+       if(p%on_wall_id%w2 == +1 .and. equal_nulp(geo%wtant(p%icell%i2+1), sqrt(v2_xy) / p%v%z, 10)) then
+          iext%w2 = +1
        else
-          pA=v2_xy-v2_z*geo%wtant2(p%icell%i2+1)
-          pB=rv_xy-rv_z*geo%wtant2(p%icell%i2+1) ; pB = pB + pB
-          pC=r2_xy-r2_z*geo%wtant2(p%icell%i2+1)
-          if(pA.lt.0.or.pA.gt.0) then
-             call quadratic(pA,pB,pC,t1,t2)
-             z1=p%r%z+p%v%z*t1
-             if(z1 > 0._dp .neqv. geo%wtant(p%icell%i2+1) > 0._dp) t1 = huge(1._dp)
-             z2=p%r%z+p%v%z*t2
-             if(z2 > 0._dp .neqv. geo%wtant(p%icell%i2+1) > 0._dp) t2 = huge(1._dp)
-             if(p%on_wall_id%w2 == +1) then
-                if(abs(t1) < abs(t2)) then
-                   call insert_t(t2, 2, +1, geo%ew2(p%icell%i2+1))
+          if(p%icell%i2+1 == geo%midplane.and.p%v%z.ne.0) then
+             if(p%on_wall_id%w2 /= +1) call insert_t(-p%r%z/p%v%z,2, +1, geo%ew2(p%icell%i2+1))
+          else
+             pA=v2_xy-v2_z*geo%wtant2(p%icell%i2+1)
+             pB=rv_xy-rv_z*geo%wtant2(p%icell%i2+1) ; pB = pB + pB
+             pC=r2_xy-r2_z*geo%wtant2(p%icell%i2+1)
+             if(abs(pA) .gt. 1.e-10) then
+                call quadratic(pA,pB,pC,t1,t2)
+                z1=p%r%z+p%v%z*t1
+                if(z1 > 0._dp .neqv. geo%wtant(p%icell%i2+1) > 0._dp) t1 = huge(1._dp)
+                z2=p%r%z+p%v%z*t2
+                if(z2 > 0._dp .neqv. geo%wtant(p%icell%i2+1) > 0._dp) t2 = huge(1._dp)
+                if(p%on_wall_id%w2 == +1) then
+                   if(abs(t1) < abs(t2)) then
+                      call insert_t(t2, 2, +1, geo%ew2(p%icell%i2+1))
+                   else
+                      call insert_t(t1, 2, +1, geo%ew2(p%icell%i2+1))
+                   end if
                 else
-                   call insert_t(t1, 2, +1, geo%ew2(p%icell%i2+1))
+                   call insert_t(t1,2, +1,geo%ew2(p%icell%i2+1))
+                   call insert_t(t2,2, +1,geo%ew2(p%icell%i2+1))
                 end if
-             else
-                call insert_t(t1,2, +1,geo%ew2(p%icell%i2+1))
-                call insert_t(t2,2, +1,geo%ew2(p%icell%i2+1))
+             else if(abs(pB) .gt. 1.e-10) then
+                if(p%on_wall_id%w2 /= +1) call insert_t(-pC/pB,2, +1, geo%ew2(p%icell%i2+1))
              end if
-          else if(pB.lt.0..or.pB.gt.0.) then
-             if(p%on_wall_id%w2 /= +1) call insert_t(-pC/pB,2, +1, geo%ew2(p%icell%i2+1))
           end if
        end if
-
     end if
 
 
@@ -814,6 +835,7 @@ contains
     implicit none
     tmin = +huge(tmin)
     imin = no_wall
+    iext = no_wall
   end subroutine reset_t
 
   subroutine insert_t(t, iw, i, e)
@@ -853,7 +875,7 @@ contains
     real(dp),intent(out)    :: t
     type(wall_id),intent(out)    :: i
     t = tmin
-    i = imin
+    i = imin + iext
     if(debug) print *,'[debug] selecting t,i=',t,i
   end subroutine find_next_wall
 
