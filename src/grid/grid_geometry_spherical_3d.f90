@@ -219,17 +219,24 @@ contains
 
     if(debug) write(*,'(" [debug] find_cell")')
 
+    ! Pre-compute useful quantities
     r_sq = p%r.dot.p%r
-    i1 = locate(geo%wr2,r_sq)
+    w_sq = p%r%x*p%r%x+p%r%y*p%r%y
 
+    ! If the photon is at the grid origin, then there is no way to determine
+    ! the correct theta cell from the position. However, the direction vector
+    ! indicates the direction the photon will move in, and since the grid cell
+    ! walls do not curve as seen from the origin, we can use the direction
+    ! vector to find out the correct cell.
     if(r_sq == 0._dp) then
        theta = atan2(sqrt(p%v%x*p%v%x+p%v%y*p%v%y),p%v%z)
     else
        theta = atan2(sqrt(p%r%x*p%r%x+p%r%y*p%r%y),p%r%z)
     end if
-    i2 = locate(geo%w2,theta)
 
-    w_sq = p%r%x*p%r%x+p%r%y*p%r%y
+    ! Similarly to theta, if the photon is at (x, y) = (0, 0) - regardless
+    ! of the value of z - then the correct phi cell cannot be determined from
+    ! the position, so we have to use the direction vector.
     if(w_sq == 0._dp) then
        phi = atan2(p%v%y,p%v%x)
        if(phi < 0._dp) phi = phi + twopi
@@ -237,7 +244,14 @@ contains
        phi = atan2(p%r%y,p%r%x)
        if(phi < 0._dp) phi = phi + twopi
     end if
+
+    ! Find the cells that the photon falls in
+    i1 = locate(geo%wr2,r_sq)
+    i2 = locate(geo%w2,theta)
     i3 = locate(geo%w3,phi)
+
+    ! We now check whether the photon falls outside the grid in any of the
+    ! dimensions.
 
     if(i1<1.or.i1>geo%n1) then
        call warn("find_cell","photon not in cell (in r direction)")
@@ -272,72 +286,120 @@ contains
 
     type(photon), intent(inout) :: p
 
-    real(dp) :: r_sq,w_sq,theta,phi, dphi,phiv, thetav
-    logical :: radial
+    real(dp) :: r_sq,w_sq
+    real(dp) :: theta, theta_v
+    real(dp) :: phi, phi_v, dphi
     integer,parameter :: eps = 3
 
-    ! Initialize values
+    ! Initialize values. We start off by assuming the photon is not on any
+    ! walls.
     p%on_wall = .false.
     p%on_wall_id = no_wall
 
+    ! Pre-compute useful quantities
     r_sq = p%r.dot.p%r
     w_sq = p%r%x*p%r%x+p%r%y*p%r%y
     theta = atan2(sqrt(w_sq),p%r%z)
     phi = atan2(p%r%y,p%r%x)
     if(phi < 0._dp) phi = phi + twopi
 
-    ! Find whether the photon is on a radial wall
-    if((p%r .dot. p%v) >= 0._dp) then
-       if(equal_nulp(r_sq, geo%wr2(p%icell%i1), eps)) then
+    ! Find whether the photon is on a radial wall.
+
+    if((p%r .dot. p%v) >= 0._dp) then  ! photon is moving outwards
+       if(equal_nulp(r_sq, geo%wr2(p%icell%i1), eps)) then ! photon is on inner wall
           p%on_wall_id%w1 = -1
-       else if(equal_nulp(r_sq, geo%wr2(p%icell%i1 + 1), eps)) then
+       else if(equal_nulp(r_sq, geo%wr2(p%icell%i1 + 1), eps)) then ! photon is on outer wall
           p%on_wall_id%w1 = -1
           p%icell%i1 = p%icell%i1 + 1
        end if
-    else
-       if(equal_nulp(r_sq, geo%wr2(p%icell%i1), eps)) then
+    else  ! photon is moving inwards
+       if(equal_nulp(r_sq, geo%wr2(p%icell%i1), eps)) then ! photon is on inner wall
           p%on_wall_id%w1 = +1
           p%icell%i1 = p%icell%i1 - 1
-       else if(equal_nulp(r_sq, geo%wr2(p%icell%i1 + 1), eps)) then
+       else if(equal_nulp(r_sq, geo%wr2(p%icell%i1 + 1), eps)) then ! photon is on outer wall
           p%on_wall_id%w1 = +1
        end if
     end if
 
-    ! Find whether the photon is on a theta wall
-    if(r_sq == 0._dp) then
+    ! Find whether the photon is on a theta wall.
+
+    ! We first have to check whether we are at the origin, because in that
+    ! case we cannot rely on the position of the photon to check which wall it
+    ! is on.
+    if(r_sq == 0._dp) then  ! photon is at origin
+
+       ! We need to ensure that the photon is not moving straight up or
+       ! straight down. If it is, then we do not do anything since we do not
+       ! treat the theta=0 and theta=pi walls as real walls. If the magnitude
+       ! of the vertical velocity is not 1, then the photon is not moving
+       ! vertically (since v is normalized).
        if(abs(p%v%z) < 1._dp) then
-          thetav = p%v%z / sqrt(p%v%x*p%v%x + p%v%y*p%v%y)
-          if(equal_nulp(thetav, geo%wtant(p%icell%i2), eps)) then
+
+          ! Find direction of motion of the photon.
+          theta_v = atan2(sqrt(p%v%x*p%v%x + p%v%y*p%v%y), p%v%z)
+
+          ! Compare to the position of the lower and upper walls, and set
+          ! the wall ID accordingly. We don't need to worry about changing the
+          ! cell of the photon, since it is moving along the wall, so it
+          ! doesn't matter whether it is set to one cell or the other.
+          if(equal_nulp(theta_v, geo%w2(p%icell%i2), eps)) then
              p%on_wall_id%w2 = -1
-          else if(equal_nulp(thetav, geo%wtant(p%icell%i2 + 1), eps)) then
+          else if(equal_nulp(theta_v, geo%w2(p%icell%i2 + 1), eps)) then
              p%on_wall_id%w2 = +1
           end if
+
        end if
+
+       ! If the photon is not at the origin, then we check whether it is on the
+       ! lower wall, but we only do that if the lower wall is not theta=0.
     else if(p%icell%i2 > 1 .and. equal_nulp(theta, geo%w2(p%icell%i2), eps)) then
-       if(p%icell%i2 == geo%midplane) then
+
+       if(p%icell%i2 == geo%midplane) then  ! lower wall is grid midplane
+
+          ! The lower wall is the midplane of the grid, so we can just use
+          ! v_x to determine the direction of motion relative to the wall.
           if(p%v%z > 0._dp) then
              p%on_wall_id%w2 = +1
              p%icell%i2 = p%icell%i2 - 1
           else
              p%on_wall_id%w2 = -1
           end if
-       else
+
+       else  ! lower wall is not grid midplane
+
+          ! We need to do some vector arithmetic and dot products to
+          ! determine whether the photon is moving towards the lower or upper
+          ! cells.
           if((sqrt(w_sq) * p%v%z * geo%wtant(p%icell%i2) -  (p%r%x * p%v%x + p%r%y * p%v%y) < 0._dp) .eqv. p%r%z > 0._dp) then
              p%on_wall_id%w2 = -1
           else
              p%on_wall_id%w2 = +1
              p%icell%i2 = p%icell%i2 - 1
           end if
+
        end if
+
+       ! If the photon is not at the origin, or on the lower wall, then we
+       ! check whether it is on the upper wall, but we only do that if the lower
+       ! wall is not theta=pi.
     else if(p%icell%i2 + 1 < geo%n2 + 1 .and. equal_nulp(theta, geo%w2(p%icell%i2 + 1), eps)) then
-       if(p%icell%i2 + 1 == geo%midplane) then
+
+       if(p%icell%i2 + 1 == geo%midplane) then  ! upper wall is grid midplane
+
+          ! The lower wall is the midplane of the grid, so we can just use
+          ! v_x to determine the direction of motion relative to the wall.
           if(p%v%z > 0._dp) then
              p%on_wall_id%w2 = +1
           else
              p%on_wall_id%w2 = -1
              p%icell%i2 = p%icell%i2 + 1
           end if
-       else
+
+       else  ! upper wall is not grid midplane
+
+          ! We need to do some vector arithmetic and dot products to
+          ! determine whether the photon is moving towards the lower or upper
+          ! cells.
           if((sqrt(w_sq) * p%v%z * geo%wtant(p%icell%i2 + 1)  -  (p%r%x * p%v%x + p%r%y * p%v%y) < 0._dp) .eqv. p%r%z > 0._dp) then
              p%on_wall_id%w2 = -1
              p%icell%i2 = p%icell%i2 + 1
@@ -345,28 +407,38 @@ contains
              p%on_wall_id%w2 = +1
           end if
        end if
+
     end if
 
     ! Find whether the photon is on an azimuthal wall
-    phiv = atan2(p%v%y, p%v%x)
-    if(equal_nulp(phi, geo%w3(p%icell%i3), eps)) then
-       dphi = phiv - geo%w3(p%icell%i3)
+
+    if(equal_nulp(phi, geo%w3(p%icell%i3), eps)) then  ! photon is on inner wall
+
+       ! Find the angle between the direction of motion and the wall.
+       phi_v = atan2(p%v%y, p%v%x)
+       dphi = phi_v - geo%w3(p%icell%i3)
        if(dphi < -pi) dphi = dphi + twopi
-       if(dphi > 0._dp) then
+
+       if(dphi > 0._dp) then  ! photon is moving towards upper cells
           p%on_wall_id%w3 = -1
-       else
+       else  ! photon is moving towards lower cells
           p%on_wall_id%w3 = +1
           p%icell%i3 = p%icell%i3 - 1
           if(p%icell%i3==0) p%icell%i3 = geo%n3
        end if
-    else if(equal_nulp(phi, geo%w3(p%icell%i3 + 1), eps)) then
-       dphi = phiv - geo%w3(p%icell%i3 + 1)
+
+    else if(equal_nulp(phi, geo%w3(p%icell%i3 + 1), eps)) then  ! photon is on outer wall
+
+       ! Find the angle between the direction of motion and the wall.
+       phi_v = atan2(p%v%y, p%v%x)
+       dphi = phi_v - geo%w3(p%icell%i3 + 1)
        if(dphi < -pi) dphi = dphi + twopi
-       if(dphi > 0._dp) then
+
+       if(dphi > 0._dp) then  ! photon is moving towards upper cells
           p%on_wall_id%w3 = -1
           p%icell%i3 = p%icell%i3 + 1
           if(p%icell%i3==geo%n3+1) p%icell%i3 = 1
-       else
+       else  ! photon is moving towards lower cells
           p%on_wall_id%w3 = +1
        end if
     end if
@@ -474,29 +546,34 @@ contains
     type(photon),intent(in) :: p
     type(grid_cell) :: icell_actual
     real(dp) :: rad,theta,phi,frac,dphi
+    real(dp),parameter :: threshold = 1.e-3_dp
 
     icell_actual = find_cell(p)
 
     if(p%on_wall) then
 
+       in_correct_cell = .true.
+
        rad = sqrt(p%r.dot.p%r)
+
+       ! If we are at the origin, then there isn't much point in checking,
+       ! since this is difficult numerically, and the photon has not
+       ! propagated anyway.
+       if(rad == 0._dp) return
+
        theta = atan2(sqrt(p%r%x*p%r%x+p%r%y*p%r%y),p%r%z)
        phi = atan2(p%r%y,p%r%x)
        if(phi < 0._dp) phi = phi + twopi
 
-       in_correct_cell = .true.
-
-       if(rad == 0._dp) return
-
        if(p%on_wall_id%w1 == -1) then
           if(geo%w1(p%icell%i1) .ne. rad) then
-             frac = sqrt(rad / geo%w1(p%icell%i1)) - 1._dp
-             in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+             frac = rad / geo%w1(p%icell%i1) - 1._dp
+             in_correct_cell = in_correct_cell .and. abs(frac) < threshold
           end if
        else if(p%on_wall_id%w1 == +1) then
           if(geo%w1(p%icell%i1 + 1) .ne. rad) then
-             frac = sqrt(rad / geo%w1(p%icell%i1+1)) - 1._dp
-             in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+             frac = rad / geo%w1(p%icell%i1+1) - 1._dp
+             in_correct_cell = in_correct_cell .and. abs(frac) < threshold
           end if
        else
           in_correct_cell = in_correct_cell .and. icell_actual%i1 == p%icell%i1
@@ -504,10 +581,10 @@ contains
 
        if(p%on_wall_id%w2 == -1) then
           frac = theta / geo%w2(p%icell%i2) - 1._dp
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else if(p%on_wall_id%w2 == +1) then
           frac =theta / geo%w2(p%icell%i2 + 1) - 1._dp
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else
           in_correct_cell = in_correct_cell .and. icell_actual%i2 == p%icell%i2
        end if
@@ -517,13 +594,13 @@ contains
           if(dphi > pi) dphi = dphi - twopi
           if(dphi < -pi) dphi = dphi + twopi
           frac = dphi / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else if(p%on_wall_id%w3 == +1) then
           dphi = phi - geo%w3(p%icell%i3+1)
           if(dphi > pi) dphi = dphi - twopi
           if(dphi < -pi) dphi = dphi + twopi
           frac = dphi / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else
           in_correct_cell = in_correct_cell .and. icell_actual%i3 == p%icell%i3
        end if
