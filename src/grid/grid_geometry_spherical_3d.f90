@@ -746,16 +746,22 @@ contains
     ! Spherical walls
     ! -------------------------------------------------
 
+    ! Pre-compute some coefficients of the quadratic that don't depend on
+    ! the wall, only the position and direction of the photon.
     pB=rv_xy + rv_z ; pB = pB + pB
     pC=r2_xy + r2_z
 
-    ! Inner wall
-    if(radial.and.p%on_wall.and.p%on_wall_id%w1==-1) then
-       p%on_wall    = .false.
-       p%on_wall_id%w1 = 0
-    else if(.not.radial) then
+    ! Check for intersections with inner wall. We only need to check this if
+    ! we are not moving radially outwards.
+    if(.not.radial) then
+
+       ! Check for intersections with inner wall.
        pC_1 = pC - geo%wr2(p%icell%i1)
-       call quadratic_pascal_reduced(pB,pC_1,t1,t2)
+       call quadratic_pascal_reduced(pB, pC_1, t1, t2)
+
+       ! If we are on the inner wall, then we should discard the
+       ! intersection with the smallest absolute value as this will be the
+       ! wall we are on. Otherwise, we should include both values.
        if(p%on_wall_id%w1 == -1) then
           if(abs(t1) < abs(t2)) then
              call insert_t(t2, 1, -1, geo%ew1(p%icell%i1))
@@ -763,14 +769,19 @@ contains
              call insert_t(t1, 1, -1, geo%ew1(p%icell%i1))
           end if
        else
-          call insert_t(t1,1, -1,geo%ew1(p%icell%i1))
-          call insert_t(t2,1, -1,geo%ew1(p%icell%i1))
+          call insert_t(t1, 1, -1, geo%ew1(p%icell%i1))
+          call insert_t(t2, 1, -1, geo%ew1(p%icell%i1))
        end if
+
     end if
 
-    ! Outer wall
-    pC_2 = pC - geo%wr2(p%icell%i1+1)
-    call quadratic_pascal_reduced(pB,pC_2,t1,t2)
+    ! Check for intersections with outer wall.
+    pC_2 = pC - geo%wr2(p%icell%i1 + 1)
+    call quadratic_pascal_reduced(pB, pC_2, t1, t2)
+
+    ! If we are on the outer wall, then we should discard the
+    ! intersection with the smallest absolute value as this will be the
+    ! wall we are on. Otherwise, we should include both values.
     if(p%on_wall_id%w1 == +1) then
        if(abs(t1) < abs(t2)) then
           call insert_t(t2, 1, +1, geo%ew1(p%icell%i1 + 1))
@@ -778,8 +789,8 @@ contains
           call insert_t(t1, 1, +1, geo%ew1(p%icell%i1 + 1))
        end if
     else
-       call insert_t(t1,1, +1, geo%ew1(p%icell%i1 + 1))
-       call insert_t(t2,1, +1, geo%ew1(p%icell%i1 + 1))
+       call insert_t(t1, 1, +1, geo%ew1(p%icell%i1 + 1))
+       call insert_t(t2, 1, +1, geo%ew1(p%icell%i1 + 1))
     end if
 
     ! -------------------------------------------------
