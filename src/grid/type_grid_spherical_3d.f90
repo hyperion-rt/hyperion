@@ -13,6 +13,7 @@ module type_grid
      integer :: n_cells, n_dim, n1, n2, n3
      real(dp), allocatable :: volume(:)
      real(dp), allocatable :: w1(:), w2(:), w3(:)
+     real(dp), allocatable :: ew1(:), ew2(:), ew3(:)
      real(dp), allocatable :: wr2(:), wcost(:), wsint(:), wtant(:), wtant2(:), wtanp(:)
      real(dp), allocatable :: r(:), dr(:), dr2(:), dr3(:), t(:), dt(:), dcost(:), dphi(:)
      integer :: midplane = -1

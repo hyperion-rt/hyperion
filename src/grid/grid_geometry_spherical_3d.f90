@@ -18,7 +18,6 @@ module grid_geometry_specific
   public :: cell_width
   public :: grid_geometry_debug
   public :: find_cell
-  public :: next_cell
   public :: place_in_cell
   public :: in_correct_cell
   public :: random_position_cell
@@ -27,8 +26,8 @@ module grid_geometry_specific
 
   logical :: debug = .false.
 
-  real(dp) :: tn1,tp1,tp2
-  integer :: in1,ip1,ip2
+  real(dp) :: tmin, emin
+  type(wall_id) :: imin
 
   public :: escaped
   interface escaped
@@ -36,10 +35,27 @@ module grid_geometry_specific
      module procedure escaped_cell
   end interface escaped
 
+  public :: next_cell
+  interface next_cell
+     module procedure next_cell_int
+     module procedure next_cell_wall_id
+  end interface next_cell
+
   public :: setup_grid_geometry
   type(grid_geometry_desc),public,target :: geo
 
 contains
+
+  logical pure function equal_nulp(x, y, n)
+    implicit none
+    real(8),intent(in) :: x, y
+    integer,intent(in) :: n
+    if(x == y) then
+       equal_nulp = .true.
+    else
+       equal_nulp = abs(x - y) <= n * spacing(max(x, y))
+    end if
+  end function equal_nulp
 
   real(dp) function cell_width(cell, idir)
     implicit none
@@ -177,6 +193,14 @@ contains
        geo%n_dim = 3
     end if
 
+    allocate(geo%ew1(geo%n1 + 1))
+    allocate(geo%ew2(geo%n2 + 1))
+    allocate(geo%ew3(geo%n3 + 1))
+
+    geo%ew1 = 3 * spacing(geo%w1)
+    geo%ew2 = 3 * spacing(geo%w2)
+    geo%ew3 = spacing(geo%w3)
+
   end subroutine setup_grid_geometry
 
   subroutine grid_geometry_debug(debug_flag)
@@ -192,9 +216,19 @@ contains
     integer :: i1, i2, i3
     if(debug) write(*,'(" [debug] find_cell")')
     r_squared = p%r.dot.p%r
-    theta = atan2(sqrt(p%r%x*p%r%x+p%r%y*p%r%y),p%r%z)
-    phi = atan2(p%r%y,p%r%x)
-    if(phi < 0._dp) phi = phi + twopi
+    if(r_squared == 0._dp) then
+       theta = atan2(sqrt(p%v%x*p%v%x+p%v%y*p%v%y),p%v%z)
+    else
+       theta = atan2(sqrt(p%r%x*p%r%x+p%r%y*p%r%y),p%r%z)
+    end if
+    if(p%r%x * p%r%x + p%r%y * p%r%y == 0._dp) then
+       phi = atan2(p%v%y,p%v%x)
+       if(phi < 0._dp) phi = phi + twopi
+    else
+       phi = atan2(p%r%y,p%r%x)
+       if(phi < 0._dp) phi = phi + twopi
+    end if
+
     i1 = locate(geo%wr2,r_squared)
     i2 = locate(geo%w2,theta)
     i3 = locate(geo%w3,phi)
@@ -216,10 +250,118 @@ contains
     icell = new_grid_cell(i1, i2, i3, geo)
   end function find_cell
 
-  subroutine place_in_cell(p)
+  subroutine adjust_wall(p)
+
+    ! In future, this could be called at peeloff time instead of
+    ! place_inside_cell, but if we want to do that, we need this subroutine to
+    ! use locate to find the correct cell if the velocity is zero along one of
+    ! the components, so that it is reset to the 'default' find_cell value.
+
     implicit none
+
+    type(photon), intent(inout) :: p
+
+    real(dp) :: r2,theta,phi, dphi,phiv, xx_yy, xvx_yvy
+    logical :: radial
+    integer,parameter :: eps = 3
+
+    ! Initialize values
+    p%on_wall = .false.
+    p%on_wall_id = no_wall
+
+    r2 = p%r.dot.p%r
+    theta = atan2(sqrt(p%r%x*p%r%x+p%r%y*p%r%y),p%r%z)
+    phi = atan2(p%r%y,p%r%x)
+    if(phi < 0._dp) phi = phi + twopi
+
+    ! Find whether the photon is on a radial wall
+    if((p%r .dot. p%v) >= 0._dp) then
+       if(equal_nulp(r2, geo%wr2(p%icell%i1), eps)) then  ! TODO: shouldn't use equal, not precise enough
+          p%on_wall_id%w1 = -1
+       else if(equal_nulp(r2, geo%wr2(p%icell%i1 + 1), eps)) then
+          p%on_wall_id%w1 = -1
+          p%icell%i1 = p%icell%i1 + 1
+       end if
+    else
+       if(equal_nulp(r2, geo%wr2(p%icell%i1), eps)) then
+          p%on_wall_id%w1 = +1
+          p%icell%i1 = p%icell%i1 - 1
+       else if(equal_nulp(r2, geo%wr2(p%icell%i1 + 1), eps)) then
+          p%on_wall_id%w1 = +1
+       end if
+    end if
+
+    ! Find whether the photon is on a theta wall
+    if(p%icell%i2 > 1 .and. equal_nulp(theta, geo%w2(p%icell%i2), eps)) then
+       if(p%icell%i2 == geo%midplane) then
+          if(p%v%z > 0._dp) then
+             p%on_wall_id%w2 = +1
+             p%icell%i2 = p%icell%i2 - 1
+          else
+             p%on_wall_id%w2 = -1
+          end if
+       else
+          if((sqrt(p%r%x * p%r%x + p%r%y * p%r%y) * p%v%z * geo%wtant(p%icell%i2) -  (p%r%x * p%v%x + p%r%y * p%v%y) < 0._dp) .eqv. p%r%z > 0._dp) then
+             p%on_wall_id%w2 = -1
+          else
+             p%on_wall_id%w2 = +1
+             p%icell%i2 = p%icell%i2 - 1
+          end if
+       end if
+    else if(p%icell%i2 + 1 < geo%n2 + 1 .and. equal_nulp(theta, geo%w2(p%icell%i2 + 1), eps)) then
+       if(p%icell%i2 + 1 == geo%midplane) then
+          if(p%v%z > 0._dp) then
+             p%on_wall_id%w2 = +1
+          else
+             p%on_wall_id%w2 = -1
+             p%icell%i2 = p%icell%i2 + 1
+          end if
+       else
+          if((sqrt(p%r%x * p%r%x + p%r%y * p%r%y) * p%v%z * geo%wtant(p%icell%i2 + 1)  -  (p%r%x * p%v%x + p%r%y * p%v%y) < 0._dp) .eqv. p%r%z > 0._dp) then
+             p%on_wall_id%w2 = -1
+             p%icell%i2 = p%icell%i2 + 1
+          else
+             p%on_wall_id%w2 = +1
+          end if
+       end if
+    end if
+
+    ! Find whether the photon is on an azimuthal wall
+    phiv = atan2(p%v%y, p%v%x)
+    if(equal_nulp(phi, geo%w3(p%icell%i3), eps)) then
+       dphi = phiv - geo%w3(p%icell%i3)
+       if(dphi < -pi) dphi = dphi + twopi
+       if(dphi > 0._dp) then
+          p%on_wall_id%w3 = -1
+       else
+          p%on_wall_id%w3 = +1
+          p%icell%i3 = p%icell%i3 - 1
+          if(p%icell%i3==0) p%icell%i3 = geo%n3
+       end if
+    else if(equal_nulp(phi, geo%w3(p%icell%i3 + 1), eps)) then
+       dphi = phiv - geo%w3(p%icell%i3 + 1)
+       if(dphi < -pi) dphi = dphi + twopi
+       if(dphi > 0._dp) then
+          p%on_wall_id%w3 = -1
+          p%icell%i3 = p%icell%i3 + 1
+          if(p%icell%i3==geo%n3+1) p%icell%i3 = 1
+       else
+          p%on_wall_id%w3 = +1
+       end if
+    end if
+
+    p%on_wall = p%on_wall_id%w1 /= 0 .or. p%on_wall_id%w2 /= 0 .or. p%on_wall_id%w3 /= 0
+
+  end subroutine adjust_wall
+
+  subroutine place_in_cell(p)
+
+    implicit none
+
     type(photon),intent(inout) :: p
+
     p%icell = find_cell(p)
+
     if(p%icell == invalid_cell) then
        call warn("place_in_cell","place_in_cell failed - killing")
        killed_photons_geo = killed_photons_geo + 1
@@ -227,6 +369,9 @@ contains
     else
        p%in_cell = .true.
     end if
+
+    call adjust_wall(p)
+
   end subroutine place_in_cell
 
   logical function escaped_photon(p)
@@ -244,7 +389,7 @@ contains
     escaped_cell = .false.
   end function escaped_cell
 
-  type(grid_cell) function next_cell(cell, direction, intersection)
+  type(grid_cell) function next_cell_int(cell, direction, intersection)
     implicit none
     type(grid_cell),intent(in) :: cell
     integer,intent(in) :: direction
@@ -255,7 +400,7 @@ contains
     i3 = cell%i3
     select case(direction)
     case(1)
-       i1 = cell%i1 - 1
+       i1 = i1 - 1
     case(2)
        i1 = i1 + 1
     case(3)
@@ -269,53 +414,103 @@ contains
        i3 = i3 + 1
        if(i3==geo%n3+1) i3 = 1
     end select
-    next_cell = new_grid_cell(i1, i2, i3, geo)
-  end function next_cell
+    next_cell_int = new_grid_cell(i1, i2, i3, geo)
+  end function next_cell_int
+
+  type(grid_cell) function next_cell_wall_id(cell, direction, intersection)
+    implicit none
+    type(grid_cell),intent(in) :: cell
+    type(wall_id),intent(in) :: direction
+    type(vector3d_dp),optional,intent(in) :: intersection
+    integer :: i1, i2, i3
+    i1 = cell%i1
+    i2 = cell%i2
+    i3 = cell%i3
+    if(direction%w1 == -1) then
+       i1 = i1 - 1
+    else if(direction%w1 == +1) then
+       i1 = i1 + 1
+    end if
+    if(direction%w2 == -1) then
+       i2 = i2 - 1
+    else if(direction%w2 == +1) then
+       i2 = i2 + 1
+    end if
+    if(direction%w3 == -1) then
+       i3 = i3 - 1
+       if(i3==0) i3 = geo%n3
+    else if(direction%w3 == +1) then
+       i3 = i3 + 1
+       if(i3==geo%n3+1) i3 = 1
+    end if
+    next_cell_wall_id = new_grid_cell(i1, i2, i3, geo)
+  end function next_cell_wall_id
 
   logical function in_correct_cell(p)
+
     implicit none
+
     type(photon),intent(in) :: p
     type(grid_cell) :: icell_actual
     real(dp) :: rad,theta,phi,frac,dphi
+
     icell_actual = find_cell(p)
+
     if(p%on_wall) then
+
        rad = sqrt(p%r.dot.p%r)
        theta = atan2(sqrt(p%r%x*p%r%x+p%r%y*p%r%y),p%r%z)
        phi = atan2(p%r%y,p%r%x)
        if(phi < 0._dp) phi = phi + twopi
-       select case(p%on_wall_id)
-       case(1)
-          frac = sqrt(rad / geo%w1(p%icell%i1)) - 1._dp
-          in_correct_cell = icell_actual%i2 == p%icell%i2 .and. icell_actual%i3 == p%icell%i3
-       case(2)
-          frac = sqrt(rad / geo%w1(p%icell%i1+1)) - 1._dp
-          in_correct_cell = icell_actual%i2 == p%icell%i2 .and. icell_actual%i3 == p%icell%i3
-       case(3)
+
+       in_correct_cell = .true.
+
+       if(p%on_wall_id%w1 == -1) then
+          if(geo%w1(p%icell%i1) .ne. rad) then
+             frac = sqrt(rad / geo%w1(p%icell%i1)) - 1._dp
+             in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          end if
+       else if(p%on_wall_id%w1 == +1) then
+          if(geo%w1(p%icell%i1 + 1) .ne. rad) then
+             frac = sqrt(rad / geo%w1(p%icell%i1+1)) - 1._dp
+             in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          end if
+       else
+          in_correct_cell = in_correct_cell .and. icell_actual%i1 == p%icell%i1
+       end if
+
+       if(p%on_wall_id%w2 == -1) then
           frac = theta / geo%w2(p%icell%i2) - 1._dp
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i3 == p%icell%i3
-       case(4)
-          frac = theta / geo%w2(p%icell%i2+1) - 1._dp
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i3 == p%icell%i3
-       case(5)
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+       else if(p%on_wall_id%w2 == +1) then
+          frac =theta / geo%w2(p%icell%i2 + 1) - 1._dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+       else
+          in_correct_cell = in_correct_cell .and. icell_actual%i2 == p%icell%i2
+       end if
+
+       if(p%on_wall_id%w3 == -1) then
           dphi = phi - geo%w3(p%icell%i3)
           if(dphi > pi) dphi = dphi - twopi
           if(dphi < -pi) dphi = dphi + twopi
           frac = dphi / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i2 == p%icell%i2
-       case(6)
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+       else if(p%on_wall_id%w3 == +1) then
           dphi = phi - geo%w3(p%icell%i3+1)
           if(dphi > pi) dphi = dphi - twopi
           if(dphi < -pi) dphi = dphi + twopi
           frac = dphi / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i2 == p%icell%i2
-       case default
-          call warn("in_correct_cell","invalid on_wall_id")
-          in_correct_cell = .false.
-       end select
-       in_correct_cell = abs(frac) < 1.e-3_dp .and. in_correct_cell
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+       else
+          in_correct_cell = in_correct_cell .and. icell_actual%i3 == p%icell%i3
+       end if
+
     else
+
        in_correct_cell = icell_actual == p%icell
+
     end if
+
   end function in_correct_cell
 
   subroutine random_position_cell(icell,pos)
@@ -409,7 +604,7 @@ contains
 
   end function distance_to_closest_wall
 
-  subroutine find_wall(p,radial,tmin,id_min)
+  subroutine find_wall(p,radial,tnearest,id_min)
 
     implicit none
 
@@ -418,10 +613,10 @@ contains
 
     logical,intent(in) :: radial
 
-    integer,intent(out) :: id_min
+    type(wall_id),intent(out) :: id_min
     ! ID of next wall
 
-    real(dp),intent(out)  :: tmin
+    real(dp),intent(out)  :: tnearest
     ! tmin to nearest wall
 
     real(dp) :: pA,pB,pC,pC_1,pC_2,t1,t2,z1,z2
@@ -456,21 +651,37 @@ contains
     pC=r2_xy + r2_z
 
     ! Inner wall
-    if(radial.and.p%on_wall.and.p%on_wall_id==1) then
+    if(radial.and.p%on_wall.and.p%on_wall_id%w1==-1) then
        p%on_wall    = .false.
-       p%on_wall_id = 0
+       p%on_wall_id%w1 = 0
     else if(.not.radial) then
        pC_1 = pC - geo%wr2(p%icell%i1)
        call quadratic_pascal_reduced(pB,pC_1,t1,t2)
-       call insert_t(t1,1)
-       call insert_t(t2,1)
+       if(p%on_wall_id%w1 == -1) then
+          if(abs(t1) < abs(t2)) then
+             call insert_t(t2, 1, -1, geo%ew1(p%icell%i1))
+          else
+             call insert_t(t1, 1, -1, geo%ew1(p%icell%i1))
+          end if
+       else
+          call insert_t(t1,1, -1,geo%ew1(p%icell%i1))
+          call insert_t(t2,1, -1,geo%ew1(p%icell%i1))
+       end if
     end if
 
     ! Outer wall
     pC_2 = pC - geo%wr2(p%icell%i1+1)
     call quadratic_pascal_reduced(pB,pC_2,t1,t2)
-    call insert_t(t1,2)
-    call insert_t(t2,2)
+    if(p%on_wall_id%w1 == +1) then
+       if(abs(t1) < abs(t2)) then
+          call insert_t(t2, 1, +1, geo%ew1(p%icell%i1 + 1))
+       else
+          call insert_t(t1, 1, +1, geo%ew1(p%icell%i1 + 1))
+       end if
+    else
+       call insert_t(t1,1, +1, geo%ew1(p%icell%i1 + 1))
+       call insert_t(t2,1, +1, geo%ew1(p%icell%i1 + 1))
+    end if
 
     ! -------------------------------------------------
     ! Cone walls
@@ -480,7 +691,7 @@ contains
     if(p%icell%i2 > 1) then
 
        if(p%icell%i2 == geo%midplane.and.p%v%z.ne.0) then
-          call insert_t(-p%r%z/p%v%z,3)
+          if(p%on_wall_id%w2 /= -1) call insert_t(-p%r%z/p%v%z,2, -1, geo%ew2(p%icell%i1))
        else
           pA=v2_xy-v2_z*geo%wtant2(p%icell%i2)
           pB=rv_xy-rv_z*geo%wtant2(p%icell%i2) ; pB = pB + pB
@@ -488,11 +699,21 @@ contains
           if(pA.lt.0.or.pA.gt.0) then
              call quadratic(pA,pB,pC,t1,t2)
              z1=p%r%z+p%v%z*t1
-             if(z1 > 0._dp .eqv. geo%wtant(p%icell%i2) > 0._dp) call insert_t(t1,3)
+             if(z1 > 0._dp .neqv. geo%wtant(p%icell%i2) > 0._dp) t1 = huge(1._dp)
              z2=p%r%z+p%v%z*t2
-             if(z2 > 0._dp .eqv. geo%wtant(p%icell%i2) > 0._dp) call insert_t(t2,3)
+             if(z2 > 0._dp .neqv. geo%wtant(p%icell%i2) > 0._dp) t2 = huge(1._dp)
+             if(p%on_wall_id%w2 == -1) then
+                if(abs(t1) < abs(t2)) then
+                   call insert_t(t2, 2, -1, geo%ew2(p%icell%i2))
+                else
+                   call insert_t(t1, 2, -1, geo%ew2(p%icell%i2))
+                end if
+             else
+                call insert_t(t1,2, -1,geo%ew2(p%icell%i2))
+                call insert_t(t2,2, -1,geo%ew2(p%icell%i2))
+             end if
           else if(pB.lt.0..or.pB.gt.0.) then
-             call insert_t(-pC/pB,3)
+             if(p%on_wall_id%w2 /= -1) call insert_t(-pC/pB,2, -1, geo%ew2(p%icell%i2))
           end if
        end if
 
@@ -502,7 +723,7 @@ contains
     if(p%icell%i2+1 < geo%n2+1) then
 
        if(p%icell%i2+1 == geo%midplane.and.p%v%z.ne.0) then
-          call insert_t(-p%r%z/p%v%z,4)
+          if(p%on_wall_id%w2 /= +1) call insert_t(-p%r%z/p%v%z,2, +1, geo%ew2(p%icell%i2+1))
        else
           pA=v2_xy-v2_z*geo%wtant2(p%icell%i2+1)
           pB=rv_xy-rv_z*geo%wtant2(p%icell%i2+1) ; pB = pB + pB
@@ -510,15 +731,26 @@ contains
           if(pA.lt.0.or.pA.gt.0) then
              call quadratic(pA,pB,pC,t1,t2)
              z1=p%r%z+p%v%z*t1
-             if(z1 > 0._dp .eqv. geo%wtant(p%icell%i2+1) > 0._dp) call insert_t(t1,4)
+             if(z1 > 0._dp .neqv. geo%wtant(p%icell%i2+1) > 0._dp) t1 = huge(1._dp)
              z2=p%r%z+p%v%z*t2
-             if(z2 > 0._dp .eqv. geo%wtant(p%icell%i2+1) > 0._dp) call insert_t(t2,4)
+             if(z2 > 0._dp .neqv. geo%wtant(p%icell%i2+1) > 0._dp) t2 = huge(1._dp)
+             if(p%on_wall_id%w2 == +1) then
+                if(abs(t1) < abs(t2)) then
+                   call insert_t(t2, 2, +1, geo%ew2(p%icell%i2+1))
+                else
+                   call insert_t(t1, 2, +1, geo%ew2(p%icell%i2+1))
+                end if
+             else
+                call insert_t(t1,2, +1,geo%ew2(p%icell%i2+1))
+                call insert_t(t2,2, +1,geo%ew2(p%icell%i2+1))
+             end if
           else if(pB.lt.0..or.pB.gt.0.) then
-             call insert_t(-pC/pB,4)
+             if(p%on_wall_id%w2 /= +1) call insert_t(-pC/pB,2, +1, geo%ew2(p%icell%i2+1))
           end if
        end if
 
     end if
+
 
     ! -------------------------------------------------
     ! phi walls
@@ -526,84 +758,89 @@ contains
 
     if(geo%n_dim == 3) then
 
-       ! Find intersection with lower phi wall
-       t1 = - ( geo%wtanp(p%icell%i3) * p%r%x - p%r%y ) / ( geo%wtanp(p%icell%i3) * p%v%x - p%v%y )
+       if((p%r%x * p%r%x + p%r%y * p%r%y) > 0._dp) then
 
-       ! Find position of intersection in x,y
-       x_i = p%r%x + p%v%x * t1
-       y_i = p%r%y + p%v%y * t1
-       phi_i = atan2(y_i, x_i)
-       dphi = abs(phi_i - geo%w3(p%icell%i3))
-       if(dphi > pi) dphi = abs(dphi - twopi)
-       if(dphi < 0.5 * pi) call insert_t(t1, 5)
+          if(p%on_wall_id%w3 /= -1) then
 
-       ! Find intersection with upper phi wall
-       t2 = - ( geo%wtanp(p%icell%i3+1) * p%r%x - p%r%y ) / ( geo%wtanp(p%icell%i3+1) * p%v%x - p%v%y )
+             ! Find intersection with lower phi wall
+             t1 = - ( geo%wtanp(p%icell%i3) * p%r%x - p%r%y ) / ( geo%wtanp(p%icell%i3) * p%v%x - p%v%y )
 
-       ! Find position of intersection in x,y
-       x_i = p%r%x + p%v%x * t2
-       y_i = p%r%y + p%v%y * t2
-       phi_i = atan2(y_i, x_i)
-       dphi = abs(phi_i - geo%w3(p%icell%i3+1))
-       if(dphi > pi) dphi = abs(dphi - twopi)
-       if(dphi < 0.5 * pi) call insert_t(t2, 6)
+             ! Find position of intersection in x,y
+             x_i = p%r%x + p%v%x * t1
+             y_i = p%r%y + p%v%y * t1
+             phi_i = atan2(y_i, x_i)
+             dphi = abs(phi_i - geo%w3(p%icell%i3))
+             if(dphi > pi) dphi = abs(dphi - twopi)
+             if(dphi < 0.5 * pi) call insert_t(t1, 3, -1, 0._dp)
 
+          end if
+
+          if(p%on_wall_id%w3 /= +1) then
+
+             ! Find intersection with upper phi wall
+             t2 = - ( geo%wtanp(p%icell%i3+1) * p%r%x - p%r%y ) / ( geo%wtanp(p%icell%i3+1) * p%v%x - p%v%y )
+
+             ! Find position of intersection in x,y
+             x_i = p%r%x + p%v%x * t2
+             y_i = p%r%y + p%v%y * t2
+             phi_i = atan2(y_i, x_i)
+             dphi = abs(phi_i - geo%w3(p%icell%i3+1))
+             if(dphi > pi) dphi = abs(dphi - twopi)
+             if(dphi < 0.5 * pi) call insert_t(t2, 3, +1, 0._dp)
+
+          end if
+       end if
     end if
 
-    call find_next_wall(p%on_wall,tmin,id_min)
+    call find_next_wall(tnearest,id_min)
 
   end subroutine find_wall
 
+
   subroutine reset_t()
     implicit none
-    tn1 = -huge(tn1)
-    tp1 = +huge(tp1)
-    tp2 = +huge(tp2)
-    in1 = 0
-    ip1 = 0
-    ip2 = 0
+    tmin = +huge(tmin)
+    imin = no_wall
   end subroutine reset_t
 
-  subroutine insert_t(t,i)
+  subroutine insert_t(t, iw, i, e)
     implicit none
-    real(dp),intent(in)    :: t
-    integer,intent(in)    :: i
-    if(debug) print *,'[debug] inserting t,i=',t,i
-    if(t < 0.) then
-       if(t > tn1) then
-          tn1 = t
-          in1 = i
-       end if
-    else
-       if(t < tp1) then
-          tp2 = tp1
-          ip2 = ip1
-          tp1 = t
-          ip1 = i
-       else if(t < tp2) then
-          tp2 = t
-          ip2 = i
+    real(dp),intent(in)    :: t, e
+    integer,intent(in)    :: i, iw
+    real(dp) :: emax
+    if(debug) print *,'[debug] inserting t,i=',t, e, iw, i
+    if(t > 0._dp) then
+       emax = max(e, emin)
+       if(t < tmin - emax) then
+          tmin = t
+          imin = no_wall
+          emin = emax
+          if(iw == 1) then
+             imin%w1 = i
+          else if(iw == 2) then
+             imin%w2 = i
+          else
+             imin%w3 = i
+          end if
+       else if(t < tmin + emax) then
+          emin = emax
+          if(iw == 1) then
+             imin%w1 = i
+          else if(iw == 2) then
+             imin%w2 = i
+          else
+             imin%w3 = i
+          end if
        end if
     end if
   end subroutine insert_t
 
-  subroutine find_next_wall(on_wall,t,i)
+  subroutine find_next_wall(t,i)
     implicit none
-    logical(1),intent(in)  :: on_wall
     real(dp),intent(out)    :: t
-    integer,intent(out)    :: i
-    if(on_wall) then
-       if(abs(tn1) < abs(tp1)) then
-          t = tp1
-          i = ip1
-       else
-          t = tp2
-          i = ip2
-       end if
-    else
-       t = tp1
-       i = ip1
-    end if
+    type(wall_id),intent(out)    :: i
+    t = tmin
+    i = imin
     if(debug) print *,'[debug] selecting t,i=',t,i
   end subroutine find_next_wall
 
