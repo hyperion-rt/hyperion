@@ -797,26 +797,53 @@ contains
     ! Cone walls
     ! -------------------------------------------------
 
-    ! Upper wall
+    ! Check for intersections with lower wall. We should not check for
+    ! intersections with the theta=0 wall.
     if(p%icell%i2 > 1) then
 
        ! Check if photon is on wall, and if so, whether it is moving along
-       ! wall. If so, don't check for intersections and just set iext
+       ! wall. If so, don't check for intersections and just set iext, which
+       ! is used to specify walls that the photon is on even without an
+       ! intersection.
        if(p%on_wall_id%w2 == -1 .and. equal_nulp(geo%wtant(p%icell%i2), sqrt(v2_xy) / p%v%z, 10)) then
+
           iext%w2 = -1
+
        else
+
+          ! If the wall is the midplane wall, we can just treat it as a
+          ! plane, so don't need to do any fancy calculations.
           if(p%icell%i2 == geo%midplane.and.p%v%z.ne.0) then
+
+             ! If the photon is on the wall, then we don't add any intersections
              if(p%on_wall_id%w2 /= -1) call insert_t(-p%r%z/p%v%z,2, -1, geo%ew2(p%icell%i1))
+
           else
+
+             ! Compute the full intersections. Find the coefficients of the quadratic equation
              pA=v2_xy-v2_z*geo%wtant2(p%icell%i2)
              pB=rv_xy-rv_z*geo%wtant2(p%icell%i2) ; pB = pB + pB
              pC=r2_xy-r2_z*geo%wtant2(p%icell%i2)
-             if(abs(pA) .gt. 0._dp) then
+
+             if(abs(pA) .gt. 0._dp) then  ! Solve ax^2 + bx + c = 0
+
+                ! Compute the full quadratic solutions
                 call quadratic(pA,pB,pC,t1,t2)
-                z1=p%r%z+p%v%z*t1
+
+                ! Check if the solutions are on the right side of the
+                ! mid-plane. The equation of the cone (z^2 = x^2 + y^2) does
+                ! not differentiate between a positive and a negative value,
+                ! so we have to check against the angle that was originally
+                ! specified for the wall.
+                z1 = p%r%z + p%v%z * t1
                 if(z1 > 0._dp .neqv. geo%wtant(p%icell%i2) > 0._dp) t1 = huge(1._dp)
-                z2=p%r%z+p%v%z*t2
+                z2 = p%r%z + p%v%z * t2
                 if(z2 > 0._dp .neqv. geo%wtant(p%icell%i2) > 0._dp) t2 = huge(1._dp)
+
+                ! If we are on the wall, then we should discard the
+                ! intersection with the smallest absolute value as this will
+                ! be the wall we are on. Otherwise, we should include both
+                ! values.
                 if(p%on_wall_id%w2 == -1) then
                    if(abs(t1) < abs(t2)) then
                       call insert_t(t2, 2, -1, geo%ew2(p%icell%i2))
@@ -824,37 +851,70 @@ contains
                       call insert_t(t1, 2, -1, geo%ew2(p%icell%i2))
                    end if
                 else
-                   call insert_t(t1,2, -1,geo%ew2(p%icell%i2))
-                   call insert_t(t2,2, -1,geo%ew2(p%icell%i2))
+                   call insert_t(t1, 2, -1,geo%ew2(p%icell%i2))
+                   call insert_t(t2, 2, -1,geo%ew2(p%icell%i2))
                 end if
-             else if(abs(pB) .gt. 0._dp) then
-                if(p%on_wall_id%w2 /= -1) call insert_t(-pC/pB,2, -1, geo%ew2(p%icell%i2))
+
+             else if(abs(pB) .gt. 0._dp) then  ! Solve bx + c = 0
+
+                ! If the photon is on the wall, then we don't add any intersections
+                if(p%on_wall_id%w2 /= -1) call insert_t(-pC / pB, 2, -1, geo%ew2(p%icell%i2))
+
              end if
+
           end if
+
        end if
 
     end if
 
-    ! Lower wall
-    if(p%icell%i2+1 < geo%n2+1) then
+    ! Check for intersections with upper wall. We should not check for
+    ! intersections with the theta=pi wall.
+    if(p%icell%i2 < geo%n2) then  ! originally i + 1 < n + 1, but simplify for performance
 
        ! Check if photon is on wall, and if so, whether it is moving along
-       ! wall. If so, don't check for intersections and just set iext
+       ! wall. If so, don't check for intersections and just set iext, which
+       ! is used to specify walls that the photon is on even without an
+       ! intersection.
        if(p%on_wall_id%w2 == +1 .and. equal_nulp(geo%wtant(p%icell%i2+1), sqrt(v2_xy) / p%v%z, 10)) then
+
           iext%w2 = +1
+
        else
+
+          ! If the wall is the midplane wall, we can just treat it as a
+          ! plane, so don't need to do any fancy calculations.
           if(p%icell%i2+1 == geo%midplane.and.p%v%z.ne.0) then
+
+             ! If the photon is on the wall, then we don't add any intersections
              if(p%on_wall_id%w2 /= +1) call insert_t(-p%r%z/p%v%z,2, +1, geo%ew2(p%icell%i2+1))
+
           else
+
+             ! Compute the full intersections. Find the coefficients of the quadratic equation
              pA=v2_xy-v2_z*geo%wtant2(p%icell%i2+1)
              pB=rv_xy-rv_z*geo%wtant2(p%icell%i2+1) ; pB = pB + pB
              pC=r2_xy-r2_z*geo%wtant2(p%icell%i2+1)
-             if(abs(pA) .gt. 1.e-10) then
+
+             if(abs(pA) .gt. 0._dp) then  ! Solve ax^2 + bx + c = 0
+
+                ! Compute the full quadratic solutions
                 call quadratic(pA,pB,pC,t1,t2)
+
+                ! Check if the solutions are on the right side of the
+                ! mid-plane. The equation of the cone (z^2 = x^2 + y^2) does
+                ! not differentiate between a positive and a negative value,
+                ! so we have to check against the angle that was originally
+                ! specified for the wall.
                 z1=p%r%z+p%v%z*t1
                 if(z1 > 0._dp .neqv. geo%wtant(p%icell%i2+1) > 0._dp) t1 = huge(1._dp)
                 z2=p%r%z+p%v%z*t2
                 if(z2 > 0._dp .neqv. geo%wtant(p%icell%i2+1) > 0._dp) t2 = huge(1._dp)
+
+                ! If we are on the wall, then we should discard the
+                ! intersection with the smallest absolute value as this will
+                ! be the wall we are on. Otherwise, we should include both
+                ! values.
                 if(p%on_wall_id%w2 == +1) then
                    if(abs(t1) < abs(t2)) then
                       call insert_t(t2, 2, +1, geo%ew2(p%icell%i2+1))
@@ -865,11 +925,18 @@ contains
                    call insert_t(t1,2, +1,geo%ew2(p%icell%i2+1))
                    call insert_t(t2,2, +1,geo%ew2(p%icell%i2+1))
                 end if
-             else if(abs(pB) .gt. 1.e-10) then
+
+             else if(abs(pB) .gt. 0._dp) then  ! Solve bx + c = 0
+
+                ! If the photon is on the wall, then we don't add any intersections
                 if(p%on_wall_id%w2 /= +1) call insert_t(-pC/pB,2, +1, geo%ew2(p%icell%i2+1))
+
              end if
+
           end if
+
        end if
+
     end if
 
 
@@ -877,10 +944,19 @@ contains
     ! phi walls
     ! -------------------------------------------------
 
+    ! For performance reasons, we only check for intersections with phi
+    ! walls if there are multiple cells in phi
     if(geo%n_dim == 3) then
 
-       if((p%r%x * p%r%x + p%r%y * p%r%y) > 0._dp) then
+       ! Only check for intersections if the current position is not along
+       ! the (x, y) = (0, 0) axis. If the photon is along this axis, then
+       ! either it is and will remain on a wall until the next iteraction, or
+       ! it is not and will not intersect a phi wall.
+       if(r2_xy > 0._dp) then
 
+          ! Only check for intersections if we are not on the wall. We can
+          ! do this for the phi walls because they are planes, so if we are on
+          ! them, we can't intersect them.
           if(p%on_wall_id%w3 /= -1) then
 
              ! Find intersection with lower phi wall
@@ -896,6 +972,9 @@ contains
 
           end if
 
+          ! Only check for intersections if we are not on the wall. We can
+          ! do this for the phi walls because they are planes, so if we are on
+          ! them, we can't intersect them.
           if(p%on_wall_id%w3 /= +1) then
 
              ! Find intersection with upper phi wall
