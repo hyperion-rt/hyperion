@@ -127,8 +127,6 @@ contains
     allocate(geo%dz(geo%n2))
     allocate(geo%dphi(geo%n3))
 
-    allocate(geo%ew1(geo%n1 + 1))
-
     where(geo%w1(:geo%n1) == 0.)
        geo%w = geo%w1(2:) / 2._dp
     elsewhere
@@ -139,8 +137,6 @@ contains
     geo%dw2  = geo%w1(2:)**2 - geo%w1(:geo%n1)**2
     geo%dz   = geo%w2(2:)    - geo%w2(:geo%n2)
     geo%dphi = geo%w3(2:)    - geo%w3(:geo%n3)
-
-    geo%ew1  = 3 * spacing(geo%w1)
 
     allocate(geo%volume(geo%n_cells))
 
@@ -169,6 +165,16 @@ contains
        geo%n_dim = 3
     end if
 
+    allocate(geo%ew1(geo%n1 + 1))
+
+    allocate(geo%ew1(geo%n1 + 1))
+    allocate(geo%ew2(geo%n2 + 1))
+    allocate(geo%ew3(geo%n3 + 1))
+
+    geo%ew1 = 3 * spacing(geo%w1)
+    geo%ew2 = spacing(geo%w2)
+    geo%ew3 = spacing(geo%w3)
+
   end subroutine setup_grid_geometry
 
   subroutine grid_geometry_debug(debug_flag)
@@ -178,15 +184,20 @@ contains
   end subroutine grid_geometry_debug
 
   type(grid_cell) function find_cell(p) result(icell)
+
     implicit none
+
     type(photon),intent(in) :: p
-    real(dp) :: r_squared,phi
+    real(dp) :: w_sq,phi
     integer :: i1, i2, i3
+
     if(debug) write(*,'(" [debug] find_cell")')
-    r_squared = p%r%x*p%r%x+p%r%y*p%r%y
-    i1 = locate(geo%wr2,r_squared)
+
+    i1 = locate(geo%wr2,w_sq)
     i2 = locate(geo%w2,p%r%z)
-    if(r_squared == 0._dp) then
+
+    w_sq = p%r%x*p%r%x+p%r%y*p%r%y
+    if(w_sq == 0._dp) then
        phi = atan2(p%v%y,p%v%x)
        if(phi < 0._dp) phi = phi + twopi
     else
@@ -194,22 +205,27 @@ contains
        if(phi < 0._dp) phi = phi + twopi
     end if
     i3 = locate(geo%w3,phi)
+
     if(i1<1.or.i1>geo%n1) then
        call warn("find_cell","photon not in cell (in r direction)")
        icell = invalid_cell
        return
     end if
+
     if(i2<1.or.i2>geo%n2) then
        call warn("find_cell","photon not in cell (in z direction)")
        icell = invalid_cell
        return
     end if
+
     if(i3<1.or.i3>geo%n3) then
        call warn("find_cell","photon not in cell (in phi direction)")
        icell = invalid_cell
        return
     end if
+
     icell = new_grid_cell(i1, i2, i3, geo)
+
   end function find_cell
 
   subroutine adjust_wall(p)
@@ -223,7 +239,7 @@ contains
 
     type(photon), intent(inout) :: p
 
-    real(dp) :: r2,phi, dphi,phiv
+    real(dp) :: w_sq,phi, dphi,phiv
     logical :: radial
     integer,parameter :: eps = 3
 
@@ -231,23 +247,23 @@ contains
     p%on_wall = .false.
     p%on_wall_id = no_wall
 
-    r2 = p%r%x*p%r%x+p%r%y*p%r%y
+    w_sq = p%r%x*p%r%x+p%r%y*p%r%y
     phi = atan2(p%r%y,p%r%x)
     if(phi < 0._dp) phi = phi + twopi
 
     ! Find whether the photon is on a radial wall
     if((p%r%x * p%v%x + p%r%y * p%v%y) >= 0._dp) then
-       if(equal_nulp(r2, geo%wr2(p%icell%i1), eps)) then  ! TODO: shouldn't use equal, not precise enough
+       if(equal_nulp(w_sq, geo%wr2(p%icell%i1), eps)) then
           p%on_wall_id%w1 = -1
-       else if(equal_nulp(r2, geo%wr2(p%icell%i1 + 1), eps)) then
+       else if(equal_nulp(w_sq, geo%wr2(p%icell%i1 + 1), eps)) then
           p%on_wall_id%w1 = -1
           p%icell%i1 = p%icell%i1 + 1
        end if
     else
-       if(equal_nulp(r2, geo%wr2(p%icell%i1), eps)) then
+       if(equal_nulp(w_sq, geo%wr2(p%icell%i1), eps)) then
           p%on_wall_id%w1 = +1
           p%icell%i1 = p%icell%i1 - 1
-       else if(equal_nulp(r2, geo%wr2(p%icell%i1 + 1), eps)) then
+       else if(equal_nulp(w_sq, geo%wr2(p%icell%i1 + 1), eps)) then
           p%on_wall_id%w1 = +1
        end if
     end if
