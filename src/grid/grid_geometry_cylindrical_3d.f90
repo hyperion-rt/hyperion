@@ -127,6 +127,8 @@ contains
     allocate(geo%dz(geo%n2))
     allocate(geo%dphi(geo%n3))
 
+    allocate(geo%ew1(geo%n1 + 1))
+
     where(geo%w1(:geo%n1) == 0.)
        geo%w = geo%w1(2:) / 2._dp
     elsewhere
@@ -137,6 +139,8 @@ contains
     geo%dw2  = geo%w1(2:)**2 - geo%w1(:geo%n1)**2
     geo%dz   = geo%w2(2:)    - geo%w2(:geo%n2)
     geo%dphi = geo%w3(2:)    - geo%w3(:geo%n3)
+
+    geo%ew1  = 3 * spacing(geo%w1)
 
     allocate(geo%volume(geo%n_cells))
 
@@ -551,10 +555,6 @@ contains
 
     real(dp) :: x_i,y_i,phi_i, dphi
 
-    real(dp) :: e
-
-    e = spacing(sqrt(p%r .dot. p%r)) * 100._dp  ! TODO: reduce this value
-
     ! Find the intersections with all walls:
 
     call reset_t()
@@ -581,13 +581,13 @@ contains
     call quadratic_pascal_reduced(pB,pC_1,t1,t2)
     if(p%on_wall_id%w1 == -1) then
        if(abs(t1) < abs(t2)) then
-          call insert_t(t2, 1, -1, 3 * spacing(geo%w1(p%icell%i1)))
+          call insert_t(t2, 1, -1, geo%ew1(p%icell%i1))
        else
-          call insert_t(t1, 1, -1, 3 * spacing(geo%w1(p%icell%i1)))
+          call insert_t(t1, 1, -1, geo%ew1(p%icell%i1))
        end if
     else
-       call insert_t(t1,1, -1,3 * spacing(geo%w1(p%icell%i1)))
-       call insert_t(t2,1, -1,3 * spacing(geo%w1(p%icell%i1)))
+       call insert_t(t1,1, -1,geo%ew1(p%icell%i1))
+       call insert_t(t2,1, -1,geo%ew1(p%icell%i1))
     end if
 
     ! Outer wall
@@ -595,13 +595,13 @@ contains
     call quadratic_pascal_reduced(pB,pC_2,t1,t2)
     if(p%on_wall_id%w1 == +1) then
        if(abs(t1) < abs(t2)) then
-          call insert_t(t2, 1, +1, 3 * spacing(geo%w1(p%icell%i1 + 1)))
+          call insert_t(t2, 1, +1, geo%ew1(p%icell%i1 + 1))
        else
-          call insert_t(t1, 1, +1, 3 * spacing(geo%w1(p%icell%i1+1)))
+          call insert_t(t1, 1, +1, geo%ew1(p%icell%i1 + 1))
        end if
     else
-       call insert_t(t1,1, +1, 3 * spacing(geo%w1(p%icell%i1+1)))
-       call insert_t(t2,1, +1, 3 * spacing(geo%w1(p%icell%i1+1)))
+       call insert_t(t1,1, +1, geo%ew1(p%icell%i1 + 1))
+       call insert_t(t2,1, +1, geo%ew1(p%icell%i1 + 1))
     end if
 
     ! -------------------------------------------------
