@@ -166,8 +166,6 @@ contains
     end if
 
     allocate(geo%ew1(geo%n1 + 1))
-
-    allocate(geo%ew1(geo%n1 + 1))
     allocate(geo%ew2(geo%n2 + 1))
     allocate(geo%ew3(geo%n3 + 1))
 
