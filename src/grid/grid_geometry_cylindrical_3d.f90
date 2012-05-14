@@ -191,10 +191,10 @@ contains
 
     if(debug) write(*,'(" [debug] find_cell")')
 
+    w_sq = p%r%x*p%r%x+p%r%y*p%r%y
     i1 = locate(geo%wr2,w_sq)
     i2 = locate(geo%w2,p%r%z)
 
-    w_sq = p%r%x*p%r%x+p%r%y*p%r%y
     if(w_sq == 0._dp) then
        phi = atan2(p%v%y,p%v%x)
        if(phi < 0._dp) phi = phi + twopi
