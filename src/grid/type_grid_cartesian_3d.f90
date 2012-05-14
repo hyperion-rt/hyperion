@@ -14,6 +14,7 @@ module type_grid
      integer :: n_cells, n_dim, n1, n2, n3
      real(dp), allocatable :: volume(:)
      real(dp), allocatable :: w1(:), w2(:), w3(:)
+     real(dp), allocatable :: ew1(:), ew2(:), ew3(:)
      real(dp), allocatable :: dx(:), dy(:), dz(:)
      character(len=10) :: type
 
