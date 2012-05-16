@@ -190,6 +190,11 @@ class OctreeGrid(FreezableClass):
         quantities: 'all' or list
             Which physical quantities to write out. Use 'all' to write out all
             quantities or a list of strings to write only specific quantities.
+        copy: bool
+            Whether to copy external links, or leave them as links.
+        absolute_paths: bool
+            If copy is False, then this indicates whether to use absolute or
+            relative paths for links.
         compression: bool
             Whether to compress the arrays in the HDF5 file
         wall_dtype: type
@@ -238,6 +243,42 @@ class OctreeGrid(FreezableClass):
                                                        compression=compression,
                                                        dtype=physics_dtype)
                     dset.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
+
+    def write_single_array(self, group, name, array, copy=True, absolute_paths=False, compression=True, physics_dtype=float):
+        '''
+        Write out a single quantity, checking for consistency with geometry
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to write the grid to
+        name: str
+            The name of the array in the group
+        array: np.ndarray
+            The array to write out
+        copy: bool
+            Whether to copy external links, or leave them as links.
+        absolute_paths: bool
+            If copy is False, then this indicates whether to use absolute or
+            relative paths for links.
+        compression: bool
+            Whether to compress the arrays in the HDF5 file
+        wall_dtype: type
+            The datatype to use to write the wall positions
+        physics_dtype: type
+            The datatype to use to write the physical quantities
+        '''
+
+        # Check consistency of array dimensions with grid
+        self._check_array_dimensions(array)
+
+        if isinstance(array, h5py.ExternalLink):
+            link_or_copy(group, name, array, copy, absolute_paths=absolute_paths)
+        else:
+            dset = group.create_dataset(name, data=array,
+                                        compression=compression,
+                                        dtype=physics_dtype)
+            dset.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
 
     def get_geometry_id(self):
         geo_hash = hashlib.md5()

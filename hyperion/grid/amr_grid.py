@@ -249,6 +249,11 @@ class AMRGrid(FreezableClass):
         quantities: 'all' or list
             Which physical quantities to write out. Use 'all' to write out all
             quantities or a list of strings to write only specific quantities.
+        copy: bool
+            Whether to copy external links, or leave them as links.
+        absolute_paths: bool
+            If copy is False, then this indicates whether to use absolute or
+            relative paths for links.
         compression: bool
             Whether to compress the arrays in the HDF5 file
         wall_dtype: type
@@ -318,6 +323,63 @@ class AMRGrid(FreezableClass):
                                                   dtype=physics_dtype)
 
         g_geometry.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
+
+    def write_single_array(self, group, name, amr_grid, copy=True, absolute_paths=False, compression=True, physics_dtype=float):
+        '''
+        Write out a single quantity, checking for consistency with geometry
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to write the grid to
+        name: str
+            The name of the array in the group
+        amr_grid: AMRGridView
+            The array to write out
+        copy: bool
+            Whether to copy external links, or leave them as links.
+        absolute_paths: bool
+            If copy is False, then this indicates whether to use absolute or
+            relative paths for links.
+        compression: bool
+            Whether to compress the arrays in the HDF5 file
+        wall_dtype: type
+            The datatype to use to write the wall positions
+        physics_dtype: type
+            The datatype to use to write the physical quantities
+        '''
+
+        if not isinstance(amr_grid, AMRGridView):
+            raise ValueError("amr_grid should be an AMRGridView instance")
+
+        # Loop over levels
+        for ilevel, level in enumerate(self.levels):
+
+            # Read in level
+            level_path = 'level_%05i' % (ilevel + 1)
+            if level_path in group:
+                q_level = group[level_path]
+            else:
+                q_level = group.create_group(level_path)
+
+            # Loop over grids
+            for igrid, grid in enumerate(level.grids):
+
+                # Read in grid
+                grid_path = 'grid_%05i' % (igrid + 1)
+                if grid_path in q_level:
+                    q_grid = q_level[grid_path]
+                else:
+                    q_grid = q_level.create_group(grid_path)
+
+                # Write out physical quantities
+                array = amr_grid.levels[ilevel].grids[igrid].quantities[amr_grid.viewed_quantity]
+                if isinstance(array, h5py.ExternalLink):
+                    link_or_copy(q_grid, name, array, copy, absolute_paths=absolute_paths)
+                else:
+                    q_grid.create_dataset(name, data=array,
+                                          compression=compression,
+                                          dtype=physics_dtype)
 
     def get_geometry_id(self):
         geo_hash = hashlib.md5()
