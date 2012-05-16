@@ -7,10 +7,10 @@ from .interpolate import interp1d_fast, \
                          interp1d_fast_linlog, \
                          interp1d_fast_loglog
 
-from .integrate_core import integrate, \
-                            integrate_loglin, \
-                            integrate_linlog, \
-                            integrate_loglog
+from .integrate_core import _integrate, \
+                            _integrate_loglin, \
+                            _integrate_linlog, \
+                            _integrate_loglog
 
 def integrate_subset(x, y, xmin, xmax):
     '''
@@ -184,6 +184,34 @@ def integrate_loglog_subset(x, y, xmin, xmax):
 
     # Call function to integrate the whole subset
     return integrate_loglog(x, y)
+
+
+def integrate(x, y):
+    if x.dtype == float and y.dtype == float:
+        return _integrate(x, y)
+    else:
+        return _integrate(x.astype(float), y.astype(float))
+
+
+def integrate_loglin(x, y):
+    if x.dtype == float and y.dtype == float:
+        return _integrate_loglin(x, y)
+    else:
+        return _integrate_loglin(x.astype(float), y.astype(float))
+
+
+def integrate_linlog(x, y):
+    if x.dtype == float and y.dtype == float:
+        return _integrate_linlog(x, y)
+    else:
+        return _integrate_linlog(x.astype(float), y.astype(float))
+
+
+def integrate_loglog(x, y):
+    if x.dtype == float and y.dtype == float:
+        return _integrate_loglog(x, y)
+    else:
+        return _integrate_loglog(x.astype(float), y.astype(float))
 
 
 def integrate_powerlaw(xmin, xmax, power):

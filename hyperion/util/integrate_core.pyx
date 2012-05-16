@@ -16,7 +16,7 @@ LN10 = log(10.)
 
 
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
-def integrate(np.ndarray[DTYPE_t, ndim=1] x,
+def _integrate(np.ndarray[DTYPE_t, ndim=1] x,
               np.ndarray[DTYPE_t, ndim=1] y):
 
     assert x.dtype == DTYPE and y.dtype == DTYPE
@@ -38,7 +38,7 @@ def integrate(np.ndarray[DTYPE_t, ndim=1] x,
 
 
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
-def integrate_loglin(np.ndarray[DTYPE_t, ndim=1] x,
+def _integrate_loglin(np.ndarray[DTYPE_t, ndim=1] x,
                      np.ndarray[DTYPE_t, ndim=1] y):
 
     assert x.dtype == DTYPE and y.dtype == DTYPE
@@ -62,7 +62,7 @@ def integrate_loglin(np.ndarray[DTYPE_t, ndim=1] x,
 
 
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
-def integrate_linlog(np.ndarray[DTYPE_t, ndim=1] x,
+def _integrate_linlog(np.ndarray[DTYPE_t, ndim=1] x,
                      np.ndarray[DTYPE_t, ndim=1] y):
 
     assert x.dtype == DTYPE and y.dtype == DTYPE
@@ -87,7 +87,7 @@ def integrate_linlog(np.ndarray[DTYPE_t, ndim=1] x,
 
 
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
-def integrate_loglog(np.ndarray[DTYPE_t, ndim=1] x,
+def _integrate_loglog(np.ndarray[DTYPE_t, ndim=1] x,
                      np.ndarray[DTYPE_t, ndim=1] y):
 
     assert x.dtype == DTYPE and y.dtype == DTYPE

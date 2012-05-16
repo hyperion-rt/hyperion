@@ -19,6 +19,8 @@ cases = [(1.0, 5.0), (1.0, 2.0), (1.0, 3.0), (1.5, 2.5), (1.2, 3.4),
          (3.3, 5.0), (4.4, 5.0), (1.0, 1.0), (5.0, 5.0), (2.0, 2.0)]
 
 
+DTYPES = ['<f4', '>f4', '<f8', '>f8', '<i4', '>i4', '<i8', '>i8']
+
 @pytest.mark.parametrize(('xmin', 'xmax'), cases)
 def test_linear_subset(xmin, xmax):
     x = np.array([1., 2., 3., 4., 5.])
@@ -61,6 +63,34 @@ def test_linlog_subset_special(xmin, xmax):
     x = np.array([1., 2., 3., 4., 5.])
     y = np.repeat(1., x.shape)
     assert almost_equal(integrate_linlog_subset(x, y, xmin, xmax), xmax - xmin)
+
+
+@pytest.mark.parametrize(('dtype_x', 'dtype_y'), zip(DTYPES, DTYPES))
+def test_linear_types(dtype_x, dtype_y):
+    x = np.array([1, 2], dtype=dtype_x)
+    y = np.array([1, 1], dtype=dtype_y)
+    assert integrate(x, y) == 1.
+
+
+@pytest.mark.parametrize(('dtype_x', 'dtype_y'), zip(DTYPES, DTYPES))
+def test_loglog_types(dtype_x, dtype_y):
+    x = np.array([1, 2], dtype=dtype_x)
+    y = np.array([1, 1], dtype=dtype_y)
+    assert integrate_loglog(x, y) == 1.
+
+
+@pytest.mark.parametrize(('dtype_x', 'dtype_y'), zip(DTYPES, DTYPES))
+def test_loglin_types(dtype_x, dtype_y):
+    x = np.array([1, 2], dtype=dtype_x)
+    y = np.array([1, 1], dtype=dtype_y)
+    assert integrate_loglin(x, y) == 1.
+
+
+@pytest.mark.parametrize(('dtype_x', 'dtype_y'), zip(DTYPES, DTYPES))
+def test_linlog_types(dtype_x, dtype_y):
+    x = np.array([1, 2], dtype=dtype_x)
+    y = np.array([1, 1], dtype=dtype_y)
+    assert integrate_linlog(x, y) == 1.
 
 
 def test_linear_not_monotonic():
