@@ -8,8 +8,12 @@ import atpy
 import pytest
 import numpy as np
 
-from .. import Source, PointSource, SpotSource, SphericalSource
-
+from .. import Source, PointSource, SpotSource, SphericalSource, ExternalSphericalSource, MapSource
+from ...grid import CartesianGrid, \
+                    CylindricalPolarGrid, \
+                    SphericalPolarGrid, \
+                    AMRGrid, \
+                    OctreeGrid
 
 def random_id(length=32):
     return ''.join(random.sample(string.ascii_letters + string.digits, length))
@@ -526,66 +530,66 @@ def test_spherical_limb_invalid5():
 # ExternalSpherical
 
 def test_external_spherical_position_none():
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     s.position = None
 
 
 def test_external_spherical_position_tuple():
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     s.position = (0., 1., 2.)
 
 
 def test_external_spherical_position_tuple_invalid():
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     with pytest.raises(ValueError) as exc:
         s.position = (0., 1., 2., 4.)  # too many elements
     assert exc.value.args[0] == 'position should be a sequence of 3 values'
 
 
 def test_external_spherical_position_list():
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     s.position = [1., 2., 3.]
 
 
 def test_external_spherical_position_list_invalid():
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     with pytest.raises(ValueError) as exc:
         s.position = [1., 2.]  # too few elements
     assert exc.value.args[0] == 'position should be a sequence of 3 values'
 
 
 def test_external_spherical_position_numpy():
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     s.position = np.array([2., 3., 4.])
 
 
 def test_external_spherical_position_numpy_invalid1():
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     with pytest.raises(ValueError) as exc:
         s.position = np.array([2.])  # too few elements
     assert exc.value.args[0] == 'position should be a sequence of 3 values'
 
 
 def test_external_spherical_position_numpy_invalid2():
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     with pytest.raises(ValueError) as exc:
         s.position = np.array([[1., 2., 3.]])  # wrong dimensionality
     assert exc.value.args[0] == 'position should be a 1-D sequence'
 
 
 def test_external_spherical_radius_none():
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     s.radius = None
 
 
 def test_external_spherical_radius_float():
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     s.radius = 1.e10
 
 
 def test_external_spherical_radius_invalid1():
     v = virtual_file()
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     s.position = (0., 0., 0.)
     # radius is not defined
     s.limb = True
@@ -597,21 +601,138 @@ def test_external_spherical_radius_invalid1():
 
 
 def test_external_spherical_radius_invalid2():
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     with pytest.raises(ValueError) as exc:
         s.radius = np.array([1, 2, 3])  # radius should be a scalar
     assert exc.value.args[0] == 'radius should be a scalar value'
 
 
 def test_external_spherical_radius_invalid3():
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     with pytest.raises(ValueError) as exc:
         s.radius = 'invalid'  # radius should be a number
     assert exc.value.args[0] == 'radius should be a numerical value'
 
 
 def test_external_spherical_radius_invalid4():
-    s = SphericalSource()
+    s = ExternalSphericalSource()
     with pytest.raises(ValueError) as exc:
         s.radius = -1.  # radius should be positive
     assert exc.value.args[0] == 'radius should be positive'
+
+
+# MapSource
+
+def test_map_map_none():
+    s = MapSource()
+    s.map = None
+
+
+def test_map_map_array():
+    s = MapSource()
+    s.map = np.ones((2, 3, 4))
+
+
+def test_map_map_invalid1():
+    s = MapSource()
+    with pytest.raises(ValueError) as exc:
+        s.map = (0., 1., 2., 4.)  # not an array
+    assert exc.value.args[0] == 'map should be a Numpy array or an AMRGridView instance'
+
+
+def test_map_map_invalid2():
+    s = MapSource()
+    with pytest.raises(ValueError) as exc:
+        s.map = [1., 2., 3., 4., 5.]  # not an array
+    assert exc.value.args[0] == 'map should be a Numpy array or an AMRGridView instance'
+
+
+def test_map_map_invalid3():
+    s = MapSource()
+    with pytest.raises(ValueError) as exc:
+        s.map = 'a string'  # not an array
+    assert exc.value.args[0] == 'map should be a Numpy array or an AMRGridView instance'
+
+
+def test_map_write_cartesian():
+
+    # Set up coordinate grid
+    g = CartesianGrid([-1., 0., 1.], [-1., 1.], [-1., -0.2, 0.2, 1.])
+
+    v = virtual_file()
+    s = MapSource()
+    s.luminosity = 1.
+    s.map = np.ones((3, 1, 2))
+    s.write(v, 'test', g)
+
+def test_map_write_spherical_polar():
+
+    # Set up coordinate grid
+    g = SphericalPolarGrid([0., 0.5, 1.], [0., np.pi], [0., 1., 2., 2. * np.pi])
+
+    v = virtual_file()
+    s = MapSource()
+    s.luminosity = 1.
+    s.map = np.ones((3, 1, 2))
+    s.write(v, 'test', g)
+
+def test_map_write_cylindrical_polar():
+
+    # Set up coordinate grid
+    g = CylindricalPolarGrid([0., 0.5, 1.], [-1., 1.], [0., 1., 2., 2. * np.pi])
+
+    v = virtual_file()
+    s = MapSource()
+    s.luminosity = 1.
+    s.map = np.ones((3, 1, 2))
+    s.write(v, 'test', g)
+
+def test_map_write_amr():
+
+    # Set up coordinate grid
+    amr = AMRGrid()
+    level = amr.add_level()
+    grid = level.add_grid()
+    grid.xmin, grid.xmax = -1., 1.
+    grid.ymin, grid.ymax = -1., 1.
+    grid.zmin, grid.zmax = -1., 1.
+    grid.nx, grid.ny, grid.nz = 4, 6, 8
+    grid.quantities['luminosity'] = np.ones((8, 6, 4))
+
+    v = virtual_file()
+    s = MapSource()
+    s.luminosity = 1.
+    s.map = amr['luminosity']
+    s.write(v, 'test', amr)
+
+def test_map_write_octree():
+
+    # Set up coordinate grid
+    refined = [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+           0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+    g = OctreeGrid(0., 0., 0., 10., 10., 10., np.array(refined).astype(bool))
+
+    v = virtual_file()
+    s = MapSource()
+    s.luminosity = 1.
+    s.map = np.ones(len(refined))
+    s.write(v, 'test', g)
+
+def test_map_write_invalid1():
+    v = virtual_file()
+    s = MapSource()
+    s.luminosity = 1.
+    s.map = None
+    with pytest.raises(Exception) as exc:
+        s.write(v, 'test', None)
+    assert exc.value.args[0] == 'map is not set'
+
+
+def test_map_write_invalid2():
+    v = virtual_file()
+    s = MapSource()
+    s.luminosity = 1.
+    s.map = np.zeros((2, 3, 4))
+    with pytest.raises(Exception) as exc:
+        s.write(v, 'test', None)
+    assert exc.value.args[0] == 'map is zero everywhere'

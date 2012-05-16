@@ -3,6 +3,8 @@ from __future__ import print_function, division
 import atpy
 import numpy as np
 
+from ..grid.amr_grid import AMRGridView
+
 from ..util.functions import B_nu, random_id, FreezableClass, \
                              is_numpy_array, bool2str
 from ..util.integrate import integrate_loglog
@@ -603,8 +605,8 @@ class MapSource(Source):
     def _check_all_set(self):
         if self.map is None:
             raise Exception("map is not set")
-        if np.all(self.map == 0.):
-            raise Exception("Luminosity map is zero everywhere")
+        if is_numpy_array(self.map) and np.all(self.map == 0.):
+            raise Exception("map is zero everywhere")
         Source._check_all_set(self)
 
     def write(self, handle, name, grid, compression=True, map_dtype=float):
@@ -613,11 +615,23 @@ class MapSource(Source):
 
         g = handle.create_group(name)
         g.attrs['type'] = np.string_('map'.encode('utf-8'))
-        grid.write_physical_array(g, self.map, "Luminosity map", dust=False,
+        grid.write_single_array(g, "Luminosity map", self.map,
                                   compression=compression,
                                   physics_dtype=map_dtype)
         Source.write(self, g)
 
+    def __setattr__(self, attribute, value):
+
+        if attribute == 'map' and value is not None:
+
+            if not is_numpy_array(value) and not isinstance(value, AMRGridView):
+                raise ValueError("map should be a Numpy array or an AMRGridView instance")
+
+        elif attribute == 'radius' and value is not None:
+
+            validate_scalar('radius', value, domain='positive')
+
+        Source.__setattr__(self, attribute, value)
 
 class PlaneParallelSource(Source):
 
