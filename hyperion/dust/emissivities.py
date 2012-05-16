@@ -8,7 +8,7 @@ import numpy as np
 from ..util.integrate import integrate_loglog
 from ..util.interpolate import interp1d_fast_loglog
 from ..util.functions import B_nu, FreezableClass, nu_common, \
-                                    planck_nu_range, bool2str
+                                    planck_nu_range, bool2str, is_numpy_array, monotonically_increasing
 from ..util.constants import sigma
 from ..util.logger import logger
 
@@ -57,30 +57,28 @@ class Emissivities(FreezableClass):
 
         # Compute LTE emissivities
         self.var_name = 'specific_energy'
-        self.var = np.zeros(temperatures.shape)
-        self.jnu = np.zeros((len(self.nu), n_temp))
+
+        var = np.zeros(temperatures.shape)
+        jnu = np.zeros((len(self.nu), n_temp))
 
         for it, T in enumerate(temperatures):
 
             # Find LTE emissivity
-            self.jnu[:, it] = kappa_nu * B_nu(self.nu, T)
+            jnu[:, it] = kappa_nu * B_nu(self.nu, T)
 
             # Find Planck mean opacity
             kappa_planck = optical_properties.kappa_planck_spectrum(self.nu, B_nu(self.nu, T))
 
             # Compute specific energy absorbed
-            self.var[it] = 4. * sigma * T ** 4. * kappa_planck
+            var[it] = 4. * sigma * T ** 4. * kappa_planck
+
+        self.var = var
+        self.jnu = jnu
 
     def to_table_set(self, table_set):
 
         if not self.all_set():
             raise Exception("Not all attributes of the emissivities are set")
-
-        # Create emissivities table
-        temiss = atpy.Table(name='emissivities')
-        temiss.add_column('nu', self.nu)
-        temiss.add_column('jnu', self.jnu)
-        table_set.add_keyword('lte', bool2str(self.is_lte))
 
         # Write out the emissivity variable type
         if self.var_name == 'specific_energy':
@@ -92,17 +90,17 @@ class Emissivities(FreezableClass):
         temissvar = atpy.Table(name='emissivity_variable')
         temissvar.add_column(self.var_name, self.var)
 
+        # Create emissivities table
+        temiss = atpy.Table(name='emissivities')
+        temiss.add_column('nu', self.nu)
+        temiss.add_column('jnu', self.jnu)
+        table_set.add_keyword('lte', bool2str(self.is_lte))
+
         # Add to table set
         table_set.append(temiss)
         table_set.append(temissvar)
 
     def from_table_set(self, table_set):
-
-        # Read emissivities
-        temiss = table_set['emissivities']
-        self.nu = temiss['nu']
-        self.jnu = temiss['jnu']
-        self.is_lte = table_set.keywords['lte'] == 'yes'
 
         # Find the emissivity variable type
         if table_set.keywords['emissvar'] == 'E':
@@ -114,6 +112,12 @@ class Emissivities(FreezableClass):
         # Read in emissivity variable
         temissvar = table_set['emissivity_variable']
         self.var = temissvar[self.var_name]
+
+        # Read emissivities
+        temiss = table_set['emissivities']
+        self.nu = temiss['nu']
+        self.jnu = temiss['jnu']
+        self.is_lte = table_set.keywords['lte'] == 'yes'
 
     def all_set(self):
         return self.var_name is not None and \
@@ -160,3 +164,28 @@ class Emissivities(FreezableClass):
         h.update(self.nu)
         h.update(self.jnu)
         return h.hexdigest()
+
+    def __setattr__(self, attribute, value):
+        if attribute in ['nu', 'var'] and value is not None:
+            if type(value) in [list, tuple]:
+                value = np.array(value)
+            if not is_numpy_array(value) or value.ndim != 1:
+                raise ValueError(attribute + " should be a 1-D sequence")
+            if not monotonically_increasing(value):
+                raise ValueError(attribute + " should be monotonically increasing")
+            if value[0] <= 0.:
+                raise ValueError(attribute + ' should be strictly positive')
+        if attribute in ['jnu'] and value is not None:
+            if self.nu is None:
+                raise ValueError("nu needs to be set before " + attribute)
+            if self.var is None:
+                raise ValueError("var needs to be set before " + attribute)
+            if type(value) in [list, tuple]:
+                value = np.array(value)
+            if not is_numpy_array(value) or value.ndim != 2:
+                raise ValueError(attribute + " should be a 2-D array")
+            if value.shape[0] != len(self.nu) or value.shape[1] != len(self.var):
+                raise ValueError(attribute + " has an incorrect shape: %s but expected (%i, %i)" % (value.shape, len(self.nu), len(self.var)))
+            if np.any(value < 0.):
+                raise ValueError("jnu should be positive")
+        FreezableClass.__setattr__(self, attribute, value)
