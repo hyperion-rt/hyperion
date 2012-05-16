@@ -69,6 +69,23 @@ class SphericalDust(FreezableClass):
 
         return h.hexdigest()
 
+    def set_lte_emissivities(self, n_temp=1200, temp_min=0.1, temp_max=100000.):
+        '''
+        Calculate the emissivities assuming LTE
+
+        Parameters
+        ----------
+        n_temp : int, optional
+            The number of temperatures to calculate the emissivities for
+        temp_min : float, optional
+            The minimum temperature to calculate the emissivities for
+        temp_max : float, optional
+            The maximum temperature to calculate the emissivities for
+        '''
+        self.emissivities.set_lte(self.optical_properties, n_temp=n_temp,
+                                  temp_min=temp_min, temp_max=temp_max)
+
+
     def plot(self, filename):
 
         import matplotlib.pyplot as plt
