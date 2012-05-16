@@ -34,15 +34,13 @@ def test_use_quantities_cartesian(grid_type, copy):
         m.set_spherical_polar_grid([0., 1.], [0., np.pi], [0., 2. * np.pi])
     elif grid_type == 'amr':
         amr = AMRGrid()
-        level = Level()
-        grid = Grid()
+        level = amr.add_level()
+        grid = level.add_grid()
         grid.xmin, grid.xmax = -1., 1.
         grid.ymin, grid.ymax = -1., 1.
         grid.zmin, grid.zmax = -1., 1.
         grid.nx, grid.ny, grid.nz = 8, 8, 8
         grid.quantities['density'] = np.ones((8, 8, 8))
-        level.grids.append(grid)
-        amr.levels.append(level)
         m.set_amr_grid(amr)
     else:
         refined = [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
