@@ -55,6 +55,8 @@ def interp1d_fast(x, y, xval):
     '''On-the-fly linear interpolator'''
     if len(x) != len(y):
         raise Exception("x and y should have the same length")
+    if x.dtype != float or y.dtype != float:
+        x, y = x.astype(float), y.astype(float)
     ipos = np.searchsorted(x, xval)
     if np.isscalar(xval):
         return interp1d_linear_scalar(x, y, np.float(xval), ipos)
@@ -70,6 +72,8 @@ def interp1d_fast_loglog(x, y, xval):
     '''On-the-fly log interpolator'''
     if len(x) != len(y):
         raise Exception("x and y should have the same length")
+    if x.dtype != float or y.dtype != float:
+        x, y = x.astype(float), y.astype(float)
     ipos = np.searchsorted(x, xval)
     if np.isscalar(xval):
         return interp1d_loglog_scalar(x, y, np.float(xval), ipos)
@@ -85,6 +89,8 @@ def interp1d_fast_linlog(x, y, xval):
     '''On-the-fly linear-log interpolator'''
     if len(x) != len(y):
         raise Exception("x and y should have the same length")
+    if x.dtype != float or y.dtype != float:
+        x, y = x.astype(float), y.astype(float)
     ipos = np.searchsorted(x, xval)
     if np.isscalar(xval):
         return interp1d_linlog_scalar(x, y, np.float(xval), ipos)
@@ -100,6 +106,8 @@ def interp1d_fast_loglin(x, y, xval):
     '''On-the-fly log-linear interpolator'''
     if len(x) != len(y):
         raise Exception("x and y should have the same length")
+    if x.dtype != float or y.dtype != float:
+        x, y = x.astype(float), y.astype(float)
     ipos = np.searchsorted(x, xval)
     if np.isscalar(xval):
         return interp1d_loglin_scalar(x, y, np.float(xval), ipos)

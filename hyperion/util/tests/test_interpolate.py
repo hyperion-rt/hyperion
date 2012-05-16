@@ -5,6 +5,8 @@ from numpy.testing import assert_array_almost_equal_nulp
 from ..interpolate import *
 
 
+DTYPES = ['<f4', '>f4', '<f8', '>f8', '<i4', '>i4', '<i8', '>i8']
+
 class GenericTests(object):
 
     def setup_class(self):
@@ -88,6 +90,14 @@ class GenericTests(object):
         with pytest.raises(Exception) as exc:
             self.interp(x, y, xval)
         assert exc.value.args[0] == 'x and y should have the same length'
+
+    @pytest.mark.parametrize(('dtype_x', 'dtype_y'), zip(DTYPES, DTYPES))
+    def test_types(self, dtype_x, dtype_y):
+        x = np.array([1, 5], dtype=dtype_x)
+        y = np.array([1, 1], dtype=dtype_y)
+        xval = 3.
+        assert self.interp(x, y, xval) == 1.
+
 
 
 class TestLinear(GenericTests):
