@@ -147,8 +147,8 @@ class Emissivities(FreezableClass):
         ax.set_title('Emissivities', y=0.9, verticalalignment='top',
                      color='white')
 
-        ax.set_xlabel("Specific energy (ergs/s/g)")
-        ax.set_ylabel("Wavelength (microns)")
+        ax.set_xlabel("Frequency (Hz)")
+        ax.set_ylabel("Specific energy (ergs/s/g)")
 
         return figure
 
