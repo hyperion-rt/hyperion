@@ -17,7 +17,7 @@ class Emissivities(FreezableClass):
 
     def __init__(self):
 
-        self.is_lte = None
+        self.is_lte = False
         self.var_name = None
         self.var = None
         self.nu = None
@@ -29,31 +29,6 @@ class Emissivities(FreezableClass):
         for ivar in range(len(self.var)):
             norm = integrate_loglog(self.nu, self.jnu[:, ivar] / self.nu)
             self.jnu[:, ivar] /= norm
-
-    def set_custom(self, filename):
-
-        # Specify that emissivities are not LTE
-        self.is_lte = False
-
-        # Read in existing emissivities
-        te = atpy.Table(filename, table='emissivities')
-
-        # Set frequency scale and emissivities
-        self.nu = te.nu
-        self.jnu = te.jnu
-
-        # Read in emissivity variable
-        tev = atpy.Table(filename, table='emissivity_variable')
-
-        # Only specific energy is considered a valid emissivity variable
-        if tev.names[0] != 'specific_energy':
-            raise Exception("Unknown emissivity variable: %s" % tev.names[0])
-
-        # Set emissivity variable
-        self.var_name = tev.names[0]
-
-        # Find specific energy emissivity variable
-        self.var = tev.specific_energy
 
     def set_lte(self, optical_properties, n_temp=1200, temp_min=0.1, temp_max=100000.):
 
@@ -141,8 +116,7 @@ class Emissivities(FreezableClass):
         self.var = temissvar[self.var_name]
 
     def all_set(self):
-        return self.is_lte is not None and \
-               self.var_name is not None and \
+        return self.var_name is not None and \
                self.var is not None and \
                self.nu is not None and \
                self.jnu is not None
