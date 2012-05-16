@@ -64,6 +64,7 @@ contains
     type(photon) :: p
 
     integer :: inu
+    logical :: empty
 
     ! Precompute emissivity variable locator for each cell
     call precompute_jnu_var()
@@ -143,55 +144,66 @@ contains
        do inu=1,size(frequencies)
 
           ! Pre-compute emissivity grids for each dust type
-          call setup_monochromatic_grid_pdfs(inu)
+          call setup_monochromatic_grid_pdfs(inu, empty)
 
           if(main_process()) write(*,'(" [mono] computing dust photons for nu =",ES11.4," Hz")') frequencies(inu)
 
-          ! Tell multi-process routines that this is the start of an iteration
-          call mp_reset_first()
+          if(.not.empty) then
 
-          if(main_process()) call perf_header()
+             ! Tell multi-process routines that this is the start of an iteration
+             call mp_reset_first()
 
-          call mp_join()
+             if(main_process()) call perf_header()
 
-          ! Initialize the number of completed photons
-          n_photons_curr = 0
+             call mp_join()
 
-          ! Start loop over chunks of photons
-          do
+             ! Initialize the number of completed photons
+             n_photons_curr = 0
 
-             ! Find out how many photons to run
-             call mp_n_photons(n_photons_thermal, n_photons_curr, n_photons_chunk, n_photons)
+             ! Start loop over chunks of photons
+             do
 
-             if(n_photons==0) exit
+                ! Find out how many photons to run
+                call mp_n_photons(n_photons_thermal, n_photons_curr, n_photons_chunk, n_photons)
 
-             ! Compute all photons in chunk
-             do ip=1,n_photons
+                if(n_photons==0) exit
 
-                p = emit_from_monochromatic_grid_pdf(inu)
+                ! Compute all photons in chunk
+                do ip=1,n_photons
 
-                if(p%energy > 0._dp) then
+                   p = emit_from_monochromatic_grid_pdf(inu)
 
-                   ! Scale energy
-                   p%energy = p%energy * energy_abs_tot(p%dust_id) / dble(n_photons_thermal) * dble(n_dust)
+                   if(p%energy > 0._dp) then
 
-                   ! Peeloff the photons from the dust
-                   if(make_peeled_images) then
-                      if(.not.peeloff_scattering_only) call peeloff_photon(p, polychromatic=.false.)
+                      ! Scale energy
+                      p%energy = p%energy * energy_abs_tot(p%dust_id) / dble(n_photons_thermal) * dble(n_dust)
+
+                      ! Peeloff the photons from the dust
+                      if(make_peeled_images) then
+                         if(.not.peeloff_scattering_only) call peeloff_photon(p, polychromatic=.false.)
+                      end if
+
+                      ! Propagate until photon is absorbed again
+                      call propagate(p)
+
                    end if
 
-                   ! Propagate until photon is absorbed again
-                   call propagate(p)
-
-                end if
+                end do
 
              end do
 
-          end do
+             call mp_join()
 
-          call mp_join()
+             if(main_process()) call perf_footer()
 
-          if(main_process()) call perf_footer()
+          else
+             if(main_process()) then
+                write(*,*)
+                write(*,'("      -------- No emission at this frequency -------")')
+                write(*,*)
+             end if
+          end if
+
 
        end do
 

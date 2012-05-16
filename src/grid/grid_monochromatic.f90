@@ -47,7 +47,7 @@ contains
     deallocate(emiss_pdf, mean_prob)
   end subroutine deallocate_monochromatic_grid_pdfs
 
-  subroutine setup_monochromatic_grid_pdfs(inu)
+  subroutine setup_monochromatic_grid_pdfs(inu, empty)
 
     ! Sets up the probability distribution functions to emit from for a specific
     ! frequency for all dust types. This subroutine takes nu, the frequency to
@@ -63,6 +63,7 @@ contains
     real(dp) :: emiss_var_frac
     real(dp), allocatable :: energy(:), prob(:)
     integer :: icell
+    logical,intent(out) :: empty
 
     nu = frequencies(inu)
 
@@ -94,8 +95,8 @@ contains
        end do
 
        ! Set the PDF to the probability of emission at the frequency nu
-       call set_pdf(emiss_pdf(dust_id), prob * energy)
        mean_prob(dust_id) = mean(prob * energy)
+       if(mean_prob(dust_id) > 0._dp) call set_pdf(emiss_pdf(dust_id), prob * energy)
 
     end do
 
@@ -103,6 +104,8 @@ contains
     deallocate(energy, prob)
 
     inu_current = inu
+
+    empty = sum(mean_prob) == 0._dp
 
   end subroutine setup_monochromatic_grid_pdfs
 
@@ -129,8 +132,11 @@ contains
     call prepare_photon(p)
     call update_optconsts(p)
 
-    call random_number(xi)
-    dust_id = ceiling(xi*real(n_dust, dp))
+    do
+       call random_number(xi)
+       dust_id = ceiling(xi*real(n_dust, dp))
+       if(mean_prob(dust_id) > 0._dp) exit
+    end do
 
     call grid_sample_pdf_map(emiss_pdf(dust_id), p%icell)
     p%in_cell = .true.
