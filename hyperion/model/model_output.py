@@ -814,7 +814,7 @@ class ModelOutput(FreezableClass):
                 ymax = g['images'].attrs['ymax']
 
                 # Find pixel dimensions of image
-                ny, nx = flux.shape[-2:]
+                ny, nx = flux.shape[-3:-1]
 
                 # Find pixel resolution in radians/pixel
                 if inside_observer:
