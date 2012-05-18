@@ -382,11 +382,12 @@ class Model(FreezableClass):
                         if isinstance(dust, basestring):
                             dust = SphericalDust(dust)
 
-                        if id(dust) in present:
-                            g_dust[short_name] = h5py.SoftLink(present[id(dust)])
+
+                        if dust.hash() in present:
+                            g_dust[short_name] = h5py.SoftLink(present[dust.hash()])
                         else:
                             dust.write(g_dust.create_group(short_name))
-                            present[id(dust)] = short_name
+                            present[dust.hash()] = short_name
 
                     else:
 
