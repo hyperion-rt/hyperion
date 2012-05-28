@@ -156,7 +156,12 @@ class Model(FreezableClass):
         if 'Grid' in f:
             g_grid = f['Grid']
         elif 'Grid' in f['Input']:
-            g_grid = f['Input/Grid']
+            if f['Input'].file != f.file:
+                # Workaround for h5py bug - can't access link directly,
+                # need to use file attribute
+                g_grid = f['Input'].file[f['Input'].name]['Grid']
+            else:
+                g_grid = f['Input/Grid']
         else:
             raise Exception("No grid found in file: %s" % filename)
 

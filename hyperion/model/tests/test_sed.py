@@ -108,9 +108,9 @@ class TestSEDSimpleModel(object):
 
     @pytest.mark.parametrize(('units'), ['ergs/cm^2/s', 'mJy', 'Jy', 'ergs/cm^2/s/Hz', 'MJy/sr'])
     def test_sed_nodistance_units_invalid(self, units):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) as exc:
             wav, nufnu = self.m.get_sed(units=units)
-
+        assert exc.value.args[0] == 'Since distance= is not specified, units should be set to ergs/s'
 
 class TestSimpleModelInside(object):
 

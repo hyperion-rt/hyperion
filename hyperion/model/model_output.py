@@ -319,7 +319,7 @@ class ModelOutput(FreezableClass):
             raise ValueError("Cannot specify distance for inside observers")
 
         # Optionally scale by distance
-        if distance is not None or not inside_observer:
+        if distance is not None or inside_observer:
 
             # Convert to the correct units
             if units == 'ergs/cm^2/s':
@@ -795,7 +795,7 @@ class ModelOutput(FreezableClass):
             raise ValueError("Cannot specify distance for inside observers")
 
         # Optionally scale by distance
-        if distance or inside_observer:
+        if distance is not None or inside_observer:
 
             # Convert to the correct units
             if units == 'ergs/cm^2/s':
@@ -1153,6 +1153,7 @@ class ModelOutput(FreezableClass):
         if name == 'temperature':
             array = np.array(self.file['iteration_%05i' % iteration]['specific_energy'])
             g_dust = self.file['Input/Dust']
+            g_dust = g_dust.file[g_dust.name]  # workaround for h5py < 2.1.0
             for i in range(array.shape[0]):
                 dust = g_dust['dust_%03i' % (i + 1)]
                 d = SphericalDust(dust)
