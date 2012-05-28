@@ -48,8 +48,8 @@ for filename in arguments:
 
     if physics:
         for group_name in f:
-            if 'Iteration' in group_name:
-                iteration = int(group_name.split()[1])
+            if 'iteration' in group_name:
+                iteration = int(group_name.split('_')[1])
                 for array_name in f[group_name]:
                     pyfits.writeto(filename.replace('.rtout', '_%s_%05i.fits' % (array_name, iteration)),
                                    np.array(f[group_name][array_name]), clobber=True)
