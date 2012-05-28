@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from ..util.functions import FreezableClass, bool2str
+from ..util.functions import FreezableClass, bool2str, is_numpy_array
 
 
 class OutputConf(FreezableClass):
@@ -736,8 +736,20 @@ class PeeledImageConf(ImageConf):
 
         >>> image.set_viewing_angles([77.],[25.])
         '''
+
+        if isinstance(theta, (list, tuple)):
+            theta = np.array(theta)
+        if isinstance(phi, (list, tuple)):
+            phi = np.array(phi)
+
+        if not is_numpy_array(theta) or theta.ndim != 1:
+            raise ValueError("theta should be a 1-D sequence")
+        if not is_numpy_array(phi) or phi.ndim != 1:
+            raise ValueError("phi should be a 1-D sequence")
+
         if len(theta) != len(phi):
-            raise Exception("Length of theta and phi arrays do not match")
+            raise ValueError("Length of theta and phi arrays do not match")
+
         self.viewing_angles = list(zip(theta, phi))
         self.n_view = len(self.viewing_angles)
 
@@ -754,6 +766,11 @@ class PeeledImageConf(ImageConf):
         position : tuple of 3 floats
            The spatial coordinates of the observer, in cm
         '''
+        if isinstance(position, (list, tuple)):
+            position = np.array(position)
+        if position is not None:
+            if not is_numpy_array(position) or position.ndim != 1 or len(position) != 3:
+                raise ValueError("position should be a 1-D sequence with 3 elements")
         self.inside_observer = position
 
     def _write_inside_observer(self, group):
@@ -787,6 +804,11 @@ class PeeledImageConf(ImageConf):
         position : tuple of 3 floats
            The coordinates of the origin of the peeling-off, in cm
         '''
+        if isinstance(position, (list, tuple)):
+            position = np.array(position)
+        if position is not None:
+            if not is_numpy_array(position) or position.ndim != 1 or len(position) != 3:
+                raise ValueError("position should be a 1-D sequence with 3 elements")
         self.peeloff_origin = position
 
     def _write_peeloff_origin(self, group):
@@ -821,7 +843,7 @@ class PeeledImageConf(ImageConf):
 
     def _write_viewing_info(self, group):
 
-        if self.peeloff_origin and self.inside_observer:
+        if self.peeloff_origin is not None and self.inside_observer is not None:
             raise Exception("Cannot specify inside observer and peeloff origin at the same time")
 
         if self.inside_observer is not None:
@@ -831,6 +853,12 @@ class PeeledImageConf(ImageConf):
                 self.set_viewing_angles([90.], [0.])
             if self.image and self.xmin < self.xmax:
                 raise ValueError("longitudes should increase towards the left for inside observers")
+            if self.d_min < 0.:
+                if self.d_min != -np.inf:
+                    raise ValueError("Lower limit of depth should be positive for inside observer")
+                self.d_min = 0.
+            if self.d_max < 0.:
+                raise ValueError("Upper limit of depth should be positive for inside observer")
 
         elif len(self.viewing_angles) > 0:
             group.attrs['inside_observer'] = bool2str(False)
