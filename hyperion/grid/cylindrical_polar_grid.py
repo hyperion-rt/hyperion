@@ -9,7 +9,7 @@ import numpy as np
 from ..util.meshgrid import meshgrid_nd
 from ..util.functions import FreezableClass, is_numpy_array, monotonically_increasing, link_or_copy
 from ..util.logger import logger
-from ..grid.grid_helpers import single_grid_dims
+from .grid_helpers import single_grid_dims
 
 
 class CylindricalPolarGrid(FreezableClass):
@@ -206,44 +206,70 @@ class CylindricalPolarGrid(FreezableClass):
 
     def read(self, group, quantities='all'):
         '''
-        Read in a cylindrical polar grid
+        Read the geometry and physical quantities from a cylindrical polar grid
 
         Parameters
         ----------
         group: h5py.Group
-            The HDF5 group to read the grid from
+            The HDF5 group to read the grid from. This group should contain
+            groups named 'Geometry' and 'Quantities'.
         quantities: 'all' or list
             Which physical quantities to read in. Use 'all' to read in all
             quantities or a list of strings to read only specific quantities.
         '''
 
-        # Extract HDF5 groups for geometry and physics
-
-        g_geometry = group['Geometry']
-        g_quantities = group['Quantities']
-
         # Read in geometry
+        self.read_geometry(group['Geometry'])
 
-        if g_geometry.attrs['grid_type'].decode('utf-8') != 'cyl_pol':
+        # Read in physical quantities
+        self.read_quantities(group['Quantities'], quantities=quantities)
+
+        # Self-consistently check geometry and physical quantities
+        self._check_array_dimensions()
+
+    def read_geometry(self, group):
+        '''
+        Read the geometry and physical quantities from a cylindrical_polar grid
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to read the grid geometry from.
+        '''
+
+        if group.attrs['grid_type'].decode('utf-8') != 'cyl_pol':
             raise ValueError("Grid is not cylindrical polar")
 
-        self.set_walls(g_geometry['walls_1']['w'],
-                       g_geometry['walls_2']['z'],
-                       g_geometry['walls_3']['p'])
+        self.set_walls(group['walls_1']['w'],
+                       group['walls_2']['z'],
+                       group['walls_3']['p'])
+
+        # Check that advertised hash matches real hash
+        if group.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
+            raise Exception("Calculated geometry hash does not match hash in file")
+
+    def read_quantities(self, group, quantities='all'):
+        '''
+        Read in quantities for a cylindrical polar grid
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to read the grid quantities from
+        quantities: 'all' or list
+            Which physical quantities to read in. Use 'all' to read in all
+            quantities or a list of strings to read only specific quantities.
+        '''
 
         # Read in physical quantities
         if quantities is not None:
-            for quantity in g_quantities:
+            for quantity in group:
                 if quantities == 'all' or quantity in quantities:
-                    array = np.array(g_quantities[quantity])
+                    array = np.array(group[quantity])
                     if array.ndim == 4:  # if array is 4D, it is a list of 3D arrays
                         self.quantities[quantity] = [array[i] for i in range(array.shape[0])]
                     else:
                         self.quantities[quantity] = array
-
-        # Check that advertised hash matches real hash
-        if g_geometry.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
-            raise Exception("Calculated geometry hash does not match hash in file")
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()
@@ -378,6 +404,11 @@ class CylindricalPolarGrid(FreezableClass):
     def reset_quantities(self):
         self.quantities = {}
 
+    def add_derived_quantity(self, name, function):
+        if name in self.quantities:
+            raise KeyError(name + ' already exists')
+        function(self.quantities)
+
 
 class CylindricalPolarGridView(CylindricalPolarGrid):
 
@@ -438,3 +469,9 @@ class CylindricalPolarGridView(CylindricalPolarGrid):
             return grid
         else:
             return CylindricalPolarGrid.__getitem__(self, item)
+
+    def __getattr__(self, attribute):
+        if attribute == 'array':
+            return self.quantities[self.viewed_quantity]
+        else:
+            return CylindricalPolarGrid.__getattr__(self, attribute)

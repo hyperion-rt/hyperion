@@ -11,7 +11,7 @@ import numpy as np
 from ..util.meshgrid import meshgrid_nd
 from ..util.functions import FreezableClass, link_or_copy
 from ..util.logger import logger
-from ..grid.grid_helpers import single_grid_dims
+from .grid_helpers import single_grid_dims
 
 
 def zero_density(grid, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, zmin=np.inf, zmax=np.inf):

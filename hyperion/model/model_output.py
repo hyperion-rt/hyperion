@@ -10,6 +10,7 @@ from ..util.functions import FreezableClass
 from ..dust import SphericalDust
 from ..util.logger import logger
 from ..util.decorator import decorator
+from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid
 
 from .helpers import find_last_iteration
 
@@ -318,7 +319,7 @@ class ModelOutput(FreezableClass):
             raise ValueError("Cannot specify distance for inside observers")
 
         # Optionally scale by distance
-        if distance is not None or inside_observer:
+        if distance is not None or not inside_observer:
 
             # Convert to the correct units
             if units == 'ergs/cm^2/s':
@@ -1022,6 +1023,78 @@ class ModelOutput(FreezableClass):
             components.append('temperature')
         return components
 
+    @on_the_fly_hdf5
+    def get_quantities(self, iteration=-1):
+        '''
+        Retrieve one of the physical grids for the model
+
+        Parameters
+        ----------
+        iteration : integer, optional
+            The iteration to retrieve the quantities for. The default is to return the grid for the last iteration.
+
+        Returns
+        -------
+
+        grid : Grid instance
+            An object containing information about the geometry and quantities
+        '''
+
+        # Find coordinate grid type
+        coord_type = self.file['Input']['Grid']['Geometry'].attrs['grid_type'].decode('utf-8')
+
+        if coord_type == 'car':
+            g = CartesianGrid()
+        elif coord_type == 'cyl_pol':
+            g = CylindricalPolarGrid()
+        elif coord_type == 'sph_pol':
+            g = SphericalPolarGrid()
+        elif coord_type == 'amr':
+            g = AMRGrid()
+        elif coord_type == 'oct':
+            g = OctreeGrid()
+
+        # Read in geometry and input quantities
+        g.read_geometry(self.file['Input']['Grid']['Geometry'])
+
+        # If iteration is last one, find iteration number
+        if iteration == -1:
+            iteration = find_last_iteration(self.file)
+        else:
+            iteration = iteration + 1  # Python value is zero based
+
+        # Read in quantities from the requested iteration
+        g.read_quantities(self.file['iteration_%05i' % iteration])
+
+        # Compute the temperature as a derived quantity
+        if 'specific_energy' in g:
+
+            # Open the dust group
+            n_dust = g.n_dust
+            g_dust = self.file['Input/Dust']
+
+            # Compile a list of specific energy to temperature functions
+            convert_func = []
+            for i in range(n_dust):
+
+                # Read in dust type
+                dust = g_dust['dust_%03i' % (i + 1)]
+                d = SphericalDust(dust)
+
+                # Add to conversion function list
+                convert_func.append(d.mean_opacities._specific_energy2temperature)
+
+            # Define function to convert different specific energy to
+            # temperature for different dust types
+            def specific_energy2temperature(quantities):
+                quantities['temperature'] = []
+                for i in range(n_dust):
+                    quantities['temperature'].append(convert_func[i](quantities['specific_energy'][i]))
+
+            # Get the grid to add the quantity
+            g.add_derived_quantity('temperature', specific_energy2temperature)
+
+        return g
 
     @on_the_fly_hdf5
     def get_physical_grid(self, name, iteration=-1, dust_id='all'):
