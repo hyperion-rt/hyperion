@@ -59,5 +59,5 @@ Although the temperature values are not ever directly present in the output file
 
     values = g['temperature'][0].array
 
-In :doc:`../tutorials/tutorial_quantities.rst`, we show how to visualize
+In :doc:`../tutorials/tutorial_quantities`, we show how to visualize
 this information.
