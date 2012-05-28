@@ -92,10 +92,30 @@ The dust file to use for each component should be specified using the ``dust`` a
 Grid
 ----
 
-The gridding of the density is done automatically, but the user needs to specify a grid size. Either a spherical polar or cylindrical polar grid can be used. To use the spherical polar grid::
+The gridding of the density can done automatically, but you will need to
+specify a grid size. Either a spherical polar or cylindrical polar grid can
+be used. To use the spherical polar grid::
 
     m.set_spherical_polar_grid_auto(n_r, n_theta, n_phi)
 
 and to use the cylindrical polar grid::
 
     m.set_cylindrical_polar_grid_auto(n_w, n_z, n_phi)
+
+The grid is set up in such a way as to provide very fine resolution at the
+inner edge of the disk or envelope, and logarithmic spacing of cell walls on
+large scales.
+
+In some cases, this automated gridding may not be appropriate, and you may
+want to specify the grid geometry yourself, for example if you have other
+sources of emission than the one in the center. In this case, the
+``set_spherical_polar_grid`` and ``set_cylindrical_polar_grid`` methods
+described in :doc:setup_grid can be used. As a reminder, these take the
+position of the walls as arguments rather than the number of cells, e.g.::
+
+    r = np.logspace(np.log10(rsun), np.log10(100 * au), 400)
+    r = np.hstack([0., r])  # add cell wall at r=0
+    theta = np.linspace(0., pi, 201)
+    phi = np.array([0., 2 * pi])
+    m.set_spherical_polar_grid(r, theta, phi)
+
