@@ -108,6 +108,21 @@ excess of the one specified will be gradually destroyed), or ``fast`` (dust
 with temperatures in excess of the one specified will be immediately
 destroyed). For more information, see Section 2.7.3 of `Robitaille (2011)`_.
 
+Multiple sources
+----------------
+
+By default, the number of photons emitted is proportional to the luminosity
+of the sources, so in cases where several sources with very different
+luminosities are included in the models, some sources might be
+under-sampled. In some cases, this will not be a problem, but in some cases
+you may want to emit equal numbers of photons from each source instead. For
+example, if you have two sources that have a bolometric luminosity that is
+different by a factor of 100, but at the specific wavelength you are
+interested in they have the same flux, then you will probably want equal
+numbers of photons for both sources. You can enable this with:
+
+    m.set_sample_sources_evenly(True)
+
 Outputting physical quantities
 ------------------------------
 
