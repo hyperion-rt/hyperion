@@ -25,7 +25,12 @@ the specific energy (and therefore temperature), and ``imaging`` is the
 number of photons for the SED/image calculation, whether using binned
 images/SEDs or peeling-off.
 
-In addition, the ``stats=`` argument can be optionally specified to indicate how often to print out performance statistics (if it is not specified a sensible default is chosen).
+In addition, the ``stats=`` argument can be optionally specified to indicate
+how often to print out performance statistics (if it is not specified a
+sensible default is chosen).
+
+Since the number of photons is crucial to produce good quality results, you
+can read up more about setting sensible values at :doc:photon_numbers.
 
 Specific energy calculation
 ---------------------------
@@ -67,6 +72,8 @@ This algorithm is described in Section 2.6.3 of `Robitaille (2011)`_. If raytrac
 
     m.set_n_photons(initial=1000000, imaging=1000000,
                     raytracing_sources=1000000, raytracing_dust=1000000)
+
+.. _diffusion:
 
 Diffusion
 ---------

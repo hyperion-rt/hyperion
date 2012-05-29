@@ -20,10 +20,17 @@ The following pages give instructions on setting up the two main kinds of
 models:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    model.rst
    analytical_yso_model.rst
+
+And the following pages give details and advice on particular configuration settings:
+
+.. toctree::
+   :maxdepth: 1
+
+   photon_numbers.rst
 
 .. note:: it is possible to write model input files yourself directly in HDF5
           and bypass the Python library entirely (but this is reserved for
