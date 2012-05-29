@@ -203,7 +203,7 @@ class CartesianGrid(FreezableClass):
 
     def read_geometry(self, group):
         '''
-        Read the geometry and physical quantities from a cartesian grid
+        Read in geometry information from a cartesian grid
 
         Parameters
         ----------
@@ -224,7 +224,7 @@ class CartesianGrid(FreezableClass):
 
     def read_quantities(self, group, quantities='all'):
         '''
-        Read in quantities for a cartesian grid
+        Read in physical quantities from a cartesian grid
 
         Parameters
         ----------

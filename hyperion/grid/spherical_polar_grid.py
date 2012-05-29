@@ -239,7 +239,7 @@ class SphericalPolarGrid(FreezableClass):
 
     def read_geometry(self, group):
         '''
-        Read the geometry and physical quantities from a spherical_polar grid
+        Read in geometry information from a spherical polar grid
 
         Parameters
         ----------
@@ -260,7 +260,7 @@ class SphericalPolarGrid(FreezableClass):
 
     def read_quantities(self, group, quantities='all'):
         '''
-        Read in quantities for a spherical polar grid
+        Read in physical quantities from a spherical polar grid
 
         Parameters
         ----------

@@ -229,7 +229,7 @@ class CylindricalPolarGrid(FreezableClass):
 
     def read_geometry(self, group):
         '''
-        Read the geometry and physical quantities from a cylindrical_polar grid
+        Read in geometry information from a cylindrical polar grid
 
         Parameters
         ----------
@@ -250,7 +250,7 @@ class CylindricalPolarGrid(FreezableClass):
 
     def read_quantities(self, group, quantities='all'):
         '''
-        Read in quantities for a cylindrical polar grid
+        Read in physical quantities from a cylindrical polar grid
 
         Parameters
         ----------

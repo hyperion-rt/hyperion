@@ -160,39 +160,50 @@ class AMRGrid(FreezableClass):
 
     def read(self, group, quantities='all'):
         '''
-        Read in an AMR grid
+        Read the geometry and physical quantities from an AMR grid
 
         Parameters
         ----------
         group: h5py.Group
-            The HDF5 group to read the grid from
+            The HDF5 group to read the grid from. This group should contain
+            groups named 'Geometry' and 'Quantities'.
         quantities: 'all' or list
             Which physical quantities to read in. Use 'all' to read in all
             quantities or a list of strings to read only specific quantities.
         '''
 
-        # Initialize levels
-        self.levels = []
+        # Read in geometry
+        self.read_geometry(group['Geometry'])
 
-        # Read geometry group
-        g_geometry = group['Geometry']
+        # Read in physical quantities
+        self.read_quantities(group['Quantities'], quantities=quantities)
 
-        # Read quantities group
-        g_quantities = group['Quantities']
+        # Self-consistently check geometry and physical quantities
+        self._check_array_dimensions()
+
+    def read_geometry(self, group):
+        '''
+        Read in geometry information from an AMR grid
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to read the geometry from
+        '''
 
         # Check that grid is indeed AMR
-        if g_geometry.attrs['grid_type'].decode('utf-8') != 'amr':
+        if group.attrs['grid_type'].decode('utf-8') != 'amr':
             raise Exception("Grid is not an AMR grid")
 
         # Initialize levels list
         self.levels = []
 
         # Loop over levels
-        for ilevel in range(g_geometry.attrs['nlevels']):
+        for ilevel in range(group.attrs['nlevels']):
 
             # Read in level
             level_path = 'level_%05i' % (ilevel + 1)
-            g_level = g_geometry[level_path]
+            g_level = group[level_path]
 
             # Initialize level
             level = self.add_level()
@@ -220,8 +231,39 @@ class AMRGrid(FreezableClass):
                 grid.ny = int(g_grid.attrs['n2'])
                 grid.nz = int(g_grid.attrs['n3'])
 
+        # Check that advertised hash matches real hash
+        if group.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
+            raise Exception("Calculated geometry hash does not match hash in file")
+
+    def read_quantities(self, group, quantities='all'):
+        '''
+        Read in physical quantities from an AMR grid
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to read the grid quantities from
+        quantities: 'all' or list
+            Which physical quantities to read in. Use 'all' to read in all
+            quantities or a list of strings to read only specific quantities.
+        '''
+
+        # Loop over levels
+        for ilevel, level in enumerate(self.levels):
+
+            # Read in level
+            level_path = 'level_%05i' % (ilevel + 1)
+            g_level = group[level_path]
+
+            # Loop over grids
+            for igrid, grid in enumerate(level.grids):
+
+                # Read in grid
+                grid_path = 'grid_%05i' % (igrid + 1)
+                g_grid = g_level[grid_path]
+
                 # Read in desired quantities
-                g_grid_quantities = g_quantities[level_path][grid_path]
+                g_grid_quantities = group[level_path][grid_path]
                 for quantity in g_grid_quantities:
                     if quantities == 'all' or quantity in quantities:
                         array = np.array(g_grid_quantities[quantity])
@@ -229,11 +271,6 @@ class AMRGrid(FreezableClass):
                             grid.quantities[quantity] = [array[i] for i in range(array.shape[0])]
                         else:
                             grid.quantities[quantity] = array
-
-
-        # Check that advertised hash matches real hash
-        if g_geometry.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
-            raise Exception("Calculated geometry hash does not match hash in file")
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()
@@ -449,6 +486,13 @@ class AMRGrid(FreezableClass):
         for level in self.levels:
             for grid in level.grids:
                 grid.quantities = {}
+
+    def add_derived_quantity(self, name, function):
+        for level in self.levels:
+            for grid in level.grids:
+                if name in grid.quantities:
+                    raise KeyError(name + ' already exists')
+                function(grid.quantities)
 
 
 class AMRGridView(AMRGrid):
