@@ -415,14 +415,14 @@ class OpticalProperties(FreezableClass):
 
     def hash(self):
         h = hashlib.md5()
-        h.update(self.nu)
-        h.update(self.chi)
-        h.update(self.albedo)
-        h.update(self.mu)
-        h.update(self.P1)
-        h.update(self.P2)
-        h.update(self.P3)
-        h.update(self.P4)
+        h.update(self.nu.tostring())
+        h.update(self.chi.tostring())
+        h.update(self.albedo.tostring())
+        h.update(self.mu.tostring())
+        h.update(self.P1.tostring())
+        h.update(self.P2.tostring())
+        h.update(self.P3.tostring())
+        h.update(self.P4.tostring())
         return h.hexdigest()
 
     def __setattr__(self, attribute, value):

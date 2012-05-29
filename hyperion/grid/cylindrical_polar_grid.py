@@ -377,9 +377,9 @@ class CylindricalPolarGrid(FreezableClass):
 
     def get_geometry_id(self):
         geo_hash = hashlib.md5()
-        geo_hash.update(self.w_wall)
-        geo_hash.update(self.z_wall)
-        geo_hash.update(self.p_wall)
+        geo_hash.update(self.w_wall.tostring())
+        geo_hash.update(self.z_wall.tostring())
+        geo_hash.update(self.p_wall.tostring())
         return geo_hash.hexdigest()
 
     def __getitem__(self, item):

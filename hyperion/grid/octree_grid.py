@@ -288,7 +288,7 @@ class OctreeGrid(FreezableClass):
         geo_hash.update(struct.pack('>d', self.dx))
         geo_hash.update(struct.pack('>d', self.dy))
         geo_hash.update(struct.pack('>d', self.dz))
-        geo_hash.update(self.refined)
+        geo_hash.update(self.refined.tostring())
         return geo_hash.hexdigest()
 
     def __getitem__(self, item):
