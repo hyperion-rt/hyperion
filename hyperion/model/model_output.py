@@ -1066,6 +1066,10 @@ class ModelOutput(FreezableClass):
         # Read in quantities from the requested iteration
         g.read_quantities(self.file['iteration_%05i' % iteration])
 
+        if not 'density' in g:
+            logger.info("No density present in output, reading initial density")
+            g.read_quantities(self.file['Input']['Grid']['Quantities'], quantities=['density'])
+
         # Compute the temperature as a derived quantity
         if 'specific_energy' in g:
 
