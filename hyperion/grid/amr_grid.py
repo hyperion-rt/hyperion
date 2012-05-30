@@ -492,6 +492,19 @@ class AMRGrid(FreezableClass):
                     raise KeyError(name + ' already exists')
                 function(grid.quantities)
 
+    def to_yt(self, dust_id=0):
+        '''
+        Convert AMR grid to a yt object (requires yt)
+
+        Parameters
+        ----------
+        dust_id : int, optional
+            The ID of the dust population to extract. If not set, this
+            defaults to 0 (the first dust population).
+        '''
+        from yt_wrappers import amr_grid_to_yt_stream
+        return amr_grid_to_yt_stream(self.levels, dust_id)
+
 
 class AMRGridView(AMRGrid):
 
