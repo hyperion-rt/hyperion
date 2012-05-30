@@ -253,14 +253,12 @@ class AMRGrid(FreezableClass):
 
             # Read in level
             level_path = 'level_%05i' % (ilevel + 1)
-            g_level = group[level_path]
 
             # Loop over grids
             for igrid, grid in enumerate(level.grids):
 
                 # Read in grid
                 grid_path = 'grid_%05i' % (igrid + 1)
-                g_grid = g_level[grid_path]
 
                 # Read in desired quantities
                 g_grid_quantities = group[level_path][grid_path]
