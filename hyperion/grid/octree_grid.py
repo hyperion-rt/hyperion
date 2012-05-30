@@ -131,50 +131,77 @@ class OctreeGrid(FreezableClass):
                 elif n_pop != n_pop_ref:
                     raise ValueError("Not all dust lists in the grid have the same size")
 
+
     def read(self, group, quantities='all'):
         '''
-        Read in an octree grid
+        Read the geometry and physical quantities from an octree grid
 
         Parameters
         ----------
         group: h5py.Group
-            The HDF5 group to read the grid from
+            The HDF5 group to read the grid from. This group should contain
+            groups named 'Geometry' and 'Quantities'.
         quantities: 'all' or list
             Which physical quantities to read in. Use 'all' to read in all
             quantities or a list of strings to read only specific quantities.
         '''
 
-        # Extract HDF5 groups for geometry and physics
-
-        g_geometry = group['Geometry']
-        g_quantities = group['Quantities']
-
         # Read in geometry
+        self.read_geometry(group['Geometry'])
 
-        if g_geometry.attrs['grid_type'].decode('utf-8') != 'oct':
+        # Read in physical quantities
+        self.read_quantities(group['Quantities'], quantities=quantities)
+
+        # Self-consistently check geometry and physical quantities
+        self._check_array_dimensions()
+
+    def read_geometry(self, group):
+        '''
+        Read in geometry information from a cartesian grid
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to read the grid geometry from.
+        '''
+
+        if group.attrs['grid_type'].decode('utf-8') != 'oct':
             raise ValueError("Grid is not an octree")
 
-        self.set_walls(g_geometry.attrs['x'],
-                       g_geometry.attrs['y'],
-                       g_geometry.attrs['z'],
-                       g_geometry.attrs['dx'],
-                       g_geometry.attrs['dy'],
-                       g_geometry.attrs['dz'],
-                       g_geometry['cells']['refined'].astype(bool))
+        self.set_walls(group.attrs['x'],
+                       group.attrs['y'],
+                       group.attrs['z'],
+                       group.attrs['dx'],
+                       group.attrs['dy'],
+                       group.attrs['dz'],
+                       group['cells']['refined'].astype(bool))
+
+        # Check that advertised hash matches real hash
+        if group.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
+            raise Exception("Calculated geometry hash does not match hash in file")
+
+    def read_quantities(self, group, quantities='all'):
+        '''
+        Read in physical quantities from a cartesian grid
+
+        Parameters
+        ----------
+        group: h5py.Group
+            The HDF5 group to read the grid quantities from
+        quantities: 'all' or list
+            Which physical quantities to read in. Use 'all' to read in all
+            quantities or a list of strings to read only specific quantities.
+        '''
 
         # Read in physical quantities
         if quantities is not None:
-            for quantity in g_quantities:
+            for quantity in group:
                 if quantities == 'all' or quantity in quantities:
-                    array = np.array(g_quantities[quantity])
+                    array = np.array(group[quantity])
                     if array.ndim == 2:  # if array is 2D, it is a list of 1D arrays
                         self.quantities[quantity] = [array[i] for i in range(array.shape[0])]
                     else:
                         self.quantities[quantity] = array
-
-        # Check that advertised hash matches real hash
-        if g_geometry.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
-            raise Exception("Calculated geometry hash does not match hash in file")
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()
@@ -313,6 +340,10 @@ class OctreeGrid(FreezableClass):
     def reset_quantities(self):
         self.quantities = {}
 
+    def add_derived_quantity(self, name, function):
+        if name in self.quantities:
+            raise KeyError(name + ' already exists')
+        function(self.quantities)
 
 class OctreeGridView(OctreeGrid):
 
@@ -373,3 +404,9 @@ class OctreeGridView(OctreeGrid):
             return grid
         else:
             return OctreeGrid.__getitem__(self, item)
+
+    def __getattr__(self, attribute):
+        if attribute == 'array':
+            return self.quantities[self.viewed_quantity]
+        else:
+            return OctreeGrid.__getattr__(self, attribute)

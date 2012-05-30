@@ -588,8 +588,8 @@ class Model(FreezableClass):
     def set_spherical_polar_grid(self, r_wall, t_wall, p_wall):
         self.set_grid(SphericalPolarGrid(r_wall, t_wall, p_wall))
 
-    def set_octree_grid(self, refined, x, y, z, dx, dy, dz):
-        self.set_grid(OctreeGrid(refined, x, y, z, dx, dy, dz))
+    def set_octree_grid(self, x, y, z, dx, dy, dz, refined):
+        self.set_grid(OctreeGrid(x, y, z, dx, dy, dz, refined))
 
     def set_amr_grid(self, description):
         self.set_grid(AMRGrid(description))
