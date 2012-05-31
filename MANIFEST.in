@@ -1,9 +1,8 @@
 include configure Makefile.in src/modules/empty.txt bin/empty.txt
-recursive-include src/ *.f90
+recursive-include src *.f90
 recursive-include fortranlib *.f90
 
 include hyperion/util/integrate_core.c
 include hyperion/util/interpolate_core.c
 
 recursive-exclude hyperion *.pyx *.pyc *.o
-
