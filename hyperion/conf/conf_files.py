@@ -482,11 +482,14 @@ class ImageConf(FreezableClass):
         self.sed = sed
         self.image = image
         if self.sed:
-            self.set_aperture_range(1, np.inf, np.inf)
+            self.set_aperture_range(1, np.inf, np.inf)  # reasonable default
+        # Since there are no reasonable defaults for image size and limits,
+        # as well as wavelength range, we don't set any. But we still have
+        # to set the variables since new attributes cannot be created later.
         if self.image:
-            self.set_image_size(1, 1)
-            self.set_image_limits(-np.inf, np.inf, -np.inf, np.inf)
-        self.set_wavelength_range(250, 0.01, 5000.)
+            self.n_x = self.n_y = None
+            self.xmin = self.xmax = self.ymin = self.ymax = None
+        self.n_wav = self.wav_min = self.wav_max = None
         self.set_output_bytes(8)
         self.set_track_origin('no')
         self.set_uncertainties(False)
@@ -525,6 +528,8 @@ class ImageConf(FreezableClass):
         self.n_y = n_y
 
     def _write_image_size(self, group):
+        if not hasattr(self, 'n_x'):
+            raise Exception("Image size has not been set")
         group.attrs['n_x'] = self.n_x
         group.attrs['n_y'] = self.n_y
 
@@ -545,6 +550,8 @@ class ImageConf(FreezableClass):
         self.ymax = ymax
 
     def _write_image_limits(self, group):
+        if not hasattr(self, 'xmin'):
+            raise Exception("Image limits have not been set")
         group.attrs['x_min'] = self.xmin
         group.attrs['x_max'] = self.xmax
         group.attrs['y_min'] = self.ymin
@@ -590,6 +597,8 @@ class ImageConf(FreezableClass):
         self.wav_max = wav_max
 
     def _write_wavelength_range(self, group):
+        if not hasattr(self, 'n_wav'):
+            raise Exception("Wavelength range has not been set")
         group.attrs['n_wav'] = self.n_wav
 
         if self._monochromatic:
