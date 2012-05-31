@@ -19,7 +19,7 @@ then make use of the ``get_quantities`` method to extract a grid object::
 
 By default, this will extract the physical quantities from the last
 iteration, but it is also possible to extract quantities from previous
-iterations, e.g.
+iterations, e.g.::
 
     grid = m.get_quantities(iteration=1)
 
@@ -61,3 +61,53 @@ Although the temperature values are not ever directly present in the output file
 
 In :doc:`../tutorials/tutorial_quantities`, we show how to visualize
 this information.
+
+AMR grids
+---------
+
+When extracting an AMR grid using ``get_quantities()``, an ``AMRGrid``
+object is returned. This object contains an attribute named ``levels`` that
+is a list of ``Level`` objects. Each ``Level`` object contains a ``grids``
+attribute that is a list of ``Grid`` objects, which in turn have attributes
+``xmin``, ``xmax``, ``ymin``, ``ymax``, ``zmin``, ``zmax``, ``nx``, ``ny``,
+and ``nz`` which give the boundaries and number of cells in each direction
+in the grid (this format is described in more detail
+in :doc:`../advanced/indepth_amr`).
+
+Since this is not easy to visualize, Hyperion includes an interface to the
+`yt <http://yt-project.org/>`_ package for AMR grids. If you extracted the
+quantities with::
+
+    amr = m.get_quantities()
+
+you can call the following method to output a ``StreamStaticOutput`` yt
+object that can be directly used for plotting in yt::
+
+    pf = amr.to_yt()
+
+where ``pf`` is a yt ``StaticOutput`` object. See
+:doc:`../tutorials/tutorial_quantities_yt` for more details and a plotting
+tutorial.
+
+Octree grids
+------------
+
+When extracting an Octree grid using ``get_quantities()``, an ``OctreeGrid``
+object is returned. The format of this object is described in detail in
+:doc:`../advanced/indepth_oct`.
+
+As for AMR grids, Hyperion includes an interface to the `yt
+<http://yt-project.org/>`_ package for Octree grids. If you extracted the
+quantities with::
+
+    oct = m.get_quantities()
+
+you can call the following method to output a ``StreamStaticOutput`` yt
+object that can be directly used for plotting in yt::
+
+    pf = oct.to_yt()
+
+where ``pf`` is a yt ``StaticOutput`` object. See
+:doc:`../tutorials/tutorial_quantities_yt` for more details and a plotting
+tutorial.
+
