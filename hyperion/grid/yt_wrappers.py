@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 import numpy as np
 
 import yt.frontends.stream.api as stream
@@ -7,7 +9,7 @@ from yt.utilities.io_handler import BaseIOHandler
 class HyperionIOHandler(BaseIOHandler):
 
     def __init__(self, grids, dust_id):
-        if np.array(grids[0]).ndim == 4:
+        if np.array(grids[0][grids[0].keys()[0]]).ndim == 4:
             self.dust_id = dust_id
         else:
             self.dust_id = None
@@ -195,14 +197,14 @@ def edge_list(refined, xmin, xmax, ymin, ymax, zmin, zmax, i=0):
         xmid = (xmin + xmax) * 0.5
         ymid = (ymin + ymax) * 0.5
         zmid = (zmin + zmax) * 0.5
-        e1, i = edge_list(refined, xmin, xmid, ymin, ymid, zmin, zmid, i=i+1)
-        e2, i = edge_list(refined, xmid, xmax, ymin, ymid, zmin, zmid, i=i+1)
-        e3, i = edge_list(refined, xmin, xmid, ymid, ymax, zmin, zmid, i=i+1)
-        e4, i = edge_list(refined, xmid, xmax, ymid, ymax, zmin, zmid, i=i+1)
-        e5, i = edge_list(refined, xmin, xmid, ymin, ymid, zmid, zmax, i=i+1)
-        e6, i = edge_list(refined, xmid, xmax, ymin, ymid, zmid, zmax, i=i+1)
-        e7, i = edge_list(refined, xmin, xmid, ymid, ymax, zmid, zmax, i=i+1)
-        e8, i = edge_list(refined, xmid, xmax, ymid, ymax, zmid, zmax, i=i+1)
+        e1, i = edge_list(refined, xmin, xmid, ymin, ymid, zmin, zmid, i=i + 1)
+        e2, i = edge_list(refined, xmid, xmax, ymin, ymid, zmin, zmid, i=i + 1)
+        e3, i = edge_list(refined, xmin, xmid, ymid, ymax, zmin, zmid, i=i + 1)
+        e4, i = edge_list(refined, xmid, xmax, ymid, ymax, zmin, zmid, i=i + 1)
+        e5, i = edge_list(refined, xmin, xmid, ymin, ymid, zmid, zmax, i=i + 1)
+        e6, i = edge_list(refined, xmid, xmax, ymin, ymid, zmid, zmax, i=i + 1)
+        e7, i = edge_list(refined, xmin, xmid, ymid, ymax, zmid, zmax, i=i + 1)
+        e8, i = edge_list(refined, xmid, xmax, ymid, ymax, zmid, zmax, i=i + 1)
         return [(xmin, xmax, ymin, ymax, zmin, zmax)] + e1 + e2 + e3 + e4 + e5 + e6 + e7 + e8, i
 
 
@@ -225,7 +227,7 @@ def level_list(refined, i=0, level=0):
     if refined[i]:
         levels = [level]
         for s in range(8):
-            l, i = level_list(refined, i=i+1, level=level+1)
+            l, i = level_list(refined, i=i + 1, level=level + 1)
             levels = levels + l
         return levels, i
     else:
@@ -260,8 +262,8 @@ def octree_grid_to_yt_stream(grid, dust_id=0):
 
     e = np.array(e)
 
-    left_edge = e[:,::2].astype(np.float64)
-    right_edge = e[:,1::2].astype(np.float64)
+    left_edge = e[:, ::2].astype(np.float64)
+    right_edge = e[:, 1::2].astype(np.float64)
     dimensions = np.ones((np.sum(grid.refined), 3), dtype=np.int32) * 2
     level_ids = np.array(level_list(grid.refined)[0], dtype=np.int32)
     level_ids = level_ids.reshape((len(level_ids), 1))

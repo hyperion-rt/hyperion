@@ -91,6 +91,9 @@ class AMRGrid(FreezableClass):
                     grid_ref.zmin, grid_ref.zmax = grid.zmin, grid.zmax
                     grid_ref.quantities = {}
 
+    def remove_level(self, level_id):
+        self.levels.pop(level_id)
+
     def add_level(self):
         level = Level()
         self.levels.append(level)
