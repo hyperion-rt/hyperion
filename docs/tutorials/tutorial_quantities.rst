@@ -87,7 +87,7 @@ density-weighted temperature map collapsed in the z direction::
     cb.set_label('Temperature (K)')
     fig.savefig('weighted_temperature_cartesian.png', bbox_inches='tight')
 
-.. image:: weighted_temperature_cartesian.png
+.. image:: images/weighted_temperature_cartesian.png
 
 Of course, we can also plot individual slices::
 
@@ -102,7 +102,7 @@ Of course, we can also plot individual slices::
     cb.set_label('Temperature (K)')
     fig.savefig('sliced_temperature_cartesian.png', bbox_inches='tight')
 
-.. image:: sliced_temperature_cartesian.png
+.. image:: images/sliced_temperature_cartesian.png
 
 Spherical polar grid example
 ----------------------------
@@ -186,7 +186,7 @@ Making a plot of temperature in (r, theta) space is similar to before::
     cb.set_label('Temperature (K)')
     fig.savefig('temperature_spherical_rt.png', bbox_inches='tight')
 
-.. image:: temperature_spherical_rt.png
+.. image:: images/temperature_spherical_rt.png
 
 Making a plot in cartesian coordinates instead is in fact also straightforward::
 
@@ -226,5 +226,5 @@ Making a plot in cartesian coordinates instead is in fact also straightforward::
 
     fig.savefig('temperature_spherical_xz.png', bbox_inches='tight')
 
-.. image:: temperature_spherical_xz.png
+.. image:: images/temperature_spherical_xz.png
    :width: 800px

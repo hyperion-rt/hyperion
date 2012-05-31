@@ -64,7 +64,7 @@ The frames can then be combined into a GIF animation using ImageMagick::
 
 The delay value is the delay between frames in 1/100ths of a second. The result is the following:
 
-.. image:: movie.gif
+.. image:: images/movie.gif
    :scale: 75 %
    :alt: Fly-around movie of simple model
    :align: center

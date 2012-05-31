@@ -122,7 +122,7 @@ aperture, we can do::
 
 This script produces the following plot:
 
-.. image:: sed.png
+.. image:: images/sed.png
    :scale: 75 %
    :alt: Simple SED plot
    :align: center
@@ -156,7 +156,7 @@ Now let's say that we want to plot the SED for all inclinations. We can either c
 
 This script produces the following plot:
 
-.. image:: sed_incl.png
+.. image:: images/sed_incl.png
    :scale: 75 %
    :alt: Simple SED plot with inclination dependence
    :align: center
@@ -211,7 +211,7 @@ you can plot the individual components. The following example retrieves each sep
 
 This script produces the following plot:
 
-.. image:: sed_origin.png
+.. image:: images/sed_origin.png
    :scale: 75 %
    :alt: Simple SED plot with origin tracking
    :align: center
