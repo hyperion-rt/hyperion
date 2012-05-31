@@ -36,7 +36,13 @@ then the module is not installed. If you see this
 
 then the module is already installed.
 
-.. note:: If you do not have root access to the machine you are using, then follow the instructions in :ref:`nonrootpython` to install the modules into your home directory. In addition, you should not ever include ``sudo`` in any of the commands.
+.. note:: If you do not have root access to the machine you are using, then
+          follow the instructions in :ref:`nonrootpython` to install the
+          modules into your home directory. In addition, you should not ever
+          include ``sudo`` in any of the commands.
+
+.. note:: If you are installing Hyperion from the git repository, you will
+          also need the `Cython <http://www.cython.org>`_ module installed.
 
 MacOS X
 =======
@@ -52,7 +58,8 @@ If you are installing Python for the first time, we **strongly** recommend the u
 System/python.org Python
 ------------------------
 
-If you do not want to use MacPorts, the easiest way to install the three first dependencies is to download and install the MacOS X ``dmg`` files for NumPy,
+If you do not want to use MacPorts, the easiest way to install the three first
+dependencies is to download and install the MacOS X ``dmg`` files for NumPy,
 SciPy, and Matplotlib. Use the links at the top of this section to get the
 latest dmg files from the different websites. You can of course also install
 these from source, but this is beyond the scope of this documentation.
