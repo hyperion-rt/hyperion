@@ -185,3 +185,126 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
     spf.units["unitary"] = 1.0 / ((spf.domain_right_edge - spf.domain_left_edge).max())
 
     return spf
+
+
+def edge_list(refined, xmin, xmax, ymin, ymax, zmin, zmax, i=0):
+
+    if not refined[i]:
+        return [], i
+    else:
+        xmid = (xmin + xmax) * 0.5
+        ymid = (ymin + ymax) * 0.5
+        zmid = (zmin + zmax) * 0.5
+        e1, i = edge_list(refined, xmin, xmid, ymin, ymid, zmin, zmid, i=i+1)
+        e2, i = edge_list(refined, xmid, xmax, ymin, ymid, zmin, zmid, i=i+1)
+        e3, i = edge_list(refined, xmin, xmid, ymid, ymax, zmin, zmid, i=i+1)
+        e4, i = edge_list(refined, xmid, xmax, ymid, ymax, zmin, zmid, i=i+1)
+        e5, i = edge_list(refined, xmin, xmid, ymin, ymid, zmid, zmax, i=i+1)
+        e6, i = edge_list(refined, xmid, xmax, ymin, ymid, zmid, zmax, i=i+1)
+        e7, i = edge_list(refined, xmin, xmid, ymid, ymax, zmid, zmax, i=i+1)
+        e8, i = edge_list(refined, xmid, xmax, ymid, ymax, zmid, zmax, i=i+1)
+        return [(xmin, xmax, ymin, ymax, zmin, zmax)] + e1 + e2 + e3 + e4 + e5 + e6 + e7 + e8, i
+
+
+def decompose_quantity(refined, array, i=0):
+    subarray = []
+    newarray = []
+    if refined[i]:
+        for s in range(8):
+            i = i + 1
+            subarray.append(array[i])
+            a, i = decompose_quantity(refined, array, i=i)
+            newarray += a
+        subarray = np.array(subarray).reshape((2, 2, 2))
+        return [subarray] + newarray, i
+    else:
+        return [], i
+
+
+def level_list(refined, i=0, level=0):
+    if refined[i]:
+        levels = [level]
+        for s in range(8):
+            l, i = level_list(refined, i=i+1, level=level+1)
+            levels = levels + l
+        return levels, i
+    else:
+        return [], i
+
+
+class HyperionIOHandlerOct(BaseIOHandler):
+
+    def __init__(self, quantities):
+        self.quantities = quantities
+        BaseIOHandler.__init__(self)
+
+    def _read_data_set(self, grid, field):
+        return self.quantities[field.lower()][grid.id].transpose()
+
+    def _read_data_slice(self, grid, field, axis, coord):
+        sl = [slice(None), slice(None), slice(None)]
+        sl[axis] = slice(coord, coord + 1)
+        return self._read_data_set(grid, field)[sl]
+
+
+def octree_grid_to_yt_stream(grid, dust_id=0):
+
+    xmin = grid.x - grid.dx
+    xmax = grid.x + grid.dx
+    ymin = grid.y - grid.dy
+    ymax = grid.y + grid.dy
+    zmin = grid.z - grid.dz
+    zmax = grid.z + grid.dz
+
+    e, i = edge_list(grid.refined, xmin, xmax, ymin, ymax, zmin, zmax)
+
+    e = np.array(e)
+
+    left_edge = e[:,::2].astype(np.float64)
+    right_edge = e[:,1::2].astype(np.float64)
+    dimensions = np.ones((np.sum(grid.refined), 3), dtype=np.int32) * 2
+    level_ids = np.array(level_list(grid.refined)[0], dtype=np.int32)
+    level_ids = level_ids.reshape((len(level_ids), 1))
+
+    n_grids = np.sum(grid.refined)
+
+    parent_ids = None
+    particle_count = np.zeros((n_grids, 1), dtype='int32')
+    processor_ids = np.zeros(n_grids)
+
+    # Determine fields
+
+    fields = grid.quantities.keys()
+
+    # Set up StreamHandler
+
+    quantities = {}
+    for field in grid.quantities:
+        quantities[field] = decompose_quantity(grid.refined, grid.quantities[field][dust_id])[0]
+
+    handler = stream.StreamHandler(
+        left_edge[:],
+        right_edge[:],
+        dimensions[:],
+        level_ids[:],
+        parent_ids,
+        particle_count[:],
+        processor_ids[:],
+        StreamFieldData(fields),
+        HyperionIOHandlerOct(quantities),
+    )
+
+    handler.name = 'hyperion'
+    handler.domain_left_edge = np.array([xmin, ymin, zmin])
+    handler.domain_right_edge = np.array([xmax, ymax, zmax])
+    handler.refine_by = 2
+    handler.dimensionality = 3
+    handler.domain_dimensions = np.array([2, 2, 2])
+    handler.simulation_time = 0.0
+    handler.cosmology_simulation = 0
+
+    spf = stream.StreamStaticOutput(handler)
+    spf.units["cm"] = 1.0
+    spf.units["unitary"] = 1.0 / ((spf.domain_right_edge - spf.domain_left_edge).max())
+
+    return spf
