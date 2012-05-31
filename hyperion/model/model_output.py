@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 import os
+import warnings
 
 import h5py
 import numpy as np
@@ -1138,6 +1139,8 @@ class ModelOutput(FreezableClass):
 
         At the moment, this method only works on regular grids, not AMR or Oct-tree grids
         '''
+
+        warnings.warn("get_physical_grid is deprecated, use get_quantities instead", DeprecationWarning)
 
         # Check that dust_id was not specified if grid is n_photons
         if name == 'n_photons':
