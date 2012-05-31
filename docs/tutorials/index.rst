@@ -16,4 +16,5 @@ Post-processing
    tutorial_writing.rst
    tutorial_animations.rst
    tutorial_quantities.rst
+   tutorial_quantities_yt.rst
   
