@@ -8,9 +8,29 @@ interaction into well defined directions. The latter provide more accurate
 SEDs and much better signal-to-noise, and are likely to be more commonly used
 than the former.
 
-The code currently allows at most one set of binned images, and any number of
-sets of peeled images. A set is defined by a wavelength range, image
+The code currently allows at most one set of binned images, and any number
+of sets of peeled images. A set is defined by a wavelength range, image
 resolution and extent, and any number of viewing angles.
+
+Common parameters
+-----------------
+
+The wavelength range (in microns) for the images/SEDs can be specified using::
+
+    image.set_wavelength_range(n_wav, wav_min, wav_max)
+
+The image size in pixels and the extent of the images can be specified using::
+
+    image.set_image_size(n_x, n_y)
+    image.set_image_limits(xmin, xmax, ymin, ymax)
+
+where the image limits should be given in cm. The apertures for the SEDs can
+be specified using::
+
+    image.set_aperture_range(n_ap, ap_min, ap_max)
+
+where the apertures should be given in cm. The default is to have one
+aperture with infinite size, i.e. measuring all the flux.
 
 Binned images
 -------------
@@ -30,7 +50,9 @@ To add a set of peeled images/SEDs to the model, use::
 
     image = m.add_peeled_images()
 
-The viewing angles can be specified as lists or arrays of theta and phi values, in degrees. For example, the following produces images from pole-on to edge-on at constant phi using 20 viewing angles::
+The viewing angles can be specified as lists or arrays of theta and phi
+values, in degrees. For example, the following produces images from pole-on
+to edge-on at constant phi using 20 viewing angles::
 
     # Set number of viewing angles
     n_view = 20
@@ -42,23 +64,7 @@ The viewing angles can be specified as lists or arrays of theta and phi values, 
     # Set the viewing angles
     image.set_viewing_angles(theta, phi)
 
-Common parameters
------------------
-
-The wavelength range (in microns) for the images/SEDs can be specified using::
-
-    image.set_wavelength_range(n_wav, wav_min, wav_max)
-
-The image size in pixels and the extent of the images can be specified using::
-
-    image.set_image_size(n_x, n_y)
-    image.set_image_limits(xmin, xmax, ymin, ymax)
-
-The apertures for the SEDs can be specified using::
-
-    image.set_aperture_range(n_ap, ap_min, ap_max)
-
-The default is to have one aperture with infinite size, i.e. measuring all the flux.
+A few more advanced parameters are also available, and these are described in :doc:`../advanced/peeloff`.
 
 Uncertainties
 -------------
