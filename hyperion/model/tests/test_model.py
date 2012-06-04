@@ -125,6 +125,33 @@ class TestMerge(object):
 
     def setup_class(self):
 
+        self.grid = {}
+
+        self.grid['car'] = CartesianGrid([-1., 1.], [-2., 2.], [-3., 3.])
+        self.grid['cyl'] = CylindricalPolarGrid([0., 1.], [-1., 1.], [0., 2. * np.pi])
+        self.grid['sph'] = SphericalPolarGrid([0., 1.], [0., np.pi], [0., 2. * np.pi])
+
+        self.grid['amr'] = AMRGrid()
+        level = self.grid['amr'].add_level()
+        grid = level.add_grid()
+        grid.xmin, grid.xmax = -1., 1.
+        grid.ymin, grid.ymax = -1., 1.
+        grid.zmin, grid.zmax = -1., 1.
+        grid.nx, grid.ny, grid.nz = 8, 8, 8
+        grid.quantities['density'] = np.ones((8, 8, 8))
+
+        refined = [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                   0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.grid['oct'] = OctreeGrid(0., 0., 0., 10., 10., 10., np.array(refined).astype(bool))
+
+        # Set up initial densities
+        self.density = {}
+        self.density['car'] = np.array([[[1.]]])
+        self.density['cyl'] = np.array([[[1.]]])
+        self.density['sph'] = np.array([[[1.]]])
+        self.density['amr'] = self.grid['amr']['density']
+        self.density['oct'] = np.ones(len(refined))
+
         self.dust1_filename = random_filename()
         self.dust1 = get_test_dust()
         self.dust1.write(self.dust1_filename)
@@ -142,57 +169,65 @@ class TestMerge(object):
         # opacities since it has never been written to a file
         self.dust4 = get_test_dust()
 
-
-    def test_merge_no(self):
+    @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
+    def test_merge_no(self, grid_type):
 
         m = Model()
-        m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
-        m.set_n_photons(initial=100, imaging=100)
-        m.add_density_grid(np.array([[[1.]]]), self.dust1_filename)
-        m.add_density_grid(np.array([[[1.]]]), self.dust2_filename, merge_if_possible=True)
+        m.set_grid(self.grid[grid_type])
+        m.add_density_grid(self.density[grid_type], self.dust1_filename)
+        m.add_density_grid(self.density[grid_type], self.dust2_filename, merge_if_possible=True)
         assert m.grid.n_dust == 2
 
-    def test_merge_filename(self):
+    @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
+    def test_merge_filename_disabled(self, grid_type):
 
         m = Model()
-        m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
-        m.set_n_photons(initial=100, imaging=100)
-        m.add_density_grid(np.array([[[1.]]]), self.dust1_filename)
-        m.add_density_grid(np.array([[[1.]]]), self.dust1_filename, merge_if_possible=True)
-        assert m.grid.n_dust == 1
-
-    def test_merge_object_identical(self):
-
-        m = Model()
-        m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
-        m.set_n_photons(initial=100, imaging=100)
-        m.add_density_grid(np.array([[[1.]]]), self.dust1)
-        m.add_density_grid(np.array([[[1.]]]), self.dust1, merge_if_possible=True)
-        assert m.grid.n_dust == 1
-
-    def test_merge_object_samehash(self):
-
-        m = Model()
-        m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
-        m.set_n_photons(initial=100, imaging=100)
-        m.add_density_grid(np.array([[[1.]]]), self.dust1)
-        m.add_density_grid(np.array([[[1.]]]), self.dust2, merge_if_possible=True)
-        assert m.grid.n_dust == 1
-
-    def test_merge_object_diffhash(self):
-
-        m = Model()
-        m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
-        m.set_n_photons(initial=100, imaging=100)
-        m.add_density_grid(np.array([[[1.]]]), self.dust1)
-        m.add_density_grid(np.array([[[1.]]]), self.dust3, merge_if_possible=True)
+        m.set_grid(self.grid[grid_type])
+        m.add_density_grid(self.density[grid_type], self.dust1_filename)
+        m.add_density_grid(self.density[grid_type], self.dust1_filename, merge_if_possible=False)
         assert m.grid.n_dust == 2
 
-    def test_merge_object_incomplete(self):
+    @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
+    def test_merge_filename(self, grid_type):
 
         m = Model()
-        m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
-        m.set_n_photons(initial=100, imaging=100)
-        m.add_density_grid(np.array([[[1.]]]), self.dust1)
-        m.add_density_grid(np.array([[[1.]]]), self.dust4, merge_if_possible=True)
+        m.set_grid(self.grid[grid_type])
+        m.add_density_grid(self.density[grid_type], self.dust1_filename)
+        m.add_density_grid(self.density[grid_type], self.dust1_filename, merge_if_possible=True)
+        assert m.grid.n_dust == 1
+
+    @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
+    def test_merge_object_identical(self, grid_type):
+
+        m = Model()
+        m.set_grid(self.grid[grid_type])
+        m.add_density_grid(self.density[grid_type], self.dust1)
+        m.add_density_grid(self.density[grid_type], self.dust1, merge_if_possible=True)
+        assert m.grid.n_dust == 1
+
+    @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
+    def test_merge_object_samehash(self, grid_type):
+
+        m = Model()
+        m.set_grid(self.grid[grid_type])
+        m.add_density_grid(self.density[grid_type], self.dust1)
+        m.add_density_grid(self.density[grid_type], self.dust2, merge_if_possible=True)
+        assert m.grid.n_dust == 1
+
+    @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
+    def test_merge_object_diffhash(self, grid_type):
+
+        m = Model()
+        m.set_grid(self.grid[grid_type])
+        m.add_density_grid(self.density[grid_type], self.dust1)
+        m.add_density_grid(self.density[grid_type], self.dust3, merge_if_possible=True)
+        assert m.grid.n_dust == 2
+
+    @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
+    def test_merge_object_incomplete(self, grid_type):
+
+        m = Model()
+        m.set_grid(self.grid[grid_type])
+        m.add_density_grid(self.density[grid_type], self.dust1)
+        m.add_density_grid(self.density[grid_type], self.dust4, merge_if_possible=True)
         assert m.grid.n_dust == 2
