@@ -121,6 +121,7 @@ class TestAllGridTypes(object):
         m.write(random_filename())
         m.run(random_filename())
 
+
 class TestMerge(object):
 
     def setup_class(self):

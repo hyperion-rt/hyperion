@@ -112,6 +112,7 @@ class TestSEDSimpleModel(object):
             wav, nufnu = self.m.get_sed(units=units)
         assert exc.value.args[0] == 'Since distance= is not specified, units should be set to ergs/s'
 
+
 class TestSimpleModelInside(object):
 
     def setup_class(self):
