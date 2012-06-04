@@ -8,6 +8,7 @@ from ...util.functions import random_filename
 from .test_helpers import get_test_dust
 from ...util.convenience import OptThinRadius
 
+
 def basic_analytical_model():
 
     dust = get_test_dust()
@@ -29,6 +30,7 @@ def basic_analytical_model():
     d.dust = dust
 
     return m
+
 
 def test_analytical_yso_full():
 
@@ -102,6 +104,7 @@ def test_analytical_yso_use_quantities_invalid():
         m2.use_quantities(output_file)
     assert exc.value.args[0] == "Cannot use previous density in AnalyticalYSOModel. If you want to use just the previous specific_energy, specify quantities=['specific_energy']."
 
+
 def test_analytical_yso_use_quantities():
 
     output_file = random_filename()
@@ -119,6 +122,7 @@ def test_analytical_yso_use_quantities():
     m2.write(random_filename())
     m2.run(random_filename())
 
+
 def test_analytical_yso_use_geometry():
 
     output_file = random_filename()
@@ -134,6 +138,7 @@ def test_analytical_yso_use_geometry():
     m2.set_n_photons(initial=100, imaging=100)
     m2.write(random_filename())
     m2.run(random_filename())
+
 
 def test_analytical_yso_use_geometry_quantities():
 
