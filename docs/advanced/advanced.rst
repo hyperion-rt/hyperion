@@ -14,6 +14,7 @@ transfer.
    indepth_oct.rst
    indepth_amr.rst
    logger.rst
+   peeloff.rst
 
 
 Finally, the two following topics are reserved for coding ninjas! They explain
