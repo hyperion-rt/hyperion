@@ -109,33 +109,31 @@ def assert_output_matches(filename, reference):
 
     # Check that group lists are the same
     if groups != groups_ref:
-        differences.append("Group lists do not match")
+        differences.append("Group lists do not match: found {0} but expected {1}".format(str(groups), str(groups_ref)))
 
     # Make ordered lists of the datasets to compare
     dataset_list = sorted(datasets.keys())
     dataset_ref_list = sorted(datasets_ref.keys())
 
-    # Check that dataset lists are the same
+    # Check whether the dataset lists are different
     if dataset_list != dataset_ref_list:
-        differences.append("Dataset lists do not match")
-
-    # Check that hashes match
-    for d in datasets:
-        if datasets[d] != datasets_ref[d]:
-            differences.append("Dataset hashes do not match [{0}]".format(d))
+        differences.append("Dataset lists do not match: found {0} but expected {1}".format(str(dataset_list), str(dataset_ref_list)))
+    else: # Check that hashes match
+        for d in datasets:
+            if datasets[d] != datasets_ref[d]:
+                differences.append("Dataset hashes do not match: found {0}={1} but expected {0}={2}".format(d, datasets[d], datasets_ref[d]))
 
     # Make ordered lists of the attributes to compare
     attribute_list = sorted(attributes.keys())
     attribute_ref_list = sorted(attributes_ref.keys())
 
-    # Check that attribute lists are the same
+    # Check whether the attribute lists are different
     if attribute_list != attribute_ref_list:
-        differences.append("Attribute lists do not match")
-
-    # Check that hashes match
-    for a in attributes:
-        if attributes[a] != attributes_ref[a]:
-            differences.append("Attribute values do not match [{0}]".format(a))
+        differences.append("Attribute lists do not match: found {0} but expected {1}".format(str(attribute_list), str(attribute_ref_list)))
+    else: # Check that hashes match
+        for a in attributes:
+            if attributes[a] != attributes_ref[a]:
+                differences.append("Attribute values do not match: found {0}={1} but expected {0}={2}".format(a, attributes[a], attributes_ref[a]))
 
     for item in differences:
         print(item)
@@ -170,7 +168,7 @@ def make_item_list(filename):
     from hashlib import md5
 
     # List of attributes to exclude from checking (time-dependent)
-    EXCLUDE_ATTR = ['date_started', 'date_ended', 'cpu_time']
+    EXCLUDE_ATTR = ['date_started', 'date_ended', 'cpu_time', 'python_version', 'fortran_version']
 
     groups = []
     datasets = {}
@@ -228,6 +226,8 @@ class TestEnergy(object):
         m.set_copy_input(False)
 
         m.set_sample_sources_evenly(sample_sources_evenly)
+
+        m.conf.output.output_specific_energy = 'all'
 
         m.write(random_filename(), copy=False, absolute_paths=True)
         output_file = random_filename()
