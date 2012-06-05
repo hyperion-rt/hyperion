@@ -6,17 +6,17 @@
 # to run.
 
 import os
-import shutil
 import itertools
 
+import h5py
 import pytest
 import numpy as np
 
+import cPickle as pickle
+
+from .test_helpers import random_filename
 from .. import Model
-from .test_helpers import random_filename, assert_identical_results
-from ...util.constants import pc, lsun, au
-
-
+from ...util.constants import pc, lsun
 from ...grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid, AMRGrid, OctreeGrid
 
 GRID_TYPES = ['car', 'cyl', 'sph', 'amr', 'oct']
@@ -90,6 +90,117 @@ def function_name():
     return name
 
 
+def assert_output_matches(filename, reference):
+
+    differences = []
+
+    # Get items from file to compare
+    groups, datasets, attributes = make_item_list(filename)
+
+    # Read in reference from pickle
+    ref = open(reference, 'rb')
+    groups_ref = pickle.load(ref)
+    datasets_ref = pickle.load(ref)
+    attributes_ref = pickle.load(ref)
+
+    # Order groups since order is not guaranteed
+    groups.sort()
+    groups_ref.sort()
+
+    # Check that group lists are the same
+    if groups != groups_ref:
+        differences.append("Group lists do not match")
+
+    # Make ordered lists of the datasets to compare
+    dataset_list = sorted(datasets.keys())
+    dataset_ref_list = sorted(datasets_ref.keys())
+
+    # Check that dataset lists are the same
+    if dataset_list != dataset_ref_list:
+        differences.append("Dataset lists do not match")
+
+    # Check that hashes match
+    for d in datasets:
+        if datasets[d] != datasets_ref[d]:
+            differences.append("Dataset hashes do not match [{0}]".format(d))
+
+    # Make ordered lists of the attributes to compare
+    attribute_list = sorted(attributes.keys())
+    attribute_ref_list = sorted(attributes_ref.keys())
+
+    # Check that attribute lists are the same
+    if attribute_list != attribute_ref_list:
+        differences.append("Attribute lists do not match")
+
+    # Check that hashes match
+    for a in attributes:
+        if attributes[a] != attributes_ref[a]:
+            differences.append("Attribute values do not match [{0}]".format(a))
+
+    for item in differences:
+        print(item)
+
+    assert len(differences) == 0
+
+
+def write_item_list(filename, filename_out):
+
+    groups, datasets, attributes = make_item_list(filename)
+
+    f = open(filename_out, 'wb')
+    pickle.dump(groups, f, 2)
+    pickle.dump(datasets, f, 2)
+    pickle.dump(attributes, f, 2)
+    f.close()
+
+
+def type_cast(a):
+    try:
+        float(a)
+        if float(a) == int(a):
+            return int(a)
+        else:
+            return float(a)
+    except:
+        return str(a)
+
+
+def make_item_list(filename):
+
+    from hashlib import md5
+
+    # List of attributes to exclude from checking (time-dependent)
+    EXCLUDE_ATTR = ['date_started', 'date_ended', 'cpu_time']
+
+    groups = []
+    datasets = {}
+    attributes = {}
+
+    # Open file
+    f = h5py.File(filename, 'r')
+
+    # List datasets and groups in file
+    def func(name, obj):
+        if isinstance(obj, h5py.Dataset):
+            a = np.array(obj)
+            datasets[name] = md5(a).hexdigest()
+        elif isinstance(obj, h5py.Group):
+            groups.append(name)
+    f.visititems(func)
+
+    # Loop over all groups and datasets to check attributes
+    for item in ['/'] + datasets.keys() + groups:
+
+        # Find all attributes
+        attr = f[item].attrs.keys()
+
+        for a in attr:
+            if a not in EXCLUDE_ATTR:
+                attributes[a] = type_cast(f[item].attrs[a])
+
+    return groups, datasets, attributes
+
+
 class TestEnergy(object):
 
     def setup_class(self):
@@ -123,12 +234,12 @@ class TestEnergy(object):
         m.run(output_file, overwrite=True)
 
         if generate:
-            reference_file = os.path.join(generate, function_name() + ".rtout")
-            shutil.copy(output_file, reference_file)
+            reference_file = os.path.join(generate, function_name() + ".pickle")
+            write_item_list(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
         else:
-            reference_file = os.path.join(DATA, function_name() + ".rtout")
-            assert_identical_results(output_file, reference_file)
+            reference_file = os.path.join(DATA, function_name() + ".pickle")
+            assert_output_matches(output_file, reference_file)
 
     @generate_reference
     @pytest.mark.parametrize(('grid_type', 'raytracing', 'sample_sources_evenly'), list(itertools.product(GRID_TYPES, [True, False], [True, False])))
@@ -184,9 +295,9 @@ class TestEnergy(object):
         m.run(output_file, overwrite=True)
 
         if generate:
-            reference_file = os.path.join(generate, function_name() + ".rtout")
-            shutil.copy(output_file, reference_file)
+            reference_file = os.path.join(generate, function_name() + ".pickle")
+            write_item_list(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
         else:
-            reference_file = os.path.join(DATA, function_name() + ".rtout")
-            assert_identical_results(output_file, reference_file)
+            reference_file = os.path.join(DATA, function_name() + ".pickle")
+            assert_output_matches(output_file, reference_file)

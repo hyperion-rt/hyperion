@@ -59,7 +59,7 @@ setup(name='hyperion',
                 'hyperion.testing',
                 'hyperion.util',
                 'hyperion.util.tests'],
-      package_data={'hyperion.model.tests':['data/*.rtout', 'data/*.hdf5']},
+      package_data={'hyperion.model.tests':['data/*.pickle', 'data/*.hdf5']},
       scripts=['scripts/' + x for x in scripts],
       cmdclass=cmdclass,
       ext_modules = ext_modules
