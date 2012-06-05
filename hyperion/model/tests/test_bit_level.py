@@ -62,6 +62,8 @@ def setup_all_grid_types(self, u, d):
     grid.zmin, grid.zmax = -u, u
     grid.nx, grid.ny, grid.nz = 8, 6, 4
     grid.quantities['density'] = np.random.random((4, 6, 8)) * d
+    grid.quantities['density_2'] = np.random.random((4, 6, 8)) * d
+    grid.quantities['density_3'] = np.random.random((4, 6, 8)) * d
 
     # Octree
     refined = [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -76,6 +78,21 @@ def setup_all_grid_types(self, u, d):
     self.density['amr'] = self.grid['amr']['density']
     self.density['oct'] = np.random.random(len(refined)) * d
 
+    # Second set of densities
+    self.density_2 = {}
+    self.density_2['car'] = np.random.random(self.grid['car'].shape) * d
+    self.density_2['cyl'] = np.random.random(self.grid['cyl'].shape) * d
+    self.density_2['sph'] = np.random.random(self.grid['sph'].shape) * d
+    self.density_2['amr'] = self.grid['amr']['density_2']
+    self.density_2['oct'] = np.random.random(len(refined)) * d
+
+    # Third set of densities
+    self.density_3 = {}
+    self.density_3['car'] = np.random.random(self.grid['car'].shape) * d
+    self.density_3['cyl'] = np.random.random(self.grid['cyl'].shape) * d
+    self.density_3['sph'] = np.random.random(self.grid['sph'].shape) * d
+    self.density_3['amr'] = self.grid['amr']['density_3']
+    self.density_3['oct'] = np.random.random(len(refined)) * d
 
 def function_name():
     import sys
@@ -209,14 +226,17 @@ class TestEnergy(object):
         self.dust_file = os.path.join(DATA, 'kmh_lite.hdf5')
 
     @generate_reference
-    @pytest.mark.parametrize(('grid_type', 'sample_sources_evenly'), list(itertools.product(GRID_TYPES, [True, False])))
-    def test_specific_energy(self, grid_type, sample_sources_evenly, generate=False):
+    @pytest.mark.parametrize(('grid_type', 'sample_sources_evenly', 'multiple_densities'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
+    def test_specific_energy(self, grid_type, sample_sources_evenly, multiple_densities, generate=False):
 
         np.random.seed(12345)
 
         m = Model()
         m.set_grid(self.grid[grid_type])
         m.add_density_grid(self.density[grid_type], self.dust_file)
+        if multiple_densities:
+            m.add_density_grid(self.density_2[grid_type], self.dust_file)
+            m.add_density_grid(self.density_3[grid_type], self.dust_file)
 
         for i in range(5):
             s = m.add_point_source()
@@ -224,7 +244,7 @@ class TestEnergy(object):
             s.temperature = np.random.uniform(2000., 10000.)
             s.position = np.random.uniform(-pc, pc, 3)
 
-        m.set_n_photons(initial=1000, imaging=0)
+        m.set_n_photons(initial=10000, imaging=0)
 
         m.set_copy_input(False)
 
@@ -245,7 +265,7 @@ class TestEnergy(object):
             assert_output_matches(output_file, reference_file)
 
     @generate_reference
-    @pytest.mark.parametrize(('grid_type', 'raytracing', 'sample_sources_evenly'), list(itertools.product(GRID_TYPES, [True, False], [True, False])))
+    @pytest.mark.parametrize(('grid_type', 'raytracing', 'sample_sources_evenly'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
     def test_peeloff(self, grid_type, raytracing, sample_sources_evenly, generate=False):
 
         np.random.seed(12345)
