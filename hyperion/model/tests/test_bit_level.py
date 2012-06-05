@@ -160,7 +160,10 @@ def type_cast(a):
         else:
             return float(a)
     except:
-        return str(a)
+        try:  # in case it is a bytes object
+            return a.decode()
+        except:
+            return str(a)
 
 
 def make_item_list(filename):
