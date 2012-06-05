@@ -87,6 +87,10 @@ class HyperionTest(Command, object):
         ('args=', 'a', 'Additional arguments to be passed to pytest'),
     ]
 
+    def __init__(self, dist):
+        Command.__init__(self, dist)
+        self.verbose=False  # __init__ sets verbose to True after calling initialize_options
+
     def initialize_options(self):
         self.package = None
         self.test_path = None
