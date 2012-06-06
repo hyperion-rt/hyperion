@@ -3,9 +3,6 @@ from __future__ import print_function, division
 import os
 import tempfile
 
-import h5py
-import numpy as np
-
 from ...dust import IsotropicDust
 from .. import Model
 from ...util.functions import random_id
