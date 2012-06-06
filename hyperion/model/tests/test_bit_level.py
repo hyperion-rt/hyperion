@@ -276,8 +276,6 @@ class TestBasic(object):
             reference_file = os.path.join(DATA, function_name() + ".pickle")
             assert_output_matches(output_file, reference_file)
 
-
-
     @generate_reference
     @pytest.mark.parametrize(('grid_type', 'raytracing', 'sample_sources_evenly'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
     def test_peeloff(self, grid_type, raytracing, sample_sources_evenly, generate=False):
