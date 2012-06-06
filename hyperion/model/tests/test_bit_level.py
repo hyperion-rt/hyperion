@@ -18,7 +18,7 @@ from .test_helpers import random_filename
 from .. import Model, AnalyticalYSOModel
 from ...util.constants import pc, lsun, c, au, msun, pi, sigma, rsun
 from ...grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid, AMRGrid, OctreeGrid
-from ...dust import IsotropicDust
+from ...dust import IsotropicDust, SphericalDust
 
 GRID_TYPES = ['car', 'cyl', 'sph', 'amr', 'oct']
 
@@ -327,7 +327,7 @@ class TestEnergy(object):
             assert_output_matches(output_file, reference_file)
 
 
-class TestPascucci(object):
+class TestPascucciBenchmark(object):
     """
     Run a very low signal-to-noise version of the Pascucci benchmark models.
     The point is not to have high signal-to-noise but to look for bit-level
@@ -497,6 +497,204 @@ class TestPascucci(object):
 
         m.set_n_photons(initial=1000, imaging_sources=1000, imaging_dust=1000,
                     raytracing_sources=1000, raytracing_dust=1000)
+
+        m.write(random_filename())
+        output_file = random_filename()
+        m.run(output_file, overwrite=True)
+
+        if generate:
+            reference_file = os.path.join(generate, function_name() + ".pickle")
+            write_item_list(output_file, reference_file)
+            pytest.skip("Skipping test, since generating data")
+        else:
+            reference_file = os.path.join(DATA, function_name() + ".pickle")
+            assert_output_matches(output_file, reference_file)
+
+
+class TestPinteBenchmark(object):
+    """
+    Run a very low signal-to-noise version of the Pinte benchmark models.
+    The point is not to have high signal-to-noise but to look for bit-level
+    changes.
+
+    Notes
+    -----
+
+    The current tests do not test the imaging part of the Pinte benchmark.
+    """
+
+    @generate_reference
+    @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
+    def test_pinte_seds(self, tau, generate=False):
+
+        m = AnalyticalYSOModel()
+
+        # Star:
+        #
+        # T_star = 4,000K
+        # R_star = 2 * R_sun
+
+        m.star.radius = 2. * rsun
+        m.star.temperature = 4000.
+        m.star.luminosity = 4. * pi * (2. * rsun) ** 2. * sigma * 4000. ** 4.
+
+        # Disk:
+        #
+        # Sigma(r) = Sigma_0 * (r/r_0)^-1.5
+        # h(r) = h_0 * (r/r_0)^1.125
+        # h_0 = 10 AU at 100AU
+        # r_in = 0.1AU, r_out = 400AU\
+        # Sharp vertical edges in cylindrical polar coordinates
+        # Disk mass (dust!) = 3e-8, 3e-7, 3e-6, 3e-5
+
+        disk = m.add_flared_disk()
+        disk.p = -1.5
+        disk.beta = 1.125
+        disk.mass = 3.e-8 * msun * tau / 1.e3
+        disk.rmin = 0.1 * au
+        disk.rmax = 400 * au
+        disk.h_0 = 10 * au
+        disk.r_0 = 100. * au
+
+        disk.cylindrical_inner_rim = True
+        disk.cylindrical_outer_rim = True
+
+        # Dust:
+        #
+        # Spherical grains, 1 micron, 3.5g/cm^3
+
+        disk.dust = SphericalDust(os.path.join(DATA, 'pinte_dust_lite.hdf5'))
+
+        # SEDs/Images:
+        #
+        # cos(i) = 0.05 to 0.95 in steps of 0.1
+        # Images computed at 1 micron
+        # 251 pixels/900 AU across, at 140 pc
+
+        # theta = np.degrees(np.arccos(np.linspace(0.05,0.95,10)))
+        # phi = np.ones(10) * 30
+
+        theta = np.degrees(np.arccos(np.array([0.95, 0.25, 0.15, 0.05])))
+        phi = np.array([45., 45., 45., 45.])
+
+        image = m.add_peeled_images()
+        image.set_viewing_angles(theta, phi)
+        image.set_image_size(1, 1)
+        image.set_image_limits(-450. * au, 450. * au, -450. * au, 450. * au)
+        image.set_aperture_range(1, 450. * au, 450. * au)
+        image.set_wavelength_range(2000, 0.01, 5000.)
+
+        m.set_raytracing(True)
+
+        m.set_n_initial_iterations(10)
+        m.set_convergence(True, percentile=99., absolute=2., relative=1.02)
+
+        # theta resolution matters for the edge-on viewing angles. Doing it with
+        # the new auto (twice as much resolution at the midplane as at the poles)
+        # gives a much beter agreement
+
+        m.set_cylindrical_polar_grid_auto(100, 30, 1)
+
+        wavelengths = [0.110635, 0.135419, 0.165755, 0.202887, 0.248336,
+                       0.303967, 0.372060, 0.455408, 0.557426, 0.682297,
+                       0.835142, 1.02223, 1.25122, 1.53151, 1.87459,
+                       2.29453, 2.80854, 3.43769, 4.20779, 5.15039, 6.30416,
+                       7.71638, 9.44497, 11.5608, 14.1506, 17.3205, 21.2006,
+                       25.9498, 31.7629, 38.8783, 47.5876, 58.2480, 71.2964,
+                       87.2678, 106.817, 130.746, 160.035, 195.885, 239.766,
+                       293.477, 359.220, 439.691, 538.188, 658.751, 806.321,
+                       986.948, 1208.04, 1478.66, 1809.90, 2215.34, 2711.61]
+
+        m.set_monochromatic(True, wavelengths=wavelengths)
+
+        m.set_mrw(True, gamma=2.)
+        # Don't use the PDA here because it's too slow when there are too few photons
+
+        m.set_n_photons(initial=5000, imaging_sources=100, imaging_dust=2000,
+                        raytracing_sources=1000, raytracing_dust=1000)
+
+        m.set_max_interactions(10000000)
+
+        m.write(random_filename())
+        output_file = random_filename()
+        m.run(output_file, overwrite=True)
+
+        if generate:
+            reference_file = os.path.join(generate, function_name() + ".pickle")
+            write_item_list(output_file, reference_file)
+            pytest.skip("Skipping test, since generating data")
+        else:
+            reference_file = os.path.join(DATA, function_name() + ".pickle")
+            assert_output_matches(output_file, reference_file)
+
+    @generate_reference
+    @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
+    def test_pinte_specific_energy(self, tau, generate=False):
+
+        m = AnalyticalYSOModel()
+
+        # Star:
+        #
+        # T_star = 4,000K
+        # R_star = 2 * R_sun
+
+        m.star.radius = 2. * rsun
+        m.star.temperature = 4000.
+        m.star.luminosity = 4. * pi * (2. * rsun) ** 2. * sigma * 4000. ** 4.
+
+        # Disk:
+        #
+        # Sigma(r) = Sigma_0 * (r/r_0)^-1.5
+        # h(r) = h_0 * (r/r_0)^1.125
+        # h_0 = 10 AU at 100AU
+        # r_in = 0.1AU, r_out = 400AU\
+        # Sharp vertical edges in cylindrical polar coordinates
+        # Disk mass (dust!) = 3e-8, 3e-7, 3e-6, 3e-5
+
+        disk = m.add_flared_disk()
+        disk.p = -1.5
+        disk.beta = 1.125
+        disk.mass = 3.e-8 * msun * tau / 1.e3
+        disk.rmin = 0.1 * au
+        disk.rmax = 400 * au
+        disk.h_0 = 10 * au
+        disk.r_0 = 100. * au
+
+        disk.cylindrical_inner_rim = True
+        disk.cylindrical_outer_rim = True
+
+        # Dust:
+        #
+        # Spherical grains, 1 micron, 3.5g/cm^3
+
+        disk.dust = SphericalDust(os.path.join(DATA, 'pinte_dust_lite.hdf5'))
+
+        # SEDs/Images:
+        #
+        # cos(i) = 0.05 to 0.95 in steps of 0.1
+        # Images computed at 1 micron
+        # 251 pixels/900 AU across, at 140 pc
+
+        # theta = np.degrees(np.arccos(np.linspace(0.05,0.95,10)))
+        # phi = np.ones(10) * 30
+
+        theta = np.degrees(np.arccos(np.array([0.95, 0.25, 0.15, 0.05])))
+        phi = np.array([45., 45., 45., 45.])
+
+        m.set_n_initial_iterations(3)
+
+        # theta resolution matters for the edge-on viewing angles. Doing it with
+        # the new auto (twice as much resolution at the midplane as at the poles)
+        # gives a much beter agreement
+
+        m.set_cylindrical_polar_grid_auto(50, 30, 1)
+
+        m.set_mrw(True, gamma=2.)
+        m.set_pda(True)
+
+        m.set_n_photons(initial=50000, imaging=0)
+
+        m.set_max_interactions(10000000)
 
         m.write(random_filename())
         output_file = random_filename()
