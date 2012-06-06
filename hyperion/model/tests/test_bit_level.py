@@ -55,9 +55,11 @@ def setup_all_grid_types(self, u, d):
     self.grid['sph'] = SphericalPolarGrid(r, t, p)
 
     # AMR
+
     self.grid['amr'] = AMRGrid()
-    level = self.grid['amr'].add_level()
-    grid = level.add_grid()
+
+    level1 = self.grid['amr'].add_level()
+    grid = level1.add_grid()
     grid.xmin, grid.xmax = -u, u
     grid.ymin, grid.ymax = -u, u
     grid.zmin, grid.zmax = -u, u
@@ -65,6 +67,16 @@ def setup_all_grid_types(self, u, d):
     grid.quantities['density'] = np.random.random((4, 6, 8)) * d
     grid.quantities['density_2'] = np.random.random((4, 6, 8)) * d
     grid.quantities['density_3'] = np.random.random((4, 6, 8)) * d
+
+    level2 = self.grid['amr'].add_level()
+    grid2 = level2.add_grid()
+    grid2.xmin, grid2.xmax = -u, 0.
+    grid2.ymin, grid2.ymax = -u, 0.
+    grid2.zmin, grid2.zmax = -u, 0.
+    grid2.nx, grid2.ny, grid2.nz = 6, 8, 10
+    grid2.quantities['density'] = np.random.random((10, 8, 6)) * d
+    grid2.quantities['density_2'] = np.random.random((10, 8, 6)) * d
+    grid2.quantities['density_3'] = np.random.random((10, 8, 6)) * d
 
     # Octree
     refined = [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -248,15 +260,13 @@ class TestEnergy(object):
 
         m.set_n_photons(initial=10000, imaging=0)
 
-        # m.set_copy_input(False)
-
         m.set_sample_sources_evenly(sample_sources_evenly)
 
         m.conf.output.output_specific_energy = 'all'
 
         m.write(random_filename())
         output_file = random_filename()
-        m.run(output_file, overwrite=True)
+        m.run(output_file)
 
         if generate:
             reference_file = os.path.join(generate, function_name() + ".pickle")
@@ -265,6 +275,8 @@ class TestEnergy(object):
         else:
             reference_file = os.path.join(DATA, function_name() + ".pickle")
             assert_output_matches(output_file, reference_file)
+
+
 
     @generate_reference
     @pytest.mark.parametrize(('grid_type', 'raytracing', 'sample_sources_evenly'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
@@ -287,8 +299,6 @@ class TestEnergy(object):
             m.set_n_photons(initial=1000, imaging=5000, raytracing_sources=2000, raytracing_dust=3000)
         else:
             m.set_n_photons(initial=1000, imaging=5000)
-
-        # m.set_copy_input(False)
 
         m.set_sample_sources_evenly(sample_sources_evenly)
 
@@ -317,7 +327,7 @@ class TestEnergy(object):
 
         m.write(random_filename())
         output_file = random_filename()
-        m.run(output_file, overwrite=True)
+        m.run(output_file)
 
         if generate:
             reference_file = os.path.join(generate, function_name() + ".pickle")
@@ -501,7 +511,7 @@ class TestPascucciBenchmark(object):
 
         m.write(random_filename())
         output_file = random_filename()
-        m.run(output_file, overwrite=True)
+        m.run(output_file)
 
         if generate:
             reference_file = os.path.join(generate, function_name() + ".pickle")
@@ -590,10 +600,6 @@ class TestPinteBenchmark(object):
         m.set_n_initial_iterations(10)
         m.set_convergence(True, percentile=99., absolute=2., relative=1.02)
 
-        # theta resolution matters for the edge-on viewing angles. Doing it with
-        # the new auto (twice as much resolution at the midplane as at the poles)
-        # gives a much beter agreement
-
         m.set_cylindrical_polar_grid_auto(100, 30, 1)
 
         wavelengths = [0.110635, 0.135419, 0.165755, 0.202887, 0.248336,
@@ -618,7 +624,7 @@ class TestPinteBenchmark(object):
 
         m.write(random_filename())
         output_file = random_filename()
-        m.run(output_file, overwrite=True)
+        m.run(output_file)
 
         if generate:
             reference_file = os.path.join(generate, function_name() + ".pickle")
@@ -670,23 +676,7 @@ class TestPinteBenchmark(object):
 
         disk.dust = SphericalDust(os.path.join(DATA, 'pinte_dust_lite.hdf5'))
 
-        # SEDs/Images:
-        #
-        # cos(i) = 0.05 to 0.95 in steps of 0.1
-        # Images computed at 1 micron
-        # 251 pixels/900 AU across, at 140 pc
-
-        # theta = np.degrees(np.arccos(np.linspace(0.05,0.95,10)))
-        # phi = np.ones(10) * 30
-
-        theta = np.degrees(np.arccos(np.array([0.95, 0.25, 0.15, 0.05])))
-        phi = np.array([45., 45., 45., 45.])
-
         m.set_n_initial_iterations(3)
-
-        # theta resolution matters for the edge-on viewing angles. Doing it with
-        # the new auto (twice as much resolution at the midplane as at the poles)
-        # gives a much beter agreement
 
         m.set_cylindrical_polar_grid_auto(50, 30, 1)
 
@@ -699,7 +689,7 @@ class TestPinteBenchmark(object):
 
         m.write(random_filename())
         output_file = random_filename()
-        m.run(output_file, overwrite=True)
+        m.run(output_file)
 
         if generate:
             reference_file = os.path.join(generate, function_name() + ".pickle")
