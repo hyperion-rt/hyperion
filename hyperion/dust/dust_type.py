@@ -489,20 +489,23 @@ class MieXDust(SphericalDust):
         self.optical_properties.nu = c / wav * 1.e4
 
         n_wav = len(wav)
-        n_mu = (len(open('%s.f11' % model).readlines()) / n_wav) - 1
+        n_mu = (len(open('%s.f11' % model).readlines()) // n_wav) - 1
 
-        self.optical_properties.mu = np.zeros(n_mu)
-        self.optical_properties.initialize_scattering_matrix()
+        mu = np.zeros(n_mu)
 
         # Read mu
         f11 = open('%s.f11' % model)
         f11.readline()
         f11.readline()
         for i in range(n_mu):
-            self.optical_properties.mu[i] = np.cos(np.radians(float(f11.readline().split()[0])))
+            mu[i] = np.cos(np.radians(float(f11.readline().split()[0])))
         f11.close()
+        self.optical_properties.mu = mu[::-1]
 
         # Read in matrix elements
+
+        self.optical_properties.initialize_scattering_matrix()
+
         f11 = open('%s.f11' % model)
         f12 = open('%s.f12' % model)
         f33 = open('%s.f33' % model)
@@ -526,10 +529,10 @@ class MieXDust(SphericalDust):
 
             for i in range(n_mu):
 
-                self.optical_properties.P1[j, i] = float(f11.readline().split()[1])
-                self.optical_properties.P2[j, i] = float(f12.readline().split()[1])
-                self.optical_properties.P3[j, i] = float(f33.readline().split()[1])
-                self.optical_properties.P4[j, i] = float(f34.readline().split()[1])
+                self.optical_properties.P1[j, n_mu - i - 1] = float(f11.readline().split()[1])
+                self.optical_properties.P2[j, n_mu - i - 1] = float(f12.readline().split()[1])
+                self.optical_properties.P3[j, n_mu - i - 1] = float(f33.readline().split()[1])
+                self.optical_properties.P4[j, n_mu - i - 1] = float(f34.readline().split()[1])
 
         for i in range(n_mu):
 
