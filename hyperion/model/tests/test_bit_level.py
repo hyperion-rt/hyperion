@@ -95,6 +95,7 @@ def setup_all_grid_types(self, u, d):
     self.density_3['amr'] = self.grid['amr']['density_3']
     self.density_3['oct'] = np.random.random(len(refined)) * d
 
+
 def function_name():
     import sys
     import inspect
@@ -136,7 +137,7 @@ def assert_output_matches(filename, reference):
     # Check whether the dataset lists are different
     if dataset_list != dataset_ref_list:
         differences.append("Dataset lists do not match: found {0} but expected {1}".format(str(dataset_list), str(dataset_ref_list)))
-    else: # Check that hashes match
+    else:  # Check that hashes match
         for d in datasets:
             if datasets[d] != datasets_ref[d]:
                 differences.append("Dataset hashes do not match: found {0}={1} but expected {0}={2}".format(d, datasets[d], datasets_ref[d]))
@@ -148,7 +149,7 @@ def assert_output_matches(filename, reference):
     # Check whether the attribute lists are different
     if attribute_list != attribute_ref_list:
         differences.append("Attribute lists do not match: found {0} but expected {1}".format(str(attribute_list), str(attribute_ref_list)))
-    else: # Check that hashes match
+    else:  # Check that hashes match
         for a in attributes:
             if attributes[a] != attributes_ref[a]:
                 differences.append("Attribute values do not match: found {0}={1} but expected {0}={2}".format(a, attributes[a], attributes_ref[a]))
@@ -433,9 +434,9 @@ class TestPascucciBenchmark(object):
         # R_star = R_sun
         # M_star = M_sun
 
-        m.star.radius = 1. # = 1 cm (i.e. point source)
+        m.star.radius = 1.  # = 1 cm (i.e. point source)
         m.star.temperature = 5800.
-        m.star.luminosity = 4. * pi * rsun**2 * sigma * 5800.**4
+        m.star.luminosity = 4. * pi * rsun ** 2 * sigma * 5800. ** 4
 
         # Disk:
         #
@@ -474,8 +475,8 @@ class TestPascucciBenchmark(object):
         image = m.add_peeled_images()
         image.set_viewing_angles(theta, phi)
         image.set_image_size(1, 1)
-        image.set_image_limits(-1500.*au, 1500.*au, -1500.*au, 1500.*au)
-        image.set_aperture_range(1, 1500.*au, 1500.*au)
+        image.set_image_limits(-1500. * au, 1500. * au, -1500. * au, 1500. * au)
+        image.set_aperture_range(1, 1500. * au, 1500. * au)
         image.set_wavelength_range(61, 1, 61)
 
         m.set_raytracing(True)
@@ -483,7 +484,7 @@ class TestPascucciBenchmark(object):
         # Don't test for convergence, since this is a low signal-to-noise models
 
         # Use a lower-resolution grid
-        m.set_spherical_polar_grid_auto(100, 30, 1, rmax=1300.*au)
+        m.set_spherical_polar_grid_auto(100, 30, 1, rmax=1300. * au)
 
         wavelengths = [0.12, 0.14, 0.16, 0.18, 0.2, 0.215, 0.22, 0.23, 0.25,
                        0.274, 0.3, 0.344, 0.4, 0.44, 0.55, 0.7, 0.9, 1.1,

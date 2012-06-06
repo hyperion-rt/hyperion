@@ -47,6 +47,7 @@ def assert_identical_results(file1, file2):
     # List datasets and groups in file 1
     data1 = []
     group1 = []
+
     def func(name, obj):
         if isinstance(obj, h5py.Dataset):
             data1.append(name)
@@ -61,6 +62,7 @@ def assert_identical_results(file1, file2):
     # List datasets and attributes in file 1
     data2 = []
     group2 = []
+
     def func(name, obj):
         if isinstance(obj, h5py.Dataset):
             data2.append(name)
