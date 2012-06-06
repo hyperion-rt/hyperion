@@ -233,7 +233,7 @@ def make_item_list(filename):
     return groups, datasets, attributes
 
 
-class TestEnergy(object):
+class TestBasic(object):
 
     def setup_class(self):
         setup_all_grid_types(self, pc, 1.e-20)
