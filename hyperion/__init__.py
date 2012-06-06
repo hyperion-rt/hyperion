@@ -33,7 +33,7 @@ def _get_test_runner():
     return TestRunner(__path__[0])
 
 def test(package=None, test_path=None, args=None, plugins=None,
-         verbose=False, pastebin=None):
+         verbose=False, pastebin=None, generate_reference=False):
     """
     Run Hyperion tests using py.test. A proper set of arguments is
     constructed and passed to `pytest.main`.
@@ -67,6 +67,9 @@ def test(package=None, test_path=None, args=None, plugins=None,
         'failed' to upload info for failed tests, or 'all' to upload info
         for all tests.
 
+    generate_reference : str
+        Generate reference results for bit-level tests
+
     See Also
     --------
     pytest.main : py.test function wrapped by `run_tests`.
@@ -75,4 +78,5 @@ def test(package=None, test_path=None, args=None, plugins=None,
     test_runner = _get_test_runner()
     return test_runner.run_tests(
         package=package, test_path=test_path, args=args,
-        plugins=plugins, verbose=verbose, pastebin=pastebin)
+        plugins=plugins, verbose=verbose, pastebin=pastebin,
+        generate_reference=generate_reference)
