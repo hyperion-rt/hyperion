@@ -816,7 +816,7 @@ contains
           if(p%icell%i2 == geo%midplane .and. p%v%z .ne. 0) then
 
              ! If the photon is on the wall, then we don't add any intersections
-             if(p%on_wall_id%w2 /= -1) call insert_t(-p%r%z/p%v%z,2, -1, geo%ew2(p%icell%i1))
+             if(p%on_wall_id%w2 /= -1) call insert_t(-p%r%z/p%v%z,2, -1, geo%ew2(p%icell%i2))
 
           else
 
@@ -1001,6 +1001,7 @@ contains
   subroutine reset_t()
     implicit none
     tmin = +huge(tmin)
+    emin = 0.
     imin = no_wall
     iext = no_wall
   end subroutine reset_t
