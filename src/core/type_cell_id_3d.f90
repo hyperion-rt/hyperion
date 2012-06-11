@@ -32,7 +32,7 @@ module type_grid_cell
 
   public :: wall_id
   type wall_id
-     integer :: w1, w2, w3
+     integer :: w1=0, w2=0, w3=0
   end type wall_id
 
   type(wall_id), parameter, public :: no_wall = wall_id(0, 0, 0)

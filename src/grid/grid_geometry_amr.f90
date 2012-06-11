@@ -18,7 +18,6 @@ module grid_geometry_specific
   public :: cell_width
   public :: grid_geometry_debug
   public :: find_cell
-  public :: next_cell
   public :: place_in_cell
   public :: in_correct_cell
   public :: random_position_cell
@@ -32,6 +31,12 @@ module grid_geometry_specific
      module procedure escaped_photon
      module procedure escaped_cell
   end interface escaped
+
+  public :: next_cell
+  interface next_cell
+     module procedure next_cell_int
+     module procedure next_cell_wall_id
+  end interface next_cell
 
   public :: setup_grid_geometry
   type(grid_geometry_desc),public,target :: geo
@@ -570,7 +575,7 @@ contains
     escaped_cell = cell == outside_cell
   end function escaped_cell
 
-  type(grid_cell) function next_cell(cell, direction, intersection)
+  type(grid_cell) function next_cell_int(cell, direction, intersection)
     implicit none
     type(grid_cell),intent(in) :: cell
     integer,intent(in) :: direction
@@ -602,9 +607,9 @@ contains
 
     if(grid%goto_level(i1, i2, i3) == 0) then
        if(i1==0.or.i1==grid%n1+1.or.i2==0.or.i2==grid%n2+1.or.i3==0.or.i3==grid%n3+1) then
-          next_cell = outside_cell
+          next_cell_int = outside_cell
        else
-          next_cell = new_grid_cell(i1, i2, i3, cell%ilevel, cell%igrid, geo)
+          next_cell_int = new_grid_cell(i1, i2, i3, cell%ilevel, cell%igrid, geo)
        end if
     else
        ilevel = grid%goto_level(i1, i2, i3)
@@ -624,9 +629,29 @@ contains
        case(6)
           r%z = r%z + geo%eps
        end select
-       next_cell = find_position_in_grid(r, ilevel, igrid)
+       next_cell_int = find_position_in_grid(r, ilevel, igrid)
     end if
-  end function next_cell
+  end function next_cell_int
+
+  type(grid_cell) function next_cell_wall_id(cell, direction, intersection)
+    implicit none
+    type(grid_cell),intent(in) :: cell
+    type(wall_id),intent(in) :: direction
+    type(vector3d_dp),optional,intent(in) :: intersection
+    if(direction%w1 == -1) then
+       next_cell_wall_id = next_cell_int(cell, 1, intersection)
+    else if(direction%w1 == +1) then
+       next_cell_wall_id = next_cell_int(cell, 2, intersection)
+    else if(direction%w2 == -1) then
+       next_cell_wall_id = next_cell_int(cell, 3, intersection)
+    else if(direction%w2 == +1) then
+       next_cell_wall_id = next_cell_int(cell, 4, intersection)
+    else if(direction%w3 == -1) then
+       next_cell_wall_id = next_cell_int(cell, 5, intersection)
+    else if(direction%w3 == +1) then
+       next_cell_wall_id = next_cell_int(cell, 6, intersection)
+    end if
+  end function next_cell_wall_id
 
   logical function in_correct_cell(p)
     ! Numerical issue here with photons that are currently on walls. Don't try and find right level and icell, assume they are correct.
@@ -642,30 +667,38 @@ contains
     icell_actual%i2 = ipos(grid%ymin, grid%ymax, p%r%y, grid%n2)
     icell_actual%i3 = ipos(grid%zmin, grid%zmax, p%r%z, grid%n3)
     if(p%on_wall) then
-       select case(p%on_wall_id)
-       case(1)
+
+       in_correct_cell = .true.
+
+       if(p%on_wall_id%w1 == -1) then
           frac = (p%r%x - grid%w1(p%icell%i1)) / (grid%w1(p%icell%i1+1) - grid%w1(p%icell%i1))
-          in_correct_cell = icell_actual%i2 == p%icell%i2 .and. icell_actual%i3 == p%icell%i3
-       case(2)
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+       else if(p%on_wall_id%w1 == +1) then
           frac = (p%r%x - grid%w1(p%icell%i1+1)) / (grid%w1(p%icell%i1+1) - grid%w1(p%icell%i1))
-          in_correct_cell = icell_actual%i2 == p%icell%i2 .and. icell_actual%i3 == p%icell%i3
-       case(3)
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+       else
+          in_correct_cell = in_correct_cell .and. icell_actual%i1 == p%icell%i1
+       end if
+
+       if(p%on_wall_id%w2 == -1) then
           frac = (p%r%y - grid%w2(p%icell%i2)) / (grid%w2(p%icell%i2+1) - grid%w2(p%icell%i2))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i3 == p%icell%i3
-       case(4)
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+       else if(p%on_wall_id%w2 == +1) then
           frac = (p%r%y - grid%w2(p%icell%i2+1)) / (grid%w2(p%icell%i2+1) - grid%w2(p%icell%i2))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i3 == p%icell%i3
-       case(5)
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+       else
+          in_correct_cell = in_correct_cell .and. icell_actual%i2 == p%icell%i2
+       end if
+
+       if(p%on_wall_id%w3 == -1) then
           frac = (p%r%z - grid%w3(p%icell%i3)) / (grid%w3(p%icell%i3+1) - grid%w3(p%icell%i3))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i2 == p%icell%i2
-       case(6)
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+       else if(p%on_wall_id%w3 == +1) then
           frac = (p%r%z - grid%w3(p%icell%i3+1)) / (grid%w3(p%icell%i3+1) - grid%w3(p%icell%i3))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i2 == p%icell%i2
-       case default
-          call warn("in_correct_cell","invalid on_wall_id")
-          in_correct_cell = .false.
-       end select
-       in_correct_cell = abs(frac) < 1.e-3_dp .and. in_correct_cell
+          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+       else
+          in_correct_cell = in_correct_cell .and. icell_actual%i3 == p%icell%i3
+       end if
     else
        in_correct_cell = icell_actual == p%icell
     end if
@@ -727,7 +760,7 @@ contains
 
     logical,intent(in) :: radial
 
-    integer,intent(out) :: id_min
+    type(wall_id),intent(out) :: id_min
     ! ID of next wall
 
     real(dp),intent(out)  :: tmin
@@ -783,32 +816,32 @@ contains
     if(tx.lt.tz) then
        if(tx.lt.ty) then
           if(pos_vx) then
-             id_min = 2
+             id_min%w1 = +1
           else
-             id_min = 1
+             id_min%w1 = -1
           end if
           tmin = tx
        else
           if(pos_vy) then
-             id_min = 4
+             id_min%w2 = +1
           else
-             id_min = 3
+             id_min%w2 = -1
           end if
           tmin = ty
        end if
     else
        if(tz.lt.ty) then
           if(pos_vz) then
-             id_min = 6
+             id_min%w3 = +1
           else
-             id_min = 5
+             id_min%w3 = -1
           end if
           tmin = tz
        else
           if(pos_vy) then
-             id_min = 4
+             id_min%w2 = +1
           else
-             id_min = 3
+             id_min%w2 = -1
           end if
           tmin = ty
        end if

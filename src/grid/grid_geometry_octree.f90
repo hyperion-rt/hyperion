@@ -18,7 +18,6 @@ module grid_geometry_specific
   public :: cell_width
   public :: grid_geometry_debug
   public :: find_cell
-  public :: next_cell
   public :: place_in_cell
   public :: in_correct_cell
   public :: random_position_cell
@@ -32,6 +31,12 @@ module grid_geometry_specific
      module procedure escaped_photon
      module procedure escaped_cell
   end interface escaped
+
+  public :: next_cell
+  interface next_cell
+     module procedure next_cell_int
+     module procedure next_cell_wall_id
+  end interface next_cell
 
   ! Oct cell organization:
   ! subcell 1: (0,0,0)
@@ -318,7 +323,7 @@ contains
     escaped_cell = .false.
   end function escaped_cell
 
-  recursive type(grid_cell) function next_cell(cell, direction, intersection) result(c)
+  recursive type(grid_cell) function next_cell_int(cell, direction, intersection) result(c)
     implicit none
     type(grid_cell),intent(in) :: cell
     integer,intent(in) :: direction
@@ -334,10 +339,30 @@ contains
     if(subcell_id > 0) then
        c = new_grid_cell(locate_cell(intersection, geo%cells(parent_cell%ic)%children(subcell_id)),geo)
     else
-       c = next_cell(parent_cell, direction, intersection)
+       c = next_cell_int(parent_cell, direction, intersection)
        return
     end if
-  end function next_cell
+  end function next_cell_int
+
+  type(grid_cell) function next_cell_wall_id(cell, direction, intersection)
+    implicit none
+    type(grid_cell),intent(in) :: cell
+    type(wall_id),intent(in) :: direction
+    type(vector3d_dp),optional,intent(in) :: intersection
+    if(direction%w1 == -1) then
+       next_cell_wall_id = next_cell_int(cell, 1, intersection)
+    else if(direction%w1 == +1) then
+       next_cell_wall_id = next_cell_int(cell, 2, intersection)
+    else if(direction%w2 == -1) then
+       next_cell_wall_id = next_cell_int(cell, 3, intersection)
+    else if(direction%w2 == +1) then
+       next_cell_wall_id = next_cell_int(cell, 4, intersection)
+    else if(direction%w3 == -1) then
+       next_cell_wall_id = next_cell_int(cell, 5, intersection)
+    else if(direction%w3 == +1) then
+       next_cell_wall_id = next_cell_int(cell, 6, intersection)
+    end if
+  end function next_cell_wall_id
 
   logical function in_correct_cell(p)
     implicit none
@@ -350,20 +375,18 @@ contains
        frac1 = abs(p%r%x - geo%cells(p%icell%ic)%x) / geo%cells(p%icell%ic)%dx
        frac2 = abs(p%r%y - geo%cells(p%icell%ic)%y) / geo%cells(p%icell%ic)%dy
        frac3 = abs(p%r%z - geo%cells(p%icell%ic)%z) / geo%cells(p%icell%ic)%dz
-       select case(p%on_wall_id)
-       case(1,2)
+       if(abs(p%on_wall_id%w1) == 1) then
           frac = frac1 - 1._dp
           in_correct_cell = frac2 < 1._dp .and. frac3 < 1._dp
-       case(3,4)
+       end if
+       if(abs(p%on_wall_id%w2) == 1) then
           frac = frac2 - 1._dp
           in_correct_cell = frac1 < 1._dp .and. frac3 < 1._dp
-       case(5,6)
+       end if
+       if(abs(p%on_wall_id%w3) == 1) then
           frac = frac3 - 1._dp
           in_correct_cell = frac1 < 1._dp .and. frac2 < 1._dp
-       case default
-          call warn("in_correct_cell","invalid on_wall_id")
-          in_correct_cell = .false.
-       end select
+       end if
        in_correct_cell = abs(frac) < 1.e-3_dp .and. in_correct_cell
     else
        in_correct_cell = icell_actual == p%icell
@@ -420,7 +443,7 @@ contains
 
     logical,intent(in) :: radial
 
-    integer,intent(out) :: id_min
+    type(wall_id),intent(out) :: id_min
     ! ID of next wall
 
     real(dp),intent(out)  :: tmin
@@ -472,32 +495,32 @@ contains
     if(tx.lt.tz) then
        if(tx.lt.ty) then
           if(pos_vx) then
-             id_min = 2
+             id_min%w1 = +1
           else
-             id_min = 1
+             id_min%w1 = -1
           end if
           tmin = tx
        else
           if(pos_vy) then
-             id_min = 4
+             id_min%w2 = +1
           else
-             id_min = 3
+             id_min%w2 = -1
           end if
           tmin = ty
        end if
     else
        if(tz.lt.ty) then
           if(pos_vz) then
-             id_min = 6
+             id_min%w3 = +1
           else
-             id_min = 5
+             id_min%w3 = -1
           end if
           tmin = tz
        else
           if(pos_vy) then
-             id_min = 4
+             id_min%w2 = +1
           else
-             id_min = 3
+             id_min%w2 = -1
           end if
           tmin = ty
        end if
