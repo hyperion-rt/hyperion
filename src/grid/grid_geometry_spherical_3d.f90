@@ -299,9 +299,20 @@ contains
     ! Pre-compute useful quantities
     r_sq = p%r.dot.p%r
     w_sq = p%r%x*p%r%x+p%r%y*p%r%y
-    theta = atan2(sqrt(w_sq),p%r%z)
-    phi = atan2(p%r%y,p%r%x)
-    if(phi < 0._dp) phi = phi + twopi
+
+    if(r_sq == 0._dp) then
+       theta = atan2(sqrt(p%v%x*p%v%x+p%v%y*p%v%y),p%v%z)
+    else
+       theta = atan2(sqrt(p%r%x*p%r%x+p%r%y*p%r%y),p%r%z)
+    end if
+
+    if(w_sq == 0._dp) then
+       phi = atan2(p%v%y,p%v%x)
+       if(phi < 0._dp) phi = phi + twopi
+    else
+       phi = atan2(p%r%y,p%r%x)
+       if(phi < 0._dp) phi = phi + twopi
+    end if
 
     ! Find whether the photon is on a radial wall.
 
@@ -414,7 +425,7 @@ contains
 
     if(p%r%x == 0._dp .and. p%r%y == 0._dp .and. p%v%x == 0._dp .and. p%v%y == 0._dp) then
 
-        ! don't place on wall as on origin and moving up, so on *all* phi walls simultaneously
+       ! don't place on wall as on origin and moving up, so on *all* phi walls simultaneously
 
     else if(equal_nulp(phi, geo%w3(p%icell%i3), eps)) then  ! photon is on inner wall
 
@@ -565,22 +576,22 @@ contains
        ! propagated anyway.
        if(rad == 0._dp) return
 
-        r_sq = p%r.dot.p%r
-        w_sq = p%r%x*p%r%x+p%r%y*p%r%y
+       r_sq = p%r.dot.p%r
+       w_sq = p%r%x*p%r%x+p%r%y*p%r%y
 
-        if(r_sq == 0._dp) then
-           theta = atan2(sqrt(p%v%x*p%v%x+p%v%y*p%v%y),p%v%z)
-        else
-           theta = atan2(sqrt(p%r%x*p%r%x+p%r%y*p%r%y),p%r%z)
-        end if
+       if(r_sq == 0._dp) then
+          theta = atan2(sqrt(p%v%x*p%v%x+p%v%y*p%v%y),p%v%z)
+       else
+          theta = atan2(sqrt(p%r%x*p%r%x+p%r%y*p%r%y),p%r%z)
+       end if
 
-        if(w_sq == 0._dp) then
-           phi = atan2(p%v%y,p%v%x)
-           if(phi < 0._dp) phi = phi + twopi
-        else
-           phi = atan2(p%r%y,p%r%x)
-           if(phi < 0._dp) phi = phi + twopi
-        end if
+       if(w_sq == 0._dp) then
+          phi = atan2(p%v%y,p%v%x)
+          if(phi < 0._dp) phi = phi + twopi
+       else
+          phi = atan2(p%r%y,p%r%x)
+          if(phi < 0._dp) phi = phi + twopi
+       end if
 
        if(p%on_wall_id%w1 == -1) then
           if(geo%w1(p%icell%i1) .ne. rad) then
@@ -970,11 +981,12 @@ contains
        ! make sure the photon is still considered to be on the wall
        ! afterwards. Therefore, we calculate dphi to find the angle between
        ! the direction of motion and the wall the photon is on.
+
        if(p%on_wall_id%w3 == -1) then
           dphi = atan2(p%v%y, p%v%x) - geo%w3(p%icell%i3)
           if(dphi > pi) dphi = dphi - twopi
           if(dphi < -pi) dphi = dphi + twopi
-      end if
+       end if
        if(p%on_wall_id%w3 == +1) then
           dphi = atan2(p%v%y, p%v%x) - geo%w3(p%icell%i3+1)
           if(dphi > pi) dphi = dphi - twopi
@@ -983,11 +995,11 @@ contains
 
        if(p%on_wall_id%w3 == +1 .and. abs(dphi) < geo%ew3(p%icell%i3+1)) then
 
-            iext%w3 = +1
+          iext%w3 = +1
 
        else if(p%on_wall_id%w3 == -1 .and. abs(dphi) < geo%ew3(p%icell%i3)) then
 
-            iext%w3 = -1
+          iext%w3 = -1
 
        ! Only check for intersections if the current position is not along
        ! the (x, y) = (0, 0) axis. If the photon is along this axis, then
