@@ -385,6 +385,7 @@ contains
        if(xi < frac_check) then
           if(.not.in_correct_cell(p)) then
              call warn("grid_escape_tau","not in correct cell - killing")
+             killed_photons_geo = killed_photons_geo + 1
              killed = .true.
              return
           end if
@@ -394,6 +395,7 @@ contains
 
        if(id_min == no_wall) then
           call warn("grid_escape_tau","cannot find next wall - killing")
+          killed_photons_geo = killed_photons_geo + 1
           killed = .true.
           return
        end if
@@ -485,6 +487,7 @@ contains
        if(xi < frac_check) then
           if(.not.in_correct_cell(p)) then
              call warn("grid_escape_column_density","not in correct cell - killing")
+             killed_photons_geo = killed_photons_geo + 1
              killed = .true.
              return
           end if
@@ -494,6 +497,7 @@ contains
 
        if(id_min == no_wall) then
           call warn("grid_escape_column_density","cannot find next wall - killing")
+          killed_photons_geo = killed_photons_geo + 1
           killed = .true.
           return
        end if
