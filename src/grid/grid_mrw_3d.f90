@@ -192,7 +192,7 @@ contains
 
   real(dp) function sample_cumulative() result(xi)
     implicit none
-    call random_number(xi)
+    call random(xi)
     xi = interp1d(ycdf, xcdf, xi)
   end function sample_cumulative
 

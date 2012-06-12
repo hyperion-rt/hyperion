@@ -483,7 +483,7 @@ contains
 
     else
 
-       call random_number(xi)
+       call random(xi)
 
        do iter=1,maxiter
           imu = (imax + imin) / 2
