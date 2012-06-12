@@ -133,7 +133,7 @@ contains
     call update_optconsts(p)
 
     do
-       call random_number(xi)
+       call random(xi)
        dust_id = ceiling(xi*real(n_dust, dp))
        if(mean_prob(dust_id) > 0._dp) exit
     end do

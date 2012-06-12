@@ -438,7 +438,7 @@ contains
 
     end if
 
-    call random_number(xi)
+    call random(xi)
     p%dust_id = ceiling(xi*real(n_dust,dp))
 
     ! Pick random cell
