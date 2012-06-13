@@ -10,8 +10,8 @@ module type_grid
   ! Define refinable cell
   public :: cell
   type cell
-     real(8) :: x,y,z
-     real(8) :: dx,dy,dz
+     real(dp) :: x,y,z
+     real(dp) :: dx,dy,dz
      logical :: refined = .false.
      integer,allocatable,dimension(:) :: children
      integer :: parent, parent_subcell

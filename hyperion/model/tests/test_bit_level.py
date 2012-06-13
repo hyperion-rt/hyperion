@@ -6,15 +6,13 @@
 # to run.
 
 import os
+import shutil
 import itertools
 
-import h5py
 import pytest
 import numpy as np
 
-import cPickle as pickle
-
-from .test_helpers import random_filename
+from .test_helpers import random_filename, assert_identical_results
 from .. import Model, AnalyticalYSOModel
 from ...util.constants import pc, lsun, c, au, msun, pi, sigma, rsun
 from ...grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid, AMRGrid, OctreeGrid
@@ -121,118 +119,6 @@ def function_name():
     return name
 
 
-def assert_output_matches(filename, reference):
-
-    differences = []
-
-    # Get items from file to compare
-    groups, datasets, attributes = make_item_list(filename)
-
-    # Read in reference from pickle
-    ref = open(reference, 'rb')
-    groups_ref = pickle.load(ref)
-    datasets_ref = pickle.load(ref)
-    attributes_ref = pickle.load(ref)
-
-    # Order groups since order is not guaranteed
-    groups.sort()
-    groups_ref.sort()
-
-    # Check that group lists are the same
-    if groups != groups_ref:
-        differences.append("Group lists do not match: found {0} but expected {1}".format(str(groups), str(groups_ref)))
-
-    # Make ordered lists of the datasets to compare
-    dataset_list = sorted(datasets.keys())
-    dataset_ref_list = sorted(datasets_ref.keys())
-
-    # Check whether the dataset lists are different
-    if dataset_list != dataset_ref_list:
-        differences.append("Dataset lists do not match: found {0} but expected {1}".format(str(dataset_list), str(dataset_ref_list)))
-    else:  # Check that hashes match
-        for d in datasets:
-            if datasets[d] != datasets_ref[d]:
-                differences.append("Dataset hashes do not match: found {0}={1} but expected {0}={2}".format(d, datasets[d], datasets_ref[d]))
-
-    # Make ordered lists of the attributes to compare
-    attribute_list = sorted(attributes.keys())
-    attribute_ref_list = sorted(attributes_ref.keys())
-
-    # Check whether the attribute lists are different
-    if attribute_list != attribute_ref_list:
-        differences.append("Attribute lists do not match: found {0} but expected {1}".format(str(attribute_list), str(attribute_ref_list)))
-    else:  # Check that hashes match
-        for a in attributes:
-            if attributes[a] != attributes_ref[a]:
-                differences.append("Attribute values do not match: found {0}={1} but expected {0}={2}".format(a, attributes[a], attributes_ref[a]))
-
-    for item in differences:
-        print(item)
-
-    assert len(differences) == 0
-
-
-def write_item_list(filename, filename_out):
-
-    groups, datasets, attributes = make_item_list(filename)
-
-    f = open(filename_out, 'wb')
-    pickle.dump(groups, f, 2)
-    pickle.dump(datasets, f, 2)
-    pickle.dump(attributes, f, 2)
-    f.close()
-
-
-def type_cast(a):
-    try:
-        float(a)
-        if float(a) == int(a):
-            return int(a)
-        else:
-            return float(a)
-    except:
-        try:  # in case it is a bytes object
-            return a.decode()
-        except:
-            return str(a)
-
-
-def make_item_list(filename):
-
-    from hashlib import md5
-
-    # List of attributes to exclude from checking (time-dependent)
-    EXCLUDE_ATTR = ['date_started', 'date_ended', 'cpu_time', 'python_version', 'fortran_version']
-
-    groups = []
-    datasets = {}
-    attributes = {}
-
-    # Open file
-    f = h5py.File(filename, 'r')
-
-    # List datasets and groups in file
-    def func(name, obj):
-        if isinstance(obj, h5py.Dataset):
-            a = np.array(obj)
-            datasets[name] = md5(a).hexdigest()
-        elif isinstance(obj, h5py.Group):
-            groups.append(name)
-    f.visititems(func)
-
-    # Loop over all groups and datasets to check attributes
-    for item in ['/'] + datasets.keys() + groups:
-
-        # Find all attributes
-        attr = f[item].attrs.keys()
-
-        for a in attr:
-            if a not in EXCLUDE_ATTR and a.lower() == a:
-                attributes[a] = type_cast(f[item].attrs[a])
-
-    return groups, datasets, attributes
-
-
 class TestBasic(object):
 
     def setup_class(self):
@@ -264,17 +150,18 @@ class TestBasic(object):
 
         m.conf.output.output_specific_energy = 'all'
 
-        m.write(random_filename())
+        m.set_copy_input(False)
+        m.write(random_filename(), copy=False, absolute_paths=True)
         output_file = random_filename()
         m.run(output_file)
 
         if generate:
-            reference_file = os.path.join(generate, function_name() + ".pickle")
-            write_item_list(output_file, reference_file)
+            reference_file = os.path.join(generate, function_name() + ".rtout")
+            shutil.copy(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
         else:
-            reference_file = os.path.join(DATA, function_name() + ".pickle")
-            assert_output_matches(output_file, reference_file)
+            reference_file = os.path.join(DATA, function_name() + ".rtout")
+            assert_identical_results(output_file, reference_file)
 
     @generate_reference
     @pytest.mark.parametrize(('grid_type', 'raytracing', 'sample_sources_evenly'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
@@ -323,17 +210,18 @@ class TestBasic(object):
         i_p.set_aperture_range(2, 0.5 * pc, pc)
         i_p.set_track_origin('detailed')
 
-        m.write(random_filename())
+        m.set_copy_input(False)
+        m.write(random_filename(), copy=False, absolute_paths=True)
         output_file = random_filename()
         m.run(output_file)
 
         if generate:
-            reference_file = os.path.join(generate, function_name() + ".pickle")
-            write_item_list(output_file, reference_file)
+            reference_file = os.path.join(generate, function_name() + ".rtout")
+            shutil.copy(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
         else:
-            reference_file = os.path.join(DATA, function_name() + ".pickle")
-            assert_output_matches(output_file, reference_file)
+            reference_file = os.path.join(DATA, function_name() + ".rtout")
+            assert_identical_results(output_file, reference_file)
 
 
 class TestPascucciBenchmark(object):
@@ -426,9 +314,11 @@ class TestPascucciBenchmark(object):
         albedo = data['csca'] / data['cext']
 
         # Set up dust object
-        self.dust = IsotropicDust(nu[::-1], albedo[::-1], chi[::-1])
-        self.dust.optical_properties._extrapolate(1.e-3, 1.e5)
-        self.dust.set_lte_emissivities(n_temp=100, temp_min=0.1, temp_max=1600.)
+        self.dust_file = random_filename()
+        dust = IsotropicDust(nu[::-1], albedo[::-1], chi[::-1])
+        dust.optical_properties._extrapolate(1.e-3, 1.e5)
+        dust.set_lte_emissivities(n_temp=100, temp_min=0.1, temp_max=1600.)
+        dust.write(self.dust_file)
 
     @generate_reference
     @pytest.mark.parametrize(('tau'), [0.1, 1, 10, 100])
@@ -469,7 +359,7 @@ class TestPascucciBenchmark(object):
         #
         # Spherical grains, 1 micron, 3.5g/cm^3
 
-        disk.dust = self.dust
+        disk.dust = self.dust_file
 
         # SEDs/Images:
         #
@@ -507,17 +397,18 @@ class TestPascucciBenchmark(object):
         m.set_n_photons(initial=1000, imaging_sources=1000, imaging_dust=1000,
                     raytracing_sources=1000, raytracing_dust=1000)
 
-        m.write(random_filename())
+        m.set_copy_input(False)
+        m.write(random_filename(), copy=False, absolute_paths=True)
         output_file = random_filename()
         m.run(output_file)
 
         if generate:
-            reference_file = os.path.join(generate, function_name() + ".pickle")
-            write_item_list(output_file, reference_file)
+            reference_file = os.path.join(generate, function_name() + ".rtout")
+            shutil.copy(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
         else:
-            reference_file = os.path.join(DATA, function_name() + ".pickle")
-            assert_output_matches(output_file, reference_file)
+            reference_file = os.path.join(DATA, function_name() + ".rtout")
+            assert_identical_results(output_file, reference_file)
 
 
 class TestPinteBenchmark(object):
@@ -620,17 +511,18 @@ class TestPinteBenchmark(object):
 
         m.set_max_interactions(10000000)
 
-        m.write(random_filename())
+        m.set_copy_input(False)
+        m.write(random_filename(), copy=False, absolute_paths=True)
         output_file = random_filename()
         m.run(output_file)
 
         if generate:
-            reference_file = os.path.join(generate, function_name() + ".pickle")
-            write_item_list(output_file, reference_file)
+            reference_file = os.path.join(generate, function_name() + ".rtout")
+            shutil.copy(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
         else:
-            reference_file = os.path.join(DATA, function_name() + ".pickle")
-            assert_output_matches(output_file, reference_file)
+            reference_file = os.path.join(DATA, function_name() + ".rtout")
+            assert_identical_results(output_file, reference_file)
 
     @generate_reference
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
@@ -685,14 +577,15 @@ class TestPinteBenchmark(object):
 
         m.set_max_interactions(10000000)
 
-        m.write(random_filename())
+        m.set_copy_input(False)
+        m.write(random_filename(), copy=False, absolute_paths=True)
         output_file = random_filename()
         m.run(output_file)
 
         if generate:
-            reference_file = os.path.join(generate, function_name() + ".pickle")
-            write_item_list(output_file, reference_file)
+            reference_file = os.path.join(generate, function_name() + ".rtout")
+            shutil.copy(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
         else:
-            reference_file = os.path.join(DATA, function_name() + ".pickle")
-            assert_output_matches(output_file, reference_file)
+            reference_file = os.path.join(DATA, function_name() + ".rtout")
+            assert_identical_results(output_file, reference_file)

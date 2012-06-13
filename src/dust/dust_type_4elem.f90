@@ -128,13 +128,13 @@ contains
     call mp_table_read_column_auto(group,path,'P4',d%P4)
 
     ! Check for NaN values
-    if(any(d%nu.ne.d%nu)) call error("dust_setup","nu array contains NaN values")
-    if(any(d%albedo_nu.ne.d%albedo_nu)) call error("dust_setup","albedo_nu array contains NaN values")
-    if(any(d%chi_nu.ne.d%chi_nu)) call error("dust_setup","chi_nu array contains NaN values")
-    if(any(d%P1.ne.d%P1)) call error("dust_setup","P1 matrix contains NaN values")
-    if(any(d%P2.ne.d%P2)) call error("dust_setup","P2 matrix contains NaN values")
-    if(any(d%P3.ne.d%P3)) call error("dust_setup","P3 matrix contains NaN values")
-    if(any(d%P4.ne.d%P4)) call error("dust_setup","P4 matrix contains NaN values")
+    if(any(is_nan(d%nu))) call error("dust_setup","nu array contains NaN values")
+    if(any(is_nan(d%albedo_nu))) call error("dust_setup","albedo_nu array contains NaN values")
+    if(any(is_nan(d%chi_nu))) call error("dust_setup","chi_nu array contains NaN values")
+    if(any(is_nan(d%P1))) call error("dust_setup","P1 matrix contains NaN values")
+    if(any(is_nan(d%P2))) call error("dust_setup","P2 matrix contains NaN values")
+    if(any(is_nan(d%P3))) call error("dust_setup","P3 matrix contains NaN values")
+    if(any(is_nan(d%P4))) call error("dust_setup","P4 matrix contains NaN values")
 
     ! Find number of frequencies
     d%n_nu = size(d%nu)
@@ -157,7 +157,7 @@ contains
     call mp_table_read_column_auto(group,path,'mu',d%mu)
 
     ! Check for NaN values
-    if(any(d%mu.ne.d%mu)) call error("dust_setup","mu array contains NaN values")
+    if(any(is_nan(d%mu))) call error("dust_setup","mu array contains NaN values")
 
     ! Find number of scattering angles
     d%n_mu = size(d%mu)
@@ -210,11 +210,11 @@ contains
     call mp_table_read_column_auto(group,path,'kappa_rosseland',d%kappa_rosseland)
 
     ! Check for NaN values
-    if(any(d%specific_energy.ne.d%specific_energy)) call error("dust_setup","specific_energy array contains NaN values")
-    if(any(d%chi_planck.ne.d%chi_planck)) call error("dust_setup","chi_planck array contains NaN values")
-    if(any(d%kappa_planck.ne.d%kappa_planck)) call error("dust_setup","kappa_planck array contains NaN values")
-    if(any(d%chi_rosseland.ne.d%chi_rosseland)) call error("dust_setup","chi_planck array contains NaN values")
-    if(any(d%kappa_rosseland.ne.d%kappa_rosseland)) call error("dust_setup","kappa_rosseland array contains NaN values")
+    if(any(is_nan(d%specific_energy))) call error("dust_setup","specific_energy array contains NaN values")
+    if(any(is_nan(d%chi_planck))) call error("dust_setup","chi_planck array contains NaN values")
+    if(any(is_nan(d%kappa_planck))) call error("dust_setup","kappa_planck array contains NaN values")
+    if(any(is_nan(d%chi_rosseland))) call error("dust_setup","chi_planck array contains NaN values")
+    if(any(is_nan(d%kappa_rosseland))) call error("dust_setup","kappa_rosseland array contains NaN values")
 
     d%n_e = size(d%specific_energy)
     allocate(d%log10_specific_energy(d%n_e))
@@ -236,14 +236,14 @@ contains
     call mp_table_read_column_auto(group,path,'jnu',emiss_jnu)
 
     ! Check for NaN values
-    if(any(emiss_nu.ne.emiss_nu)) call error("dust_setup","emiss_nu array contains NaN values")
-    if(any(emiss_jnu.ne.emiss_jnu)) call error("dust_setup","emiss_jnu array contains NaN values")
+    if(any(is_nan(emiss_nu))) call error("dust_setup","emiss_nu array contains NaN values")
+    if(any(is_nan(emiss_jnu))) call error("dust_setup","emiss_jnu array contains NaN values")
 
     path = 'emissivity_variable'
     select case(d%emiss_var)
     case('E')
        call mp_table_read_column_auto(group,path,'specific_energy',d%j_nu_var)
-       if(any(d%j_nu_var.ne.d%j_nu_var)) call error("dust_setup","emissivity variable array contains NaN values")
+       if(any(is_nan(d%j_nu_var))) call error("dust_setup","emissivity variable array contains NaN values")
     end select
 
     ! Find number of emissivites
