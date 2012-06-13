@@ -34,7 +34,7 @@ contains
   subroutine binned_images_adjust_scale(scale)
     implicit none
     real(dp),intent(in) :: scale
-    call image_scale(binned_image, scale*real(n_theta)*real(n_phi))
+    call image_scale(binned_image, scale*real(n_theta, dp)*real(n_phi, dp))
   end subroutine binned_images_adjust_scale
 
   subroutine binned_images_setup(handle, path)

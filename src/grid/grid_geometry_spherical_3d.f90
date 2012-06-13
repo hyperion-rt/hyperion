@@ -150,7 +150,7 @@ contains
     ! Compute other useful quantities
 
     allocate(geo%wr2(geo%n1+1))
-    geo%wr2 = geo%w1**2.
+    geo%wr2 = geo%w1*geo%w1
 
     allocate(geo%wtanp(geo%n3+1))
     geo%wtanp = tan(geo%w3)
@@ -165,7 +165,7 @@ contains
     geo%wsint = sin(geo%w2)
 
     allocate(geo%wtant2(geo%n2+1))
-    geo%wtant2 = geo%wtant**2.
+    geo%wtant2 = geo%wtant*geo%wtant
 
     ! Search for midplane wall
     if(any(abs(geo%w2-pi/2._dp)<1.e-6)) geo%midplane = minloc(abs(geo%w2-pi/2._dp),1)

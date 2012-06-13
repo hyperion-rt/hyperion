@@ -481,7 +481,7 @@ contains
             &                   img%dust(p%dust_id)%log10_emissivity(:,p%emiss_var_id)) * p%emiss_var_frac + &
             &                   img%dust(p%dust_id)%log10_emissivity(:,p%emiss_var_id)
        img%tmp_spectrum = 10._dp**(img%tmp_spectrum)
-       where(img%tmp_spectrum.ne.img%tmp_spectrum)
+       where(is_nan(img%tmp_spectrum))
           img%tmp_spectrum = 0.
        end where
     case default

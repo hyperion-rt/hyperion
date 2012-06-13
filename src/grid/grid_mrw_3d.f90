@@ -47,7 +47,7 @@ contains
           total_alpha_rosseland = total_alpha_rosseland + &
                &density(ic, id) * chi_rosseland(id, specific_energy(ic, id))
        end do
-       diff_coeff(ic) = 1./3./total_alpha_rosseland
+       diff_coeff(ic) = 1._dp/3._dp/total_alpha_rosseland
     end do
 
   end subroutine prepare_mrw
@@ -167,10 +167,10 @@ contains
 
     do i=1,ncdf
 
-       xcdf(i) = real(i-1)/real(ncdf-1)
+       xcdf(i) = real(i-1, dp)/real(ncdf-1, dp)
 
        if(i==ncdf) then
-          ycdf(i) = 1._dp
+          ycdf(i) = 0.5_dp
        else
           j = 0
           do
