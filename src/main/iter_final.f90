@@ -160,7 +160,7 @@ contains
           if(forced_first_scattering) then
              p_tmp = p
              call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
-             if(tau_escape > 1.e-10_dp) then
+             if(tau_escape > 1.e-10_dp .and. .not. killed) then
                 call random(xi)
                 tau = -log(1._dp-xi*(1._dp - exp(-tau_escape)))
                 p%energy = p%energy * (1._dp - exp(-tau_escape))
