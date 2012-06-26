@@ -8,23 +8,35 @@ from ..densities.envelope import Envelope
 from ..util.validator import validate_scalar
 from ..util.logger import logger
 
+
 class BipolarCavity(FreezableClass):
+    r'''
+    This class implements the density structure for a bipolar cavity
+    in an envelope, with a density given by:
 
-    def __init__(self, theta_0=0., power=1.5, r_0=None,
-                 rho_0=None, rho_exp=0., envelope=None):
-        '''
-        Initialize a Bipolar Cavity instance. The required parameters are:
+    .. math:: \rho(r) = \rho_0\,\left(\frac{r}{r_0}\right)^{-e} \\
 
-            theta_0: opening angle (degrees)
-            power: shape exponent
-            r_0: base radius in the cavity (cm)
-            rho_0: base density in the cavity (g/cm^3)
-            rho_exp: vertical density exponent
-            cap_to_envelope_density: whether to use the envelope density as an upper limit
+    inside a volume defined by two parabolic surfaces with
+    half-opening angle ``theta_0`` at ``r_0``.
 
-            envelope: the parent envelope
+    Once the ``BipolarCavity`` class has been instantiated, the parameters for
+    the density structure can be set via attributes::
 
-        '''
+        >>> from hyperion.util.constants import msun, au, pc
+        >>> cavity = BipolarCavity()
+        >>> cavity.theta_0 = 10.
+        >>> cavity.power = 0.
+
+    In most cases however, you should not have to instantiate a
+    BipolarCavity class directly, but instead you should use the
+    ``add_bipolar_cavity`` method on the Envelope classes (see for
+    example :class:`UlrichEnvelope` or :class:`PowerLawEnvelope`
+    classes).
+    '''
+
+    def __init__(self, theta_0=None, power=None, r_0=None,
+                 rho_0=None, rho_exp=0.,
+                 cap_to_envelope_density=False, dust=None):
 
         self.power = power
         self.theta_0 = theta_0
@@ -32,13 +44,94 @@ class BipolarCavity(FreezableClass):
         self.rho_0 = rho_0
         self.rho_exp = rho_exp
 
-        self.envelope = envelope
+        self.cap_to_envelope_density = cap_to_envelope_density
 
-        self.dust = None
+        self._envelope = None
 
-        self.cap_to_envelope_density = False
+        self.dust = dust
 
         self._freeze()
+
+    @property
+    def theta_0(self):
+        '''Cavity half-opening angle at ``r_0``'''
+        return self._theta_0
+
+    @theta_0.setter
+    def theta_0(self, value):
+        if value is not None:
+            validate_scalar('theta_0', value, domain='positive')
+        self._theta_0 = value
+
+    @property
+    def power(self):
+        """Power of the cavity shape"""
+        return self._power
+
+    @power.setter
+    def power(self, value):
+        if value is not None:
+            validate_scalar('power', value, domain='real')
+        self._power = value
+
+    @property
+    def r_0(self):
+        """radius at which ``theta_0`` and  ``rho_0`` are defined (cm)"""
+        return self._r_0
+
+    @r_0.setter
+    def r_0(self, value):
+        if value is not None:
+            validate_scalar('r_0', value, domain='positive')
+        self._r_0 = value
+
+    @property
+    def rho_0(self):
+        '''density at ``r_0`` (g/cm^3)'''
+        return self._rho_0
+
+    @rho_0.setter
+    def rho_0(self, value):
+        if value is not None:
+            validate_scalar('rho_0', value, domain='positive')
+        self._rho_0 = value
+
+    @property
+    def rho_exp(self):
+        '''density power-law exponent'''
+        return self._rho_exp
+
+    @rho_exp.setter
+    def rho_exp(self, value):
+        if value is not None:
+            validate_scalar('rho_exp', value, domain='real')
+        self._rho_exp = value
+
+    @property
+    def cap_to_envelope_density(self):
+        '''
+        Whether to always force the cavity density to be no larger
+        than the density of the envelope.
+        '''
+        return self._cap_to_envelope_density
+
+    @cap_to_envelope_density.setter
+    def cap_to_envelope_density(self, value):
+        if type(value) != bool:
+            raise ValueError("cap_to_envelope_density should be a boolean")
+        self._cap_to_envelope_density = value
+
+    @property
+    def dust(self):
+        '''dust properties (filename or dust object)'''
+        return self._dust
+
+    @dust.setter
+    def dust(self, value):
+        if isinstance(value, basestring):
+            self._dust = SphericalDust(value)
+        else:
+            self._dust = value
 
     def exists(self):
         return self.theta_0 > 0.
@@ -61,7 +154,20 @@ class BipolarCavity(FreezableClass):
 
     def density(self, grid):
         '''
-        Compute the density of the bipolar cavity
+        Return the density grid
+
+        Parameters
+        ----------
+        grid : :class:`SphericalPolarGrid` or :class:`CylindricalPolarGrid` instance
+            The spherical or cylindrical polar grid object containing
+            information about the position of the grid cells.
+
+        Returns
+        -------
+        rho : np.ndarray
+            A 3-dimensional array containing the density of the
+            bipolar cavity inside each cell. The shape of this array
+            is the same as ``grid.shape``.
         '''
 
         self._check_all_set()
@@ -92,7 +198,20 @@ class BipolarCavity(FreezableClass):
 
     def mask(self, grid):
         '''
-        Compute the shape of the bipolar cavity
+        Compute the shape of the bipolar cavity.
+
+        Parameters
+        ----------
+        grid : :class:`SphericalPolarGrid` or :class:`CylindricalPolarGrid` instance
+            The spherical or cylindrical polar grid object containing
+            information about the position of the grid cells.
+
+        Returns
+        -------
+        mask : np.ndarray
+            A 3-dimensional booleand array indicating whether we are
+            inside or outside the bipolar cavity (True is inside). The
+            shape of this array is the same as ``grid.shape``.
         '''
 
         if self.theta_0 == 0.:
@@ -110,25 +229,9 @@ class BipolarCavity(FreezableClass):
 
     def __setattr__(self, attribute, value):
 
-        if value is not None:
-
-            # Dust specified as string
-            if attribute == 'dust' and isinstance(value, basestring):
-                FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
-                return
-
-            # Positive scalars
-            if attribute in ['theta_0', 'r_0', 'rho_0']:
-                validate_scalar(attribute, value, domain='positive')
-
-            # Scalars
-            if attribute in ['power', 'rho_exp']:
-                validate_scalar(attribute, value, domain='real')
-
-            # Bipolar cavity
-            if attribute == 'envelope':
-                if not isinstance(value, Envelope):
-                    raise ValueError("envelope should be an instance of "
-                                     "Envelope")
+        if attribute == '_envelope':
+            if value is not None and not isinstance(value, Envelope):
+                raise ValueError("_envelope should be an instance of "
+                                 "Envelope")
 
         FreezableClass.__setattr__(self, attribute, value)

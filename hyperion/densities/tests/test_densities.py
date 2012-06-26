@@ -147,13 +147,13 @@ def test_power_law_envelope_swap3():
 def test_power_law_cavity():
     e = PowerLawEnvelope()
     e.add_bipolar_cavity()
-    assert e.cavity.envelope is e
+    assert e.cavity._envelope is e
 
 
 def test_power_law_cavity_direct():
     e = PowerLawEnvelope()
     e.cavity = BipolarCavity()
-    assert e.cavity.envelope is e
+    assert e.cavity._envelope is e
 
 
 def test_power_law_cavity_invalid1():
@@ -226,11 +226,11 @@ def test_ulrich_envelope_invalid2(parameter):
 def test_ulrich_envelope_swap():
     e = UlrichEnvelope()
     e.mdot = 1.
-    assert not 'rho_0' in e.__dict__ and 'mdot' in e.__dict__
+    assert e._rho_0 is None and e._mdot is not None
     e.rho_0 = 1.
-    assert not 'mdot' in e.__dict__ and 'rho_0' in e.__dict__
+    assert e._rho_0 is not None and e._mdot is None
     e.mdot = 1.
-    assert not 'rho_0' in e.__dict__ and 'mdot' in e.__dict__
+    assert e._rho_0 is None and e._mdot is not None
 
 
 def test_ulrich_envelope_swap2():
@@ -258,13 +258,13 @@ def test_ulrich_envelope_swap3():
 def test_ulrich_cavity():
     e = UlrichEnvelope()
     e.add_bipolar_cavity()
-    assert e.cavity.envelope is e
+    assert e.cavity._envelope is e
 
 
 def test_ulrich_cavity_direct():
     e = UlrichEnvelope()
     e.cavity = BipolarCavity()
-    assert e.cavity.envelope is e
+    assert e.cavity._envelope is e
 
 
 def test_ulrich_cavity_invalid1():
