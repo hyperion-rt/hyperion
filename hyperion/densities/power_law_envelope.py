@@ -247,7 +247,7 @@ class PowerLawEnvelope(Envelope):
         '''
         Find the cumulative column density as a function of radius.
 
-        The cumulative density is measured outwards from the star, and in
+        The cumulative density is measured outwards from the origin, and in
         the midplane.
 
         Parameters

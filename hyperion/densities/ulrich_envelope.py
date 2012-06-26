@@ -109,21 +109,28 @@ def solve_mu0(ratio, mu):
 
 
 class UlrichEnvelope(Envelope):
+    r'''
+    This class implements the density structure for a rotationally flattened
+    and infalling envelope, with a density given by:
+
+    .. math:: \rho(r,\theta) = \frac{\dot{M}_{\rm env}}{4\pi\left(G M_{\star} R_{\rm c}^3\right)^{1/2}}\left(\frac{r}{ R_{\rm c}}\right)^{-3/2}\left(1 + \frac{\mu}{\mu_0}\right)^{-1/2}\left(\frac{\mu}{\mu_0} + \frac{2\mu_0^2 R_{\rm c}}{r}\right)^{-1} = \rho_0^{\rm env}\left(\frac{r}{ R_{\rm c}}\right)^{-3/2}\left(1 + \frac{\mu}{\mu_0}\right)^{-1/2}\left(\frac{\mu}{\mu_0} + \frac{2\mu_0^2 R_{\rm c}}{r}\right)^{-1}
+
+    where $\mu_0$ is given by the equation for the streamline:
+
+    .. math:: \mu_0^3 + \mu_0\left(\frac{r}{ R_{\rm c}} - 1\right) - \mu\left(\frac{r}{ R_{\rm c}}\right) = 0
+
+    One the ``UlrichEnvelope`` class has been instantiated, the parameters for
+    the density structure can be set via attributes::
+
+        >>> from hyperion.util.constants import msun, au, pc
+        >>> envelope = UlrichEnvelope()
+        >>> envelope.rho_0 = 1.e-19
+        >>> envelope.rmin = 0.1 * au
+        >>> envelope.rmax = pc
+    '''
 
     def __init__(self, mdot=None, rho_0=None, rmin=None, rmax=None, rc=None,
                  ambient_density=0., star=None):
-        '''
-        Initialize a Ulrich envelope instance. The required parameters are:
-
-            rmin: inner radius (cm)
-            rmax: outer radius (cm)
-            rc: centrifugal radius (cm)
-            ambient_density: minimum density for the envelope (g/cm^3)
-            mdot: infall rate (g/s)
-            rho_0: density scaling (g/cm^3)
-            star: the central star
-
-        '''
 
         # Basic envelope parameters
         self.rmin = rmin
@@ -134,12 +141,8 @@ class UlrichEnvelope(Envelope):
         if mdot is not None and rho_0 is not None:
             raise Exception("Cannot specify both mdot and rho_0")
 
-        if mdot is not None:
-            self.mdot = mdot
-        elif rho_0 is not None:
-            self.rho_0 = rho_0
-        else:
-            self.mdot = 0.
+        self.mdot = mdot
+        self.rho_0 = rho_0
 
         # Central star
         self.star = star
@@ -151,6 +154,115 @@ class UlrichEnvelope(Envelope):
         self.dust = None
 
         self._freeze()
+
+
+    @property
+    def rmin(self):
+        """inner radius (cm)"""
+        return self._rmin
+
+    @rmin.setter
+    def rmin(self, value):
+        if not isinstance(value, OptThinRadius) and value is not None:
+            validate_scalar('rmin', value, domain='positive', extra=' or an OptThinRadius instance')
+        self._rmin = value
+
+    @property
+    def rc(self):
+        """inner radius (cm)"""
+        return self._rc
+
+    @rc.setter
+    def rc(self, value):
+        if value is not None:
+            validate_scalar('rc', value, domain='positive')
+        self._rc = value
+
+    @property
+    def rmax(self):
+        """outer radius (cm)"""
+        return self._rmax
+
+    @rmax.setter
+    def rmax(self, value):
+        if not isinstance(value, OptThinRadius) and value is not None:
+            validate_scalar('rmax', value, domain='positive', extra=' or an OptThinRadius instance')
+        self._rmax = value
+
+    @property
+    def mdot(self):
+        '''infall rate (g/s)'''
+        if self._mdot is not None:
+            return self._mdot
+        elif self._rho_0 is None:
+            return None
+        else:
+            self._check_all_set()
+            if self.star.mass is None:
+                raise Exception("Stellar mass is undefined - cannot compute infall rate")
+            mdot = self.rho_0 * \
+                   (4. * pi * np.sqrt(G * self.star.mass * self.rc ** 3.))
+            return mdot
+
+    @mdot.setter
+    def mdot(self, value):
+        if value is not None:
+            validate_scalar('mdot', value, domain='positive')
+            if self._rho_0 is not None:
+                logger.warn("Overriding value of rho_0 with value derived from mdot")
+                self._rho_0 = None
+        self._mdot = value
+
+    @property
+    def rho_0(self):
+        '''density factor (g/cm^3)'''
+        if self._rho_0 is not None:
+            return self._rho_0
+        elif self._mdot is None:
+            return None
+        else:
+            self._check_all_set()
+            if self.star.mass is None:
+                raise Exception("Stellar mass is undefined - cannot compute density scaling")
+            rho_0 = self.mdot / \
+                    (4. * pi * np.sqrt(G * self.star.mass * self.rc ** 3.))
+            return rho_0
+
+    @rho_0.setter
+    def rho_0(self, value):
+        if value is not None:
+            validate_scalar('rho_0', value, domain='positive')
+            if self._mdot is not None:
+                logger.warn("Overriding value of mdot with value derived from rho_0")
+                self._mdot= None
+        self._rho_0 = value
+
+    @property
+    def cavity(self):
+        '''BipolarCavity instance'''
+        return self._cavity
+
+    @cavity.setter
+    def cavity(self, value):
+        if value is None:
+            self._cavity = None
+        else:
+            if not isinstance(value, BipolarCavity):
+                raise ValueError("cavity should be an instance of BipolarCavity")
+            self._cavity = value
+            self._cavity.envelope = self
+
+    @property
+    def dust(self):
+        '''dust properties (filename or dust object)'''
+        return self._dust
+
+    @dust.setter
+    def dust(self, value):
+        if isinstance(value, basestring):
+            self._dust = SphericalDust(value)
+        else:
+            self._dust = value
 
     def _check_all_set(self):
 
@@ -174,11 +286,20 @@ class UlrichEnvelope(Envelope):
 
     def density(self, grid, ignore_cavity=False):
         '''
-        Find the density of a Ulrich envelope
+        Return the density grid
 
-        Input is the position of the center of the grid cells in spherical
-        polar coordinates (r, theta, phi), the volume of the grid cells, and a
-        parameter dictionary
+        Parameters
+        ----------
+        grid : SphericalPolarGrid or CylindricalPolarGrid instance
+            The spherical or cylindrical polar grid object containing
+            information about the position of the grid cells.
+
+        Returns
+        -------
+        rho : np.ndarray
+            A 3-dimensional array containing the density of the envelope
+            inside each cell. The shape of this array is the same as
+            ``grid.shape``.
         '''
 
         self._check_all_set()
@@ -222,7 +343,17 @@ class UlrichEnvelope(Envelope):
     def outermost_radius(self, rho):
         '''
         Find the outermost radius at which the density of the envelope has
-        fallen to `rho`.
+        fallen to `rho` (in the midplane).
+
+        Parameters
+        ----------
+        rho : float
+            The density for which to determine the radius
+
+        Returns
+        -------
+        r : float
+            The radius at which the density has fallen to ``rho``
         '''
         a, b, c, d = 2., -5., 4., -1 - (self.rho_0 / rho) ** 2
         p = (3 * a * c - b ** 2) / (3. * a ** 2)
@@ -233,8 +364,21 @@ class UlrichEnvelope(Envelope):
 
     def midplane_cumulative_density(self, r):
         '''
-        Find the cumulative column density as a function of radius from the
-        star in the midplane of an infalling Ulrich envelope.
+        Find the cumulative column density as a function of radius.
+
+        The cumulative density is measured outwards from the origin, and in
+        the midplane.
+
+        Parameters
+        ----------
+        r : np.ndarray
+            Array of values of the radius up to which to tabulate the
+            cumulative density.
+
+        Returns
+        -------
+        rho : np.ndarray
+            Array of values of the cumulative density.
         '''
 
         self._check_all_set()
@@ -269,67 +413,17 @@ class UlrichEnvelope(Envelope):
         return rho
 
     def add_bipolar_cavity(self):
+        '''
+        Add a bipolar cavity to the envelope.
+
+        Returns
+        -------
+        cavity : BipolarCavity instance
+            The bipolar cavity instance, which can then be used to set the
+            parameters of the cavity.
+        '''
         if self.cavity is not None:
             raise Exception("Envelope already has a bipolar cavity")
         else:
             self.cavity = BipolarCavity()
             return self.cavity
-
-    def __setattr__(self, attribute, value):
-
-        if value is not None:
-
-            # Dust specified as string
-            if attribute == 'dust' and isinstance(value, basestring):
-                Envelope.__setattr__(self, 'dust', SphericalDust(value))
-                return
-
-            # Positive scalars
-            if attribute in ['rc', 'rho_0', 'mdot']:
-                validate_scalar(attribute, value, domain='positive')
-
-            # Radii (positive scalars or OptThinRadius instance)
-            if attribute in ['rmin', 'rmax']:
-                if not isinstance(value, OptThinRadius):
-                    validate_scalar(attribute, value, domain='positive', extra=' or an OptThinRadius instance')
-
-            # Bipolar cavity
-            if attribute == 'cavity':
-                if not isinstance(value, BipolarCavity):
-                    raise ValueError("cavity should be an instance of BipolarCavity")
-
-        if attribute == 'mdot':
-            if 'rho_0' in self.__dict__:
-                logger.warn("Overriding value of rho_0 with value derived from mdot")
-                del self.rho_0
-            object.__setattr__(self, attribute, value)
-        elif attribute == 'rho_0':
-            if 'mdot' in self.__dict__:
-                logger.warn("Overriding value of mdot with value derived from rho_0")
-                del self.mdot
-            object.__setattr__(self, attribute, value)
-        else:
-            Envelope.__setattr__(self, attribute, value)
-
-        if attribute == 'cavity' and isinstance(value, BipolarCavity):
-            self.cavity.envelope = self
-
-    def __getattr__(self, attribute):
-
-        if attribute == 'rho_0':
-            self._check_all_set()
-            if self.star.mass is None:
-                raise Exception("Stellar mass is undefined - cannot compute density scaling")
-            rho_0 = self.mdot / \
-                    (4. * pi * np.sqrt(G * self.star.mass * self.rc ** 3.))
-            return rho_0
-
-        if attribute == 'mdot':
-            self._check_all_set()
-            if self.star.mass is None:
-                raise Exception("Stellar mass is undefined - cannot compute infall rate")
-            mdot = self.rho_0 * \
-                   (4. * pi * np.sqrt(G * self.star.mass * self.rc ** 3.))
-            return mdot
-
-        raise AttributeError(attribute)
