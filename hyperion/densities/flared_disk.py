@@ -12,24 +12,25 @@ from ..util.validator import validate_scalar
 
 
 class FlaredDisk(FreezableClass):
+    r'''
+    This class implements the density structure for a flared axisymmatric
+    disk, with the density given by:
+
+    .. math:: \rho(R,z,\phi) = \rho_0^{\rm disk}\,\left(\frac{R_0}{R}\right)^{\beta - p}\,\exp{\left[-\frac{1}{2}\left(\frac{z}{h(R)}\right)^2\right]} \\
+
+    One the ``FlaredDisk`` class has been instantiated, the parameters for
+    the density structure can be set via attributes::
+
+        >>> from hyperion.util.constants import msun, au
+        >>> disk = FlaredDisk()
+        >>> disk.mass = 2. * msun
+        >>> disk.rmin = 0.1 * au
+        >>> disk.rmax = 100 * au
+    '''
+
 
     def __init__(self):
-        '''
-        Initialize a flared disk instance.
 
-        The available attributes are:
-
-            mass: mass (g)
-            rmin: inner radius (cm)
-            rmax: outer radius (cm)
-            p: surface density exponent
-            beta: flaring exponent
-            h_0: scaleheight at r_0 (cm)
-            r_0: radius at which scaleheight is defined (cm)
-
-        '''
-
-        # Basic disk parameters
         self.mass = 0.
         self.rmin = None
         self.rmax = None
@@ -37,15 +38,129 @@ class FlaredDisk(FreezableClass):
         self.beta = 1.25
         self.h_0 = None
         self.r_0 = None
-
-        # Fine control over density distribution
         self.cylindrical_inner_rim = True
         self.cylindrical_outer_rim = True
-
-        # Dust
         self.dust = None
 
         self._freeze()
+
+    @property
+    def mass(self):
+        '''total mass (g)'''
+        return self._mass
+
+    @mass.setter
+    def mass(self, value):
+        if value is not None:
+            validate_scalar('mass', value, domain='positive')
+        self._mass = value
+
+    @property
+    def rmin(self):
+        """inner radius (cm)"""
+        return self._rmin
+
+    @rmin.setter
+    def rmin(self, value):
+        if not isinstance(value, OptThinRadius) and value is not None:
+            validate_scalar('rmin', value, domain='positive', extra=' or an OptThinRadius instance')
+        self._rmin = value
+
+    @property
+    def rmax(self):
+        """outer radius (cm)"""
+        return self._rmax
+
+    @rmax.setter
+    def rmax(self, value):
+        if not isinstance(value, OptThinRadius) and value is not None:
+            validate_scalar('rmax', value, domain='positive', extra=' or an OptThinRadius instance')
+        self._rmax = value
+
+    @property
+    def p(self):
+        '''surface density power-law exponent'''
+        return self._p
+
+    @p.setter
+    def p(self, value):
+        if value is not None:
+            validate_scalar('p', value, domain='real')
+        self._p = value
+
+    @property
+    def beta(self):
+        '''scaleheight power-law exponent'''
+        return self._beta
+
+    @beta.setter
+    def beta(self, value):
+        if value is not None:
+            validate_scalar('beta', value, domain='real')
+        self._beta = value
+
+    @property
+    def h_0(self):
+        '''scaleheight of the disk at ``r_0`` (cm)'''
+        return self._h_0
+
+    @h_0.setter
+    def h_0(self, value):
+        if value is not None:
+            validate_scalar('h_0', value, domain='positive')
+        self._h_0 = value
+
+    @property
+    def r_0(self):
+        '''radius at which ``h_0`` is defined (cm)'''
+        return self._r_0
+
+    @r_0.setter
+    def r_0(self, value):
+        if value is not None:
+            validate_scalar('r_0', value, domain='positive')
+        self._r_0 = value
+
+    @property
+    def cylindrical_inner_rim(self):
+        '''
+        Whether the inner edge of the disk should be defined as a truncation
+        in cylindrical or spherical polar coordinates
+        '''
+        return self._cylindrical_inner_rim
+
+    @cylindrical_inner_rim.setter
+    def cylindrical_inner_rim(self, value):
+        if type(value) != bool:
+            raise ValueError("cylindrical_inner_rim should be a boolean")
+        self._cylindrical_inner_rim = value
+
+    @property
+    def cylindrical_outer_rim(self):
+        '''
+        Whether the outer edge of the disk should be defined as a truncation
+        in cylindrical or spherical polar coordinates
+        '''
+        return self._cylindrical_outer_rim
+
+    @cylindrical_outer_rim.setter
+    def cylindrical_outer_rim(self, value):
+        if type(value) != bool:
+            raise ValueError("cylindrical_outer_rim should be a boolean")
+        self._cylindrical_outer_rim = value
+
+    @property
+    def dust(self):
+        '''dust properties (filename or dust object)'''
+        return self._dust
+
+    @dust.setter
+    def dust(self, value):
+        if isinstance(value, basestring):
+            self._dust = SphericalDust(value)
+        else:
+            self._dust = value
+
 
     def __str__(self):
         string = "= Flared disk =\n"
@@ -150,8 +265,21 @@ class FlaredDisk(FreezableClass):
 
     def midplane_cumulative_density(self, r):
         '''
-        Find the cumulative column density as a function of radius from the
-        star in the midplane of a standard flared disk.
+        Find the cumulative column density as a function of radius.
+
+        The cumulative density is measured outwards from the star, and in
+        the midplane.
+
+        Parameters
+        ----------
+        r : np.ndarray
+            Array of values of the radius up to which to tabulate the
+            cumulative density.
+
+        Returns
+        -------
+        rho : np.ndarray
+            Array of values of the cumulative density.
         '''
 
         self._check_all_set()
@@ -165,7 +293,7 @@ class FlaredDisk(FreezableClass):
 
         return self.rho_0() * int1
 
-    def vertical_profile(self, r, theta):
+    def _vertical_profile(self, r, theta):
 
         self._check_all_set()
 
@@ -191,8 +319,22 @@ class FlaredDisk(FreezableClass):
         return rho
 
     def vertical_cumulative_density(self, r, theta):
+        '''
+        Find the cumulative column density as a function of theta.
 
-        density = self.vertical_profile(r, theta)
+        Parameters
+        ----------
+        r : float
+            The spherical radius at which to calculate the cumulative density.
+        theta : np.ndarray
+            The theta values at which to tabulate the cumulative density.
+
+        Returns
+        -------
+        rho : np.ndarray
+            Array of values of the cumulative density.
+        '''
+        density = self._vertical_profile(r, theta)
 
         d = r * np.radians(theta)
 
@@ -201,27 +343,3 @@ class FlaredDisk(FreezableClass):
         tau[0] = 0.
 
         return tau
-
-    def __setattr__(self, attribute, value):
-
-        if value is not None:
-
-            # Dust specified as string
-            if attribute == 'dust' and isinstance(value, basestring):
-                FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
-                return
-
-            # Positive scalars
-            if attribute in ['mass', 'h_0', 'r_0']:
-                validate_scalar(attribute, value, domain='positive')
-
-            # Scalars
-            if attribute in ['p', 'beta']:
-                validate_scalar(attribute, value, domain='real')
-
-            # Radii (positive scalars or OptThinRadius instance)
-            if attribute in ['rmin', 'rmax']:
-                if not isinstance(value, OptThinRadius):
-                    validate_scalar(attribute, value, domain='positive', extra=' or an OptThinRadius instance')
-
-        FreezableClass.__setattr__(self, attribute, value)
