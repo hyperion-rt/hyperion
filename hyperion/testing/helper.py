@@ -18,7 +18,8 @@ class TestRunner(object):
         self.base_path = base_path
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
-                  verbose=False, pastebin=None, generate_reference=False):
+                  verbose=False, pastebin=None, generate_reference=False,
+                  bit_level_tests=False):
 
         if package is None:
             package_path = self.base_path
@@ -56,10 +57,13 @@ class TestRunner(object):
             if not generate_reference.startswith('/'):
                 raise Exception("Need to specify output directory for generating reference files as an absolute path")
             all_args += ' --generate-reference={0}'.format(generate_reference)
+            all_args += ' --enable-bit-level-tests'
+
+        if bit_level_tests:
+            all_args += ' --enable-bit-level-tests'
 
         all_args = shlex.split(all_args,
                                posix=not sys.platform.startswith('win'))
-
 
         import pytest
         return pytest.main(args=all_args, plugins=plugins)
@@ -84,6 +88,7 @@ class HyperionTest(Command, object):
         ('pastebin=', 'b',
          "Enable pytest pastebin output. Either 'all' or 'failed'."),
         ('generate-reference=', 'g', "generate reference results for bit-level tests"),
+        ('enable-bit-level-tests', 'l', "enable bit-level tests"),
         ('args=', 'a', 'Additional arguments to be passed to pytest'),
     ]
 
@@ -98,6 +103,7 @@ class HyperionTest(Command, object):
         self.plugins = None
         self.pastebin = None
         self.generate_reference = False
+        self.enable_bit_level_tests = False
         self.args = None
 
     def finalize_options(self):
@@ -118,10 +124,10 @@ class HyperionTest(Command, object):
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
         cmd = ('import hyperion, sys; sys.exit(hyperion.test({0!r}, {1!r}, '
-               '{2!r}, {3!r}, {4!r}, {5!r}, {6!r}))')
+               '{2!r}, {3!r}, {4!r}, {5!r}, {6!r}, {7!r}))')
         cmd = cmd.format(self.package, self.test_path, self.args,
                          self.plugins, self.verbose, self.pastebin,
-                         self.generate_reference)
+                         self.generate_reference, self.enable_bit_level_tests)
 
         raise SystemExit(subprocess.call([sys.executable, '-c', cmd],
                                          cwd=new_path, close_fds=False))

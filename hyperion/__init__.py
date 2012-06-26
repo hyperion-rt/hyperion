@@ -33,7 +33,8 @@ def _get_test_runner():
     return TestRunner(__path__[0])
 
 def test(package=None, test_path=None, args=None, plugins=None,
-         verbose=False, pastebin=None, generate_reference=False):
+         verbose=False, pastebin=None, generate_reference=False,
+         bit_level_tests=False):
     """
     Run Hyperion tests using py.test. A proper set of arguments is
     constructed and passed to `pytest.main`.
@@ -70,6 +71,10 @@ def test(package=None, test_path=None, args=None, plugins=None,
     generate_reference : str
         Generate reference results for bit-level tests
 
+    bit_level_tests : bool
+        Run bit-level tests. These are time-consuming tests that check the
+        exact validity of the output, but they are disabled by default.
+
     See Also
     --------
     pytest.main : py.test function wrapped by `run_tests`.
@@ -79,4 +84,5 @@ def test(package=None, test_path=None, args=None, plugins=None,
     return test_runner.run_tests(
         package=package, test_path=test_path, args=args,
         plugins=plugins, verbose=verbose, pastebin=pastebin,
-        generate_reference=generate_reference)
+        generate_reference=generate_reference,
+        bit_level_tests=bit_level_tests)

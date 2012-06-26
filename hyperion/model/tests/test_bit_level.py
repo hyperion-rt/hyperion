@@ -24,6 +24,7 @@ DATA = os.path.join(os.path.dirname(__file__), 'data')
 
 generate_reference = pytest.mark.generate_reference
 
+bit_level = pytest.mark.enable_bit_level_tests
 
 def setup_all_grid_types(self, u, d):
     '''
@@ -125,6 +126,7 @@ class TestBasic(object):
         setup_all_grid_types(self, pc, 1.e-20)
         self.dust_file = os.path.join(DATA, 'kmh_lite.hdf5')
 
+    @bit_level
     @generate_reference
     @pytest.mark.parametrize(('grid_type', 'sample_sources_evenly', 'multiple_densities'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
     def test_specific_energy(self, grid_type, sample_sources_evenly, multiple_densities, generate=False):
@@ -163,6 +165,7 @@ class TestBasic(object):
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
 
+    @bit_level
     @generate_reference
     @pytest.mark.parametrize(('grid_type', 'raytracing', 'sample_sources_evenly'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
     def test_peeloff(self, grid_type, raytracing, sample_sources_evenly, generate=False):
@@ -320,6 +323,7 @@ class TestPascucciBenchmark(object):
         dust.set_lte_emissivities(n_temp=100, temp_min=0.1, temp_max=1600.)
         dust.write(self.dust_file)
 
+    @bit_level
     @generate_reference
     @pytest.mark.parametrize(('tau'), [0.1, 1, 10, 100])
     def test_pascucci(self, tau, generate=False):
@@ -423,6 +427,7 @@ class TestPinteBenchmark(object):
     The current tests do not test the imaging part of the Pinte benchmark.
     """
 
+    @bit_level
     @generate_reference
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
     def test_pinte_seds(self, tau, generate=False):
@@ -524,6 +529,7 @@ class TestPinteBenchmark(object):
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
 
+    @bit_level
     @generate_reference
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
     def test_pinte_specific_energy(self, tau, generate=False):
