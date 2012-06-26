@@ -117,11 +117,11 @@ def test_power_law_envelope_invalid2(parameter):
 def test_power_law_envelope_swap1():
     e = PowerLawEnvelope()
     e.mass = 1.
-    assert not 'rho_0' in e.__dict__ and 'mass' in e.__dict__
+    assert e._rho_0 is None and e._mass is not None
     e.rho_0 = 1.
-    assert not 'mass' in e.__dict__ and 'rho_0' in e.__dict__
+    assert e._rho_0 is not None and e._mass is None
     e.mass = 1.
-    assert not 'rho_0' in e.__dict__ and 'mass' in e.__dict__
+    assert e._rho_0 is None and e._mass is not None
 
 
 def test_power_law_envelope_swap2():

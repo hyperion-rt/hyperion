@@ -28,7 +28,6 @@ hyperion.densities.FlaredDisk
       ~FlaredDisk.rho_0
       ~FlaredDisk.density
       ~FlaredDisk.midplane_cumulative_density
-      ~FlaredDisk.vertical_profile
       ~FlaredDisk.vertical_cumulative_density
 
    .. rubric:: Methods (detail)
@@ -36,5 +35,4 @@ hyperion.densities.FlaredDisk
    .. automethod:: FlaredDisk.rho_0
    .. automethod:: FlaredDisk.density
    .. automethod:: FlaredDisk.midplane_cumulative_density
-   .. automethod:: FlaredDisk.vertical_profile
    .. automethod:: FlaredDisk.vertical_cumulative_density

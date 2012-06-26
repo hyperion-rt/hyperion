@@ -14,7 +14,7 @@ from ..util.validator import validate_scalar
 class FlaredDisk(FreezableClass):
     r'''
     This class implements the density structure for a flared axisymmatric
-    disk, with the density given by:
+    disk, with a density given by:
 
     .. math:: \rho(R,z,\phi) = \rho_0^{\rm disk}\,\left(\frac{R_0}{R}\right)^{\beta - p}\,\exp{\left[-\frac{1}{2}\left(\frac{z}{h(R)}\right)^2\right]} \\
 
@@ -161,7 +161,6 @@ class FlaredDisk(FreezableClass):
         else:
             self._dust = value
 
-
     def __str__(self):
         string = "= Flared disk =\n"
         string += " - M_disk: %.3e\n" % self.mass
@@ -215,10 +214,20 @@ class FlaredDisk(FreezableClass):
 
     def density(self, grid):
         '''
-        Return a density grid for spherical polar coordinates
+        Return the density grid
 
-        Input is the position of the center of the grid cells in spherical
-        polar coordinates (r, theta, phi), and the volume of the grid cells.
+        Parameters
+        ----------
+        grid : SphericalPolarGrid or CylindricalPolarGrid instance
+            The spherical or cylindrical polar grid object containing
+            information about the position of the grid cells.
+
+        Returns
+        -------
+        rho : np.ndarray
+            A 3-dimensional array containing the density of the disk inside
+            each cell. The shape of this array is the same as
+            ``grid.shape``.
         '''
 
         self._check_all_set()
