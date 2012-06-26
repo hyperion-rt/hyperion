@@ -119,7 +119,7 @@ class UlrichEnvelope(Envelope):
 
     .. math:: \mu_0^3 + \mu_0\left(\frac{r}{ R_{\rm c}} - 1\right) - \mu\left(\frac{r}{ R_{\rm c}}\right) = 0
 
-    One the ``UlrichEnvelope`` class has been instantiated, the parameters for
+    Once the ``UlrichEnvelope`` class has been instantiated, the parameters for
     the density structure can be set via attributes::
 
         >>> from hyperion.util.constants import msun, au, pc
@@ -238,6 +238,22 @@ class UlrichEnvelope(Envelope):
         self._rho_0 = value
 
     @property
+    def star(self):
+        '''central star instance (needs a ``mass`` attribute)'''
+        return self._star
+
+    @star.setter
+    def star(self, value):
+        if value is None:
+            self._star = None
+        else:
+            try:
+                value.mass
+            except AttributeError:
+                raise ValueError("star should have a ``mass`` attribute")
+            self._star = value
+
+    @property
     def cavity(self):
         '''BipolarCavity instance'''
         return self._cavity
@@ -250,7 +266,7 @@ class UlrichEnvelope(Envelope):
             if not isinstance(value, BipolarCavity):
                 raise ValueError("cavity should be an instance of BipolarCavity")
             self._cavity = value
-            self._cavity.envelope = self
+            self._cavity._envelope = self
 
     @property
     def dust(self):
@@ -290,7 +306,7 @@ class UlrichEnvelope(Envelope):
 
         Parameters
         ----------
-        grid : SphericalPolarGrid or CylindricalPolarGrid instance
+        grid : :class:`SphericalPolarGrid` or :class:`CylindricalPolarGrid` instance
             The spherical or cylindrical polar grid object containing
             information about the position of the grid cells.
 
@@ -418,7 +434,7 @@ class UlrichEnvelope(Envelope):
 
         Returns
         -------
-        cavity : BipolarCavity instance
+        cavity : :class:`BipolarCavity` instance
             The bipolar cavity instance, which can then be used to set the
             parameters of the cavity.
         '''

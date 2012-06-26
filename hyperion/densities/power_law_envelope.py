@@ -19,7 +19,7 @@ class PowerLawEnvelope(Envelope):
 
     .. math:: \rho(r) = \rho_0^{\rm env}\,\left(\frac{r}{r_0}\right)^\gamma \\
 
-    One the ``PowerLawEnvelope`` class has been instantiated, the parameters for
+    Once the ``PowerLawEnvelope`` class has been instantiated, the parameters for
     the density structure can be set via attributes::
 
         >>> from hyperion.util.constants import msun, au, pc
@@ -151,7 +151,7 @@ class PowerLawEnvelope(Envelope):
             if not isinstance(value, BipolarCavity):
                 raise ValueError("cavity should be an instance of BipolarCavity")
             self._cavity = value
-            self._cavity.envelope = self
+            self._cavity._envelope = self
 
     @property
     def dust(self):
@@ -190,7 +190,7 @@ class PowerLawEnvelope(Envelope):
 
         Parameters
         ----------
-        grid : SphericalPolarGrid or CylindricalPolarGrid instance
+        grid : :class:`SphericalPolarGrid` or :class:`CylindricalPolarGrid` instance.
             The spherical or cylindrical polar grid object containing
             information about the position of the grid cells.
 
@@ -276,7 +276,7 @@ class PowerLawEnvelope(Envelope):
 
         Returns
         -------
-        cavity : BipolarCavity instance
+        cavity : :class:`BipolarCavity` instance
             The bipolar cavity instance, which can then be used to set the
             parameters of the cavity.
         '''

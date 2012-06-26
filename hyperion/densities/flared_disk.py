@@ -18,7 +18,7 @@ class FlaredDisk(FreezableClass):
 
     .. math:: \rho(R,z,\phi) = \rho_0^{\rm disk}\,\left(\frac{R_0}{R}\right)^{\beta - p}\,\exp{\left[-\frac{1}{2}\left(\frac{z}{h(R)}\right)^2\right]} \\
 
-    One the ``FlaredDisk`` class has been instantiated, the parameters for
+    Once the ``FlaredDisk`` class has been instantiated, the parameters for
     the density structure can be set via attributes::
 
         >>> from hyperion.util.constants import msun, au
@@ -29,18 +29,21 @@ class FlaredDisk(FreezableClass):
     '''
 
 
-    def __init__(self):
+    def __init__(self, mass=0., rmin=None, rmax=None, p=-1,
+                 beta=-1.25, h_0=None, r_0=None,
+                 cylindrical_inner_rim=True,
+                 cylindrical_outer_rim=True, dust=None):
 
-        self.mass = 0.
-        self.rmin = None
-        self.rmax = None
-        self.p = -1.
-        self.beta = 1.25
-        self.h_0 = None
-        self.r_0 = None
-        self.cylindrical_inner_rim = True
-        self.cylindrical_outer_rim = True
-        self.dust = None
+        self.mass = mass
+        self.rmin = rmin
+        self.rmax = rmax
+        self.p = p
+        self.beta = beta
+        self.h_0 = h_0
+        self.r_0 = r_0
+        self.cylindrical_inner_rim = cylindrical_inner_rim
+        self.cylindrical_outer_rim = cylindrical_outer_rim
+        self.dust = dust
 
         self._freeze()
 
@@ -218,7 +221,7 @@ class FlaredDisk(FreezableClass):
 
         Parameters
         ----------
-        grid : SphericalPolarGrid or CylindricalPolarGrid instance
+        grid : :class:`SphericalPolarGrid` or :class:`CylindricalPolarGrid` instance
             The spherical or cylindrical polar grid object containing
             information about the position of the grid cells.
 

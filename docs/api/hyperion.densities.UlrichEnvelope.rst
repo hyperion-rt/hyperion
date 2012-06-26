@@ -15,6 +15,8 @@ hyperion.densities.UlrichEnvelope
       ~UlrichEnvelope.rmin
       ~UlrichEnvelope.rc
       ~UlrichEnvelope.rmax
+      ~UlrichEnvelope.cavity
+      ~UlrichEnvelope.star
       ~UlrichEnvelope.dust
 
    .. rubric:: Methods
