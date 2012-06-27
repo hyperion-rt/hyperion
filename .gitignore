@@ -1,6 +1,6 @@
 hyperion/data/*
 build
-documentation/_build
+docs/_build
 *.pyc
 *.o
 *.mod
