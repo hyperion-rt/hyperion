@@ -24,9 +24,9 @@ class OutputConf(FreezableClass):
         group.attrs['output_n_photons'] = np.string_(self.output_n_photons.encode('utf-8'))
 
 
-class RunConf(FreezableClass):
+class RunConf(object):
 
-    def __init__(self):
+    def init_run_conf(self):
         '''
         Initialize default run configuration
         '''
@@ -45,7 +45,6 @@ class RunConf(FreezableClass):
         self.set_enforce_energy_range(True)
         self.set_copy_input(True)
         self._monochromatic = False
-        self._freeze()
 
     def set_n_initial_iterations(self, n_iter):
         '''
@@ -448,7 +447,7 @@ class RunConf(FreezableClass):
     def _write_sample_sources_evenly(self, group):
         group.attrs['sample_sources_evenly'] = bool2str(self.sample_sources_evenly)
 
-    def write(self, group):
+    def write_run_conf(self, group):
         '''
         Writes out the configuation to an HDF5 group
 

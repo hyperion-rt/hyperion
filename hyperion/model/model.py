@@ -27,11 +27,10 @@ class Configuration(FreezableClass):
 
     def __init__(self):
         self.output = OutputConf()
-        self.run = RunConf()
         self._freeze()
 
 
-class Model(FreezableClass):
+class Model(FreezableClass, RunConf):
 
     def __init__(self, name=None):
         '''
@@ -60,22 +59,9 @@ class Model(FreezableClass):
 
         self.grid = None
 
-        # Import methods for convenience
-        self.set_n_initial_iterations = self.conf.run.set_n_initial_iterations
-        self.set_n_photons = self.conf.run.set_n_photons
-        self.set_raytracing = self.conf.run.set_raytracing
-        self.set_max_interactions = self.conf.run.set_max_interactions
-        self.set_pda = self.conf.run.set_pda
-        self.set_mrw = self.conf.run.set_mrw
-        self.set_convergence = self.conf.run.set_convergence
-        self.set_kill_on_absorb = self.conf.run.set_kill_on_absorb
-        self.set_forced_first_scattering = self.conf.run.set_forced_first_scattering
-        self.set_output_bytes = self.conf.run.set_output_bytes
-        self.set_sample_sources_evenly = self.conf.run.set_sample_sources_evenly
-        self.set_enforce_energy_range = self.conf.run.set_enforce_energy_range
-        self.set_copy_input = self.conf.run.set_copy_input
-
         self.filename = None
+
+        self.init_run_conf()
 
         self._freeze()
 
@@ -109,7 +95,6 @@ class Model(FreezableClass):
         '''
 
         self._monochromatic = monochromatic
-        self.conf.run._monochromatic = monochromatic
 
         if self._monochromatic:
             if wavelengths is not None and frequencies is not None:
@@ -346,7 +331,7 @@ class Model(FreezableClass):
         self._write_monochromatic(root, compression=compression)
 
         # Write run-time and output configuration
-        self.conf.run.write(root)
+        self.write_run_conf(root)
         self.conf.output.write(g_output)
 
         # Check self-consistency of grid
