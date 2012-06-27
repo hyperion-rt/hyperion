@@ -1,5 +1,5 @@
-API
-===
+Detailed description of objects and functions (API)
+===================================================
 
 Models
 ------------------
@@ -21,3 +21,17 @@ Density structures
    hyperion.densities.PowerLawEnvelope.rst
    hyperion.densities.UlrichEnvelope.rst
    hyperion.densities.BipolarCavity.rst
+   hyperion.densities.AmbientMedium.rst
+
+Sources
+-------
+
+.. toctree::
+   :maxdepth: 1
+
+   hyperion.sources.PointSource.rst
+   hyperion.sources.SphericalSource.rst
+   hyperion.sources.ExternalSphericalSource.rst
+   hyperion.sources.ExternalBoxSource.rst
+   hyperion.sources.MapSource.rst
+   hyperion.sources.PlaneParallelSource.rst

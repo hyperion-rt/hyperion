@@ -148,7 +148,39 @@ class AnalyticalYSOModel(Model):
     # DENSITY COMPONENTS
 
     def add_ambient_medium(self):
-        "Add an ambient medium in which the model is embedded"
+        """
+        Add an infalling rotationally flatted envelope to the model
+
+        Returns
+        -------
+        ambient : :class:`~hyperion.densities.AmbientMedium`
+            An :class:`~hyperion.densities.AmbientMedium` instance.
+
+        Examples
+        --------
+
+        To add an ambient medium to the model, you can do::
+
+            >>> ambient = m.add_ambient_medium()
+
+        then set the ambient medium properties using e.g.::
+
+            >>> from hyperion.util.constants import au, pc
+            >>> ambient.rho = 1.e-20  # cgs
+            >>> ambient.rmin = 0.1 * au  # cm
+            >>> ambient.rmax = pc  # cm
+
+        See the :class:`~hyperion.densities.AmbientMedium` documentation
+        to see which parameters can be set.
+
+        Notes
+        -----
+        Unlike other density structures, the ambient medium is not added to
+        the whole density structure, but it is instead used as a minimum
+        threshold. That is, anywhere within ``ambient.rmin`` and
+        ``ambient.rmax``, the density is reset to ``ambient.rho`` if it was
+        initially lower.
+        """
         if self.ambient is not None:
             raise Exception("Ambient medium already present")
         ambient = AmbientMedium()
@@ -156,13 +188,40 @@ class AnalyticalYSOModel(Model):
         return ambient
 
     def add_flared_disk(self):
-        "Add a flared disk to the geometry"
+        """
+        Add a flared disk to the model
+
+        Returns
+        -------
+        disk : :class:`~hyperion.densities.FlaredDisk`
+            A :class:`~hyperion.densities.FlaredDisk` instance.
+
+        Examples
+        --------
+
+        To add a flared disk to the model, you can do::
+
+            >>> disk = m.add_flared_disk()
+
+        then set the disk properties using e.g.::
+
+            >>> disk.mass = 1.e30  # g
+            >>> disk.rmin = 1e10  # cm
+            >>> disk.rmax = 1e14  # cm
+
+        See the :class:`~hyperion.densities.FlaredDisk` documentation
+        to see which parameters can be set.
+        """
         disk = FlaredDisk()
         self.disks.append(disk)
         return disk
 
     def add_alpha_disk(self, definition='whitney'):
-        "Add an alpha disk to the geometry"
+        """
+        Add an alpha disk to the geometry
+
+        .. warning:: this function is still experimental, and will be documented once stable
+        """
         if definition == 'whitney':
             disk = AlphaDiskWhitney()
             disk.star = self.star
@@ -173,7 +232,11 @@ class AnalyticalYSOModel(Model):
 
     def add_settled_disks(self, reference_disk, reference_size, eta=0.,
                           sizes=[], dust_files=[]):
-        "Automatically create disks with varying degrees of settling"
+        """
+        Automatically create disks with varying degrees of settling
+
+        .. warning:: this function is still experimental, and will be documented once stable
+        """
 
         exists = False
 
@@ -193,14 +256,62 @@ class AnalyticalYSOModel(Model):
             self.disks.append(disk)
 
     def add_ulrich_envelope(self):
-        "Add an infalling Ulrich envelope to the geometry"
+        """
+        Add an infalling rotationally flatted envelope to the model
+
+        Returns
+        -------
+        env : :class:`~hyperion.densities.UlrichEnvelope`
+            An :class:`~hyperion.densities.UlrichEnvelope` instance.
+
+        Examples
+        --------
+
+        To add an infalling envelope to the model, you can do::
+
+            >>> env = m.add_ulrich_envelope()
+
+        then set the envelope properties using e.g.::
+
+            >>> from hyperion.util.constants import msun, yr, au
+            >>> env.mdot = 1.e-6 * msun / yr  # g/s
+            >>> env.rmin = 0.1 * au  # cm
+            >>> env.rmax = 10000. * au  # cm
+
+        See the :class:`~hyperion.densities.UlrichEnvelope` documentation
+        to see which parameters can be set.
+        """
         envelope = UlrichEnvelope()
         envelope.star = self.star
         self.envelopes.append(envelope)
         return envelope
 
     def add_power_law_envelope(self):
-        "Add a power-law envelope to the geometry"
+        """
+        Add a spherically symmetric power-law envelope to the model
+
+        Returns
+        -------
+        env : :class:`~hyperion.densities.PowerLawEnvelope`
+            A :class:`~hyperion.densities.PowerLawEnvelope` instance.
+
+        Examples
+        --------
+
+        To add a power-law envelope to the model, you can do::
+
+            >>> env = m.add_power_law_envelope()
+
+        then set the envelope properties using e.g.::
+
+            >>> from hyperion.util.constants import msun, au
+            >>> env.mass = 0.1 * msun  # g/s
+            >>> env.rmin = 0.1 * au  # cm
+            >>> env.rmax = 10000. * au  # cm
+
+        See the :class:`~hyperion.densities.PowerLawEnvelope` documentation
+        to see which parameters can be set.
+        """
         envelope = PowerLawEnvelope()
         self.envelopes.append(envelope)
         return envelope
@@ -291,9 +402,38 @@ class AnalyticalYSOModel(Model):
         return rmin, rmax
 
     def set_cylindrical_polar_grid_auto(self, n_w, n_z, n_phi, zmax=None):
+        '''
+        Set the grid to be cylindrical polar with automated resolution.
+
+        Parameters
+        ----------
+        n_w, n_z, n_phi : int
+            Number of cells to use in the radial, vertical, and azimuthal
+            directions.
+        zmax : float, optional
+            The maximum height above and below the midplane to extend to. If
+            not specified, this is set to the maximum cylindrical radius of
+            the dust geometry.
+        '''
         self._set_polar_grid_auto(n_w, n_z, n_phi, 'cylindrical', zmax=zmax)
 
     def set_spherical_polar_grid_auto(self, n_r, n_theta, n_phi, rmax=None):
+        '''
+        Set the grid to be spherical polar with automated resolution.
+
+        Parameters
+        ----------
+        n_r, n_theta, n_phi : int
+            Number of cells to use in the radial, theta, and azimuthal
+            directions.
+        rmax : float, optional
+            The maximum radius to extend out to. If not specified, this is
+            set to the maximum spherical radius of the dust geometry in the
+            mid-plane. Note that if you are including a disk with a
+            cylindrical outer edge, this should be set to a value larger
+            than the disk radius, otherwise the disk will be truncated with
+            a spherical edge.
+        '''
         self._set_polar_grid_auto(n_r, n_theta, n_phi, 'spherical', rmax=rmax)
 
     def _set_polar_grid_auto(self, n1, n2, n3, grid_type, zmax=None,
@@ -423,6 +563,8 @@ class AnalyticalYSOModel(Model):
     def setup_magnetospheric_accretion(self, mdot, rtrunc, fspot, xwav_min=0.001, xwav_max=0.01):
         '''
         Set up the model for magnetospheric accretion
+
+        .. warning:: this function is still experimental, and will be documented once stable
 
         Parameters
         ----------

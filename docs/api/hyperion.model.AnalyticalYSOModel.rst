@@ -13,16 +13,9 @@ hyperion.model.AnalyticalYSOModel
    .. autosummary::
 
       ~AnalyticalYSOModel.add_flared_disk
-      ~AnalyticalYSOModel.add_alpha_disk
       ~AnalyticalYSOModel.add_power_law_envelope
       ~AnalyticalYSOModel.add_ulrich_envelope
       ~AnalyticalYSOModel.add_ambient_medium
-
-   .. rubric:: Miscellaneous
-
-   .. autosummary::
-
-      ~AnalyticalYSOModel.setup_magnetospheric_accretion
 
    .. rubric:: Setting the grid automatically
 
@@ -34,12 +27,9 @@ hyperion.model.AnalyticalYSOModel
    .. rubric:: Methods (detail)
 
    .. automethod:: AnalyticalYSOModel.add_flared_disk
-   .. automethod:: AnalyticalYSOModel.add_alpha_disk
    .. automethod:: AnalyticalYSOModel.add_power_law_envelope
    .. automethod:: AnalyticalYSOModel.add_ulrich_envelope
    .. automethod:: AnalyticalYSOModel.add_ambient_medium
-
-   .. automethod:: AnalyticalYSOModel.setup_magnetospheric_accretion
 
    .. automethod:: AnalyticalYSOModel.set_spherical_polar_grid_auto
    .. automethod:: AnalyticalYSOModel.set_cylindrical_polar_grid_auto

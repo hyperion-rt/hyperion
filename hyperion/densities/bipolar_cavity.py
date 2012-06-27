@@ -158,7 +158,7 @@ class BipolarCavity(FreezableClass):
 
         Parameters
         ----------
-        grid : :class:`SphericalPolarGrid` or :class:`CylindricalPolarGrid` instance
+        grid : :class:`~hyperion.grid.SphericalPolarGrid` or :class:`~hyperion.grid.CylindricalPolarGrid` instance.
             The spherical or cylindrical polar grid object containing
             information about the position of the grid cells.
 
@@ -202,7 +202,7 @@ class BipolarCavity(FreezableClass):
 
         Parameters
         ----------
-        grid : :class:`SphericalPolarGrid` or :class:`CylindricalPolarGrid` instance
+        grid : :class:`~hyperion.grid.SphericalPolarGrid` or :class:`~hyperion.grid.CylindricalPolarGrid` instance.
             The spherical or cylindrical polar grid object containing
             information about the position of the grid cells.
 
