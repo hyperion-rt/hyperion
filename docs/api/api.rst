@@ -35,3 +35,15 @@ Sources
    hyperion.sources.ExternalBoxSource.rst
    hyperion.sources.MapSource.rst
    hyperion.sources.PlaneParallelSource.rst
+
+Grid
+----
+
+.. toctree::
+   :maxdepth: 1
+
+   hyperion.grid.CartesianGrid.rst
+   hyperion.grid.CylindricalPolarGrid.rst
+   hyperion.grid.SphericalPolarGrid.rst
+   hyperion.grid.AMRGrid.rst
+   hyperion.grid.OctreeGrid.rst
