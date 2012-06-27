@@ -96,17 +96,17 @@ def _on_the_fly_hdf5(f, *args, **kwargs):
 
 
 class ModelOutput(FreezableClass):
+    '''
+    A class that can be used to access data in the output file from
+    radiative transfer models.
+
+    Parameters
+    ----------
+    name : str
+        The name of the model output file (including extension)
+    '''
 
     def __init__(self, filename):
-        '''
-        Create a ModelOutput instance that can be used to access the
-        data in the output file.
-
-        Parameters
-        ----------
-        name : str
-            The name of the model output file.
-        '''
 
         # Check that file exists
         if not os.path.exists(filename):
@@ -130,6 +130,7 @@ class ModelOutput(FreezableClass):
 
         stokes : str, optional
             The Stokes component to return. This can be:
+
                 * 'I': Total intensity [default]
                 * 'Q': Q Stokes parameter (linear polarization)
                 * 'U': U Stokes parameter (linear polarization)
@@ -182,10 +183,12 @@ class ModelOutput(FreezableClass):
         units : str, optional
             The output units for the SED(s). Valid options if a distance is
             specified are:
+
                 * ``'ergs/cm^2/s'``
                 * ``'ergs/cm^2/s/Hz'``
                 * ``'Jy'``
                 * ``'mJy'``
+
             The default is ``'ergs/cm^2/s'``. If a distance is not specified,
             then this option is ignored, and the output units are ergs/s.
 
@@ -607,6 +610,7 @@ class ModelOutput(FreezableClass):
 
         stokes : str, optional
             The Stokes component to return. This can be:
+
                 * 'I': Total intensity [default]
                 * 'Q': Q Stokes parameter (linear polarization)
                 * 'U': U Stokes parameter (linear polarization)
@@ -655,11 +659,13 @@ class ModelOutput(FreezableClass):
         units : str, optional
             The output units for the image(s). Valid options if a distance is
             specified are:
+
                 * ``'ergs/cm^2/s'``
                 * ``'ergs/cm^2/s/Hz'``
                 * ``'Jy'``
                 * ``'mJy'``
                 * ``'MJy/sr'``
+
             The default is ``'ergs/cm^2/s'``. If a distance is not specified,
             then this option is ignored, and the output units are ergs/s.
 
