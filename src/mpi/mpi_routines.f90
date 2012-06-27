@@ -254,9 +254,10 @@ contains
 
   end subroutine mp_n_photons
 
-  subroutine mp_set_random_seed()
+  subroutine mp_set_random_seed(seed)
     implicit none
-    call set_seed(-124902+rank)
+    integer :: seed
+    call set_seed(seed + rank)
   end subroutine mp_set_random_seed
 
   subroutine mp_collect_physical_arrays()

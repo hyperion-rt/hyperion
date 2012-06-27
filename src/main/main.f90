@@ -15,6 +15,7 @@ program main
        &                  mp_create_group, &
        &                  mp_set_compression, &
        &                  mp_write_keyword, &
+       &                  mp_exists_keyword, &
        &                  mp_read_keyword, &
        &                  mp_copy_group, &
        &                  mp_create_external_link, &
@@ -60,6 +61,7 @@ program main
   real(dp) :: time1, time2, time
   logical :: converged, copy_input
   character(len=30) :: datetime
+  integer :: seed
 
   character(len=5), parameter :: fortran_version = '0.8.7'
 
@@ -128,8 +130,16 @@ program main
 
   call cpu_time(time1)
 
+  if(mp_exists_keyword(handle_in, '/', 'seed')) then
+     call mp_read_keyword(handle_in, '/', 'seed', seed)
+  else
+     seed = -124902  ! value used before customized seed was implemented
+  end if
+
+  if(main_process()) write(*, '(" [main] using random seed = ", I0)') seed
+
   call set_verbose_level(100)
-  call mp_set_random_seed()
+  call mp_set_random_seed(seed)
   call setup_initial(handle_in)
 
   ! Wait for all threads

@@ -32,6 +32,7 @@ class RunConf(object):
         '''
         self.set_n_initial_iterations(5)
         self.n_photons = {}
+        self.set_seed(-124902)
         self.set_raytracing(False)
         self.set_max_interactions(1000000)
         self.set_max_reabsorptions(1000000)
@@ -45,6 +46,23 @@ class RunConf(object):
         self.set_enforce_energy_range(True)
         self.set_copy_input(True)
         self._monochromatic = False
+
+    def set_seed(self, seed):
+        '''
+        Set the seed for the random number generation
+
+        Parameters
+        ----------
+        seed : int
+            The seed with which to initialize the random number generation.
+            This should be negative.
+        '''
+        if type(seed) != int or seed >= 0:
+            raise ValueError("seed should be a negative integer")
+        self._seed = seed
+
+    def _write_seed(self, group):
+        group.attrs['seed'] = self._seed
 
     def set_n_initial_iterations(self, n_iter):
         '''
@@ -456,6 +474,7 @@ class RunConf(object):
         group : h5py.highlevel.File or h5py.highlevel.Group
             The HDF5 group to write the configuration to
         '''
+        self._write_seed(group)
         self._write_n_initial_iterations(group)
         self._write_n_photons(group)
         self._write_raytracing(group)
