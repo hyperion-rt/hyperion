@@ -737,7 +737,7 @@ class ModelOutput(FreezableClass):
 
         if 'track_origin' in g['images'].attrs:
 
-            track_origin = g['images'].attrs['track_origin']
+            track_origin = g['images'].attrs['track_origin'].decode('utf-8')
 
             if track_origin == 'no' and component != 'total':
                 raise Exception("cannot extract component=%s - file only contains total flux" % component)
