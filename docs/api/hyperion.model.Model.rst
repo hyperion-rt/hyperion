@@ -6,8 +6,6 @@ hyperion.model.Model
 
 .. autoclass:: Model
 
-   .. rubric:: Attributes
-
    .. rubric:: Adding sources
 
    .. autosummary::
