@@ -6,11 +6,6 @@ hyperion.model.ModelOutput
 
 .. autoclass:: ModelOutput
 
-   .. rubric:: Attributes
-
-   .. autosummary::
-
-
    .. rubric:: Methods
 
    .. autosummary::
