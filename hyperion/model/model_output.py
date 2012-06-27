@@ -194,10 +194,11 @@ class ModelOutput(FreezableClass):
 
         source_id, dust_id : int or str, optional
             If the output file was made with track_origin='detailed', a
-            specific source and dust component can be specified. If 'all' is
-            specified, then all components are returned individually. If
-            neither of these are not specified, then the total component
-            requested for all sources or dust types is returned.
+            specific source and dust component can be specified (where 0 is
+            the first source or dust type). If 'all' is specified, then all
+            components are returned individually. If neither of these are
+            not specified, then the total component requested for all
+            sources or dust types is returned.
 
         Returns
         -------
@@ -288,16 +289,16 @@ class ModelOutput(FreezableClass):
                         if source_id is None or source_id == 'all':
                             io = (io, io + ns)
                         else:
-                            if source_id < 1 or source_id > ns:
-                                raise Exception("source_id should be between 1 and %i" % ns)
-                            io = io + (source_id - 1)
+                            if source_id < 0 or source_id >= ns:
+                                raise ValueError("source_id should be between 0 and %i" % (ns - 1))
+                            io = io + source_id
                     else:
                         if dust_id is None or dust_id == 'all':
                             io = (io, io + nd)
                         else:
-                            if dust_id < 1 or dust_id > nd:
-                                raise Exception("dust_id should be between 1 and %i" % nd)
-                            io = io + (dust_id - 1)
+                            if dust_id < 0 or dust_id >= nd:
+                                raise ValueError("dust_id should be between 0 and %i" % (nd - 1))
+                            io = io + dust_id
 
         # Set up wavelength space
         if 'numin' in g['seds'].attrs:
@@ -671,10 +672,12 @@ class ModelOutput(FreezableClass):
 
         source_id, dust_id : int or str, optional
             If the output file was made with track_origin='detailed', a
-            specific source and dust component can be specified. If 'all' is
-            specified, then all components are returned individually. If
-            neither of these are not specified, then the total component
-            requested for all sources or dust types is returned.
+            specific source and dust component can be specified (where 0 is
+            the first source or dust type). If 'all' is specified, then all
+            components are returned individually. If neither of these are
+            not specified, then the total component requested for all
+            sources or dust types is returned.
+
 
         All additional parameters are passed to get_image.
 
@@ -767,16 +770,16 @@ class ModelOutput(FreezableClass):
                         if source_id is None or source_id == 'all':
                             io = (io, io + ns)
                         else:
-                            if source_id < 1 or source_id > ns:
-                                raise Exception("source_id should be between 1 and %i" % ns)
-                            io = io + (source_id - 1)
+                            if source_id < 0 or source_id >= ns:
+                                raise ValueError("source_id should be between 0 and %i" % (ns - 1))
+                            io = io + source_id
                     else:
                         if dust_id is None or dust_id == 'all':
                             io = (io, io + nd)
                         else:
-                            if dust_id < 1 or dust_id > nd:
-                                raise Exception("dust_id should be between 1 and %i" % nd)
-                            io = io + (dust_id - 1)
+                            if dust_id < 0 or dust_id >= nd:
+                                raise ValueError("dust_id should be between 0 and %i" % (nd - 1))
+                            io = io + dust_id
 
         # Set up wavelength space
         if 'numin' in g['images'].attrs:

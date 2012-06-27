@@ -10,6 +10,7 @@ import numpy as np
 
 from .. import Model
 from ...util.functions import random_filename
+from .test_helpers import get_test_dust
 
 
 class TestSEDSimpleModel(object):
@@ -112,6 +113,75 @@ class TestSEDSimpleModel(object):
             wav, nufnu = self.m.get_sed(units=units)
         assert exc.value.args[0] == 'Since distance= is not specified, units should be set to ergs/s'
 
+
+class TestSEDSimpleModelTrackingDetailed(object):
+
+    def setup_class(self):
+
+        m = Model()
+
+        m.set_cartesian_grid([-1., 1.],
+                             [-1., 1.],
+                             [-1., 1.])
+
+        m.add_density_grid(np.array([[[1.e-30]]]), get_test_dust())
+
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 6000.
+
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 6000.
+
+        i = m.add_peeled_images(sed=True, image=False)
+        i.set_viewing_angles([1., 2.], [1., 2.])
+        i.set_wavelength_range(5, 0.1, 100.)
+        i.set_aperture_range(3, 1., 10.)
+        i.set_track_origin('detailed')
+
+        m.set_n_initial_iterations(0)
+
+        m.set_n_photons(imaging=1)
+
+        m.write(random_filename())
+
+        self.m = m.run()
+
+    def test_sed_source_all(self):
+        wav, nufnu = self.m.get_sed(source_id='all', component='source_emit')
+
+    def test_sed_source_valid1(self):
+        wav, nufnu = self.m.get_sed(source_id=0, component='source_emit')
+
+    def test_sed_source_valid2(self):
+        wav, nufnu = self.m.get_sed(source_id=1, component='source_emit')
+
+    def test_sed_source_invalid1(self):
+        with pytest.raises(ValueError) as exc:
+            wav, nufnu = self.m.get_sed(source_id=-1, component='source_emit')
+        assert exc.value.args[0] == 'source_id should be between 0 and 1'
+
+    def test_sed_source_invalid2(self):
+        with pytest.raises(ValueError) as exc:
+            wav, nufnu = self.m.get_sed(source_id=2, component='source_emit')
+        assert exc.value.args[0] == 'source_id should be between 0 and 1'
+
+    def test_sed_dust_all(self):
+        wav, nufnu = self.m.get_sed(dust_id='all', component='dust_emit')
+
+    def test_sed_dust_valid1(self):
+        wav, nufnu = self.m.get_sed(dust_id=0, component='dust_emit')
+
+    def test_sed_dust_invalid1(self):
+        with pytest.raises(ValueError) as exc:
+            wav, nufnu = self.m.get_sed(dust_id=-1, component='dust_emit')
+        assert exc.value.args[0] == 'dust_id should be between 0 and 0'
+
+    def test_sed_dust_invalid2(self):
+        with pytest.raises(ValueError) as exc:
+            wav, nufnu = self.m.get_sed(dust_id=1, component='dust_emit')
+        assert exc.value.args[0] == 'dust_id should be between 0 and 0'
 
 class TestSimpleModelInside(object):
 
