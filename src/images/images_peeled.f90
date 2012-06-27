@@ -261,7 +261,9 @@ contains
 
        ! If an inside observer, check that the longitudes are inverted
        if(inside_observer(ig)) then
-          if(peeled_image(ig)%x_min < peeled_image(ig)%x_max) call error("peeled_images_setup", "longitudes should increase towards the left for inside observers")
+          if(peeled_image(ig)%compute_image) then
+              if(peeled_image(ig)%x_min < peeled_image(ig)%x_max) call error("peeled_images_setup", "longitudes should increase towards the left for inside observers")
+          end if
        end if
 
        do iv=1,n_view
