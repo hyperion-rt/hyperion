@@ -12,32 +12,22 @@ from ..util.constants import c
 from ..util.validator import validate_scalar
 
 class Source(FreezableClass):
+    '''
+    This class is not meant to be used directly, but forms the basis for all other source types.
+
+    Parameters
+    ----------
+    name : str, optional
+        The name of the source
+    peeloff : bool, optional
+        Whether to peel-off photons from this source
+
+    Notes
+    -----
+    Any additional arguments are are used to initialize attributes.
+    '''
 
     def __init__(self, name=None, peeloff=True, **kwargs):
-        '''
-        This class is not meant to be used directly, but forms the basis for all other source types.
-
-        Parameters
-        ----------
-        name: str, optional
-            The name of the source
-        peeloff: bool, optional
-            Whether to peel-off photons from this source
-
-        Any additional arguments are are used to initialize attributes.
-
-        Attributes
-        ----------
-        luminosity: float
-            The luminosity of the source (in ergs/s)
-        spectrum:
-            The spectrum of the source, specified either as an ATpy table with
-            ``nu`` and ``fnu`` columns, or as a ``(nu, fnu)`` tuple (``nu``
-            should be in Hz, and the units for ``fnu`` are not important,
-            since the luminosity determined the absolute scaling``
-        temperature:
-            The temperature of the source (in K)
-        '''
 
         if name:
             self.name = name
@@ -58,6 +48,93 @@ class Source(FreezableClass):
         for kwarg in kwargs:
             self.__setattr__(kwarg, kwargs[kwarg])
 
+    @property
+    def luminosity(self):
+        """
+        The bolometric luminosity of the source (ergs/s)
+        """
+        return self._luminosity
+
+    @luminosity.setter
+    def luminosity(self, value):
+        if value is not None:
+            validate_scalar('luminosity', value, domain='positive')
+        self._luminosity = value
+
+    @property
+    def temperature(self):
+        """
+        The temperature of the source (K)
+        """
+        return self._temperature
+
+    @temperature.setter
+    def temperature(self, value):
+        if value is not None:
+            if hasattr(self, '_spectrum') and self._spectrum is not None:
+                raise Exception("A spectrum has already been set, so cannot set a temperature")
+            validate_scalar('temperature', value, domain='positive')
+        self._temperature = value
+
+    @property
+    def spectrum(self):
+        """
+        The spectrum of the source, specified either as an atpy.Table instance with ``'nu'`` and ``'fnu'`` columns, or as a ``(nu, fnu)`` tuple, where the frequency is given in Hz, and the flux is given as F_nu (units are unimportant since the normalization is set by the luminosity).
+        """
+        return self._spectrum
+
+    @spectrum.setter
+    def spectrum(self, value):
+
+        if value is not None:
+
+            if hasattr(self, '_temperature') and self._temperature is not None:
+                raise Exception("A temperature has already been set, so cannot set a spectrum")
+
+            if isinstance(value, atpy.Table):
+
+                if 'nu' not in value.columns:
+                    raise TypeError("spectrum ATpy Table does not contain a"
+                                    " 'nu' column")
+
+                if 'fnu' not in value.columns:
+                    raise TypeError("spectrum ATpy Table does not contain an"
+                                    " 'fnu' column")
+
+            elif type(value) in (tuple, list):
+
+                if len(value) == 2:
+                    nu, fnu = value
+                else:
+                    raise TypeError("spectrum tuple or list should contain"
+                                    " two elements")
+
+                if not is_numpy_array(nu) or nu.ndim != 1:
+                    raise TypeError("nu should be specified as a 1-D Numpy"
+                                    " array")
+
+                if not is_numpy_array(fnu) or fnu.ndim != 1:
+                    raise TypeError("fnu should be specified as a 1-D Numpy"
+                                    " array")
+
+                if nu.shape != fnu.shape:
+                    raise TypeError("nu and fnu should have the same shape")
+
+                # Reverse direction if needed
+                if nu[-1] < nu[0]:
+                    nu = nu[::-1]
+                    fnu = fnu[::-1]
+
+                value = (nu, fnu)
+
+            else:
+
+                raise TypeError('spectrum should be specified either as an '
+                                'atpy.Table instance, or a tuple of two 1-D'
+                                'Numpy arrays (nu, fnu) with the same length')
+
+        self._spectrum = value
+
     def _check_all_set(self):
         if self.luminosity is None:
             raise ValueError("luminosity is not set")
@@ -72,7 +149,7 @@ class Source(FreezableClass):
             elif type(self.spectrum) in [tuple, list]:
                 nu, fnu = self.spectrum
             else:
-                raise Exception("Spectrum should be tuple or ATpy table")
+                raise ValueError("Spectrum should be tuple or ATpy table")
             if nu_range is not None:
                 raise NotImplemented("nu_range not yet implemented for spectrum")
         elif self.temperature is not None:
@@ -114,76 +191,6 @@ class Source(FreezableClass):
     def has_lte_spectrum(self):
         return self.spectrum is None and self.temperature is None
 
-    def __setattr__(self, attribute, value):
-
-        if attribute == 'luminosity' and value is not None:
-
-            validate_scalar('luminosity', value, domain='positive')
-
-            object.__setattr__(self, attribute, value)
-
-        elif attribute == 'spectrum' and value is not None:
-
-            if hasattr(self, 'temperature') and self.temperature is not None:
-                raise Exception("A temperature has already been set, so cannot set a spectrum")
-
-            if isinstance(value, atpy.Table):
-
-                if 'nu' not in value.columns:
-                    raise TypeError("spectrum ATpy Table does not contain a"
-                                    " 'nu' column")
-
-                if 'fnu' not in value.columns:
-                    raise TypeError("spectrum ATpy Table does not contain an"
-                                    " 'fnu' column")
-
-                object.__setattr__(self, attribute, value)
-
-            elif type(value) in (tuple, list):
-
-                if len(value) == 2:
-                    nu, fnu = value
-                else:
-                    raise TypeError("spectrum tuple or list should contain"
-                                    " two elements")
-
-                if not is_numpy_array(nu) or nu.ndim != 1:
-                    raise TypeError("nu should be specified as a 1-D Numpy"
-                                    " array")
-
-                if not is_numpy_array(fnu) or fnu.ndim != 1:
-                    raise TypeError("fnu should be specified as a 1-D Numpy"
-                                    " array")
-
-                if nu.shape != fnu.shape:
-                    raise TypeError("nu and fnu should have the same shape")
-
-                # Reverse direction if needed
-                if nu[-1] < nu[0]:
-                    nu = nu[::-1]
-                    fnu = fnu[::-1]
-
-                object.__setattr__(self, attribute, (nu, fnu))
-
-            else:
-
-                raise TypeError('spectrum should be specified either as an '
-                                'atpy.Table instance, or a tuple of two 1-D'
-                                'Numpy arrays (nu, fnu) with the same length')
-
-        elif attribute == 'temperature' and value is not None:
-
-            if hasattr(self, 'spectrum') and self.spectrum is not None:
-                raise Exception("A spectrum has already been set, so cannot set a temperature")
-
-            validate_scalar('temperature', value, domain='positive')
-
-            object.__setattr__(self, attribute, value)
-
-        else:
-
-            object.__setattr__(self, attribute, value)
-
 
 class SpotSource(Source):
 
@@ -193,9 +200,9 @@ class SpotSource(Source):
 
         Parameters
         ----------
-        name: str, optional
+        name : str, optional
             The name of the source
-        peeloff: bool, optional
+        peeloff : bool, optional
             Whether to peel-off photons from this source
 
         Any additional arguments are are used to initialize attributes.
@@ -227,6 +234,7 @@ class SpotSource(Source):
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
     def _check_all_set(self):
+        Source._check_all_set(self)
         if self.longitude is None:
             raise ValueError("longitude is not set")
         if self.latitude is None:
@@ -235,7 +243,6 @@ class SpotSource(Source):
             raise ValueError("radius is not set")
         if self.has_lte_spectrum():
             raise ValueError("Spot source cannot have LTE spectrum")
-        Source._check_all_set(self)
 
     def write(self, handle, name):
         self._check_all_set()
@@ -259,60 +266,37 @@ class SpotSource(Source):
 
 
 class PointSource(Source):
+    '''
+    A point source.
+
+    Parameters
+    ----------
+    name : str, optional
+        The name of the source
+    peeloff : bool, optional
+        Whether to peel-off photons from this source
+
+    Notes
+    -----
+    Any additional arguments are are used to initialize attributes.
+    '''
 
     def __init__(self, name=None, peeloff=True, **kwargs):
-        '''
-        A point source
-
-        Parameters
-        ----------
-        name: str, optional
-            The name of the source
-        peeloff: bool, optional
-            Whether to peel-off photons from this source
-
-        Any additional arguments are are used to initialize attributes.
-
-        Attributes
-        ----------
-        luminosity: float
-            The luminosity of the source (in ergs/s)
-        spectrum: atpy.Table or tuple
-            The spectrum of the source, specified either as:
-                * an ATpy table with ``nu`` and ``fnu`` column
-                * a ``(nu, fnu)`` tuple
-            ``nu`` should be in Hz, and the units for ``fnu`` are not
-            important, since the luminosity determined the absolute scaling``
-        temperature: float
-            The temperature of the source (in K)
-        position: tuple of three values
-            The coordinates of the source, specified as (x, y, z) (in cm)
-        '''
 
         self.position = (0., 0., 0.)
 
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
-    def _check_all_set(self):
-        if self.position is None:
-            raise ValueError("position is not set")
-        if self.has_lte_spectrum():
-            raise ValueError("Point source cannot have LTE spectrum")
-        Source._check_all_set(self)
+    @property
+    def position(self):
+        """
+        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
+        """
+        return self._position
 
-    def write(self, handle, name):
-        self._check_all_set()
-        g = handle.create_group(name)
-        g.attrs['type'] = np.string_('point'.encode('utf-8'))
-        g.attrs['x'] = self.position[0]
-        g.attrs['y'] = self.position[1]
-        g.attrs['z'] = self.position[2]
-        Source.write(self, g)
-
-    def __setattr__(self, attribute, value):
-
-        if attribute == 'position' and value is not None:
-
+    @position.setter
+    def position(self, value):
+        if value is not None:
             if type(value) in [tuple, list]:
                 if len(value) != 3:
                     raise ValueError("position should be a sequence of 3 values")
@@ -323,55 +307,101 @@ class PointSource(Source):
                     raise ValueError("position should be a sequence of 3 values")
             else:
                 raise ValueError("position should be a tuple, list, or Numpy array")
+        self._position = value
 
-        Source.__setattr__(self, attribute, value)
+    def _check_all_set(self):
+        Source._check_all_set(self)
+        if self.position is None:
+            raise ValueError("position is not set")
+        if self.has_lte_spectrum():
+            raise ValueError("Point source cannot have LTE spectrum")
 
+    def write(self, handle, name):
+        self._check_all_set()
+        g = handle.create_group(name)
+        g.attrs['type'] = np.string_('point'.encode('utf-8'))
+        g.attrs['x'] = self.position[0]
+        g.attrs['y'] = self.position[1]
+        g.attrs['z'] = self.position[2]
+        Source.write(self, g)
 
 class SphericalSource(Source):
+    '''
+    A spherical source
+
+    Parameters
+    ----------
+    name : str, optional
+        The name of the source
+    peeloff : bool, optional
+        Whether to peel-off photons from this source
+
+    Notes
+    -----
+    Any additional arguments are are used to initialize attributes.
+    '''
 
     def __init__(self, name=None, peeloff=True, **kwargs):
-        '''
-        A spherical source
 
-        Parameters
-        ----------
-        name: str, optional
-            The name of the source
-        peeloff: bool, optional
-            Whether to peel-off photons from this source
-
-        Any additional arguments are are used to initialize attributes.
-
-        Attributes
-        ----------
-        luminosity: float
-            The luminosity of the source (in ergs/s)
-        spectrum: atpy.Table or tuple
-            The spectrum of the source, specified either as:
-                * an ATpy table with ``nu`` and ``fnu`` column
-                * a ``(nu, fnu)`` tuple
-            ``nu`` should be in Hz, and the units for ``fnu`` are not
-            important, since the luminosity determined the absolute scaling``
-        temperature: float
-            The temperature of the source (in K)
-        position: tuple of three values
-            The coordinates of the source, specified as (x, y, z) (in cm)
-        radius: float
-            The radius of the source (in cm)
-        limb: bool
-            Whether to include limb darkening
-        spots: list
-            A list of spots
-        '''
 
         self.position = (0., 0., 0.)
         self.radius = None
         self.limb = False
-        self.spots = []
+        self._spots = []
 
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
+    @property
+    def radius(self):
+        """
+        The radius of the source (cm)
+        """
+        return self._radius
+
+    @radius.setter
+    def radius(self, value):
+        if value is not None:
+            validate_scalar('radius', value, domain='positive')
+        self._radius = value
+
+    @property
+    def position(self):
+        """
+        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
+        """
+        return self._position
+
+    @position.setter
+    def position(self, value):
+        if value is not None:
+            if type(value) in [tuple, list]:
+                if len(value) != 3:
+                    raise ValueError("position should be a sequence of 3 values")
+            elif is_numpy_array(value):
+                if value.ndim != 1:
+                    raise ValueError("position should be a 1-D sequence")
+                if len(value) != 3:
+                    raise ValueError("position should be a sequence of 3 values")
+            else:
+                raise ValueError("position should be a tuple, list, or Numpy array")
+        self._position = value
+
+    @property
+    def limb(self):
+        """
+        Whether to include limb darkening
+        """
+        return self._limb
+
+    @limb.setter
+    def limb(self, value):
+        if value is not None:
+            if not type(value) == bool:
+                raise ValueError("limb should be a boolean value (True/False)")
+        self._limb = value
+
     def _check_all_set(self):
+        Source._check_all_set(self)
         if self.position is None:
             raise ValueError("position is not set")
         if self.radius is None:
@@ -380,7 +410,6 @@ class SphericalSource(Source):
             raise ValueError("limb is not set")
         if self.has_lte_spectrum():
             raise ValueError("Spherical source cannot have LTE spectrum")
-        Source._check_all_set(self)
 
     def write(self, handle, name):
 
@@ -395,16 +424,70 @@ class SphericalSource(Source):
         g.attrs['limb'] = np.string_(bool2str(self.limb))
         Source.write(self, g)
 
-        for i, spot in enumerate(self.spots):
+        for i, spot in enumerate(self._spots):
             spot.write(g, 'Spot %i' % i)
 
     def add_spot(self, *args, **kwargs):
-        self.spots.append(SpotSource(*args, **kwargs))
+        '''
+        Add a spot to the source.
 
-    def __setattr__(self, attribute, value):
+        All arguments are passed to :class:`~hyperion.sources.SpotSource`,
+        so see that class for more details
+        '''
+        self._spots.append(SpotSource(*args, **kwargs))
 
-        if attribute == 'position' and value is not None:
 
+class ExternalSphericalSource(Source):
+    '''
+    An spherical external source.
+
+    This can be used for example to simulate the interstellar radiation
+    field. This source is similar to :class:`~hyperion.sources.SphericalSource`
+    but emits photons *inwards*.
+
+    Parameters
+    ----------
+    name : str, optional
+        The name of the source
+    peeloff : bool, optional
+        Whether to peel-off photons from this source
+
+    Notes
+    -----
+    Any additional arguments are are used to initialize attributes.
+    '''
+
+    def __init__(self, name=None, peeloff=True, **kwargs):
+
+        self.position = (0., 0., 0.)
+        self.radius = None
+
+        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
+
+
+    @property
+    def radius(self):
+        """
+        The radius of the source (cm)
+        """
+        return self._radius
+
+    @radius.setter
+    def radius(self, value):
+        if value is not None:
+            validate_scalar('radius', value, domain='positive')
+        self._radius = value
+
+    @property
+    def position(self):
+        """
+        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
+        """
+        return self._position
+
+    @position.setter
+    def position(self, value):
+        if value is not None:
             if type(value) in [tuple, list]:
                 if len(value) != 3:
                     raise ValueError("position should be a sequence of 3 values")
@@ -415,65 +498,16 @@ class SphericalSource(Source):
                     raise ValueError("position should be a sequence of 3 values")
             else:
                 raise ValueError("position should be a tuple, list, or Numpy array")
-
-        elif attribute == 'radius' and value is not None:
-
-            validate_scalar('radius', value, domain='positive')
-
-        elif attribute == 'limb' and value is not None:
-
-            if not type(value) == bool:
-                raise ValueError("limb should be a boolean value (True/False)")
-
-        Source.__setattr__(self, attribute, value)
-
-
-class ExternalSphericalSource(Source):
-
-    def __init__(self, name=None, peeloff=True, **kwargs):
-        '''
-        A spherical external illumination source
-
-        Parameters
-        ----------
-        name: str, optional
-            The name of the source
-        peeloff: bool, optional
-            Whether to peel-off photons from this source
-
-        Any additional arguments are are used to initialize attributes.
-
-        Attributes
-        ----------
-        luminosity: float
-            The luminosity of the source (in ergs/s)
-        spectrum: atpy.Table or tuple
-            The spectrum of the source, specified either as:
-                * an ATpy table with ``nu`` and ``fnu`` column
-                * a ``(nu, fnu)`` tuple
-            ``nu`` should be in Hz, and the units for ``fnu`` are not
-            important, since the luminosity determined the absolute scaling``
-        temperature: float
-            The temperature of the source (in K)
-        position: tuple of three values
-            The coordinates of the source, specified as (x, y, z) (in cm)
-        radius: float
-            The radius of the source (in cm)
-        '''
-
-        self.position = (0., 0., 0.)
-        self.radius = None
-
-        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
+        self._position = value
 
     def _check_all_set(self):
+        Source._check_all_set(self)
         if self.position is None:
             raise ValueError("position is not set")
         if self.radius is None:
             raise ValueError("radius is not set")
         if self.has_lte_spectrum():
             raise ValueError("External spherical source cannot have LTE spectrum")
-        Source._check_all_set(self)
 
     def write(self, handle, name):
 
@@ -487,69 +521,62 @@ class ExternalSphericalSource(Source):
         g.attrs['r'] = self.radius
         Source.write(self, g)
 
-    def __setattr__(self, attribute, value):
-
-        if attribute == 'position' and value is not None:
-
-            if type(value) in [tuple, list]:
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            elif is_numpy_array(value):
-                if value.ndim != 1:
-                    raise ValueError("position should be a 1-D sequence")
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            else:
-                raise ValueError("position should be a tuple, list, or Numpy array")
-
-        elif attribute == 'radius' and value is not None:
-
-            validate_scalar('radius', value, domain='positive')
-
-        Source.__setattr__(self, attribute, value)
-
 
 class ExternalBoxSource(Source):
+    '''
+    An rectangular external source.
+
+    This can be used for example to simulate the interstellar radiation
+    field. This source emits *inwards*.
+
+    Parameters
+    ----------
+    name : str, optional
+        The name of the source
+    peeloff : bool, optional
+        Whether to peel-off photons from this source
+
+    Notes
+    -----
+    Any additional arguments are are used to initialize attributes.
+    '''
+
 
     def __init__(self, name=None, peeloff=True, **kwargs):
-        '''
-        A cubic external illumination source
-
-        Parameters
-        ----------
-        name: str, optional
-            The name of the source
-        peeloff: bool, optional
-            Whether to peel-off photons from this source
-
-        Any additional arguments are are used to initialize attributes.
-
-        Attributes
-        ----------
-        luminosity: float
-            The luminosity of the source (in ergs/s)
-        spectrum: atpy.Table or tuple
-            The spectrum of the source, specified either as:
-                * an ATpy table with ``nu`` and ``fnu`` column
-                * a ``(nu, fnu)`` tuple
-            ``nu`` should be in Hz, and the units for ``fnu`` are not
-            important, since the luminosity determined the absolute scaling``
-        temperature: float
-            The temperature of the source (in K)
-        bounds: list
-            The boundaries of the source, given as [[xmin, xmax], [ymin, ymax], [zmin, zmax]]
-        '''
 
         self.bounds = None
 
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
+    @property
+    def bounds(self):
+        """
+        The cartesian boundaries of the rectangular box specified as
+        ``[[xmin, xmax], [ymin, ymax], [zmin, zmax]]`` (cm)
+        """
+        return self._bounds
+
+    @bounds.setter
+    def bounds(self, value):
+        if value is not None:
+            if type(value) in [tuple, list]:
+                if np.array(value).shape != (3, 2):
+                    raise ValueError("bounds should be a sequence of 3 pairs of values")
+            elif is_numpy_array(value):
+                if value.ndim != 2:
+                    raise ValueError("bounds should be a 2-d array")
+                if value.shape != (3,2):
+                    raise ValueError("bounds should have a shape of (3, 2)")
+            else:
+                raise ValueError("bounds should be a tuple, list, or Numpy array")
+        self._bounds = value
+
     def _check_all_set(self):
-        if self.bounds is None:
-            raise Exception("bounds are not set")
-        if self.has_lte_spectrum():
-            raise Exception("External spherical source cannot have LTE spectrum")
         Source._check_all_set(self)
+        if self.bounds is None:
+            raise ValueError("bounds is not set")
+        if self.has_lte_spectrum():
+            raise ValueError("External spherical source cannot have LTE spectrum")
 
     def write(self, handle, name):
 
@@ -567,47 +594,50 @@ class ExternalBoxSource(Source):
 
 
 class MapSource(Source):
+    '''
+    A diffuse source.
+
+    This can be used for example to simulate the interstellar radiation
+    field. This source emits *inwards*.
+
+    Parameters
+    ----------
+    name : str, optional
+        The name of the source
+    peeloff : bool, optional
+        Whether to peel-off photons from this source
+
+    Notes
+    -----
+    Any additional arguments are are used to initialize attributes.
+    '''
 
     def __init__(self, name=None, peeloff=True, **kwargs):
-        '''
-        A diffuse source
-
-        Parameters
-        ----------
-        name: str, optional
-            The name of the source
-        peeloff: bool, optional
-            Whether to peel-off photons from this source
-
-        Any additional arguments are are used to initialize attributes.
-
-        Attributes
-        ----------
-        luminosity: float
-            The luminosity of the source (in ergs/s)
-        spectrum: atpy.Table or tuple
-            The spectrum of the source, specified either as:
-                * an ATpy table with ``nu`` and ``fnu`` column
-                * a ``(nu, fnu)`` tuple
-            ``nu`` should be in Hz, and the units for ``fnu`` are not
-            important, since the luminosity determined the absolute scaling``
-        temperature: float
-            The temperature of the source (in K)
-        map: np.ndarray
-            The probability distribution function for emission in each cell.
-            This should have the same dimensions as the grid.
-        '''
 
         self.map = None
 
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
+    @property
+    def map(self):
+        """
+        The relative luminosity in each cell, given as a Numpy array or an AMRGridView instance
+        """
+        return self._map
+
+    @map.setter
+    def map(self, value):
+        if value is not None:
+            if not is_numpy_array(value) and not isinstance(value, AMRGridView):
+                raise ValueError("map should be a Numpy array or an AMRGridView instance")
+        self._map = value
+
     def _check_all_set(self):
-        if self.map is None:
-            raise Exception("map is not set")
-        if is_numpy_array(self.map) and np.all(self.map == 0.):
-            raise Exception("map is zero everywhere")
         Source._check_all_set(self)
+        if self.map is None:
+            raise ValueError("map is not set")
+        if is_numpy_array(self.map) and np.all(self.map == 0.):
+            raise ValueError("map is zero everywhere")
 
     def write(self, handle, name, grid, compression=True, map_dtype=float):
 
@@ -620,54 +650,28 @@ class MapSource(Source):
                                   physics_dtype=map_dtype)
         Source.write(self, g)
 
-    def __setattr__(self, attribute, value):
-
-        if attribute == 'map' and value is not None:
-
-            if not is_numpy_array(value) and not isinstance(value, AMRGridView):
-                raise ValueError("map should be a Numpy array or an AMRGridView instance")
-
-        elif attribute == 'radius' and value is not None:
-
-            validate_scalar('radius', value, domain='positive')
-
-        Source.__setattr__(self, attribute, value)
 
 class PlaneParallelSource(Source):
+    '''
+    A circular plane-parallel source.
+
+    This source emits all photons in the same direction perpendicular to the
+    plane of the source, and in one direction, like a beam.
+
+    Parameters
+    ----------
+    name : str, optional
+        The name of the source
+    peeloff : bool, optional
+        Whether to peel-off photons from this source
+
+    Notes
+    -----
+    Any additional arguments are are used to initialize attributes.
+    '''
 
     def __init__(self, name=None, peeloff=False, **kwargs):
 
-        '''
-        A circular plane parallel source
-
-        Parameters
-        ----------
-        name: str, optional
-            The name of the source
-        peeloff: bool, optional
-            Whether to peel-off photons from this source
-
-        Any additional arguments are are used to initialize attributes.
-
-        Attributes
-        ----------
-        luminosity: float
-            The luminosity of the source (in ergs/s)
-        spectrum: atpy.Table or tuple
-            The spectrum of the source, specified either as:
-                * an ATpy table with ``nu`` and ``fnu`` column
-                * a ``(nu, fnu)`` tuple
-            ``nu`` should be in Hz, and the units for ``fnu`` are not
-            important, since the luminosity determined the absolute scaling``
-        temperature: float
-            The temperature of the source (in K)
-        position: tuple of three values
-            The coordinates of the source, specified as (x, y, z) (in cm)
-        radius: float
-            The radius of the source (in cm)
-        direction: tuple of two values
-            The direction of emission, given as (theta, phi) in degrees.
-        '''
 
         if peeloff:
             raise ValueError("Cannot peeloff plane parallel source")
@@ -678,7 +682,65 @@ class PlaneParallelSource(Source):
 
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
+    @property
+    def radius(self):
+        """
+        The radius of the source (cm)
+        """
+        return self._radius
+
+    @radius.setter
+    def radius(self, value):
+        if value is not None:
+            validate_scalar('radius', value, domain='positive')
+        self._radius = value
+
+    @property
+    def position(self):
+        """
+        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
+        """
+        return self._position
+
+    @position.setter
+    def position(self, value):
+        if value is not None:
+            if type(value) in [tuple, list]:
+                if len(value) != 3:
+                    raise ValueError("position should be a sequence of 3 values")
+            elif is_numpy_array(value):
+                if value.ndim != 1:
+                    raise ValueError("position should be a 1-D sequence")
+                if len(value) != 3:
+                    raise ValueError("position should be a sequence of 3 values")
+            else:
+                raise ValueError("position should be a tuple, list, or Numpy array")
+        self._position = value
+
+    @property
+    def direction(self):
+        """
+        The direction the photons should be emitted in ``(theta, phi)`` where ``theta`` and ``phi`` are spherical polar angles (rad)
+        """
+        return self._direction
+
+    @direction.setter
+    def direction(self, value):
+        if value is not None:
+            if type(value) in [tuple, list]:
+                if len(value) != 2:
+                    raise ValueError("direction should be a sequence of 2 values")
+            elif is_numpy_array(value):
+                if value.ndim != 1:
+                    raise ValueError("direction should be a 1-D sequence")
+                if len(value) != 2:
+                    raise ValueError("direction should be a sequence of 2 values")
+            else:
+                raise ValueError("direction should be a tuple, list, or Numpy array")
+        self._direction = value
+
     def _check_all_set(self):
+        Source._check_all_set(self)
         if self.position is None:
             raise ValueError("position is not set")
         if self.radius is None:
@@ -687,7 +749,6 @@ class PlaneParallelSource(Source):
             raise ValueError("direction is not set")
         if self.has_lte_spectrum():
             raise ValueError("Point source cannot have LTE spectrum")
-        Source._check_all_set(self)
 
     def write(self, handle, name):
         self._check_all_set()

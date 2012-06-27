@@ -8,13 +8,23 @@ from ..dust import SphericalDust
 
 
 class AmbientMedium(FreezableClass):
+    r'''
+    This class implements the density structure for an ambient density
+    medium defined by a constant density, and an inner and outer radius.
 
-    def __init__(self, rho=None, temperature=2.725, rmin=None, rmax=None):
-        "Initialize an ambient medium instance"
+    Once the ``AmbientMedium`` class has been instantiated, the parameters for
+    the density structure can be set via attributes::
+
+        >>> from hyperion.util.constants import au, pc
+        >>> ambient = AmbientMedium()
+        >>> ambient.rho = 1.e-20  # cgs
+        >>> ambient.rmin = 0.1 * au  # cm
+        >>> ambient.rmax = pc  # cm
+    '''
+    def __init__(self, rho=None, rmin=None, rmax=None):
 
         # Basic ambient medium parameters
         self.rho = rho
-        self.temperature = temperature
         self.rmin = rmin
         self.rmax = rmax
 
@@ -22,6 +32,51 @@ class AmbientMedium(FreezableClass):
         self.dust = None
 
         self._freeze()
+
+    @property
+    def rho(self):
+        '''Density of the ambient medium (g/cm^3)'''
+        return self._rho
+
+    @rho.setter
+    def rho(self, value):
+        if value is not None:
+            validate_scalar('rho', value, domain='positive')
+        self._rho = value
+
+    @property
+    def rmin(self):
+        """inner radius (cm)"""
+        return self._rmin
+
+    @rmin.setter
+    def rmin(self, value):
+        if not isinstance(value, OptThinRadius) and value is not None:
+            validate_scalar('rmin', value, domain='positive', extra=' or an OptThinRadius instance')
+        self._rmin = value
+
+    @property
+    def rmax(self):
+        """outer radius (cm)"""
+        return self._rmax
+
+    @rmax.setter
+    def rmax(self, value):
+        if not isinstance(value, OptThinRadius) and value is not None:
+            validate_scalar('rmax', value, domain='positive', extra=' or an OptThinRadius instance')
+        self._rmax = value
+
+    @property
+    def dust(self):
+        '''dust properties (filename or dust object)'''
+        return self._dust
+
+    @dust.setter
+    def dust(self, value):
+        if isinstance(value, basestring):
+            self._dust = SphericalDust(value)
+        else:
+            self._dust = value
 
     def _check_all_set(self):
 
@@ -41,11 +96,20 @@ class AmbientMedium(FreezableClass):
 
     def density(self, grid):
         '''
-        Find the density of the ambient medium
+        Return the density grid
 
-        Input is the position of the center of the grid cells in spherical
-        polar coordinates (r, theta, phi), the volume of the grid cells, and a
-        parameter dictionary
+        Parameters
+        ----------
+        grid : :class:`~hyperion.grid.SphericalPolarGrid` or :class:`~hyperion.grid.CylindricalPolarGrid` instance.
+            The spherical or cylindrical polar grid object containing
+            information about the position of the grid cells.
+
+        Returns
+        -------
+        rho : np.ndarray
+            A 3-dimensional array containing the density of the envelope
+            inside each cell. The shape of this array is the same as
+            ``grid.shape``.
         '''
 
         self._check_all_set()
@@ -56,9 +120,3 @@ class AmbientMedium(FreezableClass):
         rho[grid.gr > self.rmax] = 0.
 
         return rho
-
-    def __setattr__(self, attribute, value):
-        if attribute == 'dust' and value is not None and type(value) is str:
-            FreezableClass.__setattr__(self, 'dust', SphericalDust(value))
-        else:
-            FreezableClass.__setattr__(self, attribute, value)
