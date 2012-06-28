@@ -69,6 +69,56 @@ class Level(FreezableClass):
 
 
 class AMRGrid(FreezableClass):
+    '''
+    An AMR grid.
+
+    Levels are stored in the ``levels`` attribute, which is a list of
+    :class:`hyperion.grid.amr_grid.Level` objects, which in turn
+    contain a ``grids`` attribute which is a list of
+    :class:`~hyperion.grid.amr_grid.Grid` objects.
+
+    Levels can be added with::
+
+        level = amr.add_level()
+
+    And grids can be added to a level with::
+
+        grid = level.add_grid()
+
+    Grid objects have the following attributes which should be set:
+
+        * ``xmin`` - lower x position of the grid
+        * ``xmax`` - upper x position of the grid
+        * ``ymin`` - lower y position of the grid
+        * ``ymax`` - upper y position of the grid
+        * ``zmin`` - lower z position of the grid
+        * ``zmax`` - upper z position of the grid
+        * ``nx`` - number of cells in x direction
+        * ``ny`` - number of cells in y direction
+        * ``nz`` - number of cells in z direction
+        * ``quantities`` - a dictionary containing physical quantities (see below)
+
+    :class:`~hyperion.grid.AMRGrid` objects may contain multiple
+    quantities (e.g. density, specific energy). To access these, you can
+    specify the name of the quantity as an item::
+
+         >>> grid['density']
+
+    which is no longer an :class:`~hyperion.grid.AMRGrid` object, but
+    a :class:`~hyperion.grid.AMRGridView` object. When setting
+    this for the first time, this can be set either to another
+    :class:`~hyperion.grid.AMRGridView` object, an external h5py
+    link, or an empty list. For example, the following should work:
+
+        >>> grid['density_new'] = grid['density']
+
+    :class:`~hyperion.grid.AMRGridView` objects allow the
+    specific dust population to be selected as an index:
+
+        >>> grid['density'][0]
+
+    Which is also an :class:`~hyperion.grid.AMRGridView` object.
+    '''
 
     def __init__(self, amr_grid=None):
 

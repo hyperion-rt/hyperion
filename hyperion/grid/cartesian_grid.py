@@ -13,6 +13,43 @@ from .grid_helpers import single_grid_dims
 
 
 class CartesianGrid(FreezableClass):
+    '''
+    A cartesian grid.
+
+    The grid can be initialized by passing the x, y, and z coordinates of cell walls::
+
+        >>> grid = CartesianGrid(x_wall, y_wall, z_wall)
+
+    where ``x_wall``, ``y_wall``, and ``z_wall`` are 1-d sequences of wall
+    positions. The number of cells in the resulting grid will be one less
+    in each dimension that the length of these arrays.
+
+    :class:`~hyperion.grid.CartesianGrid` objects may contain multiple
+    quantities (e.g. density, specific energy). To access these, you can
+    specify the name of the quantity as an item::
+
+         >>> grid['density']
+
+    which is no longer a :class:`~hyperion.grid.CartesianGrid` object, but
+    a :class:`~hyperion.grid.CartesianGridView` object. When setting
+    this for the first time, this can be set either to another
+    :class:`~hyperion.grid.CartesianGridView` object, an external h5py
+    link, or an empty list. For example, the following should work:
+
+        >>> grid['density_new'] = grid['density']
+
+    :class:`~hyperion.grid.CartesianGridView` objects allow the
+    specific dust population to be selected as an index:
+
+        >>> grid['density'][0]
+
+    Which is also a :class:`~hyperion.grid.CartesianGridView` object. The
+    data can then be accessed with the ``array`` attribute::
+
+        >>> grid['density'][0].array
+
+    which is a 3-d array of the requested quantity.
+    '''
 
     def __init__(self, *args):
 
