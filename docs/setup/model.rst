@@ -19,7 +19,7 @@ it is then easy to set up a generic model using::
 
     m = Model()
 
-The model can then be set up using methods of the ``Model`` instance. These
+The model can then be set up using methods of the :class:`~hyperion.model.Model` instance. These
 are described in the following sections.
 
 .. toctree::
