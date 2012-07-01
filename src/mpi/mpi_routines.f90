@@ -228,12 +228,12 @@ contains
 
        if(n_photons_stats > 0) then
           if(n_photons_curr >= n_stats_last + n_photons_stats) then
-             call perf_numbers(n_photons_curr, time_curr)
+             if(n_photons_curr > 0) call perf_numbers(n_photons_curr, time_curr)
              n_stats_last = n_photons_curr - mod(n_photons_curr, n_photons_stats)
           end if
        else
           if(n_photons_curr >= n_stats_last + n_photons_chunk) then
-             call perf_numbers(n_photons_curr, time_curr)
+             if(n_photons_curr > 0) call perf_numbers(n_photons_curr, time_curr)
              n_stats_last = n_photons_curr - mod(n_photons_curr, n_photons_chunk)
           end if
        end if
