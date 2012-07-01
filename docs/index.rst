@@ -6,8 +6,32 @@
 Hyperion documentation
 ======================
 
-Hyperion is a three-dimensional dust continuum Monte-Carlo radiative transfer
-code. Models are set up via Python scripts, and are run using a compiled Fortran code, optionally making use of the Message Passing Interface (MPI) for parallel computing.
+Introduction
+------------
+
+This is the documentation for `Hyperion <http://www.hyperion-rt.org>`_, a three-dimensional dust continuum Monte-Carlo radiative
+transfer code. Models are set up via Python scripts, and are run using
+a compiled Fortran code, optionally making use of the Message Passing
+Interface (MPI) for parallel computing.
+
+.. important:: **Before you proceed, please make sure you have read the
+               following disclaimers**:
+
+               * The developers cannot guarantee that the code is bug-free,
+                 and users should sign up to the mailing list to ensure that
+                 they are informed as soon as bugs are identified and fixed.
+                 The developers cannot be held responsible for incorrect
+                 results, regardless of whether these arise from incorrect
+                 usage, a bug in the code, or a mistake in the
+                 documentation.
+
+               * The user is fully responsible for ensuring that parameters
+                 such as photon numbers and grid resolution are adequate for
+                 the problem being studied. Hyperion will *not* raise errors
+                 if these inputs are inadequate.
+
+Documentation
+-------------
 
 .. toctree::
    :maxdepth: 1
@@ -19,3 +43,10 @@ code. Models are set up via Python scripts, and are run using a compiled Fortran
    tutorials/index.rst
    advanced/advanced.rst
    api/api.rst
+   
+Acknowledging the use of Hyperion
+---------------------------------
+
+If your work makes use of Hyperion, please cite:
+
+**Robitaille, 2011**, *HYPERION: an open-source parallelized three-dimensional dust continuum radiative transfer code*, Astronomy & Astrophysics 536 A79 (`ADS <http://adsabs.harvard.edu/abs/2011A%26A...536A..79R>`_, `BibTeX <http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=2011A%26A...536A..79R&data_type=BIBTEX&db_key=AST&nocookieset=1>`_).
