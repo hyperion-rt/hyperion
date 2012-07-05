@@ -83,8 +83,6 @@ class AmbientMedium(FreezableClass):
 
         if self.density is None:
             raise Exception("density is not set")
-        if self.temperature is None:
-            raise Exception("temperature is not set")
         if self.rmin is None:
             raise Exception("rmin is not set")
         if self.rmax is None:
