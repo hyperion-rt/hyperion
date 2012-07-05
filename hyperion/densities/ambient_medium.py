@@ -5,6 +5,7 @@ import numpy as np
 from ..util.functions import FreezableClass
 from ..util.convenience import OptThinRadius
 from ..dust import SphericalDust
+from ..util.validator import validate_scalar
 
 
 class AmbientMedium(FreezableClass):
