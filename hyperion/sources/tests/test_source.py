@@ -17,6 +17,7 @@ from ...grid import CartesianGrid, \
 
 ALL_SOURCES = [Source, PointSource, SpotSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource]
 
+
 def random_id(length=32):
     return ''.join(random.sample(string.ascii_letters + string.digits, length))
 
@@ -25,6 +26,7 @@ def virtual_file():
     return h5py.File(random_id(), driver='core', backing_store=False)
 
 # LUMINOSITY
+
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
 def test_luminosity_invalid2(source_type):
@@ -51,6 +53,7 @@ def test_luminosity_invalid4(source_type):
 
 # TEMPERATURE
 
+
 @pytest.mark.parametrize(('source_type'), list(set(ALL_SOURCES) - set([MapSource])))
 def test_temperature(source_type):
     v = virtual_file()
@@ -65,12 +68,14 @@ def test_temperature_invalid2(source_type):
         s.temperature = np.array([1, 2, 3])  # temperature should be a scalar
     assert exc.value.args[0] == 'temperature should be a scalar value'
 
+
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
 def test_temperature_invalid3(source_type):
     s = source_type()
     with pytest.raises(ValueError) as exc:
         s.temperature = 'invalid'  # temperature should be a number
     assert exc.value.args[0] == 'temperature should be a numerical value'
+
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
 def test_temperature_invalid4(source_type):
@@ -80,6 +85,7 @@ def test_temperature_invalid4(source_type):
     assert exc.value.args[0] == 'temperature should be positive'
 
 # SPECTRUM
+
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
 def test_spectrum_atpy(source_type):
@@ -100,7 +106,7 @@ def test_spectrum_atpy_invalid(source_type):
 
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
-def test_spectrum_tuple(source_type):
+def test_spectrum_tuple_valid1(source_type):
     nu = np.array([1, 2, 3])
     fnu = np.array([1, 2, 3])
     s = source_type()
@@ -108,27 +114,33 @@ def test_spectrum_tuple(source_type):
 
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
-def test_spectrum_tuple_invalid1(source_type):
-    nu = [1, 2, 3]  # should be a numpy array
+def test_spectrum_tuple_valid2(source_type):
+    nu = [1, 2, 3]
     fnu = np.array([1, 2, 3])
     s = source_type()
-    with pytest.raises(TypeError) as exc:
-        s.spectrum = (nu, fnu)
-    assert exc.value.args[0] == 'nu should be specified as a 1-D Numpy array'
+    s.spectrum = (nu, fnu)
 
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
-def test_spectrum_tuple_invalid2(source_type):
+def test_spectrum_tuple_valid3(source_type):
     nu = np.array([1, 2, 3])
-    fnu = [1, 2, 3]  # should be a numpy array
+    fnu = [1, 2, 3]
     s = source_type()
-    with pytest.raises(TypeError) as exc:
-        s.spectrum = (nu, fnu)
-    assert exc.value.args[0] == 'fnu should be specified as a 1-D Numpy array'
+    s.spectrum = (nu, fnu)
 
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
-def test_spectrum_tuple_invalid3(source_type):
+def test_spectrum_tuple_sort(source_type):
+    nu = [3, 1, 2]
+    fnu = [1, 2, 3]
+    s = source_type()
+    s.spectrum = (nu, fnu)
+    assert np.all(s.spectrum['nu'] == np.array([1, 2, 3]))
+    assert np.all(s.spectrum['fnu'] == np.array([2, 3, 1]))
+
+
+@pytest.mark.parametrize(('source_type'), ALL_SOURCES)
+def test_spectrum_tuple_invalid1(source_type):
     nu = np.array([1, 2, 3])
     fnu = np.array([1, 2, 3, 4])  # sizes don't agree
     s = source_type()
@@ -138,23 +150,35 @@ def test_spectrum_tuple_invalid3(source_type):
 
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
-def test_spectrum_tuple_invalid4(source_type):
+def test_spectrum_tuple_invalid2(source_type):
     nu = np.array([[1, 2, 3], [4, 5, 6]])
     fnu = np.array([[1, 2, 3], [4, 5, 6]])  # arrays should be 1D
     s = source_type()
     with pytest.raises(TypeError) as exc:
         s.spectrum = (nu, fnu)
-    assert exc.value.args[0] == 'nu should be specified as a 1-D Numpy array'
+    assert exc.value.args[0] == 'nu should be a 1-D sequence'
 
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
-def test_spectrum_tuple_invalid5(source_type):
+def test_spectrum_tuple_invalid3(source_type):
     nu = np.array([1, 2, 3])
     fnu = np.array([1, 2, 3])
     s = source_type()
     with pytest.raises(TypeError) as exc:
         s.spectrum = (nu, fnu, fnu)  # too many items
-    assert exc.value.args[0] == 'spectrum tuple or list should contain two elements'
+    assert exc.value.args[
+        0] == 'spectrum tuple or list should contain two elements'
+
+
+@pytest.mark.parametrize(('source_type'), ALL_SOURCES)
+def test_spectrum_tuple_invalid4(source_type):
+    nu = np.array([1, 2, 2])  # duplicate values
+    fnu = np.array([1, 2, 3])
+    s = source_type()
+    with pytest.raises(ValueError) as exc:
+        s.spectrum = (nu, fnu)
+    assert exc.value.args[0] == 'nu sequence contains duplicate values'
+
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
 def test_set_temperature_spectrum(source_type):
@@ -179,6 +203,7 @@ SOURCES_POSITION = [PointSource,
                     SphericalSource,
                     ExternalSphericalSource,
                     PlaneParallelSource]
+
 
 def test_position_tests_complete():
     expected = [x for x in ALL_SOURCES if hasattr(x, 'position')]
@@ -247,6 +272,7 @@ SOURCES_RADIUS = [SphericalSource,
                   ExternalSphericalSource,
                   PlaneParallelSource]
 
+
 def test_radius_tests_complete():
     expected = [x for x in ALL_SOURCES if hasattr(x, 'radius')]
     extra = list(set(SOURCES_RADIUS) - set(expected))
@@ -257,6 +283,7 @@ def test_radius_tests_complete():
 def test_radius_none(source_type):
     s = source_type()
     s.radius = None
+
 
 @pytest.mark.parametrize(('source_type'), SOURCES_RADIUS)
 def test_radius_float(source_type):
@@ -311,18 +338,19 @@ REQUIRED[ExternalSphericalSource]['radius'] = 1.
 REQUIRED[ExternalBoxSource] = {}
 REQUIRED[ExternalBoxSource]['luminosity'] = 1.
 REQUIRED[ExternalBoxSource]['temperature'] = 1.
-REQUIRED[ExternalBoxSource]['bounds'] = [[1.,2.], [3., 4.], [5., 6.]]
+REQUIRED[ExternalBoxSource]['bounds'] = [[1., 2.], [3., 4.], [5., 6.]]
 
 REQUIRED[PlaneParallelSource] = {}
 REQUIRED[PlaneParallelSource]['luminosity'] = 1.
 REQUIRED[PlaneParallelSource]['temperature'] = 1.
 REQUIRED[PlaneParallelSource]['radius'] = 1.
-REQUIRED[PlaneParallelSource]['direction'] = (1.,2.)
+REQUIRED[PlaneParallelSource]['direction'] = (1., 2.)
 
 # Note that position is not required since it defaults to the origin.
 # limb is also not required, since it defaults to False.
 
 # Test that no errors are raised if all attributes are present
+
 
 @pytest.mark.parametrize(('source_type'), REQUIRED)
 def test_all(source_type):
@@ -338,6 +366,7 @@ def test_all(source_type):
 # Test that an error is raised if one attribute is missing
 
 combinations = [(s, a) for s in REQUIRED for a in REQUIRED[s]]
+
 
 @pytest.mark.parametrize(('source_type', 'missing'), combinations)
 def test_missing(source_type, missing):
@@ -358,6 +387,7 @@ def test_missing(source_type, missing):
         assert exc.value.args[0] == '{0:s} is not set'.format(missing)
 
 # SpotSource - specific tests
+
 
 def test_point_longitude_none():
     s = SpotSource()
@@ -467,6 +497,7 @@ def test_spot_latitude_invalid5():
 
 # SphericalSource - specific tests
 
+
 def test_spherical_limb_none():
     s = SphericalSource()
     s.limb = None
@@ -510,6 +541,7 @@ def test_spherical_limb_invalid5():
     assert exc.value.args[0] == 'limb should be a boolean value (True/False)'
 
 # MapSource - specific tests
+
 
 def test_map_map_none():
     s = MapSource()

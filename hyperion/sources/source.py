@@ -6,10 +6,11 @@ import numpy as np
 from ..grid.amr_grid import AMRGridView
 
 from ..util.functions import B_nu, random_id, FreezableClass, \
-                             is_numpy_array, bool2str
+                             is_numpy_array, bool2str, monotonically_increasing
 from ..util.integrate import integrate_loglog
 from ..util.constants import c
 from ..util.validator import validate_scalar
+from ..util.logger import logger
 
 class Source(FreezableClass):
     '''
@@ -101,6 +102,8 @@ class Source(FreezableClass):
                     raise TypeError("spectrum ATpy Table does not contain an"
                                     " 'fnu' column")
 
+                nu, fnu = value['nu'], value['fnu']
+
             elif type(value) in (tuple, list):
 
                 if len(value) == 2:
@@ -109,23 +112,20 @@ class Source(FreezableClass):
                     raise TypeError("spectrum tuple or list should contain"
                                     " two elements")
 
+                if type(nu) in [list, tuple]:
+                    nu = np.array(nu)
+
+                if type(fnu) in [list, tuple]:
+                    fnu = np.array(fnu)
+
                 if not is_numpy_array(nu) or nu.ndim != 1:
-                    raise TypeError("nu should be specified as a 1-D Numpy"
-                                    " array")
+                    raise TypeError("nu should be a 1-D sequence")
 
                 if not is_numpy_array(fnu) or fnu.ndim != 1:
-                    raise TypeError("fnu should be specified as a 1-D Numpy"
-                                    " array")
+                    raise TypeError("fnu should be a 1-D sequence")
 
                 if nu.shape != fnu.shape:
                     raise TypeError("nu and fnu should have the same shape")
-
-                # Reverse direction if needed
-                if nu[-1] < nu[0]:
-                    nu = nu[::-1]
-                    fnu = fnu[::-1]
-
-                value = (nu, fnu)
 
             else:
 
@@ -133,7 +133,22 @@ class Source(FreezableClass):
                                 'atpy.Table instance, or a tuple of two 1-D'
                                 'Numpy arrays (nu, fnu) with the same length')
 
-        self._spectrum = value
+            # Check if frequency array has duplicate values
+            if len(np.unique(nu)) != len(nu):
+                raise ValueError("nu sequence contains duplicate values")
+
+            # Check if spectrum needs sorting
+            if not monotonically_increasing(nu):
+                logger.warn("Spectrum is being re-sorted in order of increasing frequency")
+                order = np.argsort(nu)
+                nu = nu[order]
+                fnu = fnu[order]
+
+            self._spectrum = {'nu': nu, 'fnu': fnu}
+
+        else:
+
+            self._spectrum = value
 
     def _check_all_set(self):
         if self.luminosity is None:
@@ -144,12 +159,7 @@ class Source(FreezableClass):
         self._check_all_set()
 
         if self.spectrum is not None:
-            if isinstance(self.spectrum, atpy.Table):
-                nu, fnu = self.spectrum.nu, self.spectrum.fnu
-            elif type(self.spectrum) in [tuple, list]:
-                nu, fnu = self.spectrum
-            else:
-                raise ValueError("Spectrum should be tuple or ATpy table")
+            nu, fnu = self.spectrum['nu'], self.spectrum['fnu']
             if nu_range is not None:
                 raise NotImplemented("nu_range not yet implemented for spectrum")
         elif self.temperature is not None:
@@ -174,14 +184,10 @@ class Source(FreezableClass):
 
         if self.spectrum is not None:
             handle.attrs['spectrum'] = np.string_('spectrum'.encode('utf-8'))
-            if isinstance(self.spectrum, atpy.Table):
-                self.spectrum.table_name = 'spectrum'
-                self.spectrum.write(handle, type='hdf5')
-            else:
-                table = atpy.Table(name='spectrum')
-                table.add_column('nu', self.spectrum[0])
-                table.add_column('fnu', self.spectrum[1])
-                table.write(handle, type='hdf5')
+            table = atpy.Table(name='spectrum')
+            table.add_column('nu', self.spectrum['nu'])
+            table.add_column('fnu', self.spectrum['fnu'])
+            table.write(handle, type='hdf5')
         elif self.temperature is not None:
             handle.attrs['spectrum'] = np.string_('temperature'.encode('utf-8'))
             handle.attrs['temperature'] = self.temperature
