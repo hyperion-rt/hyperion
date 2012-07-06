@@ -156,3 +156,35 @@ def test_analytical_yso_use_geometry_quantities():
     m2.use_quantities(output_file, quantities=['specific_energy'])
     m2.write(random_filename())
     m2.run(random_filename())
+
+def test_ambient_medium():
+
+    dust = get_test_dust()
+
+    m = AnalyticalYSOModel()
+
+    m.star.radius = 1.
+    m.star.temperature = 1000.
+    m.star.luminosity = 1.
+
+    d = m.add_flared_disk()
+    d.mass = 1.
+    d.rmin = 0.1
+    d.rmax = 10.
+    d.p = -1
+    d.beta = 1.25
+    d.h_0 = 0.1
+    d.r_0 = 2.
+    d.dust = dust
+
+    a = m.add_ambient_medium()
+    a.rmin = 0.1
+    a.rmax = 10.
+    a.rho = 1.
+    a.dust = dust
+
+    m.set_spherical_polar_grid_auto(399, 199, 1)
+
+    m.set_n_photons(initial=0, imaging=0)
+
+    m.write(random_filename())
