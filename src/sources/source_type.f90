@@ -264,6 +264,7 @@ contains
     character(len=255) :: spec_type
 
     real(dp),allocatable :: nu(:), fnu(:)
+    integer :: inu
 
     call mp_read_keyword(group, '.', 'spectrum', spec_type)
 
@@ -271,6 +272,11 @@ contains
     case('spectrum')
        call mp_table_read_column_auto(group, 'spectrum', 'nu', nu)
        call mp_table_read_column_auto(group, 'spectrum', 'fnu', fnu)
+       do inu=1,size(nu)-1
+          if(nu(inu + 1) < nu(inu)) then
+             call error("set_spectrum", "spectrum frequency should be monotonically increasing")
+          end if
+       end do
        call set_pdf(spectrum,nu,fnu,log=.true.)
        freq_type = 1
     case('temperature')
