@@ -50,7 +50,7 @@ To add a set of peeled images/SEDs to the model, use::
 
     image = m.add_peeled_images()
 
-The viewing angles can be specified as lists or arrays of theta and phi
+The viewing angles should be specified as lists or arrays of theta and phi
 values, in degrees. For example, the following produces images from pole-on
 to edge-on at constant phi using 20 viewing angles::
 
