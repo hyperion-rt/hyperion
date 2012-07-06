@@ -734,7 +734,7 @@ class AnalyticalYSOModel(Model):
                         if not envelope.cavity.dust:
                             raise Exception("Cavity dust not set")
                         Model.add_density_grid(self, envelope.cavity.density(self.grid), envelope.cavity.dust,
-                                              merge_if_possible=merge_if_possible)
+                                               merge_if_possible=merge_if_possible)
 
         # AMBIENT MEDIUM
 
@@ -752,18 +752,18 @@ class AnalyticalYSOModel(Model):
                 # Find the density of the ambient medium
                 density_amb = ambient.density(self.grid)
 
-                if len(self.density) > 0:
+                if self.grid.n_dust > 0:
 
                     # Find total density in other components
                     shape = list(self.grid.shape)
-                    shape.insert(0, len(self.density))
-                    density_sum = np.sum(np.vstack(self.density).reshape(*shape), axis=0)
+                    shape.insert(0, self.grid.n_dust)
+                    density_sum = np.sum(np.vstack(self.grid['density'].quantities['density']).reshape(*shape), axis=0)
 
                     density_amb -= density_sum
                     density_amb[density_amb < 0.] = 0.
 
-                self.add_density_grid(density_amb, ambient.dust,
-                                      merge_if_possible=merge_if_possible)
+                Model.add_density_grid(self, density_amb, ambient.dust,
+                                       merge_if_possible=merge_if_possible)
 
         # SOURCES
 
