@@ -18,7 +18,7 @@ Interface (MPI) for parallel computing.
                following disclaimers**:
 
                * The developers cannot guarantee that the code is bug-free,
-                 and users should sign up to the mailing list to ensure that
+                 and users should sign up to the `mailing list <https://groups.google.com/forum/?fromgroups#!forum/hyperion-announce>`_ to ensure that
                  they are informed as soon as bugs are identified and fixed.
                  The developers cannot be held responsible for incorrect
                  results, regardless of whether these arise from incorrect
