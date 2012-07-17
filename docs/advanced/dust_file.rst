@@ -52,8 +52,9 @@ Dust file HDF5 format specification
 
 An HDF5 dust file should contain 5 datasets. The root of the file should contain the following attributes:
 
-* ``emissvar``: whether the emissivity is specified as a function of
-  temperature (``T``) or specific energy absorbed in each cell (``E``).
+* ``emissvar``: whether the emissivity is specified as a function of specific
+  energy absorbed in each cell (``E``) or another quantity (but this is not
+  supported at this time).
 
 * ``version``: this should be set to ``1`` - the version described in this
   section.
@@ -63,11 +64,18 @@ An HDF5 dust file should contain 5 datasets. The root of the file should contain
   of dust as a function of scattering angle (``1``). In future, other types
   of dust, such as aligned grains, which require the full 16 elements, will
   be implemented.
+  
+* ``lte``: whether the dust emissivities assume local thermodynamic
+  equilibrium (LTE).
+  
+* ``python_version``: the version of the Python Hyperion library used to
+  generate the file. Set this to '0.8.7' if you are writing files yourself
+  rather than using the Hyperion library.
 
 The datasets present should be the following:
 
-Optical properties
-------------------
+``optical_properties``
+----------------------
 
 This dataset should consist of a table with the basic optical properties of
 the dust as a function of frequency, in a binary table. The columns should be:
@@ -80,22 +88,24 @@ the dust as a function of frequency, in a binary table. The columns should be:
 
 * ``P1``, ``P2``, ``P3``, and ``P4``: The four elements of the scattering
   matrix. These columns should be vector columns, with each table cell
-  containing the elements for ``n_theta`` values of the scattering angle.
+  containing the elements for as many angles as specified in
+  ``scattering_angles``.
 
-Scattering angles
------------------
+``scattering_angles``
+---------------------
 
 This dataset should consist of a single-column table. The column should be
 ``mu``, and should give the values of the cosine of the scattering angle for
 which the matrix elements are tabulated in the ``Optical properties`` dataset.
 
-Mean opacities
---------------
+``mean_opacities``
+------------------
 
 This dataset should consist of a table with pre-computed mean opacities for
 the dust. The columns should be:
 
-* ``temperature``: The temperature for which the mean opacities are given
+* ``specific energy``: The specific energy for which the mean opacities are
+  given
 
 * ``chi_planck``: The Plank mean opacity to extinction, in cm^2/g
 
@@ -109,8 +119,8 @@ The temperatures specified should range from 0.1K (or less) to a
 temperature safely above the maximum temperature expected for the dust in
 the system.
 
-Emissivities
-------------
+``emissivities``
+----------------
 
 This dataset should consist of a table specifying the emissivities. The
 columns should be:
@@ -118,17 +128,13 @@ columns should be:
 * ``nu``: The frequencies at which the emissivity is specified.
 
 * ``j_nu``: The emissivity for the specified frequency, as a function of
-  either dust temperature, or mean intensity. This should be a vector column,
-  where the width of the column is the number of temperatures or mean
-  intensities. The values for these are specified in the ``Emissivity
-  variable`` dataset.
+  specific energy. This should be a vector column, where the width of the
+  column is the number of values specified in the ``emissivity_variable``
+  dataset.
+  
+``emissivity_variable``
+-----------------------
 
-Emissivity variable
--------------------
-
-This dataset should consist of a two-column table. The first column should
-be ``temperature`` or ``jmean`` and should give the temperatures or mean
-intensities for which the emissivities are tabulated in the
-``Emissivities`` dataset. The second column should be ``j_tot``, and should
-list the total bolometric emissivity for the corresponding ``temperature``
-or ``jmean``.
+This dataset should consist of a single-column table. The column should be
+``specific_energy`` and should give the specific energies for which the
+emissivities are tabulated in the ``emissivities`` dataset.
