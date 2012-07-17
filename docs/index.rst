@@ -30,6 +30,10 @@ Interface (MPI) for parallel computing.
                  the problem being studied. Hyperion will *not* raise errors
                  if these inputs are inadequate.
 
+If your work makes use of Hyperion, please cite:
+
+**Robitaille, 2011**, *HYPERION: an open-source parallelized three-dimensional dust continuum radiative transfer code*, Astronomy & Astrophysics 536 A79 (`ADS <http://adsabs.harvard.edu/abs/2011A%26A...536A..79R>`_, `BibTeX <http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=2011A%26A...536A..79R&data_type=BIBTEX&db_key=AST&nocookieset=1>`_).
+
 Note on units and constants
 ---------------------------
 
@@ -58,10 +62,25 @@ Documentation
    tutorials/index.rst
    advanced/advanced.rst
    api/api.rst
-   
-Acknowledging the use of Hyperion
----------------------------------
 
-If your work makes use of Hyperion, please cite:
+Credits
+-------
 
-**Robitaille, 2011**, *HYPERION: an open-source parallelized three-dimensional dust continuum radiative transfer code*, Astronomy & Astrophysics 536 A79 (`ADS <http://adsabs.harvard.edu/abs/2011A%26A...536A..79R>`_, `BibTeX <http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=2011A%26A...536A..79R&data_type=BIBTEX&db_key=AST&nocookieset=1>`_).
+Hyperion is currently being developed by `Thomas Robitaille
+<http://www.mpia-hd.mpg.de/~robitaille/>`_.
+
+Interested in contributing fixes or patches to the code or documentation?
+Read :doc:`contributing` for more details! If you are interested in
+developing new features, `contact me
+<mailto:thomas.robitaille@gmail.com>`_ and we can discuss how to coordinate
+efforts.
+
+A great thanks to the following users whose help with testing early versions
+of Hyperion was invaluable:
+
+* Katharine Johnston
+* Stella Offner
+* Sarah Ragan
+* Andrew Schechtman-Rook
+* Barbara Whitney
+* Mike Wolff
