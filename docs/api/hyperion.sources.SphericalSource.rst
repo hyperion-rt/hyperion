@@ -24,6 +24,6 @@ hyperion.sources.SphericalSource
       ~SphericalSource.add_spot
 
    .. rubric:: Methods (detail)
-   
+
    .. automethod:: SphericalSource.add_spot
    

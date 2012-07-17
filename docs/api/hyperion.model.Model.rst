@@ -9,7 +9,7 @@ hyperion.model.Model
    .. rubric:: Adding sources
 
    .. autosummary::
-   
+
       ~Model.add_source
       ~Model.add_point_source
       ~Model.add_spherical_source
@@ -17,11 +17,11 @@ hyperion.model.Model
       ~Model.add_external_box_source
       ~Model.add_map_source
       ~Model.add_plane_parallel_source
-      
+
    .. rubric:: Setting the grid
 
    .. autosummary::
-   
+
       ~Model.set_grid
       ~Model.set_cartesian_grid
       ~Model.set_cylindrical_polar_grid
@@ -31,21 +31,21 @@ hyperion.model.Model
       ~Model.use_geometry
 
    .. rubric:: Setting quantities
-   
+
    .. autosummary::
 
       ~Model.add_density_grid
       ~Model.use_quantities
-      
+
    .. rubric:: Images/SEDs
 
    .. autosummary::
-   
+
       ~Model.add_peeled_images
       ~Model.add_binned_images
-      
+
    .. rubric:: Configuration
-   
+
    .. autosummary::
 
       ~Model.set_monochromatic
@@ -64,9 +64,9 @@ hyperion.model.Model
       ~Model.set_sample_sources_evenly
       ~Model.set_enforce_energy_range
       ~Model.set_copy_input
-      
+
    .. rubric:: Running
-   
+
    .. autosummary::
 
       ~Model.write
@@ -89,7 +89,7 @@ hyperion.model.Model
    .. automethod:: Model.set_octree_grid
    .. automethod:: Model.set_amr_grid
    .. automethod:: Model.use_geometry
-   
+
    .. automethod:: Model.add_density_grid
    .. automethod:: Model.use_quantities
 
