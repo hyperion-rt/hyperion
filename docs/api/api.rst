@@ -1,6 +1,14 @@
 Detailed description of objects and functions (API)
 ===================================================
 
+Utilities
+---------
+
+.. toctree::
+   :maxdepth: 1
+
+   hyperion.util.constants
+
 Models
 ------------------
 
