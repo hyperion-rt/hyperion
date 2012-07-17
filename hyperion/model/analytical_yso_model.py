@@ -481,6 +481,12 @@ class AnalyticalYSOModel(Model):
         if np.isnan(rmax):
             raise Exception("R_max is NaN")
 
+        if rmin == 0:
+            raise ValueError("R_min is 0, so cannot set up the grid cell "
+                             "walls automatically. Use set_%s_polar_grid()"
+                             " instead to specify the cell wall positions"
+                             "." % grid_type)
+
         # RADIAL WALLS
 
         # Set first wall to be at half the stellar radius to avoid any

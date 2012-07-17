@@ -188,3 +188,32 @@ def test_ambient_medium():
     m.set_n_photons(initial=0, imaging=0)
 
     m.write(random_filename())
+
+
+@pytest.mark.parametrize(('grid_type'), ['cylindrical', 'spherical'])
+def test_rmin_zero(grid_type):
+
+    m = AnalyticalYSOModel()
+
+    m.star.radius = 1.
+    m.star.temperature = 1000.
+    m.star.luminosity = 1.
+
+    d = m.add_flared_disk()
+    d.rmin = 0.
+    d.rmax = 10.
+    d.r_0 = 10.
+    d.h_0 = 1.
+    d.p = -1
+    d.beta = 1.25
+    d.dust = get_test_dust()
+
+    if grid_type == 'cylindrical':
+        with pytest.raises(ValueError) as exc:
+            m.set_cylindrical_polar_grid_auto(100, 20, 3)
+        assert exc.value.args[0] == "R_min is 0, so cannot set up the grid cell walls automatically. Use set_cylindrical_polar_grid() instead to specify the cell wall positions."
+    else:
+        with pytest.raises(ValueError) as exc:
+            m.set_spherical_polar_grid_auto(100, 20, 3)
+        assert exc.value.args[0] == "R_min is 0, so cannot set up the grid cell walls automatically. Use set_spherical_polar_grid() instead to specify the cell wall positions."
+
