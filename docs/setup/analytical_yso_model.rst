@@ -21,7 +21,7 @@ it is then easy to set up such a model using::
 The model can then be set up using methods of the :class:`~hyperion.model.AnalyticalYSOModel`
 instance. These are described in the following sections (the sections on
 images and radiative transfer configuration are the same as for the :class:`~hyperion.model.Model`
-class)
+class).
 
 .. toctree::
    :maxdepth: 1

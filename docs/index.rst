@@ -30,6 +30,21 @@ Interface (MPI) for parallel computing.
                  the problem being studied. Hyperion will *not* raise errors
                  if these inputs are inadequate.
 
+Note on units and constants
+---------------------------
+
+All quantities in Hyperion are expressed in the cgs system. Throughout the
+documentation, constants are sometimes used in place of values (e.g. ``au``,
+``pc``). These can be imported using::
+
+    from hyperion.util.constants import *
+
+or, to control which constants are imported::
+
+    from hyperion.util.constants import au, pc, lsun
+
+See :doc:`api/hyperion.util.constants` for more details.
+
 Documentation
 -------------
 
