@@ -4,24 +4,7 @@ hyperion.grid.CartesianGrid
 
 .. currentmodule:: hyperion.grid
 
-Base grid class
----------------
-
 .. autoclass:: CartesianGrid
-
-   .. rubric:: Attributes
-
-   .. autosummary::
-
-      ~CartesianGrid.x_wall
-      ~CartesianGrid.y_wall
-      ~CartesianGrid.z_wall
-      ~CartesianGrid.x
-      ~CartesianGrid.y
-      ~CartesianGrid.z
-      ~CartesianGrid.gx
-      ~CartesianGrid.gy
-      ~CartesianGrid.gz
 
    .. rubric:: Methods
 

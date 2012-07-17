@@ -9,7 +9,7 @@ hyperion.grid.SphericalPolarGrid
    .. rubric:: Methods
 
    .. autosummary::
-   
+
       ~SphericalPolarGrid.set_walls
       ~SphericalPolarGrid.read
       ~SphericalPolarGrid.read_geometry
@@ -27,3 +27,17 @@ hyperion.grid.SphericalPolarGrid
    .. automethod:: SphericalPolarGrid.write
    .. automethod:: SphericalPolarGrid.write_single_array
    .. automethod:: SphericalPolarGrid.add_derived_quantity
+
+.. autoclass:: SphericalPolarGridView
+
+   .. rubric:: Methods
+
+   .. autosummary::
+
+      ~SphericalPolarGridView.append
+      ~SphericalPolarGridView.add
+
+   .. rubric:: Methods (detail)
+
+   .. automethod:: SphericalPolarGridView.append
+   .. automethod:: SphericalPolarGridView.add
