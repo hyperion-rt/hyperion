@@ -37,7 +37,7 @@ up the model in your Python script::
     m = Model(...)
     ...
     m.set_copy_input(False)
-    
+
 In the above example, the Fortran code will now link to the input instead of
 copying it. In this case, the path used is the same as the path to the input
 file specifying when calling the Hyperion Fortran code.

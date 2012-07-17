@@ -64,10 +64,10 @@ An HDF5 dust file should contain 5 datasets. The root of the file should contain
   of dust as a function of scattering angle (``1``). In future, other types
   of dust, such as aligned grains, which require the full 16 elements, will
   be implemented.
-  
+
 * ``lte``: whether the dust emissivities assume local thermodynamic
   equilibrium (LTE).
-  
+
 * ``python_version``: the version of the Python Hyperion library used to
   generate the file. Set this to '0.8.7' if you are writing files yourself
   rather than using the Hyperion library.
@@ -131,7 +131,7 @@ columns should be:
   specific energy. This should be a vector column, where the width of the
   column is the number of values specified in the ``emissivity_variable``
   dataset.
-  
+
 ``emissivity_variable``
 -----------------------
 

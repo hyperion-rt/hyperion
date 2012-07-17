@@ -73,8 +73,8 @@ further::
     envelope.rmin = 0.1 * au            # Inner radius
     envelope.rc = 100 * au              # Centrifugal radius
     envelope.rmax = 1000 * au           # Outer radius
-    
-.. note:: the Ulrich (1976) solution is sometimes (incorrectly) referred to 
+
+.. note:: the Ulrich (1976) solution is sometimes (incorrectly) referred to
           as the Terebey, Shu, and Cassen (TSC) solution, which is much more
           complex. The Ulrich envelope implemented here is the same envelope
           type as is often implemented in other radiation transfer codes.
@@ -161,6 +161,6 @@ can use this as follows::
     disk.rmin = OptThinRadius(1600.)
     disk.rmax = 300. * au
     ...
-    
+
 and the inner disk radius will be set to the radius at which the optically
 thin temperature would have fallen to 1600K, emulating dust sublimation.
