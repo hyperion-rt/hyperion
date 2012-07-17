@@ -28,7 +28,7 @@ to groups) as dust types. The groups should be named::
     dust_001/
     dust_002/
     ...
-    
+
 Each group should have the layout described in :doc:`dust_file`.
 
 Grid
@@ -78,7 +78,7 @@ Iterations
 
 * ``convergence_relative``: the threshold for relative changes in the
   specific energy (float).
-  
+
 * ``convergence_percentile``: the percentile at which to check the absolute
   and relative changes in the specific energy (float).
 
@@ -97,7 +97,7 @@ If ``mrw`` is ``yes``, the following two attributes should be set:
 
 * ``mrw_gamma``: The gamma parameter for the modified random walk as
   described in :ref:`diffusion` (float).
-  
+
 * ``n_inter_mrw_max``: The maximum number of MRW interactions before a
   photon is killed (integer).
 
@@ -118,7 +118,7 @@ The following attributes are required:
 * ``n_stats``: how often to display performance stats. For the MPI-enabled
   code, this also determines the chunk of photons to dispatch to each thread
   at a time (integer).
-    
+
 If ``n_initial_iter`` is non-zero, then the following photon number should be specified:
 
 * ``n_initial_photons``: number of photons to emit per iteration in the
@@ -148,14 +148,14 @@ Miscellaneous
 
 * ``forced_first_scattering``: whether to use the forced first scattering
   algorithm. Should be one of ``yes`` or ``no`` (string).
-  
+
 * ``kill_on_absorb``: whether to kill photons when they are absorbed rather
   than re-emitting them (useful for scattering-only calculations). Should be
   one of ``yes`` or ``no`` (string).
-  
+
 * ``n_inter_max``: the maximum number of interactions a photon can have
   before being it is killed (integer).
- 
+
 * ``n_reabs_max``: the maximum number of times a photon can be re-absorbed
   before it is killed (integer).
 

@@ -17,5 +17,5 @@ Disclaimers
 
 * Hyperion does *not* choose photon numbers automatically - the user
   is responsible for choosing sensible values. Using too few photons
-  may lead to incorrect results.  
+  may lead to incorrect results.
  

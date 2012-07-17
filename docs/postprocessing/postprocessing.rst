@@ -11,10 +11,10 @@ You've successfully set up and run your model, but now you want to extract the r
 
    extracting_observables
    extracting_quantities
-   
+
 The :doc:`../tutorials/index` section contains a number of examples illustrating how to extract and visualize observables and quantities.
 
-.. note:: A convenience script is provided to quickly extract image cubes     
+.. note:: A convenience script is provided to quickly extract image cubes
           and physical grids for inspection as FITS files::
 
               # Retrieve all images
@@ -27,4 +27,4 @@ The :doc:`../tutorials/index` section contains a number of examples illustrating
           cubes with more than 3 dimensions. This is only meant as a quick
           look tool. To extract properly scaled and sliced information
           from the output file, see the sections below.
-   
+
