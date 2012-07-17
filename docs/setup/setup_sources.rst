@@ -50,8 +50,8 @@ three ways:
           luminosity, so in cases where several sources with very different
           luminosities are included in the models, some sources might be
           under-sampled. You can instead change the configuration to emit
-          equal number of photons from all sources - see
-          :ref:sample_sources_evenly for more details.
+          equal number of photons from all sources -
+          see :ref:sample_sources_evenly for more details.
 
 Point sources
 -------------
