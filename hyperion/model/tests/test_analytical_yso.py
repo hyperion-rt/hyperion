@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 import pytest
+import numpy as np
 
 from .. import AnalyticalYSOModel
 from ...util.constants import msun, rsun, lsun, tsun, au, pc
@@ -79,6 +80,79 @@ def test_analytical_yso_optthinradius():
 
     m.write(random_filename())
 
+
+def test_analytical_yso_optthinradius_check_frozen():
+
+    dust = get_test_dust()
+
+    m = basic_analytical_model()
+
+    e = m.add_power_law_envelope()
+    e.mass = 1.e-2 * msun
+    e.rmin = OptThinRadius(1000.)
+    e.r_0 = au
+    e.rmax = OptThinRadius(10.)
+    e.power = -2.
+    e.dust = dust
+
+    m.set_spherical_polar_grid_auto(10, 10, 10)
+
+    with pytest.raises(Exception) as exc:
+        e.mass = 1.
+    assert "Attribute mass can no longer be changed"
+
+    with pytest.raises(Exception) as exc:
+        e.dust = 'test'
+    assert "Attribute dust can no longer be changed"
+
+    with pytest.raises(Exception) as exc:
+        m.star.radius = 1.
+    assert "Attribute radius can no longer be changed"
+
+    m.set_n_photons(initial=100, imaging=100)
+
+    m.write(random_filename())
+
+
+def test_analytical_yso_optthinradius_manual_check_frozen():
+
+    dust = get_test_dust()
+
+    m = basic_analytical_model()
+
+    e = m.add_power_law_envelope()
+    e.mass = 1.e-2 * msun
+    e.rmin = OptThinRadius(1000.)
+    e.r_0 = au
+    e.rmax = OptThinRadius(10.)
+    e.power = -2.
+    e.dust = dust
+
+    assert not np.isscalar(e.rmin)
+    assert not np.isscalar(e.rmax)
+
+    m.evaluate_optically_thin_radii()
+
+    assert np.isscalar(e.rmin)
+    assert np.isscalar(e.rmax)
+
+    with pytest.raises(Exception) as exc:
+        e.mass = 1.
+    assert "Attribute mass can no longer be changed"
+
+    with pytest.raises(Exception) as exc:
+        e.dust = 'test'
+    assert "Attribute dust can no longer be changed"
+
+    with pytest.raises(Exception) as exc:
+        m.star.radius = 1.
+    assert "Attribute radius can no longer be changed"
+
+    m.set_spherical_polar_grid([0., 0.1 * au, 10. * au], [0., np.pi], [0., 2. * np.pi])
+
+    m.set_n_photons(initial=100, imaging=100)
+
+    m.write(random_filename())
 
 def test_analytical_yso_add_density():
     m = AnalyticalYSOModel()
@@ -216,4 +290,3 @@ def test_rmin_zero(grid_type):
         with pytest.raises(ValueError) as exc:
             m.set_spherical_polar_grid_auto(100, 20, 3)
         assert exc.value.args[0] == "R_min is 0, so cannot set up the grid cell walls automatically. Use set_spherical_polar_grid() instead to specify the cell wall positions."
-
