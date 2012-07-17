@@ -24,6 +24,12 @@ hyperion.model.AnalyticalYSOModel
       ~AnalyticalYSOModel.set_spherical_polar_grid_auto
       ~AnalyticalYSOModel.set_cylindrical_polar_grid_auto
 
+   .. rubric:: Miscellaneous
+
+   .. autosummary::
+
+      ~AnalyticalYSOModel.evaluate_optically_thin_radii
+
    .. rubric:: Methods (detail)
 
    .. automethod:: AnalyticalYSOModel.add_flared_disk
@@ -33,3 +39,5 @@ hyperion.model.AnalyticalYSOModel
 
    .. automethod:: AnalyticalYSOModel.set_spherical_polar_grid_auto
    .. automethod:: AnalyticalYSOModel.set_cylindrical_polar_grid_auto
+
+   .. automethod:: AnalyticalYSOModel.evaluate_optically_thin_radii

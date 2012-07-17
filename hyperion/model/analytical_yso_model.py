@@ -440,7 +440,7 @@ class AnalyticalYSOModel(Model):
                              rmax=None):
 
         self.star._finalize()
-        self._resolve_optically_thin_radii()
+        self.evaluate_optically_thin_radii()
 
         if self.star.radius is None:
             raise Exception("The central source radius need to be defined before the grid can be set up")
@@ -634,7 +634,19 @@ class AnalyticalYSOModel(Model):
 
     # RESOLVERS
 
-    def _resolve_optically_thin_radii(self):
+    def evaluate_optically_thin_radii(self):
+        '''
+        Replace instances of OptThinRadius by the numerical value.
+
+        This method will freeze any radius specified by OptThinRadius to the
+        value assuming the present dust and stellar properties, and will also
+        freeze the attributes (including dust properties) for the component
+        classes and for the central source.
+        '''
+
+        # Freeze the source properties
+        self.star._finalize()
+
         if not self.star.isfinal():
             raise Exception("Stellar parameters need to be finalized before resolving radiation-dependent radii")
         for i, disk in enumerate(self.disks):
@@ -664,6 +676,17 @@ class AnalyticalYSOModel(Model):
                 if self.ambient.dust is None:
                     raise Exception("Ambient medium dust not set")
                 self.ambient.rmax = self.ambient.rmax.evaluate(self.star, self.ambient.dust)
+
+        # Freeze the component classes
+
+        for disk in self.disks:
+            FreezableClass._finalize(disk)
+
+        for envelope in self.envelopes:
+            FreezableClass._finalize(envelope)
+
+        if self.ambient is not None:
+            FreezableClass._finalize(self.ambient)
 
     # OUTPUT
 
@@ -702,6 +725,9 @@ class AnalyticalYSOModel(Model):
 
         if 'density' in self.grid:
             raise Exception("Density grid has already been set")
+
+        # Ensure that there are no longer any un-evaluated optically thin radii
+        self.evaluate_optically_thin_radii()
 
         for i, disk in enumerate(self.disks):
 
