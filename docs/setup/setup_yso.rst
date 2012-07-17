@@ -1,5 +1,5 @@
-Setting up a YSO
-================
+Setting up a YSO model
+======================
 
 Source parameters
 -----------------
