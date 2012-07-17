@@ -13,6 +13,92 @@ from .grid_helpers import single_grid_dims
 
 
 class OctreeGrid(FreezableClass):
+    '''
+    An octree grid.
+
+    To initialize an Octree object, use::
+
+        >>> grid = OctreeGrid(x, y, z, dx, dy, dz, refined)
+
+    where ``x``, ``y``, and ``z`` are the cartesian coordinates of the center
+    of the grid, ``dx``, ``dy``, and ``dz`` are the half-widths of the grid,
+    and ``refined`` is a sequence of boolean values that indicate whether a
+    given cell is refined.
+
+    The first value of the ``refined`` sequence indicates whether the parent
+    cell is sub-divided. If it is, then the the second element indicates
+    whether the first cell of the parent cell is sub-divided. If it isn't,
+    then the next value indicates whether the second cell of the parent cell
+    is sub-divided. If it is, then we need to specify the booleans for all the
+    children of that cell before we move to the third cell of the parent cell.
+
+    For example, the simplest grid is a single cell that is not sub-divided::
+
+        refined = [False]
+
+    The next simplest grid is a single grid cell that is only sub-divided once::
+
+        refined = [True, False, False, False, False, False, False, False, False]
+
+    It is easier to picture this as a hierarchy::
+
+        refined = [True,
+                     False,
+                     False,
+                     False,
+                     False,
+                     False,
+                     False,
+                     False,
+                     False,
+                     ]
+
+    If we sub-divide the third sub-cell in the parent cell into cells that are
+    themselves not sub-divided, we get::
+
+        refined = [True,
+                     False,
+                     False,
+                     True,
+                       False,
+                       False,
+                       False,
+                       False,
+                       False,
+                       False,
+                       False,
+                       False,
+                     False,
+                     False,
+                     False,
+                     False,
+                     False,
+                     ]
+
+    and so on. The order of the sub-cells is first along x, then along y, then
+    along z.
+
+    :class:`~hyperion.grid.OctreeGrid` objects may contain multiple
+    quantities (e.g. density, specific energy). To access these, you can
+    specify the name of the quantity as an item::
+
+         >>> grid['density']
+
+    which is no longer an :class:`~hyperion.grid.OctreeGrid` object, but
+    a :class:`~hyperion.grid.OctreeGridView` object. When setting
+    this for the first time, this can be set either to another
+    :class:`~hyperion.grid.OctreeGridView` object, an external h5py
+    link, or an empty list. For example, the following should work:
+
+        >>> grid['density_new'] = grid['density']
+
+    :class:`~hyperion.grid.OctreeGridView` objects allow the
+    specific dust population to be selected as an index:
+
+        >>> grid['density'][0]
+
+    Which is also an :class:`~hyperion.grid.OctreeGridView` object.
+    '''
 
     def __init__(self, *args):
 
@@ -387,7 +473,7 @@ class OctreeGridView(OctreeGrid):
             self._check_array_dimensions(grid)
             self.quantities[self.viewed_quantity].append(deepcopy(grid))
         else:
-            raise ValueError("grid should be a Numpy array or a OctreeGridView object")
+            raise ValueError("grid should be a Numpy array or an OctreeGridView instance")
 
     def add(self, grid):
         '''
@@ -395,7 +481,7 @@ class OctreeGridView(OctreeGrid):
 
         Parameters
         ----------
-        grid: 3D Numpy array or OctreeGridView instance
+        grid: 1D Numpy array or OctreeGridView instance
             The grid to copy the quantity from
         '''
         if type(self.quantities[self.viewed_quantity]) is list:
@@ -409,7 +495,7 @@ class OctreeGridView(OctreeGrid):
             self._check_array_dimensions(grid)
             self.quantities[self.viewed_quantity] += grid
         else:
-            raise ValueError("grid should be a Numpy array or a OctreeGridView object")
+            raise ValueError("grid should be a Numpy array or an OctreeGridView instance")
 
     def __getitem__(self, item):
         if type(item) is int:

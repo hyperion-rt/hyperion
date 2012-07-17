@@ -585,11 +585,11 @@ class AMRGridView(AMRGrid):
 
         Parameters
         ----------
-        amr_grid: AMR grid view
+        amr_grid: AMRGridView instance
             The grid to copy the quantity from
         '''
         if not isinstance(amr_grid_view, AMRGridView):
-            raise ValueError("amr_grid_view should be an AMRGridView object")
+            raise ValueError("amr_grid_view should be an AMRGridView instance")
         self._check_array_dimensions(amr_grid_view[amr_grid_view.viewed_quantity])
         for ilevel, level_ref in enumerate(self.levels):
             level = amr_grid_view.levels[ilevel]
@@ -608,11 +608,11 @@ class AMRGridView(AMRGrid):
 
         Parameters
         ----------
-        grid: 3D Numpy array or OctreeGridView instance
+        amr_grid: AMRGridView instance
             The grid to copy the quantity from
         '''
         if not isinstance(amr_grid_view, AMRGridView):
-            raise ValueError("amr_grid_view should be an AMRGridView object")
+            raise ValueError("amr_grid_view should be an AMRGridView instance")
         self._check_array_dimensions(amr_grid_view[amr_grid_view.viewed_quantity])
         for ilevel, level_ref in enumerate(self.levels):
             level = amr_grid_view.levels[ilevel]

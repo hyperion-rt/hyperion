@@ -479,13 +479,13 @@ class SphericalPolarGridView(SphericalPolarGrid):
                 raise Exception("Calling append recursively")
             if type(grid.quantities[grid.viewed_quantity]) is list:
                 raise Exception("Can only append a single grid")
-            self._check_array_dimensions(deepcopy(grid.quantities[grid.viewed_quantity]))
+            self._check_array_dimensions(grid.quantities[grid.viewed_quantity])
             self.quantities[self.viewed_quantity].append(deepcopy(grid.quantities[grid.viewed_quantity]))
         elif type(grid) is np.ndarray:
-            self._check_array_dimensions(deepcopy(grid))
+            self._check_array_dimensions(grid)
             self.quantities[self.viewed_quantity].append(deepcopy(grid))
         else:
-            raise ValueError("grid should be a Numpy array or a SphericalPolarGridView object")
+            raise ValueError("grid should be a Numpy array or a SphericalPolarGridView instance")
 
     def add(self, grid):
         '''
@@ -501,13 +501,13 @@ class SphericalPolarGridView(SphericalPolarGrid):
         if isinstance(grid, SphericalPolarGridView):
             if type(grid.quantities[grid.viewed_quantity]) is list:
                 raise Exception("need to first specify the item to add")
-            self._check_array_dimensions(deepcopy(grid.quantities[grid.viewed_quantity]))
+            self._check_array_dimensions(grid.quantities[grid.viewed_quantity])
             self.quantities[self.viewed_quantity] += grid.quantities[grid.viewed_quantity]
         elif type(grid) is np.ndarray:
-            self._check_array_dimensions(deepcopy(grid))
+            self._check_array_dimensions(grid)
             self.quantities[self.viewed_quantity] += grid
         else:
-            raise ValueError("grid should be a Numpy array or a SphericalPolarGridView object")
+            raise ValueError("grid should be a Numpy array or a SphericalPolarGridView instance")
 
     def __getitem__(self, item):
         if type(item) is int:
