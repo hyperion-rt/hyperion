@@ -9,7 +9,7 @@ hyperion.grid.OctreeGrid
    .. rubric:: Methods
 
    .. autosummary::
-   
+
       ~OctreeGrid.set_walls
       ~OctreeGrid.read
       ~OctreeGrid.read_geometry
@@ -27,3 +27,17 @@ hyperion.grid.OctreeGrid
    .. automethod:: OctreeGrid.write
    .. automethod:: OctreeGrid.write_single_array
    .. automethod:: OctreeGrid.add_derived_quantity
+
+.. autoclass:: OctreeGridView
+
+   .. rubric:: Methods
+
+   .. autosummary::
+
+      ~OctreeGridView.append
+      ~OctreeGridView.add
+
+   .. rubric:: Methods (detail)
+
+   .. automethod:: OctreeGridView.append
+   .. automethod:: OctreeGridView.add

@@ -9,7 +9,7 @@ hyperion.grid.AMRGrid
    .. rubric:: Methods
 
    .. autosummary::
-   
+
       ~AMRGrid.read
       ~AMRGrid.read_geometry
       ~AMRGrid.read_quantities
@@ -25,3 +25,17 @@ hyperion.grid.AMRGrid
    .. automethod:: AMRGrid.write
    .. automethod:: AMRGrid.write_single_array
    .. automethod:: AMRGrid.add_derived_quantity
+
+.. autoclass:: AMRGridView
+
+   .. rubric:: Methods
+
+   .. autosummary::
+
+      ~AMRGridView.append
+      ~AMRGridView.add
+
+   .. rubric:: Methods (detail)
+
+   .. automethod:: AMRGridView.append
+   .. automethod:: AMRGridView.add

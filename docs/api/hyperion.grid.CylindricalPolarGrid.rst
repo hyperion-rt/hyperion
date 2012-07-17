@@ -9,7 +9,7 @@ hyperion.grid.CylindricalPolarGrid
    .. rubric:: Methods
 
    .. autosummary::
-   
+
       ~CylindricalPolarGrid.set_walls
       ~CylindricalPolarGrid.read
       ~CylindricalPolarGrid.read_geometry
@@ -27,3 +27,17 @@ hyperion.grid.CylindricalPolarGrid
    .. automethod:: CylindricalPolarGrid.write
    .. automethod:: CylindricalPolarGrid.write_single_array
    .. automethod:: CylindricalPolarGrid.add_derived_quantity
+
+.. autoclass:: CylindricalPolarGridView
+
+   .. rubric:: Methods
+
+   .. autosummary::
+
+      ~CylindricalPolarGridView.append
+      ~CylindricalPolarGridView.add
+
+   .. rubric:: Methods (detail)
+
+   .. automethod:: CylindricalPolarGridView.append
+   .. automethod:: CylindricalPolarGridView.add
