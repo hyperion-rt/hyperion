@@ -1,18 +1,18 @@
-===================================
-hyperion.sources.SphericalSource
-===================================
+====================================
+hyperion.sources.PlaneParallelSource
+====================================
 
 .. currentmodule:: hyperion.sources
 
-.. autoclass:: SphericalSource
+.. autoclass:: PlaneParallelSource
 
    .. rubric:: Attributes
 
    .. autosummary::
 
-      ~SphericalSource.luminosity
-      ~SphericalSource.temperature
-      ~SphericalSource.spectrum
-      ~SphericalSource.position
-      ~SphericalSource.radius
-      ~SphericalSource.direction
+      ~PlaneParallelSource.luminosity
+      ~PlaneParallelSource.temperature
+      ~PlaneParallelSource.spectrum
+      ~PlaneParallelSource.position
+      ~PlaneParallelSource.radius
+      ~PlaneParallelSource.direction
