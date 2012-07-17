@@ -475,7 +475,7 @@ class CylindricalPolarGridView(CylindricalPolarGrid):
             self._check_array_dimensions(grid)
             self.quantities[self.viewed_quantity].append(deepcopy(grid))
         else:
-            raise ValueError("grid should be a Numpy array or a CylindricalPolarGridView object")
+            raise ValueError("grid should be a Numpy array or a CylindricalPolarGridView instance")
 
     def add(self, grid):
         '''
@@ -497,7 +497,7 @@ class CylindricalPolarGridView(CylindricalPolarGrid):
             self._check_array_dimensions(grid)
             self.quantities[self.viewed_quantity] += grid
         else:
-            raise ValueError("grid should be a Numpy array or a CylindricalPolarGridView object")
+            raise ValueError("grid should be a Numpy array or a CylindricalPolarGridView instance")
 
     def __getitem__(self, item):
         if type(item) is int:
