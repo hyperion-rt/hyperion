@@ -12,11 +12,11 @@ For example, the simplest grid is a single cell that is not sub-divided::
 
     refined = [False]
 
-The next simplest grid is a single grid cell that is only sub-divided once:
+The next simplest grid is a single grid cell that is only sub-divided once::
 
     refined = [True, False, False, False, False, False, False, False, False]
 
-It is easier to picture this as a hiearchy::
+It is easier to picture this as a hierarchy::
 
     refined = [True,
                  False,
