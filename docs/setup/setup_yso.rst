@@ -15,14 +15,15 @@ and either the temperature or the spectrum of the source can be set, using::
 
 or::
 
-    m.star.spectrum = ...
-
-TODO: spots
+    m.star.spectrum = (nu, fnu)
 
 Flared disks
 ------------
 
-Flared disks can be added using the ``add_flared_disk`` method, and capturing the reference to the FlaredDisk object to set the parameters further::
+Flared disks can be added using the
+:meth:`~hyperion.model.AnalyticalYSOModel.add_flared_disk` method, and
+capturing the reference to the :class:`~hyperion.densities.FlaredDisk`
+object to set the parameters further::
 
     disk = m.add_flared_disk()
     disk.mass = 0.01 * msun             # Disk mass
@@ -49,9 +50,12 @@ Envelopes
 Power-law spherically symmetric envelope
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The simplest kind of envelope is a spherically symmetric envelope with a power-law distribution in density. A power-law envelope can be added using the ``add_powerlaw_envelope`` method, and capturing the reference to the PowerLawEnvelope object to set the parameters further::
+The simplest kind of envelope is a spherically symmetric envelope with a
+power-law distribution in density. A power-law envelope can be added using
+the :meth:`~hyperion.model.AnalyticalYSOModel.add_power_law_envelope` method, and capturing the reference to the :class:`~hyperion.densities.PowerLawEnvelope` object to set the parameters
+further::
 
-    envelope = m.add_powerlaw_envelope()
+    envelope = m.add_power_law_envelope()
     envelope.mass = 0.1 * msun          # Envelope mass
     envelope.rmin = au                  # Inner radius
     envelope.rmax = 10000 * au          # Outer radius
@@ -60,18 +64,27 @@ The simplest kind of envelope is a spherically symmetric envelope with a power-l
 Ulrich rotationally flattened envelope
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A more complex envelope density distribution is that of Ulrich (1976), which consists of a rotationally flattened envelope::
+A more complex envelope density distribution is that of Ulrich (1976), which consists of a rotationally flattened envelope. A power-law envelope can be added using
+the :meth:`~hyperion.model.AnalyticalYSOModel.add_ulrich_envelope` method, and capturing the reference to the :class:`~hyperion.densities.UlrichEnvelope` object to set the parameters
+further::
 
     envelope = m.add_ulrich_envelope()
     envelope.mdot = 1e-4 * msun / yr    # Infall rate
     envelope.rmin = 0.1 * au            # Inner radius
     envelope.rc = 100 * au              # Centrifugal radius
     envelope.rmax = 1000 * au           # Outer radius
+    
+.. note:: the Ulrich (1976) solution is sometimes (incorrectly) referred to 
+          as the Terebey, Shu, and Cassen (TSC) solution, which is much more
+          complex. The Ulrich envelope implemented here is the same envelope
+          type as is often implemented in other radiation transfer codes.
 
 Bipolar cavities
 ----------------
 
-Once an envelope has been created, bipolar cavities can be carved out in it by doing::
+Once an envelope has been created, bipolar cavities can be carved out in it
+by calling the ``add_bipolar_cavities`` method on the envelope object, which
+returns a :class:`~hyperion.densities.BipolarCavity` instance::
 
     cavity = envelope.add_bipolar_cavities()
     cavity.exponent = 1.5               # Shape exponent z~w^exp
@@ -88,6 +101,9 @@ The dust file to use for each component should be specified using the ``dust`` a
     disk.dust = 'www003.hdf5'
     envelope.dust = 'kmh.hdf5'
     cavity.dust = 'kmh_hdf5'
+
+The dust can be specified either as a filename or an instance of one of the
+dust types.
 
 Grid
 ----
@@ -109,8 +125,8 @@ large scales.
 In some cases, this automated gridding may not be appropriate, and you may
 want to specify the grid geometry yourself, for example if you have other
 sources of emission than the one in the center. In this case, the
-``set_spherical_polar_grid`` and ``set_cylindrical_polar_grid`` methods
-described in :doc:setup_grid can be used. As a reminder, these take the
+:meth:`~hyperion.model.Model.set_spherical_polar_grid` and :meth:`~hyperion.model.Model.set_cylindrical_polar_grid` methods
+described in :doc:`setup_grid` can be used. As a reminder, these take the
 position of the walls as arguments rather than the number of cells, e.g.::
 
     r = np.logspace(np.log10(rsun), np.log10(100 * au), 400)
@@ -119,3 +135,32 @@ position of the walls as arguments rather than the number of cells, e.g.::
     phi = np.array([0., 2 * pi])
     m.set_spherical_polar_grid(r, theta, phi)
 
+Optically thin temperature radius
+---------------------------------
+
+When setting up the disk or envelope inner/outer radii, it can sometimes be
+useful to set it to a 'dynamic' quantity such as the sublimation radius of
+dust. A convenience class is available for this purpose::
+
+    from hyperion.util.convenience import OptThinRadius
+
+The ``OptThinRadius`` class allows you to simply specify a temperature
+:math:`T_d`, and when preparing the model, the code will pick the radius at
+which the temperature would be equal to the value specified if the dust was
+optically thin:
+
+.. math:: r = r_{\star}\,\left\{1-\left[1-2\,\frac{T_d^4}{T_{{\rm eff}}^4}\frac{\kappa_{\rm plank}(T_d)}{\kappa_{\star}}\right]^2\right\} ^ {-1/2}
+
+where :math:`T_{{\rm eff,}\star}` is the effective temperature of the
+central source, and :math:`\kappa_{\star)}` is the mean opacity to a
+radiation field with the spectrum of the central source. In practice, you
+can use this as follows::
+
+    disk = m.add_flared_disk()
+    disk.mass = 0.01 * msun
+    disk.rmin = OptThinRadius(1600.)
+    disk.rmax = 300. * au
+    ...
+    
+and the inner disk radius will be set to the radius at which the optically
+thin temperature would have fallen to 1600K, emulating dust sublimation.
