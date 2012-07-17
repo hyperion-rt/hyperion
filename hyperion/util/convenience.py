@@ -17,7 +17,7 @@ class OptThinRadius(object):
         return OptThinRadius(self.temperature, value=self.value * value)
 
     def __str__(self):
-        return "%g times the dust sublimation radius" % self.value
+        return "%g times the radius at which the optically thin temperature would be %gK" % (self.value, self.temperature)
 
     def evaluate(self, star, dust):
         rstar = star.radius
