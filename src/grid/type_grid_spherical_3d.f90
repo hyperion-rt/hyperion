@@ -17,6 +17,14 @@ module type_grid
      real(dp), allocatable :: r(:), dr(:), dr2(:), dr3(:), t(:), dt(:), dcost(:), dphi(:)
      integer :: midplane = -1
      character(len=10) :: type
+
+     ! Masking
+     logical :: masked = .false.
+     integer :: n_masked
+     logical, allocatable :: mask(:)
+     integer, allocatable :: mask_map(:)
+
+
   end type grid_geometry_desc
 
 end module type_grid
