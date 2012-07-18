@@ -50,7 +50,7 @@ class Grid(FreezableClass):
         if attribute == 'shape':
             return (self.nz, self.ny, self.nx)
         else:
-            return FreezableClass.__getattr__(self, attribute)
+            return FreezableClass.__getattribute__(self, attribute)
 
 
 class Level(FreezableClass):
