@@ -28,6 +28,7 @@ module grid_geometry
 
   public :: opposite_wall
   public :: random_cell
+  public :: random_masked_cell
 
   public :: grid_load_pdf_map
   public :: grid_sample_pdf_map
@@ -97,5 +98,18 @@ contains
     ic = ceiling(xi * geo%n_cells)
     random_cell = new_grid_cell(ic, geo)
   end function random_cell
+
+  type(grid_cell) function random_masked_cell()
+    implicit none
+    real(dp) :: xi
+    integer :: ic
+    call random(xi)
+    if (geo%masked) then
+       ic = geo%mask_map(ceiling(xi * geo%n_masked))
+    else
+       ic = ceiling(xi * geo%n_cells)
+    end if
+    random_masked_cell = new_grid_cell(ic, geo)
+  end function random_masked_cell
 
 end module grid_geometry

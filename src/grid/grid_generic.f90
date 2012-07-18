@@ -14,9 +14,9 @@ module grid_generic
   implicit none
   save
 
-private
-public :: grid_reset_energy
-public :: output_grid
+  private
+  public :: grid_reset_energy
+  public :: output_grid
 
 contains
 

@@ -84,6 +84,15 @@ contains
           energy = 0._dp
        end if
 
+       ! Ensure that energy is zero in masked cells. Note that we can just
+       ! work with all the cells here because the masked cells will get
+       ! dropped out of the PDF anyway.
+       if(geo%masked) then
+          where(.not.geo%mask)
+             energy = 0._dp
+          end where
+       end if
+
        ! Find in each cell the probability of emission at the desired frequency
        ! from the normalized emissivity PDF.
        do icell=1, geo%n_cells

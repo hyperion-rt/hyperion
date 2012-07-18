@@ -1,5 +1,7 @@
 module grid_mrw
 
+  ! Optimization: could pre-compute diffusion coefficient just for masked (valid) cells
+
   use core_lib
   use type_photon
   use grid_geometry

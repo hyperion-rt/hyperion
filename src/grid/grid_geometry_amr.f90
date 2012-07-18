@@ -390,6 +390,10 @@ contains
        end do
     end do
 
+    ! Temporarily disable
+    geo%masked = .false.
+    geo%n_masked = geo%n_cells
+
   end subroutine setup_grid_geometry
 
   integer function ipos2(xmin, xmax, x, nbin)

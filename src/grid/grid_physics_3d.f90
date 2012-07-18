@@ -109,6 +109,16 @@ contains
        ! Check number of dust types for density
        if(size(density, 2).ne.n_dust) call error("setup_grid","density array has wrong number of dust types")
 
+       ! Reset density to zero in masked cells
+       if(geo%masked) then
+          write(*, '(" [grid_physics] applying mask to density grid")')
+          do id=1,n_dust
+             where(.not.geo%mask)
+                density(:, id) = 0.
+             end where
+          end do
+       end if
+
        ! If density difference is requested, save original density
        if(output_density_diff.ne.'none') then
           allocate(density_original(geo%n_cells, n_dust))
@@ -129,6 +139,16 @@ contains
 
           ! Check number of dust types for specific_energy
           if(size(specific_energy, 2).ne.n_dust) call error("setup_grid","specific_energy array has wrong number of dust types")
+
+          ! Reset specific energy to zero in masked cells
+          if(geo%masked) then
+             write(*, '(" [grid_physics] applying mask to specific_energy grid")')
+             do id=1,n_dust
+                where(.not.geo%mask)
+                   specific_energy(:, id) = 0.
+                end where
+             end do
+          end if
 
        else
 
@@ -187,6 +207,8 @@ contains
   end subroutine setup_grid_physics
 
   subroutine update_alpha_rosseland()
+
+    ! Optimization: could pre-compute alpha_rosseland just for masked (valid) cells
 
     implicit none
 
@@ -344,6 +366,8 @@ contains
 
   subroutine precompute_jnu_var()
 
+    ! Optimization: could pre-compute jnu_var_id and jnu_var_frac just for masked (valid) cells
+
     implicit none
 
     integer :: ic,id
@@ -442,7 +466,7 @@ contains
     p%dust_id = ceiling(xi*real(n_dust,dp))
 
     ! Pick random cell
-    p%icell = random_cell()
+    p%icell = random_masked_cell()
     p%in_cell = .true.
 
     ! Find random position inside cell
@@ -459,7 +483,7 @@ contains
     if(energy_abs_tot(p%dust_id) > 0._dp) then
        mass = density(p%icell%ic,p%dust_id) * geo%volume(p%icell%ic)
        p%energy = specific_energy(p%icell%ic,p%dust_id) &
-            & * mass * dble(geo%n_cells) / energy_abs_tot(p%dust_id)
+            & * mass * dble(geo%n_masked) / energy_abs_tot(p%dust_id)
     else
        p%energy = 0._dp
     end if

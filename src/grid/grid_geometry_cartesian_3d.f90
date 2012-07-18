@@ -90,6 +90,7 @@ contains
     geo%n2 = size(geo%w2) - 1
     geo%n3 = size(geo%w3) - 1
     geo%n_cells = geo%n1 * geo%n2 * geo%n3
+    geo%n_masked = geo%n_cells
 
     allocate(geo%dx(geo%n1))
     allocate(geo%dy(geo%n2))

@@ -190,7 +190,7 @@ contains
     integer(hid_t),intent(in) :: group
 
     real(dp) :: x, y, z, dx, dy, dz
-    integer :: ic
+    integer :: ic, iv
 
     ! FIX - issue with reading 64-bit 1D column with 32-bit variables
     integer, allocatable :: refined(:)
@@ -204,6 +204,21 @@ contains
 
     ! Find number of cells
     geo%n_cells = size(refined)
+
+    ! Figure out which cells are valid, and construct an index to map valid
+    ! cell IDs to original IDs
+    geo%masked = .true.
+    allocate(geo%mask(geo%n_cells))
+    geo%mask = .not. refined
+    geo%n_masked = count(geo%mask)
+    allocate(geo%mask_map(geo%n_masked))
+    iv = 0
+    do ic=1,geo%n_cells
+       if(geo%mask(ic)) then
+          iv = iv + 1
+          geo%mask_map(iv) = ic
+       end if
+    end do
 
     ! Allocate cells
     allocate(geo%cells(geo%n_cells))
