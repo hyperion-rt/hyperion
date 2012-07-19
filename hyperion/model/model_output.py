@@ -123,7 +123,7 @@ class ModelOutput(FreezableClass):
                 aperture='all', uncertainties=False, units=None,
                 source_id=None, dust_id=None):
         '''
-        Retrieve SEDs for a specific image group and Stokes component
+        Retrieve SEDs for a specific image group and Stokes component.
 
         Parameters
         ----------
@@ -443,7 +443,7 @@ class ModelOutput(FreezableClass):
                   uncertainties=False, units=None,
                   source_id=None, dust_id=None):
         '''
-        Retrieve images for a specific image group and Stokes component
+        Retrieve images for a specific image group and Stokes component.
 
         Parameters
         ----------

@@ -33,6 +33,8 @@ a while to review the changes.
 The instructions described here assume that you have git_ installed. We use
 the term *trunk* to refer to the main Hyperion repository.
 
+.. _forking:
+
 Creating a fork
 ===============
 
