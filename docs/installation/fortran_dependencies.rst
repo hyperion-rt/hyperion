@@ -1,3 +1,7 @@
+.. _MPI: http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads
+.. _HDF5: http://www.hdfgroup.org/ftp/HDF5/current/src/
+
+
 .. _fortrandep:
 
 =========================
@@ -50,11 +54,9 @@ Installation
 
 .. note:: If you encounter any errors at any stage, see the :ref:`mpitrouble` section.
 
-First, download the source for the latest *stable release* of MPICH2 from
-`here
-<http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads>`_
-(1.4.1 at the time of writing). Once downloaded, unpack the file and then go
-into the source directory::
+First, download the source for the latest *stable release* of MPICH2 from the
+`MPI`_ downloads page (1.4.1 at the time of writing). Once downloaded, unpack
+the file and then go into the source directory::
 
     cd mpich2-x.x.x
 
@@ -128,9 +130,8 @@ managers such as Fink and MacPorts include HDF5, they often do not include the
 Fortran bindings. Therefore, it is best to install the HDF5 library manually
 from source.
 
-To start with, download the source code from `here
-<http://www.hdfgroup.org/ftp/HDF5/current/src/>`_, then go into the source
-code directory::
+To start with, download the source code from the `HDF5`_ downloads page, then
+go into the source code directory::
 
     cd hdf5-x.x.x
 

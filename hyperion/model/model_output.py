@@ -217,10 +217,10 @@ class ModelOutput(FreezableClass):
             or 'circpol', the degree of polarization is returned as a fraction
             in the range 0 to 1.
 
-        uncertainty : numpy.ndarray (if `uncertainties`=True)
+        uncertainty : numpy.ndarray
             The uncertainties on the flux or degree of polarization. This
             has the same dimensions as the flux or degree of polarization
-            array.
+            array. This is only returned if uncertainties were requested.
         '''
 
         # Set default units
@@ -537,10 +537,10 @@ class ModelOutput(FreezableClass):
             degree of polarization is returned as a fraction in the range 0 to
             1.
 
-        uncertainty : numpy.ndarray (if `uncertainties`=True)
+        uncertainty : numpy.ndarray
             The uncertainties on the flux or degree of polarization. This
             has the same dimensions as the flux or degree of polarization
-            array.
+            array. This is only returned if uncertainties were requested.
         '''
 
         # Set default units
