@@ -38,7 +38,7 @@ def get_test_model_noimaging():
 def assert_identical_results(file1, file2):
 
     # List of attributes to exclude from checking (time-dependent)
-    EXCLUDE_ATTR = ['date_started', 'date_ended', 'cpu_time']
+    EXCLUDE_ATTR = ['date_started', 'date_ended', 'cpu_time', 'python_version', 'fortran_version']
 
     # Open both files
     f1 = h5py.File(file1, 'r')
