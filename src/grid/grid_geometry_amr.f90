@@ -186,7 +186,7 @@ contains
     integer(hid_t) :: g_level
     character(len=100) :: level_name
 
-    integer :: igrid, igrid1, igrid2, icell
+    integer :: igrid, igrid1, igrid2, icell, iv
 
     integer :: start_id
     type(level_desc), pointer :: level, level1, level2
@@ -194,6 +194,8 @@ contains
     integer :: i1, i2, i3
     type(vector3d_dp) :: r
     real(dp) :: min_width
+
+    type(grid_cell) :: cell
 
     ! Read geometry file
     call mp_read_keyword(group, '.', "geometry", geo%id)
@@ -390,9 +392,24 @@ contains
        end do
     end do
 
-    ! Temporarily disable
-    geo%masked = .false.
-    geo%n_masked = geo%n_cells
+    ! Figure out which cells are valid, and construct an index to map valid
+    ! cell IDs to original IDs
+    geo%masked = .true.
+    allocate(geo%mask(geo%n_cells))
+    do icell=1,geo%n_cells
+       cell = new_grid_cell(icell, geo)
+       grid => geo%levels(cell%ilevel)%grids(cell%igrid)
+       geo%mask(icell) = grid%goto_grid(cell%i1, cell%i2, cell%i3) == 0
+    end do
+    geo%n_masked = count(geo%mask)
+    allocate(geo%mask_map(geo%n_masked))
+    iv = 0
+    do icell=1,geo%n_cells
+       if(geo%mask(icell)) then
+          iv = iv + 1
+          geo%mask_map(iv) = icell
+       end if
+    end do
 
   end subroutine setup_grid_geometry
 
@@ -425,7 +442,6 @@ contains
        cell = find_position_in_grid(r, ilevel_new, igrid_new)
     end if
   end function find_position_in_grid
-
 
   subroutine grid_geometry_debug(debug_flag)
     implicit none
