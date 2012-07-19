@@ -170,11 +170,11 @@ class ModelOutput(FreezableClass):
                   were subsequently scattered
 
         aperture : int, optional
-            The number of the aperture to plot (zero-based). Use 'all' to
+            The index of the aperture to plot (zero-based). Use 'all' to
             return all apertures, and -1 to show the largest aperture.
 
         inclination : int, optional
-            The number of the viewing angle to plot (zero-based). Use 'all'
+            The index of the viewing angle to plot (zero-based). Use 'all'
             to return all viewing angles.
 
         uncertainties : bool, optional
@@ -374,6 +374,10 @@ class ModelOutput(FreezableClass):
         if aperture == 'all':
             pass
         else:
+            if not isinstance(aperture, int):
+                raise TypeError('aperture should be an integer (it should'
+                                ' be the index of the aperture, not the '
+                                'value itself)')
             flux = flux[:, :, :, aperture]
             if uncertainties:
                 unc = unc[:, :, :, aperture]
@@ -381,6 +385,10 @@ class ModelOutput(FreezableClass):
         if inclination == 'all':
             pass
         else:
+            if not isinstance(inclination, int):
+                raise TypeError('inclination should be an integer (it should'
+                                ' be the index of the inclination, not the '
+                                'value itself)')
             flux = flux[:, :, inclination]
             if uncertainties:
                 unc = unc[:, :, inclination]
@@ -490,7 +498,7 @@ class ModelOutput(FreezableClass):
                   were subsequently scattered
 
         inclination : int, optional
-            The number of the viewing angle to plot (zero-based). Use 'all'
+            The index of the viewing angle to plot (zero-based). Use 'all'
             to return all viewing angles.
 
         uncertainties : bool, optional
@@ -516,9 +524,6 @@ class ModelOutput(FreezableClass):
             components are returned individually. If neither of these are
             not specified, then the total component requested for all
             sources or dust types is returned.
-
-
-        All additional parameters are passed to get_image.
 
         Returns
         -------
@@ -727,6 +732,10 @@ class ModelOutput(FreezableClass):
         if inclination == 'all':
             pass
         else:
+            if not isinstance(inclination, int):
+                raise TypeError('inclination should be an integer (it should'
+                                ' be the index of the inclination, not the '
+                                'value itself)')
             flux = flux[:, :, inclination]
             if uncertainties:
                 unc = unc[:, :, inclination]
