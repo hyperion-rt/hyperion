@@ -1,3 +1,5 @@
+.. _report: http://www.github.com/astrofrog/hyperion/issues
+
 Running models
 ==============
 
