@@ -72,10 +72,10 @@ def setup_all_grid_types(self, u, d):
     grid2.xmin, grid2.xmax = -u, 0.
     grid2.ymin, grid2.ymax = -u, 0.
     grid2.zmin, grid2.zmax = -u, 0.
-    grid2.nx, grid2.ny, grid2.nz = 6, 8, 10
-    grid2.quantities['density'] = np.random.random((10, 8, 6)) * d
-    grid2.quantities['density_2'] = np.random.random((10, 8, 6)) * d
-    grid2.quantities['density_3'] = np.random.random((10, 8, 6)) * d
+    grid2.nx, grid2.ny, grid2.nz = 4, 6, 20
+    grid2.quantities['density'] = np.random.random((20, 6, 4)) * d
+    grid2.quantities['density_2'] = np.random.random((20, 6, 4)) * d
+    grid2.quantities['density_3'] = np.random.random((20, 6, 4)) * d
 
     # Octree
     refined = [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
