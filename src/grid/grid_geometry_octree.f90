@@ -209,7 +209,7 @@ contains
     ! cell IDs to original IDs
     geo%masked = .true.
     allocate(geo%mask(geo%n_cells))
-    geo%mask = .not. refined
+    geo%mask = refined == 0
     geo%n_masked = count(geo%mask)
     allocate(geo%mask_map(geo%n_masked))
     iv = 0
