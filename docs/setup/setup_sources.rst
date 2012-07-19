@@ -175,6 +175,9 @@ set, and defaults to the origin. External box sources have a ``bounds`` attribut
 where the ``bounds`` attribute is given as
 ``[[xmin, xmax], [ymin, ymax], [zmin, zmax]]``.
 
+See :doc:`../advanced/scaling_isrf` for information on setting the luminosity
+correctly in order to reproduce a given intensity field.
+
 .. note:: Even though these sources are referred to as 'external', they have
           to be placed inside the outermost walls of the grid. The sources are
           not box-shared source or spherical source that can be placed outside
