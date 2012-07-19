@@ -472,7 +472,3 @@ and the history looks now like this::
 
 If it went wrong, recovery is again possible as explained :ref:`above
 <recovering-from-mess-up>`.
-
-
-
-.. include:: links.inc
