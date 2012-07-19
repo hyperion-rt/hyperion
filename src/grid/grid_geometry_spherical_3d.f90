@@ -361,8 +361,8 @@ contains
 
        end if
 
-       ! If the photon is not at the origin, then we check whether it is on the
-       ! lower wall, but we only do that if the lower wall is not theta=0.
+    ! If the photon is not at the origin, then we check whether it is on the
+    ! lower wall, but we only do that if the lower wall is not theta=0.
     else if(p%icell%i2 > 1 .and. equal_nulp(theta, geo%w2(p%icell%i2), eps)) then
 
        if(p%icell%i2 == geo%midplane) then  ! lower wall is grid midplane
@@ -390,9 +390,9 @@ contains
 
        end if
 
-       ! If the photon is not at the origin, or on the lower wall, then we
-       ! check whether it is on the upper wall, but we only do that if the lower
-       ! wall is not theta=pi.
+    ! If the photon is not at the origin, or on the lower wall, then we
+    ! check whether it is on the upper wall, but we only do that if the lower
+    ! wall is not theta=pi.
     else if(p%icell%i2 + 1 < geo%n2 + 1 .and. equal_nulp(theta, geo%w2(p%icell%i2 + 1), eps)) then
 
        if(p%icell%i2 + 1 == geo%midplane) then  ! upper wall is grid midplane
