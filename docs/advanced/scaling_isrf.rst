@@ -90,4 +90,55 @@ pixels and wavelength bins). The all-sky image looks like:
    :align: center
 
 Note that the darkening at high and low latitudes is due to the pixels getting
-smaller.
+smaller. We can do the same but extracting the image in MJy/sr so that the flux is now per unit area so that we will not see these darkening effects::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from hyperion.model import ModelOutput
+    from hyperion.util.constants import c
+    from hyperion.util.integrate import integrate_loglog
+
+    m = ModelOutput('test_mmp83.rtout')
+
+    wav, fnu = m.get_image(units='MJy/sr')
+    nu = c / (wav * 1.e-4)
+
+    # Find wavelength closest to 1 micron
+    iwav = np.argmin(abs(wav - 1.))
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.imshow(fnu[0,:,:,iwav], cmap=plt.cm.gist_heat, extent=[180., -180., -90., 90.], vmin=0., vmax=1.)
+    ax.set_xlabel("Longitude (degrees)")
+    ax.set_ylabel("Latitude (degrees)")
+    ax.set_title("Flux per unit area")
+    fig.savefig('all_sky_map_per_area.png', bbox_inches='tight')
+
+    # Average all pixels in image to make an all-sky SED (use average not sum,
+    # since flux is per unit area)
+    fnu_sed = fnu[0,:,:,:].mean(axis=1).mean(axis=0)
+
+    # Now have fnu_sed in MJy/sr, convert to ergs/cm^2/s/sr
+    fnu_sed *= 1.e-17
+
+    # Convert to ergs/cm^2/s
+    fnu_sed *= 4 * np.pi
+
+    # Find total flux integrated over frequency in ergs/s/cm^2
+    fnu_tot = integrate_loglog(nu, fnu_sed)
+
+    print "4 * pi * J = %.5f" % fnu_tot
+
+with the output::
+
+    4 * pi * J = 0.02160
+
+which is, as before, what we put in. The all-sky image now looks like:
+
+.. image:: all_sky_map_per_area.png
+   :width: 600px
+   :align: center
+
+The flux is uniform over the image. The noise goes up at the edges because the
+pixels are smaller and therefore catch fewer photons.
