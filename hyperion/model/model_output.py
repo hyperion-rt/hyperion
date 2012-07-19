@@ -668,16 +668,26 @@ class ModelOutput(FreezableClass):
 
                 # Find pixel resolution in radians/pixel
                 if inside_observer:
-                    pix_dx = abs(np.radians(xmax - xmin) / float(nx))
-                    pix_dy = abs(np.radians(ymax - ymin) / float(ny))
+
+                    # Need to construct a mesh since every pixel might have a different size
+                    x = np.linspace(np.radians(xmin), np.radians(xmax), nx + 1)
+                    y = np.cos(np.linspace(np.radians(90. - ymin), np.radians(90. - ymax), ny + 1))
+                    dx = x[1:] - x[:-1]
+                    dy = y[:-1] - y[1:]
+                    DX, DY = np.meshgrid(dx, dy)
+                    pix_area = DX * DY
+
+                    scale = 1.e17 / nu[np.newaxis,np.newaxis,:] / pix_area[:,:,np.newaxis]
+
                 else:
+
                     pix_dx = abs(np.arctan((xmax - xmin) / float(nx) / distance))
                     pix_dy = abs(np.arctan((ymax - ymin) / float(ny) / distance))
 
-                # Find pixel area in steradians
-                pix_area = pix_dx * pix_dy
+                    # Find pixel area in steradians
+                    pix_area = pix_dx * pix_dy
 
-                scale = 1.e17 / nu / pix_area
+                    scale = 1.e17 / nu / pix_area
 
             else:
                 raise Exception("Unknown units: %s" % units)
