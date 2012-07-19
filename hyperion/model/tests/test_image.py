@@ -69,12 +69,19 @@ class TestImageSimpleModel(object):
         assert nufnu.shape == (20, 10, 5)
 
     def test_image_dim_incl_invalid1(self):
-        with pytest.raises(Exception):
+        with pytest.raises(Exception) as exc:
             wav, nufnu = self.m.get_image(inclination=2)
+        assert exc.value.args[0] == "invalid index"
 
     def test_image_dim_incl_invalid2(self):
-        with pytest.raises(Exception):
+        with pytest.raises(Exception) as exc:
             wav, nufnu = self.m.get_image(inclination=-3)
+        assert exc.value.args[0] == "invalid index"
+
+    def test_image_dim_incl_invalid3(self):
+        with pytest.raises(Exception) as exc:
+            wav, nufnu = self.m.get_image(inclination=12.3)
+        assert exc.value.args[0] == "inclination should be an integer (it should be the index of the inclination, not the value itself)"
 
     @pytest.mark.parametrize(('stokes'), ['I', 'Q', 'U', 'V',
                                           'linpol', 'circpol'])

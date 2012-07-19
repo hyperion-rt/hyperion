@@ -68,12 +68,19 @@ class TestSEDSimpleModel(object):
         assert nufnu.shape == (3, 5)
 
     def test_sed_dim_incl_invalid1(self):
-        with pytest.raises(Exception):
+        with pytest.raises(Exception) as exc:
             wav, nufnu = self.m.get_sed(inclination=2)
+        assert exc.value.args[0] == "invalid index"
 
     def test_sed_dim_incl_invalid2(self):
-        with pytest.raises(Exception):
+        with pytest.raises(Exception) as exc:
             wav, nufnu = self.m.get_sed(inclination=-3)
+        assert exc.value.args[0] == "invalid index"
+
+    def test_sed_dim_incl_invalid3(self):
+        with pytest.raises(Exception) as exc:
+            wav, nufnu = self.m.get_sed(inclination=12.3)
+        assert exc.value.args[0] == "inclination should be an integer (it should be the index of the inclination, not the value itself)"
 
     def test_sed_dim_aper1(self):
         wav, nufnu = self.m.get_sed(aperture=0)
@@ -84,12 +91,19 @@ class TestSEDSimpleModel(object):
         assert nufnu.shape == (2, 5)
 
     def test_sed_dim_aper_invalid1(self):
-        with pytest.raises(Exception):
+        with pytest.raises(Exception) as exc:
             wav, nufnu = self.m.get_sed(aperture=3)
+        assert exc.value.args[0] == "invalid index"
 
     def test_sed_dim_aper_invalid2(self):
-        with pytest.raises(Exception):
+        with pytest.raises(Exception) as exc:
             wav, nufnu = self.m.get_sed(aperture=-4)
+        assert exc.value.args[0] == "invalid index"
+
+    def test_sed_dim_aper_invalid3(self):
+        with pytest.raises(Exception) as exc:
+            wav, nufnu = self.m.get_sed(aperture=344.3)
+        assert exc.value.args[0] == "aperture should be an integer (it should be the index of the aperture, not the value itself)"
 
     @pytest.mark.parametrize(('stokes'), ['I', 'Q', 'U', 'V',
                                           'linpol', 'circpol'])
@@ -100,8 +114,12 @@ class TestSEDSimpleModel(object):
     @pytest.mark.parametrize(('stokes'), ['A', 'b', 1, (3,),  # invalid values
                                           'i', 'q', 'u', 'v'])  # lowercase
     def test_sed_stokes_invalid(self, stokes):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) as exc:
             wav, nufnu = self.m.get_sed(stokes=stokes)
+        if isinstance(stokes, basestring):
+            assert exc.value.args[0] == "Unknown Stokes parameter: %s" % stokes
+        else:
+            assert exc.value.args[0] == "stokes argument should be a string"
 
     @pytest.mark.parametrize(('units'), ['ergs/s'])
     def test_sed_nodistance_units(self, units):
