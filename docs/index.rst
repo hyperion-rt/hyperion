@@ -62,6 +62,7 @@ Documentation
    tutorials/index.rst
    advanced/advanced.rst
    api/api.rst
+   contributing.rst
 
 Credits
 -------
