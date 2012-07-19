@@ -111,7 +111,7 @@ contains
 
        ! Reset density to zero in masked cells
        if(geo%masked) then
-          write(*, '(" [grid_physics] applying mask to density grid")')
+          if(main_process()) write(*, '(" [grid_physics] applying mask to density grid")')
           do id=1,n_dust
              where(.not.geo%mask)
                 density(:, id) = 0.
@@ -142,7 +142,7 @@ contains
 
           ! Reset specific energy to zero in masked cells
           if(geo%masked) then
-             write(*, '(" [grid_physics] applying mask to specific_energy grid")')
+             if(main_process()) write(*, '(" [grid_physics] applying mask to specific_energy grid")')
              do id=1,n_dust
                 where(.not.geo%mask)
                    specific_energy(:, id) = 0.
