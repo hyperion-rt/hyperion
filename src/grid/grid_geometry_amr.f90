@@ -190,12 +190,15 @@ contains
 
     integer :: start_id
     type(level_desc), pointer :: level, level1, level2
-    type(grid_desc), pointer :: grid, grid1, grid2
+    type(grid_desc), pointer :: grid, grid1, grid2, grid_ref
     integer :: i1, i2, i3
     type(vector3d_dp) :: r
     real(dp) :: min_width
+    real(dp) :: ref(3)
 
     type(grid_cell) :: cell
+
+    character(len=1000) :: message
 
     ! Read geometry file
     call mp_read_keyword(group, '.', "geometry", geo%id)
@@ -217,6 +220,83 @@ contains
        g_level = mp_open_group(group, level_name)
        call read_level(g_level, geo%levels(ilevel))
        call mp_close_group(g_level)
+    end do
+
+    ! Check that all grids in a given level have a common width and have edges
+    ! that line up on a grid
+    do ilevel=1,size(geo%levels)
+       level => geo%levels(ilevel)
+       grid_ref => level%grids(1)
+       do igrid=2,size(level%grids)
+          grid => level%grids(igrid)
+          if(grid%width(1) /= grid_ref%width(1)) then
+             write(message, '("Grids ", I0, " and ", I0, " in level ", I0, " have differing cell widths in the x direction (", ES11.4, " and ", ES11.4, " respectively)")') 1, igrid, ilevel, grid_ref%width(1), grid%width(1)
+             call error("setup_grid_geometry", trim(message))
+          end if
+          if(grid%width(2) /= grid_ref%width(2)) then
+             write(message, '("Grids ", I0, " and ", I0, " in level ", I0, " have differing cell widths in the y direction (", ES11.4, " and ", ES11.4, " respectively)")') 1, igrid, ilevel, grid_ref%width(2), grid%width(2)
+             call error("setup_grid_geometry", trim(message))
+          end if
+          if(grid%width(3) /= grid_ref%width(3)) then
+             write(message, '("Grids ", I0, " and ", I0, " in level ", I0, " have differing cell widths in the z direction (", ES11.4, " and ", ES11.4, " respectively)")') 1, igrid, ilevel, grid_ref%width(3), grid%width(3)
+             call error("setup_grid_geometry", trim(message))
+          end if
+          if(mod(abs(grid%xmin - grid_ref%xmin), grid_ref%width(1)) > 1.e-10) then
+             write(message, '("Grids ", I0, " and ", I0, " in level ", I0, " have edges that are not separated by an integer number of cells in the x direction")') 1, igrid, ilevel
+             call error("setup_grid_geometry", trim(message))
+          end if
+          if(mod(abs(grid%ymin - grid_ref%ymin), grid_ref%width(2)) > 1.e-10) then
+             write(message, '("Grids ", I0, " and ", I0, " in level ", I0, " have edges that are not separated by an integer number of cells in the y direction")') 1, igrid, ilevel
+             call error("setup_grid_geometry", trim(message))
+          end if
+          if(mod(abs(grid%zmin - grid_ref%zmin), grid_ref%width(3)) > 1.e-10) then
+             write(message, '("Grids ", I0, " and ", I0, " in level ", I0, " have edges that are not separated by an integer number of cells in the z direction")') 1, igrid, ilevel
+             call error("setup_grid_geometry", trim(message))
+          end if
+       end do
+    end do
+
+    ! Check that the refinement factor in each direction is an integer
+    do ilevel=1,size(geo%levels) - 1
+       level1 => geo%levels(ilevel)
+       level2 => geo%levels(ilevel + 1)
+       grid1 => level1%grids(1)
+       grid2 => level2%grids(1)
+       ref = grid1%width / grid2%width
+       if(abs(ref(1) - nint(ref(1))) > 1.e-10) then
+          write(message, '("Refinement factor in the x direction between level ", I0, " and level ", I0, " is not an integer (",F0.3,")")') ilevel, ilevel + 1, ref(1)
+          call error("setup_grid_geometry", trim(message))
+       end if
+       if(abs(ref(2) - nint(ref(2))) > 1.e-10) then
+          write(message, '("Refinement factor in the y direction between level ", I0, " and level ", I0, " is not an integer (",F0.3,")")') ilevel, ilevel + 1, ref(2)
+          call error("setup_grid_geometry", trim(message))
+       end if
+       if(abs(ref(3) - nint(ref(3))) > 1.e-10) then
+          write(message, '("Refinement factor in the z direction between level ", I0, " and level ", I0, " is not an integer (",F0.3,")")') ilevel, ilevel + 1, ref(3)
+          call error("setup_grid_geometry", trim(message))
+       end if
+    end do
+
+    ! Check that grid edges line up with cells in parent level
+    do ilevel=1,size(geo%levels) - 1
+       level1 => geo%levels(ilevel)
+       level2 => geo%levels(ilevel + 1)
+       grid_ref => level1%grids(1)
+       do igrid=1,size(level2%grids)
+          grid => level2%grids(igrid)
+          if(mod(abs(grid%xmin - grid_ref%xmin), grid_ref%width(1)) > 1.e-10) then
+             write(message, '("Grid ", I0, " in level ", I0, " is not aligned with cells in level ", I0, " in the x direction")') igrid, ilevel + 1, ilevel
+             call error("setup_grid_geometry", trim(message))
+          end if
+          if(mod(abs(grid%ymin - grid_ref%ymin), grid_ref%width(2)) > 1.e-10) then
+             write(message, '("Grid ", I0, " in level ", I0, " is not aligned with cells in level ", I0, " in the y direction")') igrid, ilevel + 1, ilevel
+             call error("setup_grid_geometry", trim(message))
+          end if
+          if(mod(abs(grid%zmin - grid_ref%zmin), grid_ref%width(3)) > 1.e-10) then
+             write(message, '("Grid ", I0, " in level ", I0, " is not aligned with cells in level ", I0, " in the z direction")') igrid, ilevel + 1, ilevel
+             call error("setup_grid_geometry", trim(message))
+          end if
+       end do
     end do
 
     ! Find the unique ID of the first cell in each grid
