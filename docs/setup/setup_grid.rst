@@ -174,8 +174,8 @@ be set using::
 The ``quantities`` attribute is unimportant for this step, as long as the
 geometry is correct.
 
-For more details on how to create or read in an AMR object, see
-:ref:`amr_indepth`.
+For more details on how to create or read in an AMR object, and for a list of
+requirements and restrictions on the geometry, see :ref:`amr_indepth`.
 
 Density and Specific Energy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
