@@ -25,6 +25,32 @@ The following example demonstrates how an AMR grid can be built programmatically
 
 where ``nlevels`` is the number of levels in the AMR grid, and ``ngrids`` is the number of grids each each level. The dimensions of the ``np.array(...)`` on the last line should be ``(nz, ny, nx)``.
 
+Requirements
+============
+
+The following geometrical requirements have to be respected:
+
+* In a given level, all grids should have the same x, y, and z resolutions,
+  i.e. the resolution in each direction can be different, but the resolution
+  along a particular direction has to be the same for all grids in the level.
+
+* In a given level, the edges of all grids have to line up with a common grid
+  defined by the widths in each direction. For example, if the cell width is
+  ``1.0`` in the x direction, one cannot have a grid with ``xmin=0.0`` and one
+  with ``xmin=0.5`` since the cell walls in the x direction for these two
+  grids do not line up on a common grid.
+
+* The refinement ratio between two levels (the ratio of widths of cells in a
+  direction from one level to the next) should be a whole number. The
+  refinement ratio can be different for different directions, and can be
+  greater than 2.
+
+* The boundaries of grids in a given level have to line up with cell walls in
+  the parent level.
+
+If these conditions are not met, then the Fortran Hyperion code will raise an
+error.
+
 From simulation output
 ======================
 
