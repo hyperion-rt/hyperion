@@ -27,7 +27,7 @@ module grid_geometry_specific
   logical :: debug = .false.
 
   real(dp) :: tmin, emin
-  type(wall_id) :: imin
+  type(wall_id) :: imin, iext
 
   public :: escaped
   interface escaped
@@ -128,9 +128,9 @@ contains
     allocate(geo%ew2(geo%n2 + 1))
     allocate(geo%ew3(geo%n3 + 1))
 
-    geo%ew1 = spacing(geo%w1)
-    geo%ew2 = spacing(geo%w2)
-    geo%ew3 = spacing(geo%w3)
+    geo%ew1 = 3 * spacing(geo%w1)
+    geo%ew2 = 3 * spacing(geo%w2)
+    geo%ew3 = 3 * spacing(geo%w3)
 
   end subroutine setup_grid_geometry
 
@@ -332,6 +332,7 @@ contains
     type(photon),intent(in) :: p
     type(grid_cell) :: icell_actual
     real(dp) :: frac
+    real(dp),parameter :: threshold = 1.e-3_dp
 
     icell_actual = find_cell(p)
 
@@ -341,30 +342,30 @@ contains
 
        if(p%on_wall_id%w1 == -1) then
           frac = (p%r%x - geo%w1(p%icell%i1)) / (geo%w1(p%icell%i1+1) - geo%w1(p%icell%i1))
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else if(p%on_wall_id%w1 == +1) then
           frac = (p%r%x - geo%w1(p%icell%i1+1)) / (geo%w1(p%icell%i1+1) - geo%w1(p%icell%i1))
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else
           in_correct_cell = in_correct_cell .and. icell_actual%i1 == p%icell%i1
        end if
 
        if(p%on_wall_id%w2 == -1) then
           frac = (p%r%y - geo%w2(p%icell%i2)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else if(p%on_wall_id%w2 == +1) then
           frac = (p%r%y - geo%w2(p%icell%i2+1)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else
           in_correct_cell = in_correct_cell .and. icell_actual%i2 == p%icell%i2
        end if
 
        if(p%on_wall_id%w3 == -1) then
           frac = (p%r%z - geo%w3(p%icell%i3)) / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else if(p%on_wall_id%w3 == +1) then
           frac = (p%r%z - geo%w3(p%icell%i3+1)) / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else
           in_correct_cell = in_correct_cell .and. icell_actual%i3 == p%icell%i3
        end if
@@ -473,7 +474,9 @@ contains
   subroutine reset_t()
     implicit none
     tmin = +huge(tmin)
+    emin = 0.
     imin = no_wall
+    iext = no_wall
   end subroutine reset_t
 
   subroutine insert_t(t, iw, i, e)
@@ -513,7 +516,7 @@ contains
     real(dp),intent(out)    :: t
     type(wall_id),intent(out)    :: i
     t = tmin
-    i = imin
+    i = imin + iext
     if(debug) print *,'[debug] selecting t,i=',t,i
   end subroutine find_next_wall
 
