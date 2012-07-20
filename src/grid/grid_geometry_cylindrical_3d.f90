@@ -28,7 +28,7 @@ module grid_geometry_specific
   logical :: debug = .false.
 
   real(dp) :: tmin, emin
-  type(wall_id) :: imin
+  type(wall_id) :: imin, iext
 
   public :: escaped
   interface escaped
@@ -170,8 +170,8 @@ contains
     allocate(geo%ew3(geo%n3 + 1))
 
     geo%ew1 = 3 * spacing(geo%w1)
-    geo%ew2 = spacing(geo%w2)
-    geo%ew3 = spacing(geo%w3)
+    geo%ew2 = 3 * spacing(geo%w2)
+    geo%ew3 = 3 * spacing(1._dp) ! just use 1 since angles are of that order
 
   end subroutine setup_grid_geometry
 
@@ -192,9 +192,12 @@ contains
     if(debug) write(*,'(" [debug] find_cell")')
 
     w_sq = p%r%x*p%r%x+p%r%y*p%r%y
-    i1 = locate(geo%wr2,w_sq)
-    i2 = locate(geo%w2,p%r%z)
 
+    ! If the photon is at the grid origin, then there is no way to determine
+    ! the correct phi cell from the position. However, the direction vector
+    ! indicates the direction the photon will move in, and since the grid cell
+    ! walls do not curve as seen from the origin, we can use the direction
+    ! vector to find out the correct cell.
     if(w_sq == 0._dp) then
        phi = atan2(p%v%y,p%v%x)
        if(phi < 0._dp) phi = phi + twopi
@@ -202,7 +205,14 @@ contains
        phi = atan2(p%r%y,p%r%x)
        if(phi < 0._dp) phi = phi + twopi
     end if
+
+    ! Find the cells that the photon falls in
+    i1 = locate(geo%wr2,w_sq)
+    i2 = locate(geo%w2,p%r%z)
     i3 = locate(geo%w3,phi)
+
+    ! We now check whether the photon falls outside the grid in any of the
+    ! dimensions.
 
     if(i1<1.or.i1>geo%n1) then
        call warn("find_cell","photon not in cell (in r direction)")
@@ -237,72 +247,95 @@ contains
 
     type(photon), intent(inout) :: p
 
-    real(dp) :: w_sq,phi, dphi,phiv
-    logical :: radial
+    real(dp) :: w_sq
+    real(dp) :: phi, phi_v, dphi
     integer,parameter :: eps = 3
 
-    ! Initialize values
+    ! Initialize values. We start off by assuming the photon is not on any
+    ! walls.
     p%on_wall = .false.
     p%on_wall_id = no_wall
 
+    ! Pre-compute useful quantities
     w_sq = p%r%x*p%r%x+p%r%y*p%r%y
-    phi = atan2(p%r%y,p%r%x)
-    if(phi < 0._dp) phi = phi + twopi
 
-    ! Find whether the photon is on a radial wall
+    if(w_sq == 0._dp) then
+       phi = atan2(p%v%y,p%v%x)
+       if(phi < 0._dp) phi = phi + twopi
+    else
+       phi = atan2(p%r%y,p%r%x)
+       if(phi < 0._dp) phi = phi + twopi
+    end if
+
+    ! Find whether the photon is on a radial wall.
+
     if((p%r%x * p%v%x + p%r%y * p%v%y) >= 0._dp) then
-       if(equal_nulp(w_sq, geo%wr2(p%icell%i1), eps)) then
+       if(equal_nulp(w_sq, geo%wr2(p%icell%i1), eps)) then ! photon is on inner wall
           p%on_wall_id%w1 = -1
-       else if(equal_nulp(w_sq, geo%wr2(p%icell%i1 + 1), eps)) then
+       else if(equal_nulp(w_sq, geo%wr2(p%icell%i1 + 1), eps)) then ! photon is on outer wall
           p%on_wall_id%w1 = -1
           p%icell%i1 = p%icell%i1 + 1
        end if
     else
-       if(equal_nulp(w_sq, geo%wr2(p%icell%i1), eps)) then
+       if(equal_nulp(w_sq, geo%wr2(p%icell%i1), eps)) then ! photon is on inner wall
           p%on_wall_id%w1 = +1
           p%icell%i1 = p%icell%i1 - 1
-       else if(equal_nulp(w_sq, geo%wr2(p%icell%i1 + 1), eps)) then
+       else if(equal_nulp(w_sq, geo%wr2(p%icell%i1 + 1), eps)) then ! photon is on outer wall
           p%on_wall_id%w1 = +1
        end if
     end if
 
     ! Find whether the photon is on a vertical wall
+
     if(p%v%z > 0._dp) then
-       if(equal_nulp(p%r%z, geo%w2(p%icell%i2), eps)) then
+       if(equal_nulp(p%r%z, geo%w2(p%icell%i2), eps)) then ! photon is on lower wall
           p%on_wall_id%w2 = -1
-       else if(equal_nulp(p%r%z, geo%w2(p%icell%i2 + 1), eps)) then
+       else if(equal_nulp(p%r%z, geo%w2(p%icell%i2 + 1), eps)) then ! photon is on upper wall
           p%on_wall_id%w2 = -1
           p%icell%i2 = p%icell%i2 + 1
        end if
     else if(p%v%z < 0._dp) then
-       if(equal_nulp(p%r%z, geo%w2(p%icell%i2), eps)) then
+       if(equal_nulp(p%r%z, geo%w2(p%icell%i2), eps)) then ! photon is on lower wall
           p%on_wall_id%w2 = +1
           p%icell%i2 = p%icell%i2 - 1
-       else if(equal_nulp(p%r%z, geo%w2(p%icell%i2 + 1), eps)) then
+       else if(equal_nulp(p%r%z, geo%w2(p%icell%i2 + 1), eps)) then ! photon is on upper wall
           p%on_wall_id%w2 = +1
        end if
     end if
 
     ! Find whether the photon is on an azimuthal wall
-    phiv = atan2(p%v%y, p%v%x)
-    if(equal_nulp(phi, geo%w3(p%icell%i3), eps)) then
-       dphi = phiv - geo%w3(p%icell%i3)
+
+    if(p%r%x == 0._dp .and. p%r%y == 0._dp .and. p%v%x == 0._dp .and. p%v%y == 0._dp) then
+
+       ! don't place on wall as on origin and moving up, so on *all* phi walls simultaneously
+
+    else if(equal_nulp(phi, geo%w3(p%icell%i3), eps)) then  ! photon is on inner wall
+
+       ! Find the angle between the direction of motion and the wall.
+       phi_v = atan2(p%v%y, p%v%x)
+       dphi = phi_v - geo%w3(p%icell%i3)
        if(dphi < -pi) dphi = dphi + twopi
-       if(dphi > 0._dp) then
+
+       if(dphi > 0._dp) then  ! photon is moving towards upper cells
           p%on_wall_id%w3 = -1
-       else
+       else  ! photon is moving towards lower cells
           p%on_wall_id%w3 = +1
           p%icell%i3 = p%icell%i3 - 1
           if(p%icell%i3==0) p%icell%i3 = geo%n3
        end if
-    else if(equal_nulp(phi, geo%w3(p%icell%i3 + 1), eps)) then
-       dphi = phiv - geo%w3(p%icell%i3 + 1)
+
+    else if(equal_nulp(phi, geo%w3(p%icell%i3 + 1), eps)) then  ! photon is on outer wall
+
+       ! Find the angle between the direction of motion and the wall.
+       phi_v = atan2(p%v%y, p%v%x)
+       dphi = phi_v - geo%w3(p%icell%i3 + 1)
        if(dphi < -pi) dphi = dphi + twopi
-       if(dphi > 0._dp) then
+
+       if(dphi > 0._dp) then  ! photon is moving towards upper cells
           p%on_wall_id%w3 = -1
           p%icell%i3 = p%icell%i3 + 1
           if(p%icell%i3==geo%n3+1) p%icell%i3 = 1
-       else
+       else  ! photon is moving towards lower cells
           p%on_wall_id%w3 = +1
        end if
     end if
@@ -411,27 +444,39 @@ contains
 
     type(photon),intent(in) :: p
     type(grid_cell) :: icell_actual
-    real(dp) :: rad,phi,frac,dphi
+    real(dp) :: rad,phi,frac,dphi,r_sq,w_sq
+    real(dp),parameter :: threshold = 1.e-3_dp
 
     icell_actual = find_cell(p)
 
     if(p%on_wall) then
 
-       rad = sqrt(p%r%x*p%r%x+p%r%y*p%r%y)
-       phi = atan2(p%r%y,p%r%x)
-       if(phi < 0._dp) phi = phi + twopi
-
        in_correct_cell = .true.
+
+       rad = sqrt(p%r%x*p%r%x+p%r%y*p%r%y)
+
+       ! If we are at the origin, then there isn't much point in checking,
+       ! since this is difficult numerically, and the photon has not
+       ! propagated anyway.
+       if(rad == 0._dp) return
+
+       if(w_sq == 0._dp) then
+          phi = atan2(p%v%y,p%v%x)
+          if(phi < 0._dp) phi = phi + twopi
+       else
+          phi = atan2(p%r%y,p%r%x)
+          if(phi < 0._dp) phi = phi + twopi
+       end if
 
        if(p%on_wall_id%w1 == -1) then
           if(geo%w1(p%icell%i1) .ne. rad) then
-             frac = sqrt(rad / geo%w1(p%icell%i1)) - 1._dp
-             in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+             frac = rad / geo%w1(p%icell%i1) - 1._dp
+             in_correct_cell = in_correct_cell .and. abs(frac) < threshold
           end if
        else if(p%on_wall_id%w1 == +1) then
           if(geo%w1(p%icell%i1 + 1) .ne. rad) then
-             frac = sqrt(rad / geo%w1(p%icell%i1+1)) - 1._dp
-             in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+             frac = rad / geo%w1(p%icell%i1+1) - 1._dp
+             in_correct_cell = in_correct_cell .and. abs(frac) < threshold
           end if
        else
           in_correct_cell = in_correct_cell .and. icell_actual%i1 == p%icell%i1
@@ -439,10 +484,10 @@ contains
 
        if(p%on_wall_id%w2 == -1) then
           frac = (p%r%z - geo%w2(p%icell%i2)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else if(p%on_wall_id%w2 == +1) then
           frac = (p%r%z - geo%w2(p%icell%i2+1)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else
           in_correct_cell = in_correct_cell .and. icell_actual%i2 == p%icell%i2
        end if
@@ -452,13 +497,13 @@ contains
           if(dphi > pi) dphi = dphi - twopi
           if(dphi < -pi) dphi = dphi + twopi
           frac = dphi / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else if(p%on_wall_id%w3 == +1) then
           dphi = phi - geo%w3(p%icell%i3+1)
           if(dphi > pi) dphi = dphi - twopi
           if(dphi < -pi) dphi = dphi + twopi
           frac = dphi / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = in_correct_cell .and. abs(frac) < 1.e-3_dp
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
        else
           in_correct_cell = in_correct_cell .and. icell_actual%i3 == p%icell%i3
        end if
@@ -587,12 +632,18 @@ contains
     ! Cylindrical walls
     ! -------------------------------------------------
 
+    ! Pre-compute some coefficients of the quadratic that don't depend on
+    ! the wall, only the position and direction of the photon.
     pB=rv_xy / v2_xy ; pB = pB + pB
     pC=r2_xy / v2_xy
 
-    ! Inner wall
+    ! Check for intersections with inner wall.
     pC_1 = pC - geo%wr2(p%icell%i1) / v2_xy
     call quadratic_pascal_reduced(pB,pC_1,t1,t2)
+
+    ! If we are on the inner wall, then we should discard the
+    ! intersection with the smallest absolute value as this will be the
+    ! wall we are on. Otherwise, we should include both values.
     if(p%on_wall_id%w1 == -1) then
        if(abs(t1) < abs(t2)) then
           call insert_t(t2, 1, -1, geo%ew1(p%icell%i1))
@@ -604,9 +655,13 @@ contains
        call insert_t(t2,1, -1,geo%ew1(p%icell%i1))
     end if
 
-    ! Outer wall
+    ! Check for intersections with outer wall.
     pC_2 = pC - geo%wr2(p%icell%i1+1) / v2_xy
     call quadratic_pascal_reduced(pB,pC_2,t1,t2)
+
+    ! If we are on the outer wall, then we should discard the
+    ! intersection with the smallest absolute value as this will be the
+    ! wall we are on. Otherwise, we should include both values.
     if(p%on_wall_id%w1 == +1) then
        if(abs(t1) < abs(t2)) then
           call insert_t(t2, 1, +1, geo%ew1(p%icell%i1 + 1))
@@ -622,10 +677,13 @@ contains
     ! z walls
     ! -------------------------------------------------
 
+    ! Check for intersection with lower wall
     if(p%on_wall_id%w2 /= -1) then
        t1 = ( geo%w2(p%icell%i2)   - p%r%z ) / p%v%z
        call insert_t(t1,2, -1, 0._dp)
     end if
+
+    ! Check for intersection with upper wall
     if(p%on_wall_id%w2 /= +1) then
        t2 = ( geo%w2(p%icell%i2+1) - p%r%z ) / p%v%z
        call insert_t(t2,2, +1, 0._dp)
@@ -635,33 +693,76 @@ contains
     ! phi walls
     ! -------------------------------------------------
 
+    ! For performance reasons, we only check for intersections with phi
+    ! walls if there are multiple cells in phi
     if(geo%n_dim == 3) then
 
-       if(p%on_wall_id%w3 /= -1) then
+       ! If the photon is on a phi wall and moving in the direction of the
+       ! wall, then we don't want to check for intersections, but we want to
+       ! make sure the photon is still considered to be on the wall
+       ! afterwards. Therefore, we calculate dphi to find the angle between
+       ! the direction of motion and the wall the photon is on.
 
-          ! Find intersection with lower phi wall
-          t1 = - ( geo%wtanp(p%icell%i3) * p%r%x - p%r%y ) / ( geo%wtanp(p%icell%i3) * p%v%x - p%v%y )
-
-          ! Find position of intersection in x,y
-          x_i = p%r%x + p%v%x * t1
-          y_i = p%r%y + p%v%y * t1
-          phi_i = atan2(y_i, x_i)
-          dphi = abs(phi_i - geo%w3(p%icell%i3))
-          if(dphi > pi) dphi = abs(dphi - twopi)
-          if(dphi < 0.5 * pi) call insert_t(t1, 3, -1, 0._dp)
-
+       if(p%on_wall_id%w3 == -1) then
+          dphi = atan2(p%v%y, p%v%x) - geo%w3(p%icell%i3)
+          if(dphi > pi) dphi = dphi - twopi
+          if(dphi < -pi) dphi = dphi + twopi
        end if
-       if(p%on_wall_id%w3 /= +1) then
+       if(p%on_wall_id%w3 == +1) then
+          dphi = atan2(p%v%y, p%v%x) - geo%w3(p%icell%i3+1)
+          if(dphi > pi) dphi = dphi - twopi
+          if(dphi < -pi) dphi = dphi + twopi
+       end if
 
-          ! Find intersection with upper phi wall
-          t2 = - ( geo%wtanp(p%icell%i3+1) * p%r%x - p%r%y ) / ( geo%wtanp(p%icell%i3+1) * p%v%x - p%v%y )
-          ! Find position of intersection in x,y
-          x_i = p%r%x + p%v%x * t2
-          y_i = p%r%y + p%v%y * t2
-          phi_i = atan2(y_i, x_i)
-          dphi = abs(phi_i - geo%w3(p%icell%i3+1))
-          if(dphi > pi) dphi = abs(dphi - twopi)
-          if(dphi < 0.5 * pi) call insert_t(t2, 3, +1, 0._dp)
+       if(p%on_wall_id%w3 == +1 .and. abs(dphi) < geo%ew3(p%icell%i3+1)) then
+
+          iext%w3 = +1
+
+       else if(p%on_wall_id%w3 == -1 .and. abs(dphi) < geo%ew3(p%icell%i3)) then
+
+          iext%w3 = -1
+
+       ! Only check for intersections if the current position is not along
+       ! the (x, y) = (0, 0) axis. If the photon is along this axis, then
+       ! either it is and will remain on a wall until the next iteraction, or
+       ! it is not and will not intersect a phi wall.
+       else if(r2_xy > 0._dp) then
+
+          ! Only check for intersections if we are not on the wall. We can
+          ! do this for the phi walls because they are planes, so if we are on
+          ! them, we can't intersect them.
+          if(p%on_wall_id%w3 /= -1) then
+
+             ! Find intersection with lower phi wall
+             t1 = - ( geo%wtanp(p%icell%i3) * p%r%x - p%r%y ) / ( geo%wtanp(p%icell%i3) * p%v%x - p%v%y )
+
+             ! Find position of intersection in x,y
+             x_i = p%r%x + p%v%x * t1
+             y_i = p%r%y + p%v%y * t1
+             phi_i = atan2(y_i, x_i)
+             dphi = abs(phi_i - geo%w3(p%icell%i3))
+             if(dphi > pi) dphi = abs(dphi - twopi)
+             if(dphi < 0.5 * pi) call insert_t(t1, 3, -1, 0._dp)
+
+          end if
+
+          ! Only check for intersections if we are not on the wall. We can
+          ! do this for the phi walls because they are planes, so if we are on
+          ! them, we can't intersect them.
+          if(p%on_wall_id%w3 /= +1) then
+
+             ! Find intersection with upper phi wall
+             t2 = - ( geo%wtanp(p%icell%i3+1) * p%r%x - p%r%y ) / ( geo%wtanp(p%icell%i3+1) * p%v%x - p%v%y )
+
+             ! Find position of intersection in x,y
+             x_i = p%r%x + p%v%x * t2
+             y_i = p%r%y + p%v%y * t2
+             phi_i = atan2(y_i, x_i)
+             dphi = abs(phi_i - geo%w3(p%icell%i3+1))
+             if(dphi > pi) dphi = abs(dphi - twopi)
+             if(dphi < 0.5 * pi) call insert_t(t2, 3, +1, 0._dp)
+
+          end if
 
        end if
 
@@ -674,7 +775,9 @@ contains
   subroutine reset_t()
     implicit none
     tmin = +huge(tmin)
+    emin = 0.
     imin = no_wall
+    iext = no_wall
   end subroutine reset_t
 
   subroutine insert_t(t, iw, i, e)
@@ -714,7 +817,7 @@ contains
     real(dp),intent(out)    :: t
     type(wall_id),intent(out)    :: i
     t = tmin
-    i = imin
+    i = imin + iext
     if(debug) print *,'[debug] selecting t,i=',t,i
   end subroutine find_next_wall
 

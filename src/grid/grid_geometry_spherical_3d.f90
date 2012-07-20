@@ -286,7 +286,7 @@ contains
 
     type(photon), intent(inout) :: p
 
-    real(dp) :: r_sq,w_sq
+    real(dp) :: r_sq, w_sq
     real(dp) :: theta, theta_v
     real(dp) :: phi, phi_v, dphi
     integer,parameter :: eps = 3
@@ -755,6 +755,7 @@ contains
     real(dp) :: x_i,y_i,phi_i, dphi
 
     ! Find the intersections with all walls:
+
     call reset_t()
 
     ! -------------------------------------------------
