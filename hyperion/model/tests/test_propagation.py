@@ -132,6 +132,20 @@ class TestCartesianBase(object):
         assert not any_photons_killed(f)
 
 
+class TestCartesianLarge(TestCartesianBase):
+
+    x = np.linspace(-10.e20, 10.e20, 15)
+    y = np.linspace(-10.e20, 10.e20, 15)
+    z = np.linspace(-10.e20, 10.e20, 15)
+
+
+class TestCartesianSmall(TestCartesianBase):
+
+    x = np.linspace(-10.e-20, 10.e-20, 15)
+    y = np.linspace(-10.e-20, 10.e-20, 15)
+    z = np.linspace(-10.e-20, 10.e-20, 15)
+
+
 class TestSphericalBase(object):
 
     r = np.linspace(0., 10., 15)
@@ -320,6 +334,21 @@ class TestSphericalBase(object):
         assert not any_photons_killed(f)
 
 
+class TestSphericalLarge(object):
+
+    r = np.linspace(0., 10.e20, 15)
+    t = np.linspace(0., np.pi, 17)
+    p = np.linspace(0., 2. * np.pi, 15)
+
+
+class TestSphericalSmall(object):
+
+    r = np.linspace(0., 10.e-20, 15)
+    t = np.linspace(0., np.pi, 17)
+    p = np.linspace(0., 2. * np.pi, 15)
+
+
+
 class TestCylindricalBase(object):
 
     w = np.linspace(0., 10., 15)
@@ -498,3 +527,17 @@ class TestCylindricalBase(object):
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
+
+
+class TestCylindricalLarge(object):
+
+    w = np.linspace(0., 10.e20, 15)
+    z = np.linspace(-5.e20, 5.e20, 17)
+    p = np.linspace(0., 2. * np.pi, 15)
+
+
+class TestCylindricalSmall(object):
+
+    w = np.linspace(0., 10.e-20, 15)
+    z = np.linspace(-5.e-20, 5.e-20, 17)
+    p = np.linspace(0., 2. * np.pi, 15)
