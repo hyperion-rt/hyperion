@@ -68,14 +68,12 @@ class TestSEDSimpleModel(object):
         assert nufnu.shape == (3, 5)
 
     def test_sed_dim_incl_invalid1(self):
-        with pytest.raises(Exception) as exc:
+        with pytest.raises(IndexError):
             wav, nufnu = self.m.get_sed(inclination=2)
-        assert exc.value.args[0] == "invalid index"
 
     def test_sed_dim_incl_invalid2(self):
-        with pytest.raises(Exception) as exc:
+        with pytest.raises(IndexError):
             wav, nufnu = self.m.get_sed(inclination=-3)
-        assert exc.value.args[0] == "invalid index"
 
     def test_sed_dim_incl_invalid3(self):
         with pytest.raises(Exception) as exc:
@@ -91,14 +89,12 @@ class TestSEDSimpleModel(object):
         assert nufnu.shape == (2, 5)
 
     def test_sed_dim_aper_invalid1(self):
-        with pytest.raises(Exception) as exc:
+        with pytest.raises(IndexError):
             wav, nufnu = self.m.get_sed(aperture=3)
-        assert exc.value.args[0] == "invalid index"
 
     def test_sed_dim_aper_invalid2(self):
-        with pytest.raises(Exception) as exc:
+        with pytest.raises(IndexError):
             wav, nufnu = self.m.get_sed(aperture=-4)
-        assert exc.value.args[0] == "invalid index"
 
     def test_sed_dim_aper_invalid3(self):
         with pytest.raises(Exception) as exc:
