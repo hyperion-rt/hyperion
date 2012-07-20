@@ -444,7 +444,7 @@ contains
 
     type(photon),intent(in) :: p
     type(grid_cell) :: icell_actual
-    real(dp) :: rad,phi,frac,dphi,r_sq,w_sq
+    real(dp) :: phi,frac,dphi,r_sq,w_sq
     real(dp),parameter :: threshold = 1.e-3_dp
 
     icell_actual = find_cell(p)
@@ -453,12 +453,7 @@ contains
 
        in_correct_cell = .true.
 
-       rad = sqrt(p%r%x*p%r%x+p%r%y*p%r%y)
-
-       ! If we are at the origin, then there isn't much point in checking,
-       ! since this is difficult numerically, and the photon has not
-       ! propagated anyway.
-       if(rad == 0._dp) return
+       w_sq = p%r%x*p%r%x+p%r%y*p%r%y
 
        if(w_sq == 0._dp) then
           phi = atan2(p%v%y,p%v%x)
@@ -469,13 +464,13 @@ contains
        end if
 
        if(p%on_wall_id%w1 == -1) then
-          if(geo%w1(p%icell%i1) .ne. rad) then
-             frac = rad / geo%w1(p%icell%i1) - 1._dp
+          if(geo%w1(p%icell%i1) .ne. sqrt(w_sq)) then
+             frac = sqrt(w_sq) / geo%w1(p%icell%i1) - 1._dp
              in_correct_cell = in_correct_cell .and. abs(frac) < threshold
           end if
        else if(p%on_wall_id%w1 == +1) then
-          if(geo%w1(p%icell%i1 + 1) .ne. rad) then
-             frac = rad / geo%w1(p%icell%i1+1) - 1._dp
+          if(geo%w1(p%icell%i1 + 1) .ne. sqrt(w_sq)) then
+             frac = sqrt(w_sq) / geo%w1(p%icell%i1+1) - 1._dp
              in_correct_cell = in_correct_cell .and. abs(frac) < threshold
           end if
        else
