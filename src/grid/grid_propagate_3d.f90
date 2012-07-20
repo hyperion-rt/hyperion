@@ -4,7 +4,7 @@ module grid_propagate
   use type_photon, only : photon
   use type_grid_cell
   use dust_main, only : n_dust
-  use grid_geometry, only : escaped, find_wall, in_correct_cell, next_cell, opposite_wall, place_in_cell
+  use grid_geometry, only : escaped, find_wall, in_correct_cell, next_cell, opposite_wall
   use grid_physics, only : specific_energy_sum, density, n_photons, last_photon_id
   use sources
   use counters
