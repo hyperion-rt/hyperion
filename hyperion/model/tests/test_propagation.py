@@ -31,7 +31,7 @@ class TestCartesianBase(object):
 
         self.m = Model()
         self.m.set_cartesian_grid(self.x, self.y, self.z)
-        self.m.add_density_grid(np.ones(self.m.grid.shape) * 1.e-20, dust)
+        self.m.add_density_grid(np.ones(self.m.grid.shape) * 1.e-40, dust)
 
     def test_ptsource_origin(self):
         '''A point source exactly at the origin'''
@@ -158,7 +158,7 @@ class TestSphericalBase(object):
 
         self.m = Model()
         self.m.set_spherical_polar_grid(self.r, self.t, self.p)
-        self.m.add_density_grid(np.ones(self.m.grid.shape) * 1.e-20, dust)
+        self.m.add_density_grid(np.ones(self.m.grid.shape) * 1.e-40, dust)
 
     def test_ptsource_origin(self):
         '''A point source exactly at the origin'''
@@ -361,7 +361,7 @@ class TestCylindricalBase(object):
 
         self.m = Model()
         self.m.set_cylindrical_polar_grid(self.w, self.z, self.p)
-        self.m.add_density_grid(np.ones(self.m.grid.shape) * 1.e-20, dust)
+        self.m.add_density_grid(np.ones(self.m.grid.shape) * 1.e-40, dust)
 
     def test_ptsource_origin(self):
         '''A point source exactly at the origin'''
