@@ -49,3 +49,12 @@ Similarly, to set the minimum specific energy::
 
     m.set_minimum_specific_energy(1.e-4)
     m.set_minimum_specific_energy([1.e-4, 1.e-5, 2.e-5])
+
+By default, photon positions and cells are double-checked every 1 in 1000 cell
+crossings. This can be changed
+with :meth:`~hyperion.model.Model.set_propagation_check_frequency`::
+
+    m.set_propagation_check_frequency(0.01)
+
+Note that values higher than 0.001 (the default) will cause the code to slow
+down.

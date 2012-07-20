@@ -8,6 +8,7 @@ module grid_propagate
   use grid_physics, only : specific_energy_sum, density, n_photons, last_photon_id
   use sources
   use counters
+  use settings, only : frac_check => propagation_check_frequency
 
   implicit none
   save
@@ -22,8 +23,6 @@ module grid_propagate
   integer :: id
 
   logical :: debug = .false.
-
-  real(dp) :: frac_check = 1.e-3
 
 contains
 

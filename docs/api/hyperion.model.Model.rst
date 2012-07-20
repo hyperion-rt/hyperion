@@ -48,6 +48,8 @@ hyperion.model.Model
 
    .. autosummary::
 
+      ~Model.set_seed
+      ~Model.set_propagation_check_frequency
       ~Model.set_monochromatic
       ~Model.set_minimum_temperature
       ~Model.set_minimum_specific_energy
@@ -96,6 +98,8 @@ hyperion.model.Model
    .. automethod:: Model.add_peeled_images
    .. automethod:: Model.add_binned_images
 
+   .. automethod:: Model.set_seed
+   .. automethod:: Model.set_propagation_check_frequency
    .. automethod:: Model.set_monochromatic
    .. automethod:: Model.set_minimum_temperature
    .. automethod:: Model.set_minimum_specific_energy
