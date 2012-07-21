@@ -4,15 +4,19 @@
 Python code dependencies
 =========================
 
-Overview
-========
+Summary of dependencies
+=======================
 
 The packages required for the Python code are:
 
+* `Python <http://www.python.org>`_
 * `NumPy <http://www.scipy.org/>`_
 * `Matplotlib <http://matplotlib.sourceforge.net/>`_
 * `h5py <http://h5py.alfven.org/>`_
 * `ATpy <http://atpy.github.com>`_
+
+Overview
+========
 
 How you install these depends on your operating system, whether you are an existing Python user, and whether you use package managers. To find out whether any of these are already installed, start up a  Python prompt by typing ``python`` on the command line, then try the following commands::
 

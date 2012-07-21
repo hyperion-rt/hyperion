@@ -8,10 +8,18 @@
 Fortran code dependencies
 =========================
 
-Introduction
-============
+Summary of dependencies
+=======================
 
-The Fortran code for Hyperion requires an installation of MPI with support for Fortran enabled, and the HDF5 library (1.8.5 or later) with support for Fortran. Note that often, default installations of these packages do not include support for Fortran - this has to be explicitly enabled as described below.
+The packages required for the Fortran code are:
+
+* A recent Fortran compiler
+
+* `HDF5 <http://www.hdfgroup.org/HDF5/>`_ 1.8.5 or later with the Fortran libraries built
+
+* An MPI installation (e.g. `MPICH2 <http://www.mcs.anl.gov/research/projects/mpich2/>`_ or `OpenMPI <http://www.open-mpi.org/>`_) with the Fortran libraries built
+
+Note that often, default installations of these packages do not include support for Fortran - this has to be explicitly enabled as described below.
 
 Fortran compiler
 ================
