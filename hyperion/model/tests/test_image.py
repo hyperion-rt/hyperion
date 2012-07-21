@@ -81,6 +81,11 @@ class TestImageSimpleModel(object):
             wav, nufnu = self.m.get_image(inclination=12.3)
         assert exc.value.args[0] == "inclination should be an integer (it should be the index of the inclination, not the value itself)"
 
+    def test_image_dim_incl_invalid3(self):
+        with pytest.raises(Exception) as exc:
+            wav, nufnu = self.m.get_image(inclination=12.3)
+        assert exc.value.args[0] == "inclination should be an integer (it should be the index of the inclination, not the value itself)"
+
     @pytest.mark.parametrize(('stokes'), ['I', 'Q', 'U', 'V',
                                           'linpol', 'circpol'])
     def test_image_stokes(self, stokes):
