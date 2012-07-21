@@ -40,7 +40,11 @@ Install the Python module with::
 
     python setup.py install
 
-Check that the module installed correctly::
+or::
+
+    python setup.py install --user
+
+if you do not have root access. Check that the module installed correctly::
 
     $ python
     Python 2.7.2 (default, Jan 31 2012, 22:38:06)
