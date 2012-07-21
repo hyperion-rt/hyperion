@@ -19,10 +19,12 @@ You can load up most of the required dependencies for the Fortran and Python cod
 
 Since you do not have root access, you will need to install additional Python packages in your home directory using the instructions at :ref:`nonrootpython`.
 
-Then download and install `ATpy <http://atpy.sourceforge.net/>`_ using::
+Then download and install ATpy by going `here <http://atpy.github.com/>`_ and
+clicking on *Download latest stable version*. Then, expand the tar file and
+install using::
 
-    svn co https://atpy.svn.sourceforge.net/svnroot/atpy/trunk/src/ATpy ATpy
-    cd ATpy
+    tar xvzf ATpy-x.x.x.tar.gz
+    cd ATpy-x.x.x
     python setup.py install
 
 You can now proceed to install the Python and Fortran components of the code.
