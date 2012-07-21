@@ -4,6 +4,7 @@ module peeled_images
   use mpi_core
   use mpi_hdf5_io
 
+  use grid_geometry, only : place_in_cell
   use grid_propagate
 
   use type_image
@@ -111,6 +112,14 @@ contains
              call error("peeloff_photon","unexpected p%last flag: "//p%last)
           end select
        end if
+
+       ! Update wall and cell that photon is on, because when the direction
+       ! of the photon changes, the cell and wall it might be considered on
+       ! may change. For example, if a photon is propagaging in the positive x
+       ! direction and is in cell 2 on the xmin wall, but gets peeled off in
+       ! the negative direction, we need to treat it as if it was in cell 1 on
+       ! the xmax wall.
+       call place_in_cell(p)
 
        if(inside_observer(ig)) then
           dr = p%r-r_peeloff(ig)

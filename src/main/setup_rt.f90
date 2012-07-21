@@ -62,6 +62,12 @@ contains
     call mp_read_keyword(input_handle, '/', 'kill_on_absorb', kill_on_absorb)
     call mp_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_scattering)
 
+    if(mp_exists_keyword(input_handle, '/', 'propagation_check_frequency')) then
+       call mp_read_keyword(input_handle, '/', 'propagation_check_frequency', propagation_check_frequency)
+    else
+       propagation_check_frequency = 1.e-3
+    end if
+
     if(mp_exists_keyword(input_handle, '/', 'sample_sources_evenly')) then
        call mp_read_keyword(input_handle, '/', 'sample_sources_evenly', sample_sources_evenly)
     else

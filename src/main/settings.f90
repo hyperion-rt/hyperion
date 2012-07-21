@@ -40,4 +40,6 @@ module settings
 
   logical :: enforce_energy_range
 
+  real(dp) :: propagation_check_frequency
+
 end module settings

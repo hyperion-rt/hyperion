@@ -2,11 +2,13 @@ module grid_propagate
 
   use core_lib
   use type_photon, only : photon
+  use type_grid_cell
   use dust_main, only : n_dust
   use grid_geometry, only : escaped, find_wall, in_correct_cell, next_cell, opposite_wall
   use grid_physics, only : specific_energy_sum, density, n_photons, last_photon_id
   use sources
   use counters
+  use settings, only : frac_check => propagation_check_frequency
 
   implicit none
   save
@@ -21,8 +23,6 @@ module grid_propagate
   integer :: id
 
   logical :: debug = .false.
-
-  real(dp) :: frac_check = 1.e-3
 
 contains
 
@@ -47,7 +47,7 @@ contains
     real(dp)  :: tmin, tact
     ! distance to the x, y, and z walls, as well as the closest wall
 
-    integer :: id_min
+    type(wall_id) :: id_min
 
     logical :: radial
 
@@ -102,7 +102,7 @@ contains
 
        call find_wall(p,radial,tmin,id_min)
 
-       if(id_min == 0) then
+       if(id_min == no_wall) then
           call warn("grid_integrate","cannot find next wall - killing")
           killed_photons_geo = killed_photons_geo + 1
           p%killed = .true.
@@ -176,7 +176,7 @@ contains
           tau_achieved = tau_achieved + tau_needed
 
           p%on_wall    = .false.
-          p%on_wall_id = 0
+          p%on_wall_id = no_wall
 
           do id=1,n_dust
              if(density(p%icell%ic, id) > 0._dp) then
@@ -211,7 +211,7 @@ contains
     real(dp)  :: tmin, tact
     ! distance to the x, y, and z walls, as well as the closest wall
 
-    integer :: id_min
+    type(wall_id) :: id_min
 
     logical :: radial
 
@@ -260,7 +260,7 @@ contains
 
        call find_wall(p,radial,tmin,id_min)
 
-       if(id_min == 0) then
+       if(id_min == no_wall) then
           call warn("grid_integrate_noenergy","cannot find next wall - killing")
           killed_photons_geo = killed_photons_geo + 1
           p%killed = .true.
@@ -318,7 +318,7 @@ contains
           tau_achieved = tau_achieved + tau_needed
 
           p%on_wall    = .false.
-          p%on_wall_id = 0
+          p%on_wall_id = no_wall
 
           if(debug) write(*,'(" [debug] end grid_integrate")')
           return
@@ -343,7 +343,7 @@ contains
     logical,intent(out) :: killed
 
     real(dp)  :: tmin, t_source, t_current
-    integer :: id_min
+    type(wall_id) :: id_min
     logical :: radial, finished
     real(dp) :: xi
     integer :: source_id
@@ -384,6 +384,7 @@ contains
        if(xi < frac_check) then
           if(.not.in_correct_cell(p)) then
              call warn("grid_escape_tau","not in correct cell - killing")
+             killed_photons_geo = killed_photons_geo + 1
              killed = .true.
              return
           end if
@@ -391,8 +392,9 @@ contains
 
        call find_wall(p,radial,tmin,id_min)
 
-       if(id_min == 0) then
+       if(id_min == no_wall) then
           call warn("grid_escape_tau","cannot find next wall - killing")
+          killed_photons_geo = killed_photons_geo + 1
           killed = .true.
           return
        end if
@@ -445,7 +447,7 @@ contains
     logical,intent(out) :: killed
 
     real(dp)  :: tmin, t_source, t_current
-    integer :: id_min
+    type(wall_id) :: id_min
     logical :: radial, finished
     real(dp) :: xi
     integer :: source_id
@@ -484,6 +486,7 @@ contains
        if(xi < frac_check) then
           if(.not.in_correct_cell(p)) then
              call warn("grid_escape_column_density","not in correct cell - killing")
+             killed_photons_geo = killed_photons_geo + 1
              killed = .true.
              return
           end if
@@ -491,8 +494,9 @@ contains
 
        call find_wall(p,radial,tmin,id_min)
 
-       if(id_min == 0) then
+       if(id_min == no_wall) then
           call warn("grid_escape_column_density","cannot find next wall - killing")
+          killed_photons_geo = killed_photons_geo + 1
           killed = .true.
           return
        end if

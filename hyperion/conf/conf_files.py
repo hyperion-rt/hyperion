@@ -32,6 +32,7 @@ class RunConf(object):
         '''
         self.set_n_initial_iterations(5)
         self.n_photons = {}
+        self.set_propagation_check_frequency(0.001)
         self.set_seed(-124902)
         self.set_raytracing(False)
         self.set_max_interactions(1000000)
@@ -46,6 +47,32 @@ class RunConf(object):
         self.set_enforce_energy_range(True)
         self.set_copy_input(True)
         self._monochromatic = False
+
+    def set_propagation_check_frequency(self, frequency):
+        '''
+        Set how often to check that the photon is in the right cell
+
+        During photon propagation, it is possible that floating point issues
+        cause a photon to end up in the wrong cell. By default, the code will
+        randomly double check the position and cell of a photon for every 1 in
+        1000 cell wall crossings, but this can be adjusted with this method.
+        Note that values higher than around 0.001 will cause the code to slow
+        down.
+
+        Parameters
+        ----------
+        frequency : float
+            How often the photon position and cell should be double-checked (1
+            is always, 0 is never).
+        '''
+        if not np.isscalar(frequency) or isinstance(frequency, basestring):
+            raise TypeError("frequency should be a scalar value")
+        if frequency < 0. or frequency > 1.:
+            raise ValueError("frequency should be between 0 and 1")
+        self._frequency = frequency
+
+    def _write_propagation_check_frequency(self, group):
+        group.attrs['propagation_check_frequency'] = self._frequency
 
     def set_seed(self, seed):
         '''
@@ -474,6 +501,7 @@ class RunConf(object):
         group : h5py.highlevel.File or h5py.highlevel.Group
             The HDF5 group to write the configuration to
         '''
+        self._write_propagation_check_frequency(group)
         self._write_seed(group)
         self._write_n_initial_iterations(group)
         self._write_n_photons(group)

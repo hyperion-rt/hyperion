@@ -21,7 +21,7 @@ module type_photon
      real(dp)          :: energy  ! Energy
      logical(1) :: in_cell = .false. ! Whether the photon is in a cell
      logical(1) :: on_wall = .false. ! Whether the photon is on a wall
-     integer    :: on_wall_id = 0
+     type(wall_id)     :: on_wall_id = no_wall
 
      integer(idp) :: id = 0 ! Photon ID (unique)
 

@@ -18,7 +18,6 @@ module grid_geometry_specific
   public :: cell_width
   public :: grid_geometry_debug
   public :: find_cell
-  public :: next_cell
   public :: place_in_cell
   public :: in_correct_cell
   public :: random_position_cell
@@ -27,11 +26,20 @@ module grid_geometry_specific
 
   logical :: debug = .false.
 
+  real(dp) :: tmin, emin
+  type(wall_id) :: imin, iext
+
   public :: escaped
   interface escaped
      module procedure escaped_photon
      module procedure escaped_cell
   end interface escaped
+
+  public :: next_cell
+  interface next_cell
+     module procedure next_cell_int
+     module procedure next_cell_wall_id
+  end interface next_cell
 
   public :: setup_grid_geometry
   type(grid_geometry_desc),public,target :: geo
@@ -116,6 +124,14 @@ contains
     ! Compute other useful quantities
     geo%n_dim = 3
 
+    allocate(geo%ew1(geo%n1 + 1))
+    allocate(geo%ew2(geo%n2 + 1))
+    allocate(geo%ew3(geo%n3 + 1))
+
+    geo%ew1 = 3 * spacing(geo%w1)
+    geo%ew2 = 3 * spacing(geo%w2)
+    geo%ew3 = 3 * spacing(geo%w3)
+
   end subroutine setup_grid_geometry
 
   subroutine grid_geometry_debug(debug_flag)
@@ -150,10 +166,84 @@ contains
     icell = new_grid_cell(i1, i2, i3, geo)
   end function find_cell
 
-  subroutine place_in_cell(p)
+  subroutine adjust_wall(p)
+
+    ! In future, this could be called at peeloff time instead of
+    ! place_inside_cell, but if we want to do that, we need this subroutine to
+    ! use locate to find the correct cell if the velocity is zero along one of
+    ! the components, so that it is reset to the 'default' find_cell value.
+
     implicit none
+
+    type(photon), intent(inout) :: p
+
+    ! Initialize values
+    p%on_wall = .false.
+    p%on_wall_id = no_wall
+
+    ! Find whether the photon is on an x-wall
+    if(p%v%x > 0._dp) then
+       if(p%r%x == geo%w1(p%icell%i1)) then
+          p%on_wall_id%w1 = -1
+       else if(p%r%x == geo%w1(p%icell%i1 + 1)) then
+          p%on_wall_id%w1 = -1
+          p%icell%i1 = p%icell%i1 + 1
+       end if
+    else if(p%v%x < 0._dp) then
+       if(p%r%x == geo%w1(p%icell%i1)) then
+          p%on_wall_id%w1 = +1
+          p%icell%i1 = p%icell%i1 - 1
+       else if(p%r%x == geo%w1(p%icell%i1 + 1)) then
+          p%on_wall_id%w1 = +1
+       end if
+    end if
+
+    ! Find whether the photon is on a y-wall
+    if(p%v%y > 0._dp) then
+       if(p%r%y == geo%w2(p%icell%i2)) then
+          p%on_wall_id%w2 = -1
+       else if(p%r%y == geo%w2(p%icell%i2 + 1)) then
+          p%on_wall_id%w2 = -1
+          p%icell%i2 = p%icell%i2 + 1
+       end if
+    else if(p%v%y < 0._dp) then
+       if(p%r%y == geo%w2(p%icell%i2)) then
+          p%on_wall_id%w2 = +1
+          p%icell%i2 = p%icell%i2 - 1
+       else if(p%r%y == geo%w2(p%icell%i2 + 1)) then
+          p%on_wall_id%w2 = +1
+       end if
+    end if
+
+    ! Find whether the photon is on a z-wall
+    if(p%v%z > 0._dp) then
+       if(p%r%z == geo%w3(p%icell%i3)) then
+          p%on_wall_id%w3 = -1
+       else if(p%r%z == geo%w3(p%icell%i3 + 1)) then
+          p%on_wall_id%w3 = -1
+          p%icell%i3 = p%icell%i3 + 1
+       end if
+    else if(p%v%z < 0._dp) then
+       if(p%r%z == geo%w3(p%icell%i3)) then
+          p%on_wall_id%w3 = +1
+          p%icell%i3 = p%icell%i3 - 1
+       else if(p%r%z == geo%w3(p%icell%i3 + 1)) then
+          p%on_wall_id%w3 = +1
+       end if
+    end if
+
+    p%on_wall = p%on_wall_id%w1 /= 0 .or. p%on_wall_id%w2 /= 0 .or. p%on_wall_id%w3 /= 0
+
+  end subroutine adjust_wall
+
+  subroutine place_in_cell(p)
+
+    implicit none
+
     type(photon),intent(inout) :: p
+
     p%icell = find_cell(p)
+
     if(p%icell == invalid_cell) then
        call warn("place_in_cell","place_in_cell failed - killing")
        killed_photons_geo = killed_photons_geo + 1
@@ -161,6 +251,9 @@ contains
     else
        p%in_cell = .true.
     end if
+
+    call adjust_wall(p)
+
   end subroutine place_in_cell
 
   logical function escaped_photon(p)
@@ -179,7 +272,7 @@ contains
     escaped_cell = .false.
   end function escaped_cell
 
-  type(grid_cell) function next_cell(cell, direction, intersection)
+  type(grid_cell) function next_cell_int(cell, direction, intersection)
     implicit none
     type(grid_cell),intent(in) :: cell
     integer,intent(in) :: direction
@@ -202,43 +295,87 @@ contains
     case(6)
        i3 = i3 + 1
     end select
-    next_cell = new_grid_cell(i1, i2, i3, geo)
-  end function next_cell
+    next_cell_int = new_grid_cell(i1, i2, i3, geo)
+  end function next_cell_int
+
+  type(grid_cell) function next_cell_wall_id(cell, direction, intersection)
+    implicit none
+    type(grid_cell),intent(in) :: cell
+    type(wall_id),intent(in) :: direction
+    type(vector3d_dp),optional,intent(in) :: intersection
+    integer :: i1, i2, i3
+    i1 = cell%i1
+    i2 = cell%i2
+    i3 = cell%i3
+    if(direction%w1 == -1) then
+       i1 = i1 - 1
+    else if(direction%w1 == +1) then
+       i1 = i1 + 1
+    end if
+    if(direction%w2 == -1) then
+       i2 = i2 - 1
+    else if(direction%w2 == +1) then
+       i2 = i2 + 1
+    end if
+    if(direction%w3 == -1) then
+       i3 = i3 - 1
+    else if(direction%w3 == +1) then
+       i3 = i3 + 1
+    end if
+    next_cell_wall_id = new_grid_cell(i1, i2, i3, geo)
+  end function next_cell_wall_id
 
   logical function in_correct_cell(p)
+
     implicit none
+
     type(photon),intent(in) :: p
     type(grid_cell) :: icell_actual
     real(dp) :: frac
+    real(dp),parameter :: threshold = 1.e-3_dp
+
     icell_actual = find_cell(p)
+
     if(p%on_wall) then
-       select case(p%on_wall_id)
-       case(1)
+
+       in_correct_cell = .true.
+
+       if(p%on_wall_id%w1 == -1) then
           frac = (p%r%x - geo%w1(p%icell%i1)) / (geo%w1(p%icell%i1+1) - geo%w1(p%icell%i1))
-          in_correct_cell = icell_actual%i2 == p%icell%i2 .and. icell_actual%i3 == p%icell%i3
-       case(2)
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
+       else if(p%on_wall_id%w1 == +1) then
           frac = (p%r%x - geo%w1(p%icell%i1+1)) / (geo%w1(p%icell%i1+1) - geo%w1(p%icell%i1))
-          in_correct_cell = icell_actual%i2 == p%icell%i2 .and. icell_actual%i3 == p%icell%i3
-       case(3)
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
+       else
+          in_correct_cell = in_correct_cell .and. icell_actual%i1 == p%icell%i1
+       end if
+
+       if(p%on_wall_id%w2 == -1) then
           frac = (p%r%y - geo%w2(p%icell%i2)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i3 == p%icell%i3
-       case(4)
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
+       else if(p%on_wall_id%w2 == +1) then
           frac = (p%r%y - geo%w2(p%icell%i2+1)) / (geo%w2(p%icell%i2+1) - geo%w2(p%icell%i2))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i3 == p%icell%i3
-       case(5)
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
+       else
+          in_correct_cell = in_correct_cell .and. icell_actual%i2 == p%icell%i2
+       end if
+
+       if(p%on_wall_id%w3 == -1) then
           frac = (p%r%z - geo%w3(p%icell%i3)) / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i2 == p%icell%i2
-       case(6)
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
+       else if(p%on_wall_id%w3 == +1) then
           frac = (p%r%z - geo%w3(p%icell%i3+1)) / (geo%w3(p%icell%i3+1) - geo%w3(p%icell%i3))
-          in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i2 == p%icell%i2
-       case default
-          call warn("in_correct_cell","invalid on_wall_id")
-          in_correct_cell = .false.
-       end select
-       in_correct_cell = abs(frac) < 1.e-3_dp .and. in_correct_cell
+          in_correct_cell = in_correct_cell .and. abs(frac) < threshold
+       else
+          in_correct_cell = in_correct_cell .and. icell_actual%i3 == p%icell%i3
+       end if
+
     else
+
        in_correct_cell = icell_actual == p%icell
+
     end if
+
   end function in_correct_cell
 
   subroutine random_position_cell(icell,pos)
@@ -282,7 +419,7 @@ contains
 
   end function distance_to_closest_wall
 
-  subroutine find_wall(p,radial,tmin,id_min)
+  subroutine find_wall(p,radial,tnearest,id_min)
 
     implicit none
 
@@ -291,89 +428,96 @@ contains
 
     logical,intent(in) :: radial
 
-    integer,intent(out) :: id_min
+    type(wall_id),intent(out) :: id_min
     ! ID of next wall
 
-    real(dp),intent(out)  :: tmin
+    real(dp),intent(out)  :: tnearest
     ! tmin to nearest wall
 
-    real(dp) :: tx, ty, tz
+    real(dp) :: t1, t2
 
     logical :: pos_vx, pos_vy, pos_vz
 
-    ! Can store this in photon, because it only changes at each interaction
-    pos_vx = p%v%x > 0._dp ! whether photon is moving in the +ve x direction
-    pos_vy = p%v%y > 0._dp ! whether photon is moving in the +ve y direction
-    pos_vz = p%v%z > 0._dp ! whether photon is moving in the +ve z direction
+    call reset_t()
 
-    ! Store inv_v to go faster
-    if(pos_vx) then
-       tx = ( geo%w1(p%icell%i1+1) - p%r%x ) / p%v%x
-    else if(p%v%x < 0._dp) then
-       tx = ( geo%w1(p%icell%i1)   - p%r%x ) / p%v%x
-    else
-       tx = huge(1._dp)
+    if(p%on_wall_id%w1 /= -1) then
+       t1 = ( geo%w1(p%icell%i1) - p%r%x ) / p%v%x
+       call insert_t(t1,1, -1, geo%ew1(p%icell%i1))
+    end if
+    if(p%on_wall_id%w1 /= +1) then
+       t2 = ( geo%w1(p%icell%i1+1) - p%r%x ) / p%v%x
+       call insert_t(t2,1, +1, geo%ew1(p%icell%i1 + 1))
     end if
 
-    if(pos_vy) then
-       ty = ( geo%w2(p%icell%i2+1) - p%r%y ) / p%v%y
-    else if(p%v%y < 0._dp) then
-       ty = ( geo%w2(p%icell%i2)   - p%r%y ) / p%v%y
-    else
-       ty = huge(1._dp)
+    if(p%on_wall_id%w2 /= -1) then
+       t1 = ( geo%w2(p%icell%i2) - p%r%y ) / p%v%y
+       call insert_t(t1,2, -1, geo%ew2(p%icell%i2))
+    end if
+    if(p%on_wall_id%w2 /= +1) then
+       t2 = ( geo%w2(p%icell%i2+1) - p%r%y ) / p%v%y
+       call insert_t(t2,2, +1, geo%ew2(p%icell%i2 + 1))
     end if
 
-    if(pos_vz) then
-       tz = ( geo%w3(p%icell%i3+1) - p%r%z ) / p%v%z
-    else if(p%v%z < 0._dp) then
-       tz = ( geo%w3(p%icell%i3)   - p%r%z ) / p%v%z
-    else
-       tz = huge(1._dp)
+    if(p%on_wall_id%w3 /= -1) then
+       t1 = ( geo%w3(p%icell%i3) - p%r%z ) / p%v%z
+       call insert_t(t1,3, -1, geo%ew1(p%icell%i3))
+    end if
+    if(p%on_wall_id%w3 /= +1) then
+       t2 = ( geo%w3(p%icell%i3+1) - p%r%z ) / p%v%z
+       call insert_t(t2,3, +1, geo%ew1(p%icell%i3 + 1))
     end if
 
-    ! Following is potential slowdown, in fact, could just test tmin after
-    if(min(tx,ty,tz) .lt. 0._dp) call error("find_wall","negative t")
-
-    ! Find the closest of the three walls. The following effectively
-    ! finds the minimum of three values. A lot of code for such a
-    ! small thing, but this runs much much faster than using a built
-    ! in min function or any kind of loop. Each iteraction comprises only
-    ! three if statements and two pointer assignements.
-
-    if(tx.lt.tz) then
-       if(tx.lt.ty) then
-          if(pos_vx) then
-             id_min = 2
-          else
-             id_min = 1
-          end if
-          tmin = tx
-       else
-          if(pos_vy) then
-             id_min = 4
-          else
-             id_min = 3
-          end if
-          tmin = ty
-       end if
-    else
-       if(tz.lt.ty) then
-          if(pos_vz) then
-             id_min = 6
-          else
-             id_min = 5
-          end if
-          tmin = tz
-       else
-          if(pos_vy) then
-             id_min = 4
-          else
-             id_min = 3
-          end if
-          tmin = ty
-       end if
-    end if
+    call find_next_wall(tnearest,id_min)
 
   end subroutine find_wall
+
+  subroutine reset_t()
+    implicit none
+    tmin = +huge(tmin)
+    emin = 0.
+    imin = no_wall
+    iext = no_wall
+  end subroutine reset_t
+
+  subroutine insert_t(t, iw, i, e)
+    implicit none
+    real(dp),intent(in)    :: t, e
+    integer,intent(in)    :: i, iw
+    real(dp) :: emax
+    if(debug) print *,'[debug] inserting t,i=',t, e, iw, i
+    if(t > 0._dp) then
+       emax = max(e, emin)
+       if(t < tmin - emax) then
+          tmin = t
+          imin = no_wall
+          emin = emax
+          if(iw == 1) then
+             imin%w1 = i
+          else if(iw == 2) then
+             imin%w2 = i
+          else
+             imin%w3 = i
+          end if
+       else if(t < tmin + emax) then
+          emin = emax
+          if(iw == 1) then
+             imin%w1 = i
+          else if(iw == 2) then
+             imin%w2 = i
+          else
+             imin%w3 = i
+          end if
+       end if
+    end if
+  end subroutine insert_t
+
+  subroutine find_next_wall(t,i)
+    implicit none
+    real(dp),intent(out)    :: t
+    type(wall_id),intent(out)    :: i
+    t = tmin
+    i = imin + iext
+    if(debug) print *,'[debug] selecting t,i=',t,i
+  end subroutine find_next_wall
 
 end module grid_geometry_specific
