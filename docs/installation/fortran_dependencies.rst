@@ -43,7 +43,7 @@ return a path that is inside the installation path you specified, for example::
     /usr/local/hyperion/bin/mpif90
     $ which h5fc
     /usr/local/hyperion/bin/h5fc
-    
+
 If you get ``command not found`` then you have probably not set up your PATH
 correctly.
 

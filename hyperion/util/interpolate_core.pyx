@@ -125,7 +125,7 @@ def interp1d_loglog_array(np.ndarray[DTYPE_F_t, ndim=1] x,
                 yval[i] = 0.
 
     return yval
-    
+
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
 def interp1d_linlog_scalar(np.ndarray[DTYPE_F_t, ndim=1] x,
                            np.ndarray[DTYPE_F_t, ndim=1] y,
@@ -186,7 +186,7 @@ def interp1d_linlog_array(np.ndarray[DTYPE_F_t, ndim=1] x,
                 yval[i] = 0.
 
     return yval
-    
+
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
 def interp1d_loglin_scalar(np.ndarray[DTYPE_F_t, ndim=1] x,
                            np.ndarray[DTYPE_F_t, ndim=1] y,
