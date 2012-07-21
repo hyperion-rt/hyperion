@@ -1,6 +1,8 @@
-include configure Makefile.in src/modules/empty.txt bin/empty.txt
+include configure Makefile.in src/modules/empty.txt bin/empty.txt LICENSE
 recursive-include src *.f90
 recursive-include fortranlib *.f90
+recursive-include deps *
+recursive-include docs *
 
 include hyperion/util/integrate_core.c
 include hyperion/util/interpolate_core.c
