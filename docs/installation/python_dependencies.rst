@@ -10,16 +10,16 @@ Overview
 The packages required for the Python code are:
 
 * `NumPy <http://www.scipy.org/>`_
-* `SciPy <http://www.scipy.org/>`_
 * `Matplotlib <http://matplotlib.sourceforge.net/>`_
 * `h5py <http://h5py.alfven.org/>`_
+* `ATpy <http://atpy.github.com>`_
 
 How you install these depends on your operating system, whether you are an existing Python user, and whether you use package managers. To find out whether any of these are already installed, start up a  Python prompt by typing ``python`` on the command line, then try the following commands::
 
     import numpy
-    import scipy
     import matplotlib
     import h5py
+    import atpy
 
 If you see this::
 
@@ -36,11 +36,6 @@ then the module is not installed. If you see this
 
 then the module is already installed.
 
-.. note:: If you do not have root access to the machine you are using, then
-          follow the instructions in :ref:`nonrootpython` to install the
-          modules into your home directory. In addition, you should not ever
-          include ``sudo`` in any of the commands.
-
 .. note:: If you are installing Hyperion from the git repository, you will
           also need the `Cython <http://www.cython.org>`_ module installed.
 
@@ -53,15 +48,15 @@ MacPorts
 If you are installing Python for the first time, we **strongly** recommend the use of MacPorts to install a full Python distribution. If you would like to do this, follow `these <http://astrofrog.github.com/macports-python/>`_ instructions to get set up. Once you have your Python distribution installed, make sure all the dependencies for Hyperion are installed::
 
     sudo port selfupdate
-    sudo port install py27-numpy py27-scipy py27-matplotlib py27-h5py
+    sudo port install py27-numpy py27-matplotlib py27-h5py py27-atpy
 
 System/python.org Python
 ------------------------
 
 If you do not want to use MacPorts, the easiest way to install the three first
-dependencies is to download and install the MacOS X ``dmg`` files for NumPy,
-SciPy, and Matplotlib. Use the links at the top of this section to get the
-latest dmg files from the different websites. You can of course also install
+dependencies is to download and install the MacOS X ``dmg`` files for NumPy
+and Matplotlib. Use the links at the top of this section to get the latest
+``dmg`` files from the different websites. You can of course also install
 these from source, but this is beyond the scope of this documentation.
 
 .. note:: If you get an error saying *x can't be installed on this disk. x
@@ -77,7 +72,6 @@ Check that the packages import correctly::
     [GCC 4.2.1 (Apple Inc. build 5646)] on darwin
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import numpy
-    >>> import scipy
     >>> import matplotlib
     >>>
 
@@ -115,4 +109,19 @@ Now, go back to your home directory, and check that ``h5py`` imports cleanly::
     [GCC 4.2.1 (Apple Inc. build 5646)] on darwin
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import h5py
+    >>>
+
+Finally, if needed, install ATpy by going `here <http://atpy.github.com/>`_ and clicking on *Download latest stable version*. Then, expand the tar file and install using::
+
+    tar xvzf ATpy-x.x.x.tar.gz
+    cd ATpy-x.x.x
+    python setup.py install
+
+Finally, check that ATpy imports cleanly::
+
+    $ python
+    Python 2.7.2 (default, Jan 31 2012, 22:38:06)
+    [GCC 4.2.1 (Apple Inc. build 5646)] on darwin
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> import atpy
     >>>

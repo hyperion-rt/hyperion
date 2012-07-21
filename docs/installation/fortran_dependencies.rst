@@ -18,7 +18,7 @@ Non-root installs
 
 If you do not have root access to the machine you are using, then replace
 ``/usr/local`` in the following instructions by e.g. ``$HOME/usr``.
-In addition, you should not ever include ``sudo`` in any of the commands.
+In addition, you should never include ``sudo`` in any of the commands.
 
 Automated Installation
 ======================
@@ -28,11 +28,27 @@ The easiest way to install these dependencies correctly is to use the installati
     cd deps/fortran
     python install.py <prefix>
 
-where ``<prefix>`` is the folder in which you want to install the MPI and HDF5 libraries. For example, to install in ``/usr/local/``, you can do::
+where ``<prefix>`` is the folder in which you want to install the MPI and HDF5 libraries. To avoid conflicting with existing installed versions (that may not have Fortran support), it is best to install these in a dedicated directory such as ``/usr/local/hyperion``::
 
-    python install.py /usr/local
+    python install.py /usr/local/hyperion
 
-and the libraries will be installed in the ``lib``, ``include``, etc. directories inside ``usr/local``. The installation script has a number of options (e.g. to set the compilers) that can be seen with::
+and the libraries will be installed in the ``lib``, ``include``, etc. directories inside ``/usr/local/hyperion``. Once the installation is complete, the installer will instruct you to add certain commands to your startup files. Once you have followed these instructions, open a new terminal and ensure that the following commands::
+
+    which mpif90
+    which h5fc
+
+return a path that is inside the installation path you specified, for example::
+
+    $ which mpif90
+    /usr/local/hyperion/bin/mpif90
+    $ which h5fc
+    /usr/local/hyperion/bin/h5fc
+    
+If you get ``command not found`` then you have probably not set up your PATH
+correctly.
+
+The installation script has a number of options (e.g. to set the compilers)
+that can be seen with::
 
     python install.py --help
 
@@ -55,8 +71,8 @@ Installation
 .. note:: If you encounter any errors at any stage, see the :ref:`mpitrouble` section.
 
 First, download the source for the latest *stable release* of MPICH2 from the
-`MPI`_ downloads page (1.4.1 at the time of writing). Once downloaded, unpack
-the file and then go into the source directory::
+`MPI`_ downloads page. Once downloaded, unpack the file and then go into the
+source directory::
 
     cd mpich2-x.x.x
 
