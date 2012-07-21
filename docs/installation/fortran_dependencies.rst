@@ -13,6 +13,16 @@ Introduction
 
 The Fortran code for Hyperion requires an installation of MPI with support for Fortran enabled, and the HDF5 library (1.8.5 or later) with support for Fortran. Note that often, default installations of these packages do not include support for Fortran - this has to be explicitly enabled as described below.
 
+Fortran compiler
+================
+
+The first dependency is a fortran compiler. In addition to commercial
+compilers, there are a couple of free ones, the most common of which is
+``gfortran``. If you don't already have it installed, you can install it via
+package managers on Linux machines, or from MacPorts or binary installers on
+mac (e.g. `http://r.research.att.com/tools/`_). If you are unsure about how to
+do this, speak to your system administrator.
+
 Non-root installs
 =================
 
