@@ -17,8 +17,6 @@ You can load up most of the required dependencies for the Fortran and Python cod
     module load math/hdf5-1.8.4_openmpi-1.3.3_intel-11.1.046
     module load hpc/python-2.6.2
 
-Since you do not have root access, you will need to install additional Python packages in your home directory using the instructions at :ref:`nonrootpython`.
-
 Then download and install ATpy by going `here <http://atpy.github.com/>`_ and
 clicking on *Download latest stable version*. Then, expand the tar file and
 install using::
