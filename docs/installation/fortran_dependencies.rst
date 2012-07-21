@@ -20,7 +20,7 @@ The first dependency is a fortran compiler. In addition to commercial
 compilers, there are a couple of free ones, the most common of which is
 ``gfortran``. If you don't already have it installed, you can install it via
 package managers on Linux machines, or from MacPorts or binary installers on
-mac (e.g. `http://r.research.att.com/tools/`_). If you are unsure about how to
+mac (e.g. `http://r.research.att.com/tools/ <http://r.research.att.com/tools/>`_). If you are unsure about how to
 do this, speak to your system administrator.
 
 Non-root installs
@@ -33,16 +33,29 @@ In addition, you should never include ``sudo`` in any of the commands.
 Automated Installation
 ======================
 
-The easiest way to install these dependencies correctly is to use the installation script provided with Hyperion. Once you have downloaded the Hyperion source code, go to the ``deps/fortran`` directory and run the automated install script provided::
+The easiest way to install these dependencies correctly is to use the
+installation script provided with Hyperion. First, make sure you have
+downloaded the latest tar file from [HERE], then expand it with::
+
+    tar xvzf hyperion-x.x.x.tar.gz
+    cd hyperion-x.x.x
+
+Then, go to the ``deps/fortran`` directory and run the automated install
+script provided::
 
     cd deps/fortran
     python install.py <prefix>
 
-where ``<prefix>`` is the folder in which you want to install the MPI and HDF5 libraries. To avoid conflicting with existing installed versions (that may not have Fortran support), it is best to install these in a dedicated directory such as ``/usr/local/hyperion``::
+where ``<prefix>`` is the folder in which you want to install the MPI and HDF5
+libraries. To avoid conflicting with existing installed versions (that may not
+have Fortran support), it is best to install these in a dedicated directory
+such as ``/usr/local/hyperion``::
 
     python install.py /usr/local/hyperion
 
-and the libraries will be installed in the ``lib``, ``include``, etc. directories inside ``/usr/local/hyperion``. Once the installation is complete, the installer will instruct you to add certain commands to your startup files. Once you have followed these instructions, open a new terminal and ensure that the following commands::
+and the libraries will be installed in the ``lib``, ``include``, etc. directories inside ``/usr/local/hyperion``. Once the installation is complete, the installer will instruct you to add certain commands to your startup files.
+
+Next, open a new terminal and ensure that the following commands::
 
     which mpif90
     which h5fc
@@ -54,8 +67,8 @@ return a path that is inside the installation path you specified, for example::
     $ which h5fc
     /usr/local/hyperion/bin/h5fc
 
-If you get ``command not found`` then you have probably not set up your PATH
-correctly.
+If you get ``command not found`` then you have probably not set up your
+``$PATH`` correctly.
 
 The installation script has a number of options (e.g. to set the compilers)
 that can be seen with::

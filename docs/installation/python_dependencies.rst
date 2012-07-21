@@ -50,10 +50,15 @@ If you are installing Python for the first time, we **strongly** recommend the u
     sudo port selfupdate
     sudo port install py27-numpy py27-matplotlib py27-h5py py27-atpy
 
+If this works, you are all set, and you can move on to the actual :ref:`hyperion_install` installation instructions.
+
 System/python.org Python
 ------------------------
 
-If you do not want to use MacPorts, the easiest way to install the three first
+Numpy and Matplotlib
+^^^^^^^^^^^^^^^^^^^^
+
+If you do not want to use MacPorts, the easiest way to install the two first
 dependencies is to download and install the MacOS X ``dmg`` files for NumPy
 and Matplotlib. Use the links at the top of this section to get the latest
 ``dmg`` files from the different websites. You can of course also install
@@ -76,7 +81,12 @@ Check that the packages import correctly::
     >>>
 
 If any of the packages are incorrectly installed, they will not import cleanly
-as above. Once the three main packages are installed, you will need to install
+as above.
+
+h5py
+^^^^
+
+Once Numpy and Matplotlib are installed, you will need to install
 h5py. First, you will need to install the HDF5 library. Note that for the
 Fortran code, you also need to install the HDF5 library, but here we need to
 create a clean installation without the fortran bindings, or else h5py will
@@ -84,9 +94,9 @@ not install properly. Make sure that you perform the following installation in
 a different directory from before, to avoid overwriting any files.
 
 To install the plain HDF5 library download the source code from `here
-<http://www.hdfgroup.org/ftp/HDF5/current/src/>`_, then go into the source
-code directory::
+<http://www.hdfgroup.org/ftp/HDF5/current/src/>`_ (choose the hdf5-x.x.x.tar.gz file), then expand the source code::
 
+    tar xvzf hdf5-x.x.x.tar.gz
     cd hdf5-x.x.x
 
 and carry out the installation::
@@ -95,7 +105,7 @@ and carry out the installation::
     make
     sudo make install
 
-Now, download the latest ``tar.gz`` package from the ``h5py`` `website <http://code.google.com/p/h5py/>`_, and do::
+Now, download the latest ``h5py-x.x.x.tar.gz`` package from the ``h5py`` `website <http://code.google.com/p/h5py/>`_, and do::
 
     tar xvzf h5py-x.x.x.tar.gz
     cd h5py-x.x.x
@@ -110,6 +120,9 @@ Now, go back to your home directory, and check that ``h5py`` imports cleanly::
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import h5py
     >>>
+
+ATpy
+^^^^
 
 Finally, if needed, install ATpy by going `here <http://atpy.github.com/>`_ and clicking on *Download latest stable version*. Then, expand the tar file and install using::
 

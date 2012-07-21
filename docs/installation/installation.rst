@@ -23,6 +23,8 @@ dependencies installed.
 
 .. note:: For instructions for specific computer clusters, see the :ref:`specific` instead, then proceed to the instructions for installing Hyperion below.
 
+.. _hyperion_install:
+
 Hyperion
 ========
 
@@ -76,7 +78,7 @@ using the ``--prefix`` option to configure, for example::
 
     ./configure --prefix=/usr/local/hyperion
 
-or
+or::
 
     ./configure --prefix=$HOME/usr
 
@@ -91,4 +93,4 @@ If you get::
     hyperion_sph: command not found
 
 then something went wrong in the installation, or the directory to which you
-installed the binaries is not in your ``$PATH``.
+installed the binaries is not in your ``$PATH``. Otherwise, you are all set!
