@@ -26,17 +26,57 @@ dependencies installed.
 Hyperion
 ========
 
-Go into the ``hyperion-x.x.x`` directory, and type::
+Download the latest tar file from [HERE], then expand it with::
+
+    tar xvzf hyperion-x.x.x.tar.gz
+    cd hyperion-x.x.x
+
+Python module
+-------------
+
+Install the Python module with::
 
     python setup.py install
 
-to install the Python module, and then::
+Check that the module installed correctly::
+
+    $ python
+    Python 2.7.2 (default, Jan 31 2012, 22:38:06)
+    [GCC 4.2.1 (Apple Inc. build 5646)] on darwin
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> import hyperion
+    >>>
+
+and also try typing::
+
+    $ hyperion
+
+in your shell. If you get ``command not found``, you need to ensure that the
+scripts installed by Python are in your ``$PATH``. If you do not know where
+these are located, check the last line of the install command above, which
+should contain something like this::
+
+    changing mode of /Users/tom/Library/Python/2.7/bin/hyperion to 755
+
+The path listed (excluding ``hyperion`` at the end) should be in your
+``$PATH``.
+
+Fortran binaries
+----------------
+
+Compile the Fortran code with::
 
     ./configure
     make
     make install
 
-to install the Fortran code. By default, the binaries will be written to ``/usr/local/bin``, but you can change this using the ``--prefix`` option to configure, for example::
+By default, the binaries will be written to ``/usr/local/bin`` (which will
+require you to use ``sudo`` for the last command), but you can change this
+using the ``--prefix`` option to configure, for example::
+
+    ./configure --prefix=/usr/local/hyperion
+
+or
 
     ./configure --prefix=$HOME/usr
 
