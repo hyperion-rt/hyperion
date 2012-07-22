@@ -43,7 +43,7 @@ class AlphaDisk(FreezableClass):
     <http://dx.doi.org/10.1086/375415>`_. Once integrated over the whole disk,
     this gives a total luminosity of:
 
-    .. math:: L_{\rm acc} = \frac{G\,M_\star\,M_{\rm acc}}{2} \left[3\left(\frac{1}{R_{\rm min}} - \frac{1}{R_{\rm max}}\right) - 2\left(\sqrt{\frac{R_\star}{R_{\rm min}^3}} + \sqrt{\frac{R_\star}{R_{\rm min}^3}}\right)\right]
+    .. math:: L_{\rm acc} = \frac{G\,M_\star\,M_{\rm acc}}{2} \left[3\left(\frac{1}{R_{\rm min}} - \frac{1}{R_{\rm max}}\right) - 2\left(\sqrt{\frac{R_\star}{R_{\rm min}^3}} - \sqrt{\frac{R_\star}{R_{\rm max}^3}}\right)\right]
     '''
 
     def __init__(self, mass=0., rmin=None, rmax=None, p=-1,

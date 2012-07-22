@@ -2,9 +2,11 @@ from __future__ import print_function, division
 
 import pytest
 import numpy as np
+from numpy.testing import assert_array_almost_equal_nulp
 
 from .. import FlaredDisk, AlphaDisk, PowerLawEnvelope, UlrichEnvelope, BipolarCavity
 from ...util.convenience import OptThinRadius
+from ...util.constants import G
 
 # A fake star class so that star.mass is defined
 class Star(object):
@@ -129,7 +131,6 @@ def test_alpha_disk_swap2():
     e.star = Star()
     e.star.mass = 1.
     e.star.radius = 1.
-    e.mdot = 0.
     e.rmin = 1.
     e.rmax = 10.
     e.mass = 1.
@@ -137,6 +138,7 @@ def test_alpha_disk_swap2():
     e.h_0 = 1.
     e.p = -1.
     e.beta = 1.25
+    e.mdot = 0.
     assert e.lvisc == 0.
 
 
@@ -145,7 +147,6 @@ def test_alpha_disk_swap3():
     e.star = Star()
     e.star.mass = 1.
     e.star.radius = 1.
-    e.lvisc = 0.
     e.rmin = 1.
     e.rmax = 10.
     e.mass = 1.
@@ -153,7 +154,38 @@ def test_alpha_disk_swap3():
     e.h_0 = 1.
     e.p = -1.
     e.beta = 1.25
+    e.lvisc = 0.
     assert e.mdot == 0.
+
+def test_alpha_disk_lvisc_calc():
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 0.5
+    e.star.radius = 0.5
+    e.rmin = 1.
+    e.rmax = 2.
+    e.mass = 1.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.mdot = 4.
+    assert_array_almost_equal_nulp(e.lvisc, G * (1.5 - 2. / np.sqrt(2.) + 0.5), 2)
+
+def test_alpha_disk_mdot_calc():
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 0.5
+    e.star.radius = 0.5
+    e.rmin = 1.
+    e.rmax = 2.
+    e.mass = 1.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.lvisc = G * (1.5 - 2. / np.sqrt(2.) + 0.5)
+    assert_array_almost_equal_nulp(e.mdot, 4., 2)
 
 # Power Law Envelope
 
