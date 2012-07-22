@@ -30,6 +30,7 @@ hyperion.model.AnalyticalYSOModel
    .. autosummary::
 
       ~AnalyticalYSOModel.evaluate_optically_thin_radii
+      ~AnalyticalYSOModel.setup_magnetospheric_accretion
 
    .. rubric:: Methods (detail)
 
@@ -43,3 +44,4 @@ hyperion.model.AnalyticalYSOModel
    .. automethod:: AnalyticalYSOModel.set_cylindrical_polar_grid_auto
 
    .. automethod:: AnalyticalYSOModel.evaluate_optically_thin_radii
+   .. automethod:: AnalyticalYSOModel.setup_magnetospheric_accretion

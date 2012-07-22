@@ -575,22 +575,25 @@ class AnalyticalYSOModel(Model):
         '''
         Set up the model for magnetospheric accretion
 
-        .. warning:: this function is still experimental, and will be documented once stable
-
         Parameters
         ----------
         mdot : float
             The accretion rate onto the star in cgs
-        rtrunc:
+        rtrunc : float
             The magnetospheric truncation radius of the disk in cgs
         fspot : float
-            The spot coverage fraction
+            The spot coverage fraction. Photons will be emitted uniformly from
+            the star, the coverage fraction ``fspot`` will determine the
+            spectrum of the hot spot emission (smaller covering fractions will
+            lead to a hotter spectrum).
 
         Notes
         -----
-        This method currently assumes that the luminosity is split up into
-        that which goes into the dust disk, gas disk, and the stellar surface.
-        However, at this time the gas emission is not implemented.
+        This method only takes into account the hot spot and X-ray emission
+        from the stellar surface. To simulate the viscous accretion luminosity
+        in the disk, add an :class:`~hyperion.densities.AlphaDisk` to the
+        model using :meth:`~hyperion.model.AnalyticalYSOModel.add_alpha_disk`
+        and set the accretion rate or luminosity accordingly.
 
         This method should be called once the stellar parameters have been
         otherwise initialized, and the disk parameters have to be set. This
