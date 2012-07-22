@@ -18,8 +18,9 @@ class FlaredDisk(FreezableClass):
 
     .. math:: \rho(R,z,\phi) = \rho_0^{\rm disk}\,\left(\frac{R_0}{R}\right)^{\beta - p}\,\exp{\left[-\frac{1}{2}\left(\frac{z}{h(R)}\right)^2\right]} \\
 
-    Once the ``FlaredDisk`` class has been instantiated, the parameters for
-    the density structure can be set via attributes::
+    Once the :class:`~hyperion.densities.FlaredDisk` class has been
+    instantiated, the parameters for the density structure can be set via
+    attributes::
 
         >>> from hyperion.util.constants import msun, au
         >>> disk = FlaredDisk()
@@ -34,6 +35,7 @@ class FlaredDisk(FreezableClass):
                  cylindrical_inner_rim=True,
                  cylindrical_outer_rim=True, dust=None):
 
+        # Basic disk parameters
         self.mass = mass
         self.rmin = rmin
         self.rmax = rmax
@@ -43,6 +45,8 @@ class FlaredDisk(FreezableClass):
         self.r_0 = r_0
         self.cylindrical_inner_rim = cylindrical_inner_rim
         self.cylindrical_outer_rim = cylindrical_outer_rim
+
+        # Dust
         self.dust = dust
 
         self._freeze()

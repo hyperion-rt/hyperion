@@ -19,8 +19,9 @@ class PowerLawEnvelope(Envelope):
 
     .. math:: \rho(r) = \rho_0^{\rm env}\,\left(\frac{r}{r_0}\right)^\gamma \\
 
-    Once the ``PowerLawEnvelope`` class has been instantiated, the parameters for
-    the density structure can be set via attributes::
+    Once the :class:`~hyperion.densities.PowerLawEnvelope` class has been
+    instantiated, the parameters for the density structure can be set via
+    attributes::
 
         >>> from hyperion.util.constants import msun, au, pc
         >>> envelope = PowerLawEnvelope()

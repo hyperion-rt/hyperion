@@ -119,8 +119,9 @@ class UlrichEnvelope(Envelope):
 
     .. math:: \mu_0^3 + \mu_0\left(\frac{r}{ R_{\rm c}} - 1\right) - \mu\left(\frac{r}{ R_{\rm c}}\right) = 0
 
-    Once the ``UlrichEnvelope`` class has been instantiated, the parameters for
-    the density structure can be set via attributes::
+    Once the :class:`~hyperion.densities.UlrichEnvelope` class has been
+    instantiated, the parameters for the density structure can be set via
+    attributes::
 
         >>> from hyperion.util.constants import msun, au, pc
         >>> envelope = UlrichEnvelope()

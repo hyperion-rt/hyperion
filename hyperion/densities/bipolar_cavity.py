@@ -19,8 +19,9 @@ class BipolarCavity(FreezableClass):
     inside a volume defined by two parabolic surfaces with
     half-opening angle ``theta_0`` at ``r_0``.
 
-    Once the ``BipolarCavity`` class has been instantiated, the parameters for
-    the density structure can be set via attributes::
+    Once the :class:`~hyperion.densities.BipolarCavity` class has been
+    instantiated, the parameters for the density structure can be set via
+    attributes::
 
         >>> from hyperion.util.constants import msun, au, pc
         >>> cavity = BipolarCavity()

@@ -13,8 +13,9 @@ class AmbientMedium(FreezableClass):
     This class implements the density structure for an ambient density
     medium defined by a constant density, and an inner and outer radius.
 
-    Once the ``AmbientMedium`` class has been instantiated, the parameters for
-    the density structure can be set via attributes::
+    Once the :class:`~hyperion.densities.AmbientMedium` class has been
+    instantiated, the parameters for the density structure can be set via
+    attributes::
 
         >>> from hyperion.util.constants import au, pc
         >>> ambient = AmbientMedium()
