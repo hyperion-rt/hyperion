@@ -5,6 +5,7 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal_nulp
 
 from .. import FlaredDisk, AlphaDisk, PowerLawEnvelope, UlrichEnvelope, BipolarCavity
+from ...grid import SphericalPolarGrid
 from ...util.convenience import OptThinRadius
 from ...util.constants import G
 
@@ -157,6 +158,7 @@ def test_alpha_disk_swap3():
     e.lvisc = 0.
     assert e.mdot == 0.
 
+
 def test_alpha_disk_lvisc_calc():
     e = AlphaDisk()
     e.star = Star()
@@ -172,6 +174,7 @@ def test_alpha_disk_lvisc_calc():
     e.mdot = 4.
     assert_array_almost_equal_nulp(e.lvisc, G * (1.5 - 2. / np.sqrt(2.) + 0.5), 2)
 
+
 def test_alpha_disk_mdot_calc():
     e = AlphaDisk()
     e.star = Star()
@@ -186,6 +189,57 @@ def test_alpha_disk_mdot_calc():
     e.beta = 1.25
     e.lvisc = G * (1.5 - 2. / np.sqrt(2.) + 0.5)
     assert_array_almost_equal_nulp(e.mdot, 4., 2)
+
+
+def test_alpha_disk_lvisc_map():
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 0.5
+    e.star.radius = 0.5
+    e.rmin = 1.
+    e.rmax = 2.
+    e.mass = 1.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.lvisc = G * (1.5 - 2. / np.sqrt(2.) + 0.5)
+
+    # Set up grid
+    r = np.linspace(0., e.rmax * 2., 200)
+    t = np.linspace(0., np.pi, 200)
+    p = np.linspace(0., 2. * np.pi, 5)
+    g = SphericalPolarGrid(r, t, p)
+
+    ref = G * (1.5 - 2. / np.sqrt(2.) + 0.5)
+    act = np.sum(e.accretion_luminosity(g))
+
+    assert abs(act - ref) / ref < 1.e-3
+
+def test_alpha_disk_mdot_map():
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 0.5
+    e.star.radius = 0.5
+    e.rmin = 1.
+    e.rmax = 2.
+    e.mass = 1.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.mdot = 4.
+
+    # Set up grid
+    r = np.linspace(0., e.rmax * 2., 200)
+    t = np.linspace(0., np.pi, 200)
+    p = np.linspace(0., 2. * np.pi, 5)
+    g = SphericalPolarGrid(r, t, p)
+
+    ref = G * (1.5 - 2. / np.sqrt(2.) + 0.5)
+    act = np.sum(e.accretion_luminosity(g))
+
+    assert abs(act - ref) / ref < 1.e-3
 
 # Power Law Envelope
 
