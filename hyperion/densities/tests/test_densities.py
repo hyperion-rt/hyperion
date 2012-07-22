@@ -216,6 +216,7 @@ def test_alpha_disk_lvisc_map():
 
     assert abs(act - ref) / ref < 1.e-3
 
+
 def test_alpha_disk_mdot_map():
     e = AlphaDisk()
     e.star = Star()
