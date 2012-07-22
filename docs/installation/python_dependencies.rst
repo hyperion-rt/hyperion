@@ -71,7 +71,7 @@ these from source, but this is beyond the scope of this documentation.
 .. note:: If you get an error saying *x can't be installed on this disk. x
           requires Python 2.7 from www.python.org to install*, then this means
           you are probably just using the system Python installation. Go to
-          `www.python.org <www.python.org>`_ and download the 2.7.2
+          `www.python.org <http://www.python.org>`_ and download the 2.7.2
           version of Python, install, and try installing the packages again.
 
 Check that the packages import correctly::
