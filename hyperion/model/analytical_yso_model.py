@@ -112,23 +112,9 @@ class AnalyticalYSOModel(Model):
         self.disks = []
         self.envelopes = []
 
-        self.accretion = False
-
         self.ambient = None
 
         Model.__init__(self, name=name)
-
-    def __setattr__(self, attribute, value):
-        if attribute == 'accretion':
-            if value is True:
-                self.star.sources['uv'] = SphericalSource(name='uv', radius=self.star.radius)
-                self.star.sources['xray'] = SphericalSource(name='xray', radius=self.star.radius)
-            else:
-                if 'uv' in self.star.sources:
-                    self.star.sources.pop('uv')
-                if 'xray' in self.star.sources:
-                    self.star.sources.pop('xray')
-        Model.__setattr__(self, attribute, value)
 
     def add_density_grid(self, *args, **kwargs):
         raise NotImplementedError("add_density_grid cannot be used for AnalyticalYSOModel")
@@ -620,10 +606,6 @@ class AnalyticalYSOModel(Model):
         # For convenience
         lstar = self.star.sources['star'].luminosity
 
-        # Tell the model that we are including accretion
-        if not self.accretion:
-            self.accretion = True
-
         if self.star.mass is None:
             raise Exception("Stellar mass is not set")
 
@@ -636,6 +618,7 @@ class AnalyticalYSOModel(Model):
         tshock = teff * (1 + fluxratio) ** 0.25  # Kelvin
 
         # Set the hot spot source
+        self.star.sources['uv'] = SphericalSource(name='uv', radius=self.star.radius)
         self.star.sources['uv'].luminosity = lshock / 2. + lstar * fspot
         self.star.sources['uv'].temperature = tshock
 
@@ -645,11 +628,15 @@ class AnalyticalYSOModel(Model):
         fnu = np.repeat(1., nu.shape)
 
         # Set the X-ray source
+        self.star.sources['xray'] = SphericalSource(name='xray', radius=self.star.radius)
         self.star.sources['xray'].luminosity = lshock / 2.
         self.star.sources['xray'].spectrum = (nu, fnu)
 
         # Reduce the total luminosity from the original source
         self.star.sources['star'].luminosity *= 1 - fspot
+
+        # Ensure that stellar parameters can no longer be changed
+        self.star._finalize()
 
     # RESOLVERS
 
@@ -826,18 +813,17 @@ class AnalyticalYSOModel(Model):
 
         # Accretion
 
-        if self.accretion:
+        if 'uv' in self.star.sources and self.star.sources['uv'].luminosity > 0.:
+            if self.star.sources['uv'] not in self.sources:
+                self.add_source(self.star.sources['uv'])
 
-            if self.star.sources['uv'].luminosity > 0.:
-                if self.star.sources['uv'] not in self.sources:
-                    self.add_source(self.star.sources['uv'])
+        if 'xray' in self.star.sources and self.star.sources['xray'].luminosity > 0.:
+            if self.star.sources['xray'] not in self.sources:
+                self.add_source(self.star.sources['xray'])
 
-            if self.star.sources['xray'].luminosity > 0.:
-                if self.star.sources['xray'] not in self.sources:
-                    self.add_source(self.star.sources['xray'])
+        for i, disk in enumerate(self.disks):
 
-            for i, disk in enumerate(self.disks):
-
+            if isinstance(disk, AlphaDisk):
                 if disk.rmin >= disk.rmax:
                     logger.warn("Disk rmin >= rmax, ignoring accretion luminosity")
                 elif disk.mass == 0.:

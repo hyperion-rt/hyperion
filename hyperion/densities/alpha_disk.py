@@ -303,6 +303,9 @@ class AlphaDisk(FreezableClass):
         if self.star is None:
             raise Exception("star is not set")
 
+        if self._lvisc is None and self._mdot is None:
+            raise Exception("either lvisc or mdot should be set")
+
     def rho_0(self):
         '''
         Returns the density factor rho0
