@@ -13,6 +13,7 @@ hyperion.model.AnalyticalYSOModel
    .. autosummary::
 
       ~AnalyticalYSOModel.add_flared_disk
+      ~AnalyticalYSOModel.add_alpha_disk
       ~AnalyticalYSOModel.add_power_law_envelope
       ~AnalyticalYSOModel.add_ulrich_envelope
       ~AnalyticalYSOModel.add_ambient_medium
@@ -33,6 +34,7 @@ hyperion.model.AnalyticalYSOModel
    .. rubric:: Methods (detail)
 
    .. automethod:: AnalyticalYSOModel.add_flared_disk
+   .. automethod:: AnalyticalYSOModel.add_alpha_disk
    .. automethod:: AnalyticalYSOModel.add_power_law_envelope
    .. automethod:: AnalyticalYSOModel.add_ulrich_envelope
    .. automethod:: AnalyticalYSOModel.add_ambient_medium

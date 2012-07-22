@@ -5,7 +5,7 @@ from copy import deepcopy
 import numpy as np
 
 from . import Model
-from ..densities import FlaredDisk, AlphaDiskWhitney, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
+from ..densities import FlaredDisk, AlphaDisk, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
 from ..util.interpolate import interp1d_fast_loglog
 from ..util.constants import pi, sigma, c, G
 from ..sources import SphericalSource, SpotSource
@@ -216,17 +216,36 @@ class AnalyticalYSOModel(Model):
         self.disks.append(disk)
         return disk
 
-    def add_alpha_disk(self, definition='whitney'):
+    def add_alpha_disk(self):
         """
         Add an alpha disk to the geometry
 
-        .. warning:: this function is still experimental, and will be documented once stable
+        This is similar to a flared disk, but with accretion luminosity. See
+        :class:`~hyperion.densities.AlphaDisk` for more details.
+
+        Returns
+        -------
+        disk : :class:`~hyperion.densities.AlphaDisk`
+            A :class:`~hyperion.densities.AlphaDisk` instance.
+
+        Examples
+        --------
+
+        To add an alpha disk to the model, you can do::
+
+            >>> disk = m.add_alpha_disk()
+
+        then set the disk properties using e.g.::
+
+            >>> disk.mass = 1.e30  # g
+            >>> disk.rmin = 1e10  # cm
+            >>> disk.rmax = 1e14  # cm
+
+        See the :class:`~hyperion.densities.AlphaDisk` documentation
+        to see which parameters can be set.
         """
-        if definition == 'whitney':
-            disk = AlphaDiskWhitney()
-            disk.star = self.star
-        else:
-            raise Exception("Unknown alpha disk definition: %s" % definition)
+        disk = AlphaDisk()
+        disk.star = self.star
         self.disks.append(disk)
         return disk
 
