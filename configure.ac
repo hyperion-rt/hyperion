@@ -60,7 +60,7 @@ else
 fi
 
 extra_nag="-Isrc/modules -mdir src/modules -f2003 -colour -ieee=full $debug_nag $profiling_nag $static_nag"
-extra_ifort="-module src/modules -heap-arrays -error-limit 1 -fp-model strict $debug_ifort $profiling_ifort $static_ifort"
+extra_ifort="-module src/modules -heap-arrays -error-limit 1 -fp-model strict -diag-disable 8291 $debug_ifort $profiling_ifort $static_ifort"
 extra_gfortran="-Jsrc/modules -Isrc/modules -g -ffree-line-length-none $debug_gfortran $profiling_gfortran $static_gfortran"
 extra_g95="-fmod=src/modules -Isrc/modules -g -ffree-line-length-huge $debug_g95 $profiling_g95 $static_g95"
 extra_pgi="$debug_pgi $profiling_pgi $static_pgi"
