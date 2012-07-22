@@ -1,9 +1,13 @@
 import pytest
 import numpy as np
 
-from .. import Model
-from .test_helpers import random_filename, get_test_dust
+from ...dust import IsotropicDust
+from ...util.functions import B_nu
+from ...util.constants import c
 
+from .. import Model
+
+from .test_helpers import random_filename, get_test_dust
 
 def test_point_source_outside_grid():
 
@@ -43,3 +47,37 @@ def test_unsorted_spectrum():
     assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
                                 'complete'
     assert 'spectrum frequency should be monotonically increasing' in open(log_file).read()
+
+
+def test_spectrum_dust_nooverlap():
+
+    # Set up dust with a narrow frequency range
+    nu = np.logspace(8., 10., 100)
+    albedo = np.repeat(0.5, 100)
+    chi = np.ones(100)
+    d = IsotropicDust(nu, albedo, chi)
+    d.set_lte_emissivities(10, 0.1, 1000.)
+
+    # Set up model with a source with a wider frequency range
+    m = Model()
+
+    s = m.add_point_source()
+    s.luminosity = 1.
+    nu = np.logspace(5., 12., 1000)
+    s.spectrum = (nu, B_nu(nu, 6000.))
+
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1])
+
+    m.add_density_grid(np.array([[[1.]]]), d)
+
+    m.set_n_photons(initial=1000, imaging=0)
+
+    m.write(random_filename())
+    log_file = random_filename()
+    with pytest.raises(SystemExit) as exc:
+        m.run(random_filename(), logfile=log_file)
+    assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
+                                'complete'
+    assert 'photon frequency' in open(log_file).read()
+    assert 'is outside the range defined' in open(log_file).read()
+    assert 'for the dust optical properties' in open(log_file).read()
