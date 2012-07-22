@@ -2,8 +2,10 @@ from __future__ import print_function, division
 
 import pytest
 import numpy as np
+from numpy.testing import assert_array_almost_equal_nulp
 
 from ..optical_properties import OpticalProperties
+from ...util.constants import c
 
 
 def test_init():
@@ -216,3 +218,59 @@ def test_set_array_invalid_order2(attribute):
     with pytest.raises(ValueError) as exc:
         setattr(o, attribute, np.ones((3, 2)))
     assert exc.value.args[0] == 'nu needs to be set before ' + attribute
+
+
+def test_extrapolate_inner_range():
+    o = OpticalProperties()
+    o.nu = np.logspace(8., 10., 100)
+    o.albedo = np.repeat(0.5, 100)
+    o.chi = np.ones(100)
+    o.mu = [-1., 1.]
+    o.initialize_scattering_matrix()
+    o.extrapolate_nu(1e9, 2e9)
+    assert o.nu[0] == 1.e8 and o.nu[-1] == 1.e10
+
+
+def test_extrapolate_upper():
+    o = OpticalProperties()
+    o.nu = np.logspace(8., 10., 100)
+    o.albedo = np.repeat(0.5, 100)
+    o.chi = np.ones(100)
+    o.mu = [-1., 1.]
+    o.initialize_scattering_matrix()
+    o.extrapolate_nu(1e9, 1e11)
+    assert o.nu[0] == 1.e8 and o.nu[-1] == 1.e11
+
+
+def test_extrapolate_lower():
+    o = OpticalProperties()
+    o.nu = np.logspace(8., 10., 100)
+    o.albedo = np.repeat(0.5, 100)
+    o.chi = np.ones(100)
+    o.mu = [-1., 1.]
+    o.initialize_scattering_matrix()
+    o.extrapolate_nu(1e7, 1e9)
+    assert o.nu[0] == 1.e7 and o.nu[-1] == 1.e10
+
+
+def test_extrapolate_both():
+    o = OpticalProperties()
+    o.nu = np.logspace(8., 10., 100)
+    o.albedo = np.repeat(0.5, 100)
+    o.chi = np.ones(100)
+    o.mu = [-1., 1.]
+    o.initialize_scattering_matrix()
+    o.extrapolate_nu(1e7, 1e11)
+    assert o.nu[0] == 1.e7 and o.nu[-1] == 1.e11
+
+
+def test_extrapolate_wav():
+    o = OpticalProperties()
+    o.nu = np.logspace(8., 10., 100)
+    o.albedo = np.repeat(0.5, 100)
+    o.chi = np.ones(100)
+    o.mu = [-1., 1.]
+    o.initialize_scattering_matrix()
+    o.extrapolate_wav(1., 1.e20)
+    assert_array_almost_equal_nulp(o.nu[0], c / 1.e16, 2)
+    assert_array_almost_equal_nulp(o.nu[-1], c / 1.e-4, 2)

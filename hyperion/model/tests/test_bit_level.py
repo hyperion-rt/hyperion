@@ -319,7 +319,7 @@ class TestPascucciBenchmark(object):
         # Set up dust object
         self.dust_file = random_filename()
         dust = IsotropicDust(nu[::-1], albedo[::-1], chi[::-1])
-        dust.optical_properties._extrapolate(1.e-3, 1.e5)
+        dust.optical_properties.extrapolate_wav(1.e-3, 1.e5)
         dust.set_lte_emissivities(n_temp=100, temp_min=0.1, temp_max=1600.)
         dust.write(self.dust_file)
 

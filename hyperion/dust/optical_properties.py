@@ -131,25 +131,104 @@ class OpticalProperties(FreezableClass):
         self.P3 = np.hstack([self.P3[:, :cut], P3_max])
         self.P4 = np.hstack([self.P4[:, :cut], P4_max])
 
-    def _extrapolate(self, wav1, wav2):
+    def extrapolate_wav(self, wav1, wav2):
+        '''
+        Extrapolate the optical properties to a larger frequency range.
 
-        self._sort()
+        Parameters
+        ----------
+        wav1, wav2 : float
+            The range of wavelengths (in microns) to extrapolate the optical
+            properties to.
+
+        Notes
+        -----
+        The extrapolation is done in the following way:
+
+            * The opacity to extinction (``chi``) is extrapolated by fitting a
+              power-law to the opacities at the two highest frequencies and
+              following that power law, and similarly at the lowest
+              frequencies. This ensures that the slope of the opacity remains
+              constant.
+
+            * The albedo is extrapolated by assuming that the albedo is
+              constant outside the original range, and is set to the same
+              value as the values for the lowest and highest frequencies.
+
+            * The scattering matrix is extrapolated similarly to the albedo,
+              by simply extending the values for the lowest and highest
+              frequencies to the new frequency range.
+        '''
 
         nu1 = c / max(wav1, wav2) * 1.e4
         nu2 = c / min(wav1, wav2) * 1.e4
 
-        # need to check both are out of range
+        return self.extrapolate_nu(nu1, nu2)
 
-        ex_c = extrap1d_log10(self.nu, self.chi)
+    def extrapolate_nu(self, nu1, nu2):
+        '''
+        Extrapolate the optical properties to a larger frequency range.
 
-        self.albedo = np.hstack([self.albedo[0], self.albedo, self.albedo[-1]])
-        self.chi = np.hstack([ex_c(nu1), self.chi, ex_c(nu2)])
-        self.nu = np.hstack([nu1, self.nu, nu2])
+        Parameters
+        ----------
+        nu1, nu2 : float
+            The range of frequencies to extrapolate the optical properties to.
 
-        self.P1 = np.vstack([self.P1[0, :], self.P1, self.P1[-1, :]])
-        self.P2 = np.vstack([self.P2[0, :], self.P2, self.P2[-1, :]])
-        self.P3 = np.vstack([self.P3[0, :], self.P3, self.P3[-1, :]])
-        self.P4 = np.vstack([self.P4[0, :], self.P4, self.P4[-1, :]])
+        Notes
+        -----
+        The extrapolation is done in the following way:
+
+            * The opacity to extinction (``chi``) is extrapolated by fitting a
+              power-law to the opacities at the two highest frequencies and
+              following that power law, and similarly at the lowest
+              frequencies. This ensures that the slope of the opacity remains
+              constant.
+
+            * The albedo is extrapolated by assuming that the albedo is
+              constant outside the original range, and is set to the same
+              value as the values for the lowest and highest frequencies.
+
+            * The scattering matrix is extrapolated similarly to the albedo,
+              by simply extending the values for the lowest and highest
+              frequencies to the new frequency range.
+        '''
+
+        self._sort()
+
+        if nu1 >= self.nu[0]:
+
+            logger.info("Lower frequency is inside existing range, no extrapolation will be done at the lowest frequencies")
+
+        else:
+
+            ex_c = extrap1d_log10(self.nu, self.chi)
+
+            self.albedo = np.hstack([self.albedo[0], self.albedo])
+            self.chi = np.hstack([ex_c(nu1), self.chi])
+            self.nu = np.hstack([nu1, self.nu])
+
+            self.P1 = np.vstack([self.P1[0, :], self.P1])
+            self.P2 = np.vstack([self.P2[0, :], self.P2])
+            self.P3 = np.vstack([self.P3[0, :], self.P3])
+            self.P4 = np.vstack([self.P4[0, :], self.P4])
+
+
+        if nu2 <= self.nu[-1]:
+
+            logger.info("Upper frequency is inside existing range, no extrapolation will be done at the highest frequencies")
+
+        else:
+
+            ex_c = extrap1d_log10(self.nu, self.chi)
+
+            self.albedo = np.hstack([self.albedo, self.albedo[-1]])
+            self.chi = np.hstack([self.chi, ex_c(nu2)])
+            self.nu = np.hstack([self.nu, nu2])
+
+            self.P1 = np.vstack([self.P1, self.P1[-1, :]])
+            self.P2 = np.vstack([self.P2, self.P2[-1, :]])
+            self.P3 = np.vstack([self.P3, self.P3[-1, :]])
+            self.P4 = np.vstack([self.P4, self.P4[-1, :]])
 
     def to_table_set(self, table_set):
 

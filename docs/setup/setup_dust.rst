@@ -19,12 +19,17 @@ the properties, and optionally writing out the dust properties to a file::
     # set dust properties here
     d.write('mydust.hdf5')
 
+.. note:: Carefully look at the warnings that are raised when writing the dust
+          file, as these may indicate issues that will have an impact on the
+          radiative transfer. See `Common warnings`_ for more details.
+
 It is also possible to plot the dust properties::
 
     d.plot('mydust.png')
 
 which gives a plot that can be used to get an overview of all the dust
 properties:
+
 
 .. image:: example_dust.png
 
@@ -184,3 +189,68 @@ function of frequency and specific energy, you can do::
                                                    # between 10^-2 and 10^8
     d.emissivities.jnu = np.ones(100, 20)  # constant emissivities
     d.emissivities.var_name = 'specific_energy'
+
+Extrapolating optical properties
+--------------------------------
+
+In some cases (see e.g. `Common warnings`_) it can be necessary to extrapolate
+the dust properties to shorter and/or longer wavelengths. While it would be
+preferable to do this extrapolation properly before passing the values to the
+dust objects, in some cases the extrapolation is relatively straightforward,
+and you can make use of the following extrapolation convenience functions::
+
+    d.optical_properties.extrapolate_wav(0.1, 1000)
+    d.optical_properties.extrapolate_nu(1.e5, 1.e15)
+
+In the first case, the extrapolation is done by specifying wavelengths in
+microns, and in the second case by specifying the frequency (in Hz).
+
+The extrapolation is done in the following way:
+
+* The opacity to extinction (``chi``) is extrapolated by fitting a
+  power-law to the opacities at the two highest frequencies and
+  following that power law, and similarly at the lowest
+  frequencies. This ensures that the slope of the opacity remains
+  constant.
+
+* The albedo is extrapolated by assuming that the albedo is constant outside
+  the original range, and is set to the same value as the values for the
+  lowest and highest frequencies.
+
+* The scattering matrix is extrapolated similarly to the albedo, by simply
+  extending the values for the lowest and highest frequencies to the new
+  frequency range.
+
+The plots shown higher up on this page have made use of these extrapolation
+methods.
+
+Common warnings
+---------------
+
+One of the most common warnings when computing the LTE emissivities or writing out a dust file is the following::
+
+   WARNING: Planck function for lowest temperature not completely covered by opacity function
+   WARNING: Planck function for highest temperature not completely covered by opacity function
+
+The LTE emissivity is set to :math:`\kappa_\nu B_\nu(T)`, so you need to
+ensure that the opacity is defined over a frequency large enough to allow this
+to be calculated from the lowest to the highest temperatures used for the LTE
+emissivities. The default range is quite large (0.1 to 100000K) so you can
+either reduce this range (see `LTE emissivities`_) or you should define the
+optical properties over a larger frequency range (see `Extrapolating optical
+properties`_ for one way to do this).
+
+More specifically, the frequency range should extend almost three orders of
+magnitude above the peak frequency for the coldest temperature, and one order
+of magnitude below the peak frequency for the hottest temperature. For the
+default temperature range for the LTE emissivities (0.1 to 100000K), this
+means going from about 5e7 to 5e16Hz (or 0.5nm to 5m) which is a huge
+frequency range, over which dust properties are often not known. However, in
+most cases, a sensible extrapolation of the properties you have should be fine
+- the plots shown higher up on this page show the values extrapolated to the
+required range. If you restrict yourself to a smaller temperature range (e.g.
+3 to 1600K) you can also reduce the required range significantly.
+
+.. note:: If you do not fix this warning, the normalization of the
+          emissivities will be off, and the results from the radiative
+          transfer may be incorrect!
