@@ -10,6 +10,7 @@ from ..util.integrate import integrate_powerlaw
 from ..dust import SphericalDust
 from ..util.logger import logger
 from ..util.validator import validate_scalar
+from ..grid import SphericalPolarGrid
 
 
 class PowerLawEnvelope(Envelope):
@@ -28,6 +29,9 @@ class PowerLawEnvelope(Envelope):
         >>> envelope.mass = msun
         >>> envelope.rmin = 0.1 * au
         >>> envelope.rmax = pc
+
+    :class:`~hyperion.densities.PowerLawEnvelope` instances can only be used
+    with spherical polar grids at this time.
     '''
 
     def __init__(self):
@@ -191,9 +195,9 @@ class PowerLawEnvelope(Envelope):
 
         Parameters
         ----------
-        grid : :class:`~hyperion.grid.SphericalPolarGrid` or :class:`~hyperion.grid.CylindricalPolarGrid` instance.
-            The spherical or cylindrical polar grid object containing
-            information about the position of the grid cells.
+        grid : :class:`~hyperion.grid.SphericalPolarGrid instance.
+            The spherical polar grid object containing information about the
+            position of the grid cells.
 
         Returns
         -------
@@ -203,6 +207,8 @@ class PowerLawEnvelope(Envelope):
             ``grid.shape``.
         '''
 
+        if not isinstance(grid, SphericalPolarGrid):
+            raise TypeError("grid should be a SphericalPolarGrid instance")
 
         self._check_all_set()
 

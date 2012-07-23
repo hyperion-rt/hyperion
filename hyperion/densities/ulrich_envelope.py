@@ -9,6 +9,7 @@ from ..util.convenience import OptThinRadius
 from ..dust import SphericalDust
 from ..util.logger import logger
 from ..util.validator import validate_scalar
+from ..grid import SphericalPolarGrid
 
 
 def delta_neg(r, q):
@@ -128,6 +129,9 @@ class UlrichEnvelope(Envelope):
         >>> envelope.rho_0 = 1.e-19
         >>> envelope.rmin = 0.1 * au
         >>> envelope.rmax = pc
+
+    :class:`~hyperion.densities.UlrichEnvelope` instances can only be used
+    with spherical polar grids at this time.
     '''
 
     def __init__(self, mdot=None, rho_0=None, rmin=None, rmax=None, rc=None,
@@ -307,9 +311,9 @@ class UlrichEnvelope(Envelope):
 
         Parameters
         ----------
-        grid : :class:`~hyperion.grid.SphericalPolarGrid` or :class:`~hyperion.grid.CylindricalPolarGrid` instance.
-            The spherical or cylindrical polar grid object containing
-            information about the position of the grid cells.
+        grid : :class:`~hyperion.grid.SphericalPolarGrid instance.
+            The spherical polar grid object containing information about the
+            position of the grid cells.
 
         Returns
         -------
@@ -318,6 +322,9 @@ class UlrichEnvelope(Envelope):
             inside each cell. The shape of this array is the same as
             ``grid.shape``.
         '''
+
+        if not isinstance(grid, SphericalPolarGrid):
+            raise TypeError("grid should be a SphericalPolarGrid instance")
 
         self._check_all_set()
 

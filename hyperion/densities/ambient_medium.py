@@ -6,6 +6,7 @@ from ..util.functions import FreezableClass
 from ..util.convenience import OptThinRadius
 from ..dust import SphericalDust
 from ..util.validator import validate_scalar
+from ..grid import SphericalPolarGrid
 
 
 class AmbientMedium(FreezableClass):
@@ -22,6 +23,9 @@ class AmbientMedium(FreezableClass):
         >>> ambient.rho = 1.e-20  # cgs
         >>> ambient.rmin = 0.1 * au  # cm
         >>> ambient.rmax = pc  # cm
+
+    :class:`~hyperion.densities.AmbientMedium` instances can only be used with
+    spherical polar grids at this time.
     '''
     def __init__(self, rho=None, rmin=None, rmax=None):
 
@@ -100,9 +104,9 @@ class AmbientMedium(FreezableClass):
 
         Parameters
         ----------
-        grid : :class:`~hyperion.grid.SphericalPolarGrid` or :class:`~hyperion.grid.CylindricalPolarGrid` instance.
-            The spherical or cylindrical polar grid object containing
-            information about the position of the grid cells.
+        grid : :class:`~hyperion.grid.SphericalPolarGrid instance.
+            The spherical polar grid object containing information about the
+            position of the grid cells.
 
         Returns
         -------
@@ -111,6 +115,9 @@ class AmbientMedium(FreezableClass):
             inside each cell. The shape of this array is the same as
             ``grid.shape``.
         '''
+
+        if not isinstance(grid, SphericalPolarGrid):
+            raise TypeError("grid should be a SphericalPolarGrid instance")
 
         self._check_all_set()
 
