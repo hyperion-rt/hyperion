@@ -13,7 +13,7 @@ form::
 
 where ``<grid_type>`` is the grid type being used, and ``dust`` is a dust file
 in HDF5 format specified either by filename, or as a dust object. See
-:doc:`../advanced/advanced` for more details about creating and using dust files.
+:doc:`setup_dust` for more details about creating and using dust files.
 For example, if you are using a dust file named ``kmh.hdf5``, you can specify
 this with::
 
@@ -41,7 +41,7 @@ Hyperion currently supports five types of 3-d grids:
 * Cartesian grids
 * Spherical polar grids
 * Cylindrical polar grids
-* AMR grids
+* AMR (Adaptive Mesh Refinement) grids
 * Octree grids
 
 The following sections show how the different kinds of grids should be set up.

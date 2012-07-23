@@ -1,7 +1,7 @@
 How to set the luminosity for an external radiation field
 =========================================================
 
-Two source types, :class:`~hyperion.sources.ExternalSphericalSource` and :class:`~hyperion.sources.ExternalBoxSource` are available, and can be used to simulate an external radiation field (such as the interstellar radiation field). One of the tricky parameters to set is the luminosity, because one often knows what the mean intensity of the interstellar radiation field should be, not the total luminosity emitted from a spherical or box surface.
+Two source types, :class:`~hyperion.sources.ExternalSphericalSource` and :class:`~hyperion.sources.ExternalBoxSource` are available, and can be used to simulate an external radiation field (such as the interstellar radiation field). One of the tricky parameters to set is the luminosity, because one often knows what the mean intensity of the interstellar radiation field should be, but not the total luminosity emitted from a spherical or box surface.
 
 From empirical tests, we find that if one wants a particular value of :math:`J` (the mean intensity integrated over frequency), then the luminosity should be set to :math:`A\pi J` where :math:`A` is the area of the external source. We can check this with a specific example. `Mathis, Mezger, and Panagia (1983) <http://adsabs.harvard.edu/abs/1983A%26A...128..212M>`_ find
 

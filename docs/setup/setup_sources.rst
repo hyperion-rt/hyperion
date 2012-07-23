@@ -9,8 +9,8 @@ Sources can be added to the model using methods of the form
 
     source = m.add_point_source()
 
-These methods return a handle to the source object, which if captured allow
-the user to set and modify the source parameters::
+These methods return a source 'object' that can be used to set and modify the
+source parameters::
 
     source = m.add_point_source()
     source.luminosity = lsun
@@ -30,7 +30,7 @@ All sources require a luminosity, given by the ``luminosity`` attribute (or
 three ways:
 
 * by specifying a spectrum using the ``spectrum`` attribute (or ``spectrum=``
-  argument). The spectrum should either be a tuple of (nu, fnu) or an instance
+  argument). The spectrum should either be a ``(nu, fnu)`` pair or an instance
   of an ``atpy.Table`` with two columns named 'nu' and 'fnu'. For example,
   given a file ``spectrum.txt`` with two columns listing frequency and flux,
   the spectrum can be set using::

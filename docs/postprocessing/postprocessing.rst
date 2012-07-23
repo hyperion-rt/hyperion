@@ -26,5 +26,5 @@ The :doc:`../tutorials/index` section contains a number of examples illustrating
           Ds9 version 7 or later is required to be able to navigate FITS
           cubes with more than 3 dimensions. This is only meant as a quick
           look tool. To extract properly scaled and sliced information
-          from the output file, see the sections below.
+          from the output file, see the sections above.
 

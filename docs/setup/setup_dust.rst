@@ -283,3 +283,10 @@ required range. If you restrict yourself to a smaller temperature range (e.g.
 .. note:: If you do not fix this warning, the normalization of the
           emissivities will be off, and the results from the radiative
           transfer may be incorrect!
+
+Writing dust files without the Python library
+---------------------------------------------
+
+If for any reason you wish to write the HDF5 dust files directly without using
+the Hyperion Python library, you can find a detailed description of the format
+in :doc:`../advanced/dust_file`.

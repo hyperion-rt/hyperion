@@ -7,43 +7,10 @@ Overview
 
 Hyperion requires information on the dust properties, such as the albedo,
 opacity, mean opacities, and emissivities. These need to be packaged in an
-HDF5 format that is described in the :ref:`specification`. However, in most
-cases you do not need to create these files from scratch.
-
-Creating dust files
-===================
-
-Converting dust files from the ``ttsre`` code
-----------------------------------------------
-
-Converting a dust file from the format used by Barb Whitney's ``ttsre`` code
-is straightforward. Given for example the ``kmh.par`` file, you can create an
-HDF5 file in the format required for Hyperion using::
-
-    from hyperion.dust import SimpleSphericalDust
-    d = SimpleSphericalDust('kmh.par')
-    d.write('kmh.hdf5')
-
-This is a one-time operation for each dust type - once the HDF5 file has been
-created, you do not need to recreate it every time you want to set up a model.
-You will only need to run this again if explicitly asked to after a Hyperion
-update.
-
-.. note:: If you get an error that looks like::
-
-              Exception: x values are out of interpolation bounds
-
-          this means that the optical properties are not defined for a wide
-          enough range of wavelengths. You can extrapolate the existing values
-          using::
-
-              d.optical_properties._extrapolate(1.e-3, 1.e7)
-
-          before the ``d.write`` command.
-
-In addition, you can plot an overview of the optical properties using::
-
-    d.plot('kmh.png')
+HDF5 format that is described below. In most cases you do not need to create
+these files from scratch, and you can instead use the Hyperion Python library
+to produce these (see :doc:`../setup/setup_dust`). If however you want to
+write the files directly without the Python library, this section is for you!
 
 .. _specification:
 
