@@ -83,5 +83,6 @@ of Hyperion was invaluable:
 * Stella Offner
 * Sarah Ragan
 * Andrew Schechtman-Rook
+* Amy Stutz
 * Barbara Whitney
 * Mike Wolff

@@ -9,6 +9,16 @@ scattering of randomly oriented grains, using a 4-element Mueller matrix
 <http://www.aanda.org/index.php?option=com_article&access=doi&doi=10.1051/0004-6361/201117150&Itemid=129>`_
 for more details.
 
+.. note:: Because the choice of a dust model is very important for the model,
+          no 'default' dust models are provided with Hyperion, as there is no
+          single sensible default. Instead, you can set up any dust model
+          using the instructions below. In future, a database of published and
+          common dust models will be provided. If you are not sure which dust
+          model to use, or are not familiar with opacities, albedos, and
+          scattering phase functions, you are strongly encouraged to team up
+          with someone who is an expert on the topic of dust, as this should
+          not be left to chance!
+
 There are several ways to set up the dust properties that you want to use, and
 these are detailed in sections below. In all cases, setting up the dust models
 is done by first creating an instance of a specific dust class, then setting
@@ -30,8 +40,18 @@ It is also possible to plot the dust properties::
 which gives a plot that can be used to get an overview of all the dust
 properties:
 
-
 .. image:: example_dust.png
+   :align: center
+
+Important note on units
+-----------------------
+
+In all of the following sections, quantities should be specified in the cgs
+system of units (e.g. :math:`cm^2/g` for the opacities). Whether the opacities
+are specified per unit mass of dust or gas is not important, as long as the
+densities specified when setting up the geometry are consistent. For example,
+if the opacities are specified per unit dust mass, the densities specified
+when setting up the model should be dust densities.
 
 Dust with isotropic scattering
 ------------------------------
@@ -41,8 +61,8 @@ First, import the ``IsotropicDust`` class::
 
    from hyperion.dust import IsotropicDust
 
-and instantiate it by specifying the frequency, albedo, and opacity to
-extinction::
+and create and instance of the class by specifying the frequency, albedo, and
+opacity to extinction (absorption + scattering)::
 
     d = IsotropicDust(nu, albedo, chi)
 
@@ -58,13 +78,17 @@ Dust with Henyey-Greenstein scattering
 
 Creating a dust object with Henyey-Greenstein scattering properties is very
 similar to isotropic scattering, with the exception that the scattering
-parameters have to be specified. First, import the ``HenyeyGreensteinDust``
-class::
+parameters have to be specified. The scattering is anisotropic, and the phase
+function is defined by analytical functions (`Henyey & Greenstein, 1941
+<http://dx.doi.org/10.1086/144246>`_).
+
+First, import the ``HenyeyGreensteinDust`` class::
 
    from hyperion.dust import HenyeyGreensteinDust
 
-and instantiate it by specifying the frequency, albedo, opacity to
-extinction, and the anisotropy factor and the maximum polarization::
+and create an instance of the class by specifying the frequency, albedo,
+opacity to extinction (absorption + scattering), and the anisotropy factor and
+the maximum polarization::
 
     d = HenyeyGreensteinDust(nu, albedo, chi, g, p_lin_max)
 
@@ -78,6 +102,11 @@ equilibrium.
 
 Fully customized 4-element dust
 -------------------------------
+
+While the Henyey-Greenstein scattering phase function allows for anisotropic
+scattering, it approximates the phase function by analytical equations. In
+some cases, it is desirable to instead use the full numerical phase function
+which can be arbitrarily complex.
 
 To set up a fully customized 4-element dust model, first import the
 ``SphericalDust`` class (this actually refers to any kind of dust that would
