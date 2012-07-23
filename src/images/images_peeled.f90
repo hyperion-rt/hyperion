@@ -162,17 +162,17 @@ contains
 
           if(ignore_optical_depth(ig)) then
              if(polychromatic) then
-                 column_density = 0._dp
+                column_density = 0._dp
              else
-                 tau = 0._dp
+                tau = 0._dp
              end if
              killed = .false.
           else
-              if(polychromatic) then
-                 call grid_escape_column_density(p,tmax,column_density,killed)
-              else
-                 call grid_escape_tau(p,tmax,tau,killed)
-              end if
+             if(polychromatic) then
+                call grid_escape_column_density(p,tmax,column_density,killed)
+             else
+                call grid_escape_tau(p,tmax,tau,killed)
+             end if
           end if
 
           ! For inside observer, don't want optical depth to escape grid, just to go to observer!
@@ -271,7 +271,7 @@ contains
        ! If an inside observer, check that the longitudes are inverted
        if(inside_observer(ig)) then
           if(peeled_image(ig)%compute_image) then
-              if(peeled_image(ig)%x_min < peeled_image(ig)%x_max) call error("peeled_images_setup", "longitudes should increase towards the left for inside observers")
+             if(peeled_image(ig)%x_min < peeled_image(ig)%x_max) call error("peeled_images_setup", "longitudes should increase towards the left for inside observers")
           end if
        end if
 

@@ -93,8 +93,8 @@ module type_image
 
      integer :: n_orig
 
-    integer :: n_sources
-    integer :: n_dust
+     integer :: n_sources
+     integer :: n_dust
 
   end type image
 
@@ -395,12 +395,12 @@ contains
 
     ! Find origin flag
     if(trim(img%track_origin) == 'detailed') then
-        io = ((orig(p) - mod(orig(p),2)) * img%n_sources + (orig(p) - mod(orig(p)+1,2) - 1) * img%n_dust) / 2
-        if(mod(orig(p),2)==0) then
-            io = io + p%dust_id
-        else
-            io = io + p%source_id
-        end if
+       io = ((orig(p) - mod(orig(p),2)) * img%n_sources + (orig(p) - mod(orig(p)+1,2) - 1) * img%n_dust) / 2
+       if(mod(orig(p),2)==0) then
+          io = io + p%dust_id
+       else
+          io = io + p%source_id
+       end if
     else if(trim(img%track_origin) == 'basic') then
        io = orig(p)
     else
@@ -460,12 +460,12 @@ contains
 
     ! Find origin flag
     if(trim(img%track_origin) == 'detailed') then
-        io = ((orig(p) - mod(orig(p),2)) * img%n_sources + (orig(p) - mod(orig(p)+1,2) - 1) * img%n_dust) / 2
-        if(mod(orig(p),2)==0) then
-            io = io + p%dust_id
-        else
-            io = io + p%source_id
-        end if
+       io = ((orig(p) - mod(orig(p),2)) * img%n_sources + (orig(p) - mod(orig(p)+1,2) - 1) * img%n_dust) / 2
+       if(mod(orig(p),2)==0) then
+          io = io + p%dust_id
+       else
+          io = io + p%source_id
+       end if
     else if(trim(img%track_origin) == 'basic') then
        io = orig(p)
     else
@@ -566,7 +566,7 @@ contains
     !         - (nu_max / nu_min) ** (-0.5 / n_nu)
 
     dnunorm = (img%nu_max / img%nu_min) ** (+0.5_dp / real(img%n_nu, dp)) &
-            - (img%nu_max / img%nu_min) ** (-0.5_dp / real(img%n_nu, dp))
+         - (img%nu_max / img%nu_min) ** (-0.5_dp / real(img%n_nu, dp))
 
     if(img%compute_sed) then
 
@@ -629,8 +629,8 @@ contains
 
        call mp_write_keyword(group, 'seds', 'track_origin', img%track_origin)
        if(trim(img%track_origin) == 'detailed') then
-        call mp_write_keyword(group, 'seds', 'n_sources', img%n_sources)
-        call mp_write_keyword(group, 'seds', 'n_dust', img%n_dust)
+          call mp_write_keyword(group, 'seds', 'n_sources', img%n_sources)
+          call mp_write_keyword(group, 'seds', 'n_dust', img%n_dust)
        end if
 
     end if
@@ -693,8 +693,8 @@ contains
 
        call mp_write_keyword(group, 'images', 'track_origin', img%track_origin)
        if(trim(img%track_origin) == 'detailed') then
-        call mp_write_keyword(group, 'images', 'n_sources', img%n_sources)
-        call mp_write_keyword(group, 'images', 'n_dust', img%n_dust)
+          call mp_write_keyword(group, 'images', 'n_sources', img%n_sources)
+          call mp_write_keyword(group, 'images', 'n_dust', img%n_dust)
        end if
 
     end if

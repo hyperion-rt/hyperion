@@ -114,8 +114,8 @@ program main
   ! writing tables with uneven field names (which we need) was buggy before
   ! that version.
   if(copy_input.and..not.mp_test_version(1, 8, 6)) then
-      if(main_process()) call warn("main","copy_input option requires HDF5 1.8.6 or later, linking input")
-      copy_input = .false.
+     if(main_process()) call warn("main","copy_input option requires HDF5 1.8.6 or later, linking input")
+     copy_input = .false.
   end if
 
   if(copy_input) then
