@@ -154,8 +154,8 @@ static PyObject *interp1d_linear_array(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_RuntimeError, "Dimension mismatch.");
         Py_DECREF(x_array);
         Py_DECREF(y_array);
-        Py_XDECREF(xval_array);
-        Py_XDECREF(ipos_array);
+        Py_DECREF(xval_array);
+        Py_DECREF(ipos_array);
         return NULL;
     }
 
