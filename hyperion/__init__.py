@@ -8,9 +8,12 @@ from .version import __version__
 
 # Set up the test function
 _test_runner = None
+
+
 def _get_test_runner():
     from .testing.helper import TestRunner
     return TestRunner(__path__[0])
+
 
 def test(package=None, test_path=None, args=None, plugins=None,
          verbose=False, pastebin=None, generate_reference=False,

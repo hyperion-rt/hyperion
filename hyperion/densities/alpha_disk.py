@@ -230,7 +230,7 @@ class AlphaDisk(FreezableClass):
             validate_scalar('lvisc', value, domain='positive')
             if self._mdot is not None:
                 logger.warn("Overriding value of mdot with value derived from lvisc")
-                self._mdot= None
+                self._mdot = None
         self._lvisc = value
 
     @property

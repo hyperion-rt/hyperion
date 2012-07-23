@@ -29,7 +29,6 @@ class FlaredDisk(FreezableClass):
         >>> disk.rmax = 100 * au
     '''
 
-
     def __init__(self, mass=0., rmin=None, rmax=None, p=-1,
                  beta=-1.25, h_0=None, r_0=None,
                  cylindrical_inner_rim=True,

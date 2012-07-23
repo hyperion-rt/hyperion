@@ -3,6 +3,7 @@ import numpy as np
 from ..model import Model
 from .test_helpers import random_filename, get_test_dust
 
+
 def test_mono_zero_prob():
 
     # Check that when total probability is zero in a given dust type for a given wavelength, the code doesn't crash

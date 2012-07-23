@@ -107,6 +107,7 @@ class TestImageSimpleModel(object):
         with pytest.raises(ValueError):
             wav, nufnu = self.m.get_image(units=units)
 
+
 class TestSEDSimpleModelTrackingDetailed(object):
 
     def setup_class(self):

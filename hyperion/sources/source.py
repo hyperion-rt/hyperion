@@ -12,6 +12,7 @@ from ..util.constants import c
 from ..util.validator import validate_scalar
 from ..util.logger import logger
 
+
 class Source(FreezableClass):
     '''
     This class is not meant to be used directly, but forms the basis for all other source types.
@@ -331,6 +332,7 @@ class PointSource(Source):
         g.attrs['z'] = self.position[2]
         Source.write(self, g)
 
+
 class SphericalSource(Source):
     '''
     A spherical source
@@ -348,7 +350,6 @@ class SphericalSource(Source):
     '''
 
     def __init__(self, name=None, peeloff=True, **kwargs):
-
 
         self.position = (0., 0., 0.)
         self.radius = None
@@ -470,7 +471,6 @@ class ExternalSphericalSource(Source):
 
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
-
     @property
     def radius(self):
         """
@@ -547,7 +547,6 @@ class ExternalBoxSource(Source):
     Any additional arguments are are used to initialize attributes.
     '''
 
-
     def __init__(self, name=None, peeloff=True, **kwargs):
 
         self.bounds = None
@@ -571,7 +570,7 @@ class ExternalBoxSource(Source):
             elif is_numpy_array(value):
                 if value.ndim != 2:
                     raise ValueError("bounds should be a 2-d array")
-                if value.shape != (3,2):
+                if value.shape != (3, 2):
                     raise ValueError("bounds should have a shape of (3, 2)")
             else:
                 raise ValueError("bounds should be a tuple, list, or Numpy array")
@@ -677,7 +676,6 @@ class PlaneParallelSource(Source):
     '''
 
     def __init__(self, name=None, peeloff=False, **kwargs):
-
 
         if peeloff:
             raise ValueError("Cannot peeloff plane parallel source")

@@ -601,7 +601,6 @@ class AMRGridView(AMRGrid):
                     raise Exception("Can only append a single grid")
                 grid_ref.quantities[self.viewed_quantity].append(deepcopy(grid.quantities[amr_grid_view.viewed_quantity]))
 
-
     def add(self, amr_grid_view):
         '''
         Used to add quantities from another grid

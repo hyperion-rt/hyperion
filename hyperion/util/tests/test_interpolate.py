@@ -7,6 +7,7 @@ from ..interpolate import *
 
 DTYPES = ['<f4', '>f4', '<f8', '>f8', '<i4', '>i4', '<i8', '>i8']
 
+
 class GenericTests(object):
 
     def setup_class(self):
@@ -97,7 +98,6 @@ class GenericTests(object):
         y = np.array([1, 1], dtype=dtype_y)
         xval = 3.
         assert self.interp(x, y, xval) == 1.
-
 
 
 class TestLinear(GenericTests):

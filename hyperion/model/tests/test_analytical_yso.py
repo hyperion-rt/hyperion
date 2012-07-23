@@ -154,6 +154,7 @@ def test_analytical_yso_optthinradius_manual_check_frozen():
 
     m.write(random_filename())
 
+
 def test_analytical_yso_add_density():
     m = AnalyticalYSOModel()
     with pytest.raises(NotImplementedError) as exc:
@@ -230,6 +231,7 @@ def test_analytical_yso_use_geometry_quantities():
     m2.use_quantities(output_file, quantities=['specific_energy'])
     m2.write(random_filename())
     m2.run(random_filename())
+
 
 def test_ambient_medium():
 

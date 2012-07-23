@@ -85,7 +85,6 @@ class SphericalDust(FreezableClass):
         self.emissivities.set_lte(self.optical_properties, n_temp=n_temp,
                                   temp_min=temp_min, temp_max=temp_max)
 
-
     def plot(self, filename):
 
         import matplotlib.pyplot as plt

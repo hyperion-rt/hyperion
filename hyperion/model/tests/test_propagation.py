@@ -348,7 +348,6 @@ class TestSphericalSmall(object):
     p = np.linspace(0., 2. * np.pi, 15)
 
 
-
 class TestCylindricalBase(object):
 
     w = np.linspace(0., 10., 15)

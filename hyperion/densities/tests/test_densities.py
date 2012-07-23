@@ -10,6 +10,8 @@ from ...util.convenience import OptThinRadius
 from ...util.constants import G
 
 # A fake star class so that star.mass is defined
+
+
 class Star(object):
     def __init__(self):
         self.mass = None
@@ -33,6 +35,7 @@ def test_flared_disk_negative(parameter):
         with pytest.raises(ValueError) as exc:
             d.__setattr__(parameter, -1.)  # negative values are not valid
         assert exc.value.args[0] == parameter + ' should be positive'
+
 
 @pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0'])
 def test_flared_disk_optthin(parameter):
@@ -85,6 +88,7 @@ def test_alpha_disk_negative(parameter):
             d.__setattr__(parameter, -1.)  # negative values are not valid
         assert exc.value.args[0] == parameter + ' should be positive'
 
+
 @pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0', 'mdot', 'lvisc'])
 def test_alpha_disk_optthin(parameter):
     d = AlphaDisk()
@@ -116,6 +120,7 @@ def test_alpha_disk_invalid2(parameter):
         assert exc.value.args[0] == parameter + ' should be a scalar value or an OptThinRadius instance'
     else:
         assert exc.value.args[0] == parameter + ' should be a scalar value'
+
 
 def test_alpha_disk_swap1():
     e = AlphaDisk()
@@ -283,6 +288,7 @@ def test_power_law_envelope_invalid1(parameter):
     else:
         assert exc.value.args[0] == parameter + ' should be a numerical value'
 
+
 @pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'power', 'rho_0', 'r_0'])
 def test_power_law_envelope_invalid2(parameter):
     e = PowerLawEnvelope()
@@ -322,6 +328,7 @@ def test_power_law_envelope_swap3():
     e.rmax = 10.
     e.power = -2.
     assert e.mass == 0.
+
 
 def test_power_law_envelope_rho0_calc():
     e = PowerLawEnvelope()

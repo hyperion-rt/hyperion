@@ -14,6 +14,7 @@ WALL[CartesianGrid] = ['x_wall', 'y_wall', 'z_wall']
 WALL[CylindricalPolarGrid] = ['w_wall', 'z_wall', 'p_wall']
 WALL[SphericalPolarGrid] = ['r_wall', 't_wall', 'p_wall']
 
+
 @pytest.mark.parametrize(('grid'), GRIDS)
 def test_grid_list(grid):
     grid([0., 1.], [0., 1.], [0., 1.])

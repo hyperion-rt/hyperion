@@ -17,8 +17,10 @@ TMPDIR = tempfile.mkdtemp()
 
 MAX_FLOAT = np.log(np.finfo('d').max)
 
+
 def bool2str(value):
     return np.string_('yes'.encode('utf-8')) if value else np.string_('no'.encode('utf-8'))
+
 
 def link_or_copy(group, name, link, copy, absolute_paths=False):
     '''
@@ -55,6 +57,7 @@ def link_or_copy(group, name, link, copy, absolute_paths=False):
             f = h5py.File(link.filename, 'r')
             f.copy(link.path, group, name=name)
             f.close()
+
 
 class FreezableClass(object):
 
@@ -169,6 +172,7 @@ def B_nu(nu, T):
     f[keep] = 2. * h * nu[keep] ** 3. / c ** 2. / (np.exp(x[keep]) - 1.)
     return f
 
+
 def filename2fits(filename):
 
     ext = os.path.splitext(filename)[1]
@@ -221,6 +225,7 @@ def delete_file(file_name):
             print("Aborting...")
             sys.exit()
 
+
 def is_numpy_array(variable):
     return type(variable) in [np.ndarray,
                               np.core.records.recarray,
@@ -228,7 +233,7 @@ def is_numpy_array(variable):
 
 
 def monotonically_increasing(array):
-    for i in range(len(array)-1):
-        if not array[i+1] > array[i]:
+    for i in range(len(array) - 1):
+        if not array[i + 1] > array[i]:
             return False
     return True

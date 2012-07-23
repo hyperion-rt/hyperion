@@ -12,6 +12,7 @@ from .integrate_core import _integrate, \
                             _integrate_linlog, \
                             _integrate_loglog
 
+
 def integrate_subset(x, y, xmin, xmax):
     '''
     Perform trapezium integration of a set of points (x,y) between bounds xmin
@@ -38,14 +39,14 @@ def integrate_subset(x, y, xmin, xmax):
         ymin = y[0]
     else:
         i1 = np.searchsorted(x, xmin)
-        ymin = interp1d_fast(x[i1-1:i1+1], y[i1-1:i1+1], xmin)
+        ymin = interp1d_fast(x[i1 - 1:i1 + 1], y[i1 - 1:i1 + 1], xmin)
 
     if xmax == x[-1]:
         i2 = -2
         ymax = y[-1]
     else:
         i2 = np.searchsorted(x, xmax)
-        ymax = interp1d_fast(x[i2-1:i2+1], y[i2-1:i2+1], xmax)
+        ymax = interp1d_fast(x[i2 - 1:i2 + 1], y[i2 - 1:i2 + 1], xmax)
 
     # Construct sub-arrays of the relevant data
     x = np.hstack([xmin, x[i1:i2], xmax])
@@ -82,14 +83,14 @@ def integrate_loglin_subset(x, y, xmin, xmax):
         ymin = y[0]
     else:
         i1 = np.searchsorted(x, xmin)
-        ymin = interp1d_fast_loglin(x[i1-1:i1+1], y[i1-1:i1+1], xmin)
+        ymin = interp1d_fast_loglin(x[i1 - 1:i1 + 1], y[i1 - 1:i1 + 1], xmin)
 
     if xmax == x[-1]:
         i2 = -2
         ymax = y[-1]
     else:
         i2 = np.searchsorted(x, xmax)
-        ymax = interp1d_fast_loglin(x[i2-1:i2+1], y[i2-1:i2+1], xmax)
+        ymax = interp1d_fast_loglin(x[i2 - 1:i2 + 1], y[i2 - 1:i2 + 1], xmax)
 
     # Construct sub-arrays of the relevant data
     x = np.hstack([xmin, x[i1:i2], xmax])
@@ -126,14 +127,14 @@ def integrate_linlog_subset(x, y, xmin, xmax):
         ymin = y[0]
     else:
         i1 = np.searchsorted(x, xmin)
-        ymin = interp1d_fast_linlog(x[i1-1:i1+1], y[i1-1:i1+1], xmin)
+        ymin = interp1d_fast_linlog(x[i1 - 1:i1 + 1], y[i1 - 1:i1 + 1], xmin)
 
     if xmax == x[-1]:
         i2 = -2
         ymax = y[-1]
     else:
         i2 = np.searchsorted(x, xmax)
-        ymax = interp1d_fast_linlog(x[i2-1:i2+1], y[i2-1:i2+1], xmax)
+        ymax = interp1d_fast_linlog(x[i2 - 1:i2 + 1], y[i2 - 1:i2 + 1], xmax)
 
     # Construct sub-arrays of the relevant data
     x = np.hstack([xmin, x[i1:i2], xmax])
@@ -169,14 +170,14 @@ def integrate_loglog_subset(x, y, xmin, xmax):
         ymin = y[0]
     else:
         i1 = np.searchsorted(x, xmin)
-        ymin = interp1d_fast_loglog(x[i1-1:i1+1], y[i1-1:i1+1], xmin)
+        ymin = interp1d_fast_loglog(x[i1 - 1:i1 + 1], y[i1 - 1:i1 + 1], xmin)
 
     if xmax == x[-1]:
         i2 = -2
         ymax = y[-1]
     else:
         i2 = np.searchsorted(x, xmax)
-        ymax = interp1d_fast_loglog(x[i2-1:i2+1], y[i2-1:i2+1], xmax)
+        ymax = interp1d_fast_loglog(x[i2 - 1:i2 + 1], y[i2 - 1:i2 + 1], xmax)
 
     # Construct sub-arrays of the relevant data
     x = np.hstack([xmin, x[i1:i2], xmax])

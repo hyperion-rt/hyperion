@@ -1,6 +1,7 @@
 import os
 import pytest
 
+
 def pytest_addoption(parser):
     parser.addoption('--generate-reference', help="generate reference results for bit-level tests", type="string")
     parser.addoption('--enable-bit-level-tests', help="enable bit-level tests", action="store_true")
@@ -16,4 +17,3 @@ def pytest_runtest_setup(item):
             item.funcargs['generate'] = item.config.getvalue("generate_reference")
     if 'enable_bit_level_tests' in item.keywords and not item.config.getvalue("enable_bit_level_tests"):
         pytest.skip("need --enable-bit-level-tests option to run")
-

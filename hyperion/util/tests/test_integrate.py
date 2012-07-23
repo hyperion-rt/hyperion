@@ -21,6 +21,7 @@ cases = [(1.0, 5.0), (1.0, 2.0), (1.0, 3.0), (1.5, 2.5), (1.2, 3.4),
 
 DTYPES = ['<f4', '>f4', '<f8', '>f8', '<i4', '>i4', '<i8', '>i8']
 
+
 @pytest.mark.parametrize(('xmin', 'xmax'), cases)
 def test_linear_subset(xmin, xmax):
     x = np.array([1., 2., 3., 4., 5.])

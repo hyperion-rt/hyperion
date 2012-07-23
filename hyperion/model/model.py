@@ -372,7 +372,6 @@ class Model(FreezableClass, RunConf):
                         if isinstance(dust, basestring):
                             dust = SphericalDust(dust)
 
-
                         if dust.hash() in present:
                             g_dust[short_name] = h5py.SoftLink(present[dust.hash()])
                         else:
@@ -537,7 +536,6 @@ class Model(FreezableClass, RunConf):
                         ip = self.dust.index(dust)
                         self.grid['density'][ip].add(density)
                         return
-
 
                 else:
 

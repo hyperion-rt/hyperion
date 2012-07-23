@@ -26,6 +26,7 @@ generate_reference = pytest.mark.generate_reference
 
 bit_level = pytest.mark.enable_bit_level_tests
 
+
 def setup_all_grid_types(self, u, d):
     '''
     All grids are guaranteed to cover the volume from -u to u in x, y, z

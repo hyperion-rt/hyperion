@@ -160,7 +160,6 @@ class UlrichEnvelope(Envelope):
 
         self._freeze()
 
-
     @property
     def rmin(self):
         """inner radius (cm)"""
@@ -239,7 +238,7 @@ class UlrichEnvelope(Envelope):
             validate_scalar('rho_0', value, domain='positive')
             if self._mdot is not None:
                 logger.warn("Overriding value of mdot with value derived from rho_0")
-                self._mdot= None
+                self._mdot = None
         self._rho_0 = value
 
     @property

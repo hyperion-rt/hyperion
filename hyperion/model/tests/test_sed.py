@@ -207,6 +207,7 @@ class TestSEDSimpleModelTrackingDetailed(object):
             wav, nufnu = self.m.get_sed(dust_id=1, component='dust_emit')
         assert exc.value.args[0] == 'dust_id should be between 0 and 0'
 
+
 class TestSimpleModelInside(object):
 
     def setup_class(self):

@@ -217,7 +217,6 @@ class OctreeGrid(FreezableClass):
                 elif n_pop != n_pop_ref:
                     raise ValueError("Not all dust lists in the grid have the same size")
 
-
     def read(self, group, quantities='all'):
         '''
         Read the geometry and physical quantities from an octree grid

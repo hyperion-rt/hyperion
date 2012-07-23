@@ -140,7 +140,7 @@ class PowerLawEnvelope(Envelope):
             validate_scalar('rho_0', value, domain='positive')
             if self._mass is not None:
                 logger.warn("Overriding value of mass with value derived from rho_0")
-                self._mass= None
+                self._mass = None
         self._rho_0 = value
 
     @property

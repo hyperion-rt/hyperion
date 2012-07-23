@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def validate_scalar(name, value, domain=None, extra=''):
 
     if not np.isscalar(value):

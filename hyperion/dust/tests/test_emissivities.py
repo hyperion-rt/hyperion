@@ -212,6 +212,7 @@ def test_lte_emissivities():
     e.var = [0.1, 1.]
     e.set_lte(o, n_temp=10, temp_min=1., temp_max=1000.)
 
+
 def test_io():
     o = OpticalProperties()
     o.nu = np.array([1.e8, 1.e16])
@@ -229,4 +230,3 @@ def test_io():
     assert np.all(e.nu == e_new.nu)
     assert np.all(e.var == e_new.var)
     assert np.all(e.jnu == e_new.jnu)
-

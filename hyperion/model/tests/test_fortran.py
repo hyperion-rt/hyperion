@@ -9,6 +9,7 @@ from .. import Model
 
 from .test_helpers import random_filename, get_test_dust
 
+
 def test_point_source_outside_grid():
 
     dust = get_test_dust()
@@ -38,7 +39,7 @@ def test_unsorted_spectrum():
     m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
     m.set_n_photons(initial=100, imaging=0)
     s = m.add_point_source()
-    s._spectrum = {'nu': [3.e20,2.e10,1], 'fnu': [1,2,3]}
+    s._spectrum = {'nu': [3.e20, 2.e10, 1], 'fnu': [1, 2, 3]}
     s.luminosity = 1.
     m.write(random_filename())
     log_file = random_filename()

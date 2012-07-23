@@ -682,7 +682,7 @@ class ModelOutput(FreezableClass):
                     DX, DY = np.meshgrid(dx, dy)
                     pix_area = DX * DY
 
-                    scale = 1.e17 / nu[np.newaxis,np.newaxis,:] / pix_area[:,:,np.newaxis]
+                    scale = 1.e17 / nu[np.newaxis, np.newaxis, :] / pix_area[:, :, np.newaxis]
 
                 else:
 
@@ -791,7 +791,6 @@ class ModelOutput(FreezableClass):
             return wav, flux, unc
         else:
             return wav, flux
-
 
     @on_the_fly_hdf5
     def get_available_components(self, iteration=-1):
