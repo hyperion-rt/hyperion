@@ -323,6 +323,25 @@ def test_power_law_envelope_swap3():
     e.power = -2.
     assert e.mass == 0.
 
+def test_power_law_envelope_rho0_calc():
+    e = PowerLawEnvelope()
+    e.rmin = 9.
+    e.rmax = 18.
+    e.r_0 = 3.
+    e.power = -1.
+    e.mass = 4. * np.pi * 27 * 27
+    assert_array_almost_equal_nulp(e.rho_0, 2., 2)
+
+
+def test_power_law_envelope_mass_calc():
+    e = PowerLawEnvelope()
+    e.rmin = 9.
+    e.rmax = 18.
+    e.r_0 = 3.
+    e.power = -1.
+    e.rho_0 = 2.
+    assert_array_almost_equal_nulp(e.mass, 4. * np.pi * 27 * 27, 2)
+
 
 def test_power_law_cavity():
     e = PowerLawEnvelope()
@@ -433,6 +452,28 @@ def test_ulrich_envelope_swap3():
     e.rmax = 10.
     e.rho_0 = 0.
     assert e.mdot == 0.
+
+
+def test_ulrich_envelope_rho0_calc():
+    e = UlrichEnvelope()
+    e.star = Star()
+    e.star.mass = 10.
+    e.rmin = 1.
+    e.rc = 2.
+    e.rmax = 10.
+    e.mdot = 7.
+    assert_array_almost_equal_nulp(e.rho_0, 7. / (4. * np.pi * np.sqrt(80. * G)), 2)
+
+
+def test_ulrich_envelope_mdot_calc():
+    e = UlrichEnvelope()
+    e.star = Star()
+    e.star.mass = 10.
+    e.rmin = 1.
+    e.rc = 2.
+    e.rmax = 10.
+    e.rho_0 = 7. / (4. * np.pi * np.sqrt(80. * G))
+    assert_array_almost_equal_nulp(e.mdot, 7., 2)
 
 
 def test_ulrich_cavity():
