@@ -29,20 +29,10 @@ object to set the parameters further::
     disk.mass = 0.01 * msun             # Disk mass
     disk.rmin = 10 * rsun               # Inner radius
     disk.rmax = 300 * au                # Outer radius
-    disk.h_star = 0.01 * rsun           # Disk scaleheight at r_star
-    disk.alpha = 2.25                   # Radial volume density exponent
+    disk.r_0 = 100. * au                # Radius at which h_0 is defined
+    disk.h_0 = 5 * au                   # Disk scaleheight at r_0
+    disk.p = -1                         # Radial surface density exponent
     disk.beta = 1.25                    # Disk flaring power
-
-The accretion properties of the disk can be specified in two ways. Either the disk accretion rate can be specified::
-
-    disk.mdot = 1e-6 * msun / yr        # Disk accretion rate
-
-or the accretion luminosity from viscous dissipation::
-
-    disk.lacc = 0.01 * lsun
-
-Note that this accretion luminosity only includes the luminosity down to
-``disk.rmin``, and does not include the luminosity from the stellar surface.
 
 Envelopes
 ---------
@@ -92,6 +82,67 @@ returns a :class:`~hyperion.densities.BipolarCavity` instance::
     cavity.theta_0 = 10                 # Opening angle at r_0 (degrees)
     cavity.rho_0 = 1.e-20               # Density at r_0
     cavity.rho_exp = 0.                 # Vertical density exponent
+
+Accretion
+---------
+
+Viscous dissipation
+^^^^^^^^^^^^^^^^^^^
+
+.. note:: This feature is still experimental, please use with caution and
+          report any issues!
+
+To simulate the effects of accretion due to viscous dissipation of energy in the disk, you can use an 'alpha accretion' disk instead of a plain flared disk. Such disks can be added using the
+:meth:`~hyperion.model.AnalyticalYSOModel.add_alpha_disk` method, and
+capturing the reference to the :class:`~hyperion.densities.AlphaDisk`
+object to set the parameters further. The parameters are the same as for flared disks::
+
+    disk = m.add_alpha_disk()
+    disk.mass = 0.01 * msun             # Disk mass
+    disk.rmin = 10 * rsun               # Inner radius
+    disk.rmax = 300 * au                # Outer radius
+    disk.r_0 = 100. * au                # Radius at which h_0 is defined
+    disk.h_0 = 5 * au                   # Disk scaleheight at r_0
+    disk.p = -1                         # Radial surface density exponent
+    disk.beta = 1.25                    # Disk flaring power
+
+Except that the accretion properties of the disk can also be specified. Either the disk accretion rate can be specified::
+
+    disk.mdot = 1e-6 * msun / yr        # Disk accretion rate
+
+or the accretion luminosity from viscous dissipation::
+
+    disk.lacc = 0.01 * lsun
+
+Note that this accretion luminosity only includes the luminosity down to
+``disk.rmin``, and does not include the luminosity from the stellar surface (see `Magnetospheric accretion`_). For more details on the accretion luminosity from viscous dissipation, see :class:`~hyperion.densities.AlphaDisk`.
+
+Magnetospheric accretion
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. note:: This feature is still experimental, please use with caution and
+          report any issues!
+
+Another important component of the accretion luminosity is that from the
+dissipation of energy as matter accretes onto the central star from the inner
+edge of the gas disk. In a simplistic model of magnetospheric accretion,
+matter free-falls from the radius at which the disk is truncated by the
+magnetosphere to the surface of the star. Half the energy goes into X-rays,
+and half goes into heating spots on the stellar surface, and is then
+re-emitted with a spectrum hotter than the rest of the stellar surface.
+
+To help set this up, a convenience method :meth:`~hyperion.model.AnalyticalYSOModel.setup_magnetospheric_accretion` is provided, which takes the accretion rate, the radius at which the matter free-falls from, the spot covering fraction, and optionally parameters describing the X-ray spectrum. For example::
+
+    m.setup_magnetospheric_accretion(1.e-6 * msun / yr, 5 * m.star.radius, 0.2)
+
+will set up an X-ray and a hot spot emission component from the central
+source. The method does not currently set up actual spots, it assumes that the
+spots cover the star uniformly, and the spot covering fraction determines the
+temperature of the hot spots (a smaller covering fraction results in a larger
+hot spot temperature for a fixed accretion rate).
+
+See :meth:`~hyperion.model.AnalyticalYSOModel.setup_magnetospheric_accretion`
+for more details.
 
 Dust
 ----
