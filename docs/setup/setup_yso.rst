@@ -106,7 +106,7 @@ object to set the parameters further. The parameters are the same as for flared 
     disk.p = -1                         # Radial surface density exponent
     disk.beta = 1.25                    # Disk flaring power
 
-Except that the accretion properties of the disk can also be specified. Either the disk accretion rate can be specified::
+except that the accretion properties of the disk can also be specified. Either the disk accretion rate can be specified::
 
     disk.mdot = 1e-6 * msun / yr        # Disk accretion rate
 
