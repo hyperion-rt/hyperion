@@ -51,15 +51,34 @@ PyMODINIT_FUNC init_interpolate_core(void)
 
 /* Do the heavy lifting here */
 
+static int binary_locate(double *x, int n, double xval) {
+
+    int imin, imax, imid;
+
+    imin = 0;
+    imax = n - 1;
+
+    while(imax > imin + 1) {
+        imid = (imin + imax) / 2;
+        if(xval > x[imid]) {
+            imin = imid;
+        } else {
+            imax = imid;
+        }
+    }
+
+    return imax;
+
+}
+
 static PyObject *interp1d_linear_scalar(PyObject *self, PyObject *args)
 {
 
     double xval, yval;
-    int ipos;
     PyObject *x_obj, *y_obj;
 
     /* Parse the input tuple */
-    if (!PyArg_ParseTuple(args, "OOdi", &x_obj, &y_obj, &xval, &ipos))
+    if (!PyArg_ParseTuple(args, "OOd", &x_obj, &y_obj, &xval))
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
@@ -90,6 +109,8 @@ static PyObject *interp1d_linear_scalar(PyObject *self, PyObject *args)
     double *y = (double*)PyArray_DATA(y_array);
 
     /* Interpolate */
+
+    int ipos = binary_locate(x, n, xval);
 
     int i1, i2;
 
@@ -121,25 +142,23 @@ static PyObject *interp1d_linear_scalar(PyObject *self, PyObject *args)
 static PyObject *interp1d_linear_array(PyObject *self, PyObject *args)
 {
 
-    PyObject *x_obj, *y_obj, *xval_obj, *ipos_obj;
+    PyObject *x_obj, *y_obj, *xval_obj;
 
     /* Parse the input tuple */
-    if (!PyArg_ParseTuple(args, "OOOO", &x_obj, &y_obj, &xval_obj, &ipos_obj))
+    if (!PyArg_ParseTuple(args, "OOO", &x_obj, &y_obj, &xval_obj))
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
     PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
     PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
     PyObject *xval_array = PyArray_FROM_OTF(xval_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *ipos_array = PyArray_FROM_OTF(ipos_obj, NPY_INT64, NPY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
-    if (x_array == NULL || y_array == NULL || xval_array == NULL || ipos_array == NULL) {
+    if (x_array == NULL || y_array == NULL || xval_array == NULL) {
         PyErr_SetString(PyExc_TypeError, "Couldn't parse the input arrays.");
         Py_XDECREF(x_array);
         Py_XDECREF(y_array);
         Py_XDECREF(xval_array);
-        Py_XDECREF(ipos_array);
         return NULL;
     }
 
@@ -150,12 +169,11 @@ static PyObject *interp1d_linear_array(PyObject *self, PyObject *args)
     int nval = (int)PyArray_DIM(xval_array, 0);
 
     /* Check the dimensions. */
-    if (n != (int)PyArray_DIM(y_array, 0) || nval != (int)PyArray_DIM(ipos_array, 0)) {
+    if (n != (int)PyArray_DIM(y_array, 0)) {
         PyErr_SetString(PyExc_RuntimeError, "Dimension mismatch.");
         Py_DECREF(x_array);
         Py_DECREF(y_array);
         Py_DECREF(xval_array);
-        Py_DECREF(ipos_array);
         return NULL;
     }
 
@@ -168,7 +186,6 @@ static PyObject *interp1d_linear_array(PyObject *self, PyObject *args)
         Py_DECREF(x_array);
         Py_DECREF(y_array);
         Py_DECREF(xval_array);
-        Py_DECREF(ipos_array);
         Py_XDECREF(yval_array);
         return NULL;
     }
@@ -177,21 +194,21 @@ static PyObject *interp1d_linear_array(PyObject *self, PyObject *args)
     double *x = (double*)PyArray_DATA(x_array);
     double *y = (double*)PyArray_DATA(y_array);
     double *xval = (double*)PyArray_DATA(xval_array);
-    long *ipos = (long*)PyArray_DATA(ipos_array);
     double *yval = (double*)PyArray_DATA(yval_array);
 
     /* Interpolate */
 
-    int i, i1, i2;
+    int i, i1, i2, ipos;
 
     for(i = 0; i < nval; i++) {
-        if (ipos[i] == 0) {
+        ipos = binary_locate(x, n, xval[i]);
+        if (ipos == 0) {
             yval[i] = y[0];
-        } else if (ipos[i] == n) {
+        } else if (ipos == n) {
             yval[i] = y[-1];
         } else {
-            i1 = ipos[i] - 1;
-            i2 = ipos[i];
+            i1 = ipos - 1;
+            i2 = ipos;
             yval[i] = (xval[i] - x[i1]) / (x[i2] - x[i1]) * (y[i2] - y[i1]) + y[i1];
         }
     }
@@ -200,7 +217,6 @@ static PyObject *interp1d_linear_array(PyObject *self, PyObject *args)
     Py_DECREF(x_array);
     Py_DECREF(y_array);
     Py_DECREF(xval_array);
-    Py_DECREF(ipos_array);
 
     return yval_array;
 
@@ -210,11 +226,10 @@ static PyObject *interp1d_loglog_scalar(PyObject *self, PyObject *args)
 {
 
     double xval, yval;
-    int ipos;
     PyObject *x_obj, *y_obj;
 
     /* Parse the input tuple */
-    if (!PyArg_ParseTuple(args, "OOdi", &x_obj, &y_obj, &xval, &ipos))
+    if (!PyArg_ParseTuple(args, "OOd", &x_obj, &y_obj, &xval))
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
@@ -245,6 +260,9 @@ static PyObject *interp1d_loglog_scalar(PyObject *self, PyObject *args)
     double *y = (double*)PyArray_DATA(y_array);
 
     /* Interpolate */
+
+    int ipos = binary_locate(x, n, xval);
+
 
     int i1, i2;
 
@@ -283,25 +301,23 @@ static PyObject *interp1d_loglog_scalar(PyObject *self, PyObject *args)
 static PyObject *interp1d_loglog_array(PyObject *self, PyObject *args)
 {
 
-    PyObject *x_obj, *y_obj, *xval_obj, *ipos_obj;
+    PyObject *x_obj, *y_obj, *xval_obj;
 
     /* Parse the input tuple */
-    if (!PyArg_ParseTuple(args, "OOOO", &x_obj, &y_obj, &xval_obj, &ipos_obj))
+    if (!PyArg_ParseTuple(args, "OOO", &x_obj, &y_obj, &xval_obj))
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
     PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
     PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
     PyObject *xval_array = PyArray_FROM_OTF(xval_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *ipos_array = PyArray_FROM_OTF(ipos_obj, NPY_INT64, NPY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
-    if (x_array == NULL || y_array == NULL || xval_array == NULL || ipos_array == NULL) {
+    if (x_array == NULL || y_array == NULL || xval_array == NULL) {
         PyErr_SetString(PyExc_TypeError, "Couldn't parse the input arrays.");
         Py_XDECREF(x_array);
         Py_XDECREF(y_array);
         Py_XDECREF(xval_array);
-        Py_XDECREF(ipos_array);
         return NULL;
     }
 
@@ -312,12 +328,11 @@ static PyObject *interp1d_loglog_array(PyObject *self, PyObject *args)
     int nval = (int)PyArray_DIM(xval_array, 0);
 
     /* Check the dimensions. */
-    if (n != (int)PyArray_DIM(y_array, 0) || nval != (int)PyArray_DIM(ipos_array, 0)) {
+    if (n != (int)PyArray_DIM(y_array, 0)) {
         PyErr_SetString(PyExc_RuntimeError, "Dimension mismatch.");
         Py_DECREF(x_array);
         Py_DECREF(y_array);
         Py_DECREF(xval_array);
-        Py_DECREF(ipos_array);
         return NULL;
     }
 
@@ -330,7 +345,6 @@ static PyObject *interp1d_loglog_array(PyObject *self, PyObject *args)
         Py_DECREF(x_array);
         Py_DECREF(y_array);
         Py_DECREF(xval_array);
-        Py_DECREF(ipos_array);
         Py_XDECREF(yval_array);
         return NULL;
     }
@@ -339,21 +353,21 @@ static PyObject *interp1d_loglog_array(PyObject *self, PyObject *args)
     double *x = (double*)PyArray_DATA(x_array);
     double *y = (double*)PyArray_DATA(y_array);
     double *xval = (double*)PyArray_DATA(xval_array);
-    long *ipos = (long*)PyArray_DATA(ipos_array);
     double *yval = (double*)PyArray_DATA(yval_array);
 
     /* Interpolate */
 
-    int i, i1, i2;
+    int i, i1, i2, ipos;
 
     for(i = 0; i < nval; i++) {
-        if (ipos[i] == 0) {
+        ipos = binary_locate(x, n, xval[i]);
+        if (ipos == 0) {
             yval[i] = y[0];
-        } else if (ipos[i] == n) {
+        } else if (ipos == n) {
             yval[i] = y[-1];
         } else {
-            i1 = ipos[i] - 1;
-            i2 = ipos[i];
+            i1 = ipos - 1;
+            i2 = ipos;
             if (y[i1] > 0. && y[i2] > 0.) {
                 yval[i] = pow(10., ((log10(xval[i]) - log10(x[i1])) \
                                   / (log10(x[i2]) - log10(x[i1])) \
@@ -369,7 +383,6 @@ static PyObject *interp1d_loglog_array(PyObject *self, PyObject *args)
     Py_DECREF(x_array);
     Py_DECREF(y_array);
     Py_DECREF(xval_array);
-    Py_DECREF(ipos_array);
 
     return yval_array;
 
@@ -379,11 +392,10 @@ static PyObject *interp1d_linlog_scalar(PyObject *self, PyObject *args)
 {
 
     double xval, yval;
-    int ipos;
     PyObject *x_obj, *y_obj;
 
     /* Parse the input tuple */
-    if (!PyArg_ParseTuple(args, "OOdi", &x_obj, &y_obj, &xval, &ipos))
+    if (!PyArg_ParseTuple(args, "OOd", &x_obj, &y_obj, &xval))
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
@@ -414,6 +426,9 @@ static PyObject *interp1d_linlog_scalar(PyObject *self, PyObject *args)
     double *y = (double*)PyArray_DATA(y_array);
 
     /* Interpolate */
+
+    int ipos = binary_locate(x, n, xval);
+
 
     int i1, i2;
 
@@ -452,25 +467,23 @@ static PyObject *interp1d_linlog_scalar(PyObject *self, PyObject *args)
 static PyObject *interp1d_linlog_array(PyObject *self, PyObject *args)
 {
 
-    PyObject *x_obj, *y_obj, *xval_obj, *ipos_obj;
+    PyObject *x_obj, *y_obj, *xval_obj;
 
     /* Parse the input tuple */
-    if (!PyArg_ParseTuple(args, "OOOO", &x_obj, &y_obj, &xval_obj, &ipos_obj))
+    if (!PyArg_ParseTuple(args, "OOO", &x_obj, &y_obj, &xval_obj))
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
     PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
     PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
     PyObject *xval_array = PyArray_FROM_OTF(xval_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *ipos_array = PyArray_FROM_OTF(ipos_obj, NPY_INT64, NPY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
-    if (x_array == NULL || y_array == NULL || xval_array == NULL || ipos_array == NULL) {
+    if (x_array == NULL || y_array == NULL || xval_array == NULL) {
         PyErr_SetString(PyExc_TypeError, "Couldn't parse the input arrays.");
         Py_XDECREF(x_array);
         Py_XDECREF(y_array);
         Py_XDECREF(xval_array);
-        Py_XDECREF(ipos_array);
         return NULL;
     }
 
@@ -481,12 +494,11 @@ static PyObject *interp1d_linlog_array(PyObject *self, PyObject *args)
     int nval = (int)PyArray_DIM(xval_array, 0);
 
     /* Check the dimensions. */
-    if (n != (int)PyArray_DIM(y_array, 0) || nval != (int)PyArray_DIM(ipos_array, 0)) {
+    if (n != (int)PyArray_DIM(y_array, 0)) {
         PyErr_SetString(PyExc_RuntimeError, "Dimension mismatch.");
         Py_DECREF(x_array);
         Py_DECREF(y_array);
         Py_DECREF(xval_array);
-        Py_DECREF(ipos_array);
         return NULL;
     }
 
@@ -499,7 +511,6 @@ static PyObject *interp1d_linlog_array(PyObject *self, PyObject *args)
         Py_DECREF(x_array);
         Py_DECREF(y_array);
         Py_DECREF(xval_array);
-        Py_DECREF(ipos_array);
         Py_XDECREF(yval_array);
         return NULL;
     }
@@ -508,21 +519,21 @@ static PyObject *interp1d_linlog_array(PyObject *self, PyObject *args)
     double *x = (double*)PyArray_DATA(x_array);
     double *y = (double*)PyArray_DATA(y_array);
     double *xval = (double*)PyArray_DATA(xval_array);
-    long *ipos = (long*)PyArray_DATA(ipos_array);
     double *yval = (double*)PyArray_DATA(yval_array);
 
     /* Interpolate */
 
-    int i, i1, i2;
+    int i, i1, i2, ipos;
 
     for(i = 0; i < nval; i++) {
-        if (ipos[i] == 0) {
+        ipos = binary_locate(x, n, xval[i]);
+        if (ipos == 0) {
             yval[i] = y[0];
-        } else if (ipos[i] == n) {
+        } else if (ipos == n) {
             yval[i] = y[-1];
         } else {
-            i1 = ipos[i] - 1;
-            i2 = ipos[i];
+            i1 = ipos - 1;
+            i2 = ipos;
             if (y[i1] > 0. && y[i2] > 0.) {
                 yval[i] = pow(10., (xval[i] - x[i1]) \
                                   / (x[i2] - x[i1]) \
@@ -538,7 +549,6 @@ static PyObject *interp1d_linlog_array(PyObject *self, PyObject *args)
     Py_DECREF(x_array);
     Py_DECREF(y_array);
     Py_DECREF(xval_array);
-    Py_DECREF(ipos_array);
 
     return yval_array;
 
@@ -548,11 +558,10 @@ static PyObject *interp1d_loglin_scalar(PyObject *self, PyObject *args)
 {
 
     double xval, yval;
-    int ipos;
     PyObject *x_obj, *y_obj;
 
     /* Parse the input tuple */
-    if (!PyArg_ParseTuple(args, "OOdi", &x_obj, &y_obj, &xval, &ipos))
+    if (!PyArg_ParseTuple(args, "OOd", &x_obj, &y_obj, &xval))
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
@@ -583,6 +592,9 @@ static PyObject *interp1d_loglin_scalar(PyObject *self, PyObject *args)
     double *y = (double*)PyArray_DATA(y_array);
 
     /* Interpolate */
+
+    int ipos = binary_locate(x, n, xval);
+
 
     int i1, i2;
 
@@ -617,25 +629,23 @@ static PyObject *interp1d_loglin_scalar(PyObject *self, PyObject *args)
 static PyObject *interp1d_loglin_array(PyObject *self, PyObject *args)
 {
 
-    PyObject *x_obj, *y_obj, *xval_obj, *ipos_obj;
+    PyObject *x_obj, *y_obj, *xval_obj;
 
     /* Parse the input tuple */
-    if (!PyArg_ParseTuple(args, "OOOO", &x_obj, &y_obj, &xval_obj, &ipos_obj))
+    if (!PyArg_ParseTuple(args, "OOO", &x_obj, &y_obj, &xval_obj))
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
     PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
     PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
     PyObject *xval_array = PyArray_FROM_OTF(xval_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *ipos_array = PyArray_FROM_OTF(ipos_obj, NPY_INT64, NPY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
-    if (x_array == NULL || y_array == NULL || xval_array == NULL || ipos_array == NULL) {
+    if (x_array == NULL || y_array == NULL || xval_array == NULL) {
         PyErr_SetString(PyExc_TypeError, "Couldn't parse the input arrays.");
         Py_XDECREF(x_array);
         Py_XDECREF(y_array);
         Py_XDECREF(xval_array);
-        Py_XDECREF(ipos_array);
         return NULL;
     }
 
@@ -646,12 +656,11 @@ static PyObject *interp1d_loglin_array(PyObject *self, PyObject *args)
     int nval = (int)PyArray_DIM(xval_array, 0);
 
     /* Check the dimensions. */
-    if (n != (int)PyArray_DIM(y_array, 0) || nval != (int)PyArray_DIM(ipos_array, 0)) {
+    if (n != (int)PyArray_DIM(y_array, 0)) {
         PyErr_SetString(PyExc_RuntimeError, "Dimension mismatch.");
         Py_DECREF(x_array);
         Py_DECREF(y_array);
         Py_DECREF(xval_array);
-        Py_DECREF(ipos_array);
         return NULL;
     }
 
@@ -664,7 +673,6 @@ static PyObject *interp1d_loglin_array(PyObject *self, PyObject *args)
         Py_DECREF(x_array);
         Py_DECREF(y_array);
         Py_DECREF(xval_array);
-        Py_DECREF(ipos_array);
         Py_XDECREF(yval_array);
         return NULL;
     }
@@ -673,21 +681,21 @@ static PyObject *interp1d_loglin_array(PyObject *self, PyObject *args)
     double *x = (double*)PyArray_DATA(x_array);
     double *y = (double*)PyArray_DATA(y_array);
     double *xval = (double*)PyArray_DATA(xval_array);
-    long *ipos = (long*)PyArray_DATA(ipos_array);
     double *yval = (double*)PyArray_DATA(yval_array);
 
     /* Interpolate */
 
-    int i, i1, i2;
+    int i, i1, i2, ipos;
 
     for(i = 0; i < nval; i++) {
-        if (ipos[i] == 0) {
+        ipos = binary_locate(x, n, xval[i]);
+        if (ipos == 0) {
             yval[i] = y[0];
-        } else if (ipos[i] == n) {
+        } else if (ipos == n) {
             yval[i] = y[-1];
         } else {
-            i1 = ipos[i] - 1;
-            i2 = ipos[i];
+            i1 = ipos - 1;
+            i2 = ipos;
             yval[i] =  ((log10(xval[i]) - log10(x[i1])) \
                       / (log10(x[i2]) - log10(x[i1])) \
                       * (y[i2] - y[i1]) \
@@ -699,7 +707,6 @@ static PyObject *interp1d_loglin_array(PyObject *self, PyObject *args)
     Py_DECREF(x_array);
     Py_DECREF(y_array);
     Py_DECREF(xval_array);
-    Py_DECREF(ipos_array);
 
     return yval_array;
 
