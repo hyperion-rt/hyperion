@@ -27,16 +27,16 @@ if __dev__:
     ext_modules = [Extension("hyperion.util._integrate_core",
                              ['hyperion/util/_integrate_core.c'],
                              include_dirs=[numpy_includes]),
-                   Extension("hyperion.util.interpolate_core",
-                             ['hyperion/util/interpolate_core.pyx'],
+                   Extension("hyperion.util._interpolate_core",
+                             ['hyperion/util/_interpolate_core.c'],
                              include_dirs=[numpy_includes])]
     cmdclass['build_ext'] = build_ext
 else:
     ext_modules = [Extension("hyperion.util._integrate_core",
                              ['hyperion/util/_integrate_core.c'],
                              include_dirs=[numpy_includes]),
-                   Extension("hyperion.util.interpolate_core",
-                             ['hyperion/util/interpolate_core.c'],
+                   Extension("hyperion.util._interpolate_core",
+                             ['hyperion/util/_interpolate_core.c'],
                              include_dirs=[numpy_includes])]
 
 

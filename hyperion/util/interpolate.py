@@ -2,11 +2,12 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from .interpolate_core import interp1d_linear_scalar, \
-                              interp1d_linear_array, \
-                              interp1d_loglog_scalar, \
-                              interp1d_loglog_array, \
-                              interp1d_linlog_scalar, \
+from ._interpolate_core import interp1d_linear_scalar, \
+                               interp1d_linear_array, \
+                               interp1d_loglog_scalar, \
+                               interp1d_loglog_array
+
+from .interpolate_core import interp1d_linlog_scalar, \
                               interp1d_linlog_array, \
                               interp1d_loglin_scalar, \
                               interp1d_loglin_array
