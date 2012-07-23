@@ -5,12 +5,11 @@ import numpy as np
 from ._interpolate_core import interp1d_linear_scalar, \
                                interp1d_linear_array, \
                                interp1d_loglog_scalar, \
-                               interp1d_loglog_array
-
-from .interpolate_core import interp1d_linlog_scalar, \
-                              interp1d_linlog_array, \
-                              interp1d_loglin_scalar, \
-                              interp1d_loglin_array
+                               interp1d_loglog_array, \
+                               interp1d_linlog_scalar, \
+                               interp1d_linlog_array, \
+                               interp1d_loglin_scalar, \
+                               interp1d_loglin_array
 
 
 class check_bounds(object):
