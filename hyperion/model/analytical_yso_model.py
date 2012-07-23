@@ -5,7 +5,7 @@ from copy import deepcopy
 import numpy as np
 
 from . import Model
-from ..densities import FlaredDisk, AlphaDiskWhitney, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
+from ..densities import FlaredDisk, AlphaDisk, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
 from ..util.interpolate import interp1d_fast_loglog
 from ..util.constants import pi, sigma, c, G
 from ..sources import SphericalSource, SpotSource
@@ -112,23 +112,9 @@ class AnalyticalYSOModel(Model):
         self.disks = []
         self.envelopes = []
 
-        self.accretion = False
-
         self.ambient = None
 
         Model.__init__(self, name=name)
-
-    def __setattr__(self, attribute, value):
-        if attribute == 'accretion':
-            if value is True:
-                self.star.sources['uv'] = SphericalSource(name='uv', radius=self.star.radius)
-                self.star.sources['xray'] = SphericalSource(name='xray', radius=self.star.radius)
-            else:
-                if 'uv' in self.star.sources:
-                    self.star.sources.pop('uv')
-                if 'xray' in self.star.sources:
-                    self.star.sources.pop('xray')
-        Model.__setattr__(self, attribute, value)
 
     def add_density_grid(self, *args, **kwargs):
         raise NotImplementedError("add_density_grid cannot be used for AnalyticalYSOModel")
@@ -216,17 +202,36 @@ class AnalyticalYSOModel(Model):
         self.disks.append(disk)
         return disk
 
-    def add_alpha_disk(self, definition='whitney'):
+    def add_alpha_disk(self):
         """
         Add an alpha disk to the geometry
 
-        .. warning:: this function is still experimental, and will be documented once stable
+        This is similar to a flared disk, but with accretion luminosity. See
+        :class:`~hyperion.densities.AlphaDisk` for more details.
+
+        Returns
+        -------
+        disk : :class:`~hyperion.densities.AlphaDisk`
+            A :class:`~hyperion.densities.AlphaDisk` instance.
+
+        Examples
+        --------
+
+        To add an alpha disk to the model, you can do::
+
+            >>> disk = m.add_alpha_disk()
+
+        then set the disk properties using e.g.::
+
+            >>> disk.mass = 1.e30  # g
+            >>> disk.rmin = 1e10  # cm
+            >>> disk.rmax = 1e14  # cm
+
+        See the :class:`~hyperion.densities.AlphaDisk` documentation
+        to see which parameters can be set.
         """
-        if definition == 'whitney':
-            disk = AlphaDiskWhitney()
-            disk.star = self.star
-        else:
-            raise Exception("Unknown alpha disk definition: %s" % definition)
+        disk = AlphaDisk()
+        disk.star = self.star
         self.disks.append(disk)
         return disk
 
@@ -570,22 +575,25 @@ class AnalyticalYSOModel(Model):
         '''
         Set up the model for magnetospheric accretion
 
-        .. warning:: this function is still experimental, and will be documented once stable
-
         Parameters
         ----------
         mdot : float
             The accretion rate onto the star in cgs
-        rtrunc:
+        rtrunc : float
             The magnetospheric truncation radius of the disk in cgs
         fspot : float
-            The spot coverage fraction
+            The spot coverage fraction. Photons will be emitted uniformly from
+            the star, the coverage fraction ``fspot`` will determine the
+            spectrum of the hot spot emission (smaller covering fractions will
+            lead to a hotter spectrum).
 
         Notes
         -----
-        This method currently assumes that the luminosity is split up into
-        that which goes into the dust disk, gas disk, and the stellar surface.
-        However, at this time the gas emission is not implemented.
+        This method only takes into account the hot spot and X-ray emission
+        from the stellar surface. To simulate the viscous accretion luminosity
+        in the disk, add an :class:`~hyperion.densities.AlphaDisk` to the
+        model using :meth:`~hyperion.model.AnalyticalYSOModel.add_alpha_disk`
+        and set the accretion rate or luminosity accordingly.
 
         This method should be called once the stellar parameters have been
         otherwise initialized, and the disk parameters have to be set. This
@@ -601,10 +609,6 @@ class AnalyticalYSOModel(Model):
         # For convenience
         lstar = self.star.sources['star'].luminosity
 
-        # Tell the model that we are including accretion
-        if not self.accretion:
-            self.accretion = True
-
         if self.star.mass is None:
             raise Exception("Stellar mass is not set")
 
@@ -617,6 +621,7 @@ class AnalyticalYSOModel(Model):
         tshock = teff * (1 + fluxratio) ** 0.25  # Kelvin
 
         # Set the hot spot source
+        self.star.sources['uv'] = SphericalSource(name='uv', radius=self.star.radius)
         self.star.sources['uv'].luminosity = lshock / 2. + lstar * fspot
         self.star.sources['uv'].temperature = tshock
 
@@ -626,11 +631,15 @@ class AnalyticalYSOModel(Model):
         fnu = np.repeat(1., nu.shape)
 
         # Set the X-ray source
+        self.star.sources['xray'] = SphericalSource(name='xray', radius=self.star.radius)
         self.star.sources['xray'].luminosity = lshock / 2.
         self.star.sources['xray'].spectrum = (nu, fnu)
 
         # Reduce the total luminosity from the original source
         self.star.sources['star'].luminosity *= 1 - fspot
+
+        # Ensure that stellar parameters can no longer be changed
+        self.star._finalize()
 
     # RESOLVERS
 
@@ -807,18 +816,17 @@ class AnalyticalYSOModel(Model):
 
         # Accretion
 
-        if self.accretion:
+        if 'uv' in self.star.sources and self.star.sources['uv'].luminosity > 0.:
+            if self.star.sources['uv'] not in self.sources:
+                self.add_source(self.star.sources['uv'])
 
-            if self.star.sources['uv'].luminosity > 0.:
-                if self.star.sources['uv'] not in self.sources:
-                    self.add_source(self.star.sources['uv'])
+        if 'xray' in self.star.sources and self.star.sources['xray'].luminosity > 0.:
+            if self.star.sources['xray'] not in self.sources:
+                self.add_source(self.star.sources['xray'])
 
-            if self.star.sources['xray'].luminosity > 0.:
-                if self.star.sources['xray'] not in self.sources:
-                    self.add_source(self.star.sources['xray'])
+        for i, disk in enumerate(self.disks):
 
-            for i, disk in enumerate(self.disks):
-
+            if isinstance(disk, AlphaDisk):
                 if disk.rmin >= disk.rmax:
                     logger.warn("Disk rmin >= rmax, ignoring accretion luminosity")
                 elif disk.mass == 0.:

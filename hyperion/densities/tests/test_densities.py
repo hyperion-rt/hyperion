@@ -2,14 +2,18 @@ from __future__ import print_function, division
 
 import pytest
 import numpy as np
+from numpy.testing import assert_array_almost_equal_nulp
 
-from .. import FlaredDisk, PowerLawEnvelope, UlrichEnvelope, BipolarCavity
+from .. import FlaredDisk, AlphaDisk, PowerLawEnvelope, UlrichEnvelope, BipolarCavity
+from ...grid import SphericalPolarGrid
 from ...util.convenience import OptThinRadius
+from ...util.constants import G
 
 # A fake star class so that star.mass is defined
 class Star(object):
     def __init__(self):
         self.mass = None
+        self.radius = None
 
 # Flared Disk
 
@@ -61,6 +65,182 @@ def test_flared_disk_invalid2(parameter):
         assert exc.value.args[0] == parameter + ' should be a scalar value or an OptThinRadius instance'
     else:
         assert exc.value.args[0] == parameter + ' should be a scalar value'
+
+# Alpha Disk
+
+
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0', 'mdot', 'lvisc'])
+def test_alpha_disk_positive(parameter):
+    d = AlphaDisk()
+    d.__setattr__(parameter, 1.)
+
+
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0', 'mdot', 'lvisc'])
+def test_alpha_disk_negative(parameter):
+    d = AlphaDisk()
+    if parameter in ['p', 'beta']:
+        d.__setattr__(parameter, -1.)
+    else:
+        with pytest.raises(ValueError) as exc:
+            d.__setattr__(parameter, -1.)  # negative values are not valid
+        assert exc.value.args[0] == parameter + ' should be positive'
+
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0', 'mdot', 'lvisc'])
+def test_alpha_disk_optthin(parameter):
+    d = AlphaDisk()
+    if parameter in ['rmin', 'rmax']:
+        d.__setattr__(parameter, OptThinRadius(1.))
+    else:
+        with pytest.raises(ValueError) as exc:
+            d.__setattr__(parameter, OptThinRadius(1.))  # not valid for these parameters
+        assert exc.value.args[0] == parameter + ' should be a scalar value'
+
+
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0', 'mdot', 'lvisc'])
+def test_alpha_disk_invalid1(parameter):
+    d = AlphaDisk()
+    with pytest.raises(ValueError) as exc:
+        d.__setattr__(parameter, 'a')  # can't be string
+    if parameter in ['rmin', 'rmax']:
+        assert exc.value.args[0] == parameter + ' should be a numerical value or an OptThinRadius instance'
+    else:
+        assert exc.value.args[0] == parameter + ' should be a numerical value'
+
+
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0', 'mdot', 'lvisc'])
+def test_alpha_disk_invalid2(parameter):
+    d = AlphaDisk()
+    with pytest.raises(ValueError) as exc:
+        d.__setattr__(parameter, [1., 2.])  # should be scalar
+    if parameter in ['rmin', 'rmax']:
+        assert exc.value.args[0] == parameter + ' should be a scalar value or an OptThinRadius instance'
+    else:
+        assert exc.value.args[0] == parameter + ' should be a scalar value'
+
+def test_alpha_disk_swap1():
+    e = AlphaDisk()
+    e.mdot = 1.
+    assert e._lvisc is None and e._mdot is not None
+    e.lvisc = 1.
+    assert e._lvisc is not None and e._mdot is None
+    e.mdot = 1.
+    assert e._lvisc is None and e._mdot is not None
+
+
+def test_alpha_disk_swap2():
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 1.
+    e.star.radius = 1.
+    e.rmin = 1.
+    e.rmax = 10.
+    e.mass = 1.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.mdot = 0.
+    assert e.lvisc == 0.
+
+
+def test_alpha_disk_swap3():
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 1.
+    e.star.radius = 1.
+    e.rmin = 1.
+    e.rmax = 10.
+    e.mass = 1.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.lvisc = 0.
+    assert e.mdot == 0.
+
+
+def test_alpha_disk_lvisc_calc():
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 0.5
+    e.star.radius = 0.5
+    e.rmin = 1.
+    e.rmax = 2.
+    e.mass = 1.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.mdot = 4.
+    assert_array_almost_equal_nulp(e.lvisc, G * (1.5 - 2. / np.sqrt(2.) + 0.5), 2)
+
+
+def test_alpha_disk_mdot_calc():
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 0.5
+    e.star.radius = 0.5
+    e.rmin = 1.
+    e.rmax = 2.
+    e.mass = 1.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.lvisc = G * (1.5 - 2. / np.sqrt(2.) + 0.5)
+    assert_array_almost_equal_nulp(e.mdot, 4., 2)
+
+
+def test_alpha_disk_lvisc_map():
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 0.5
+    e.star.radius = 0.5
+    e.rmin = 1.
+    e.rmax = 2.
+    e.mass = 1.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.lvisc = G * (1.5 - 2. / np.sqrt(2.) + 0.5)
+
+    # Set up grid
+    r = np.linspace(0., e.rmax * 2., 200)
+    t = np.linspace(0., np.pi, 200)
+    p = np.linspace(0., 2. * np.pi, 5)
+    g = SphericalPolarGrid(r, t, p)
+
+    ref = G * (1.5 - 2. / np.sqrt(2.) + 0.5)
+    act = np.sum(e.accretion_luminosity(g))
+
+    assert abs(act - ref) / ref < 1.e-3
+
+
+def test_alpha_disk_mdot_map():
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 0.5
+    e.star.radius = 0.5
+    e.rmin = 1.
+    e.rmax = 2.
+    e.mass = 1.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.mdot = 4.
+
+    # Set up grid
+    r = np.linspace(0., e.rmax * 2., 200)
+    t = np.linspace(0., np.pi, 200)
+    p = np.linspace(0., 2. * np.pi, 5)
+    g = SphericalPolarGrid(r, t, p)
+
+    ref = G * (1.5 - 2. / np.sqrt(2.) + 0.5)
+    act = np.sum(e.accretion_luminosity(g))
+
+    assert abs(act - ref) / ref < 1.e-3
 
 # Power Law Envelope
 
