@@ -80,6 +80,7 @@ A great thanks to the following users whose help with testing early versions
 of Hyperion was invaluable:
 
 * Katharine Johnston
+* Nils Lippok
 * Stella Offner
 * Sarah Ragan
 * Andrew Schechtman-Rook
