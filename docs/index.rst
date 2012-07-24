@@ -39,7 +39,7 @@ Note on units and constants
 
 All quantities in Hyperion are expressed in the cgs system. Throughout the
 documentation, constants are sometimes used in place of values (e.g. ``au``,
-``pc``). These can be imported using::
+``pc``). These can be imported (in Python) using::
 
     from hyperion.util.constants import *
 
