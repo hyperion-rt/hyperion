@@ -8,6 +8,8 @@ import shlex
 import sys
 import os
 import subprocess
+import tempfile
+import shutil
 
 from distutils.core import Command
 
@@ -19,7 +21,7 @@ class TestRunner(object):
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, generate_reference=False,
-                  bit_level_tests=False):
+                  bit_level_tests=False, coverage=False):
 
         if package is None:
             package_path = self.base_path
@@ -62,11 +64,50 @@ class TestRunner(object):
         if bit_level_tests:
             all_args += ' --enable-bit-level-tests'
 
+        if coverage:
+
+            try:
+
+                import pytest_cov
+
+            except ImportError:
+
+                raise ImportError(
+                    'Coverage reporting requires pytest-cov plugin: '
+                    'http://pypi.python.org/pypi/pytest-cov')
+
+            else:
+
+                coveragerc = os.path.join(
+                    os.path.dirname(__file__), 'coveragerc')
+
+                with open(coveragerc, 'r') as fd:
+                    coveragerc_content = fd.read()
+                if sys.version_info[0] >= 3:
+                    ignore_python_version = '2'
+                else:
+                    ignore_python_version = '3'
+                coveragerc_content = coveragerc_content.replace(
+                    "{ignore_python_version}", ignore_python_version)
+                with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                    tmp.write(coveragerc_content)
+
+                all_args += (
+                    ' --cov-report html --cov hyperion'
+                    ' --cov-config {0}'.format(tmp.name))
+
         all_args = shlex.split(all_args,
                                posix=not sys.platform.startswith('win'))
 
         import pytest
-        return pytest.main(args=all_args, plugins=plugins)
+
+        try:
+            return pytest.main(args=all_args, plugins=plugins)
+        finally:
+            if coverage:
+                if not tmp.closed:
+                    tmp.close()
+                os.remove(tmp.name)
 
 
 class HyperionTest(Command, object):
@@ -90,6 +131,8 @@ class HyperionTest(Command, object):
         ('generate-reference=', 'g', "generate reference results for bit-level tests"),
         ('enable-bit-level-tests', 'l', "enable bit-level tests"),
         ('args=', 'a', 'Additional arguments to be passed to pytest'),
+        ('coverage', 'c', 'Create a coverage report. Requires the pytest-cov '
+         'plugin is installed')
     ]
 
     def __init__(self, dist):
@@ -105,6 +148,7 @@ class HyperionTest(Command, object):
         self.generate_reference = False
         self.enable_bit_level_tests = False
         self.args = None
+        self.coverage = False
 
     def finalize_options(self):
         pass
@@ -124,10 +168,20 @@ class HyperionTest(Command, object):
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
         cmd = ('import hyperion, sys; sys.exit(hyperion.test({0!r}, {1!r}, '
-               '{2!r}, {3!r}, {4!r}, {5!r}, {6!r}, {7!r}))')
+               '{2!r}, {3!r}, {4!r}, {5!r}, {6!r}, {7!r}, {8!r}))')
         cmd = cmd.format(self.package, self.test_path, self.args,
                          self.plugins, self.verbose, self.pastebin,
-                         self.generate_reference, self.enable_bit_level_tests)
+                         self.generate_reference, self.enable_bit_level_tests,
+                         self.coverage)
 
-        raise SystemExit(subprocess.call([sys.executable, '-c', cmd],
-                                         cwd=new_path, close_fds=False))
+        retcode = subprocess.call([sys.executable, '-c', cmd],
+                                  cwd=new_path, close_fds=False)
+
+        if self.coverage and retcode == 0:
+            # Copy the htmlcov from build/lib.../htmlcov to a more
+            # obvious place
+            if os.path.exists('htmlcov'):
+                shutil.rmtree('htmlcov')
+            shutil.copytree(os.path.join(new_path, 'htmlcov'), 'htmlcov')
+
+        raise SystemExit(retcode)

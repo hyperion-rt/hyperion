@@ -1,0 +1,26 @@
+[run]
+source = hyperion
+omit =
+   hyperion/__init__*
+   hyperion/conftest.py
+   hyperion/sphinx/*
+   hyperion/util/decorator.py
+   hyperion/version*
+   hyperion/*/tests/*
+   hyperion/*/tests/*/*
+   hyperion/testing/*
+
+[report]
+exclude_lines =
+   # Have to re-enable the standard pragma
+   pragma: no cover
+
+   # Don't complain about packages we have installed
+   except ImportError
+
+   # Don't complain if tests don't hit assertions
+   raise AssertionError
+   raise NotImplementedError
+
+   # Ignore branches that don't pertain to this version of Python
+   pragma: py{ignore_python_version}

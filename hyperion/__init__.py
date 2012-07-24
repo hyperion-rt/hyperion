@@ -17,7 +17,7 @@ def _get_test_runner():
 
 def test(package=None, test_path=None, args=None, plugins=None,
          verbose=False, pastebin=None, generate_reference=False,
-         bit_level_tests=False):
+         bit_level_tests=False, coverage=False):
     """
     Run Hyperion tests using py.test. A proper set of arguments is
     constructed and passed to `pytest.main`.
@@ -58,6 +58,10 @@ def test(package=None, test_path=None, args=None, plugins=None,
         Run bit-level tests. These are time-consuming tests that check the
         exact validity of the output, but they are disabled by default.
 
+    coverage : bool, optional
+        Generate a test coverage report.  The result will be placed in
+        the directory htmlcov.
+
     See Also
     --------
     pytest.main : py.test function wrapped by `run_tests`.
@@ -68,4 +72,4 @@ def test(package=None, test_path=None, args=None, plugins=None,
         package=package, test_path=test_path, args=args,
         plugins=plugins, verbose=verbose, pastebin=pastebin,
         generate_reference=generate_reference,
-        bit_level_tests=bit_level_tests)
+        bit_level_tests=bit_level_tests, coverage=coverage)
