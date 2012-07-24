@@ -141,11 +141,13 @@ contains
     call prepare_photon(p)
     call update_optconsts(p)
 
-    do
-       call random(xi)
-       dust_id = ceiling(xi*real(n_dust, dp))
-       if(mean_prob(dust_id) > 0._dp) exit
-    end do
+    call random(xi)
+    dust_id = ceiling(xi*real(n_dust, dp))
+
+    if(mean_prob(dust_id) == 0._dp) then
+        p%energy = 0._dp
+        return
+    end if
 
     call grid_sample_pdf_map(emiss_pdf(dust_id), p%icell)
     p%in_cell = .true.
