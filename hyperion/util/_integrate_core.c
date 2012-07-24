@@ -312,10 +312,10 @@ static PyObject *_integrate_loglog(PyObject *self, PyObject *args)
     for (i = 0; i < n - 1; i++)
     {
         j = i + 1;
-        if(!npy_isnan(y[i]) && !npy_isnan(y[j])) {
+        if(y[i] > 0. && y[j] > 0. && !npy_isnan(y[i]) && !npy_isnan(y[j])) {
             if(x[j] > x[i]) {
                 b = log10(y[i] / y[j]) / log10(x[i] / x[j]);
-                if(abs(b + 1.) < 1.e-10) {
+                if(fabs(b + 1.) < 1.e-10) {
                     integral += x[i] * y[i] * log(x[j] / x[i]);
                 } else {
                     integral += y[i] * (x[j] * pow(x[j] / x[i], b) - x[i]) / (b + 1.);
