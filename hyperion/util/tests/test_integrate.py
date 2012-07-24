@@ -98,7 +98,10 @@ def test_linear_not_monotonic():
     y = 2. * x - 1.
     with pytest.raises(ValueError) as exc:
         integrate(x, y)
-    assert exc.value.args[0] == 'x is not monotonically increasing'
+    if isinstance(exc.value, basestring):
+        assert exc.value == 'x is not monotonically increasing'
+    else:
+        assert exc.value.args[0] == 'x is not monotonically increasing'
 
 
 def test_loglog_not_monotonic():
@@ -106,7 +109,10 @@ def test_loglog_not_monotonic():
     y = 2. * x - 1.
     with pytest.raises(ValueError) as exc:
         integrate_loglog(x, y)
-    assert exc.value.args[0] == 'x is not monotonically increasing'
+    if isinstance(exc.value, basestring):
+        assert exc.value == 'x is not monotonically increasing'
+    else:
+        assert exc.value.args[0] == 'x is not monotonically increasing'
 
 
 def test_loglin_not_monotonic():
@@ -114,7 +120,10 @@ def test_loglin_not_monotonic():
     y = 2. * x - 1.
     with pytest.raises(ValueError) as exc:
         integrate_loglin(x, y)
-    assert exc.value.args[0] == 'x is not monotonically increasing'
+    if isinstance(exc.value, basestring):
+        assert exc.value == 'x is not monotonically increasing'
+    else:
+        assert exc.value.args[0] == 'x is not monotonically increasing'
 
 
 def test_linlog_not_monotonic():
@@ -122,4 +131,7 @@ def test_linlog_not_monotonic():
     y = 2. * x - 1.
     with pytest.raises(ValueError) as exc:
         integrate_linlog(x, y)
-    assert exc.value.args[0] == 'x is not monotonically increasing'
+    if isinstance(exc.value, basestring):
+        assert exc.value == 'x is not monotonically increasing'
+    else:
+        assert exc.value.args[0] == 'x is not monotonically increasing'
