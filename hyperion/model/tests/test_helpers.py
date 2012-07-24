@@ -18,9 +18,19 @@ def random_filename():
 
 def get_test_dust():
     dust = IsotropicDust([3.e9, 3.e16], [0.5, 0.5], [1., 1.])
-    dust.emissivities.set_lte(dust.optical_properties, n_temp=10, temp_min=0.1, temp_max=1600.)
+    dust.set_lte_emissivities(n_temp=10, temp_min=0.1, temp_max=1600.)
     return dust
 
+def get_realistic_test_dust():
+
+    nu = [3.e7, 1.e10, 2.e11, 2.e12, 2.e13, 2.e14, 2.e15, 2.e16, 2.e17]
+    chi = [1.e-11, 2.e-6, 2.e-3, 0.2, 13., 90., 1000., 700., 700.]
+    albedo = [0., 0., 0., 0., 0.1, 0.5, 0.4, 0.4, 0.4]
+
+    dust = IsotropicDust(nu, albedo, chi)
+    dust.set_lte_emissivities(n_temp=40, temp_min=0.1, temp_max=100000.)
+
+    return dust
 
 def get_test_model_noimaging():
 
