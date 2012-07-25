@@ -278,7 +278,6 @@ static PyObject *interp1d_loglog_scalar(PyObject *self, PyObject *args)
 
     int ipos = binary_locate(x, n, xval);
 
-
     int i1, i2;
 
     if (ipos == 0) {
@@ -444,7 +443,6 @@ static PyObject *interp1d_linlog_scalar(PyObject *self, PyObject *args)
 
     int ipos = binary_locate(x, n, xval);
 
-
     int i1, i2;
 
     if (ipos == 0) {
@@ -609,7 +607,6 @@ static PyObject *interp1d_loglin_scalar(PyObject *self, PyObject *args)
     /* Interpolate */
 
     int ipos = binary_locate(x, n, xval);
-
 
     int i1, i2;
 

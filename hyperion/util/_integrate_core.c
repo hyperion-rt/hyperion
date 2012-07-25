@@ -97,6 +97,7 @@ static PyObject *_integrate(PyObject *self, PyObject *args)
     double integral = 0.;
 
     int i, j;
+
     for (i = 0; i < n - 1; i++)
     {
         j = i + 1;
