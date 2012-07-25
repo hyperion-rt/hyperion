@@ -140,7 +140,7 @@ AMR grids
 Geometry
 ^^^^^^^^
 
-AMR grids have to be constructed using the ``AMRGrid`` class::
+AMR grids have to be constructed using the :class:`~hyperion.grid.AMRGrid` class::
 
     from hyperion.grid import AMRGrid
     amr = AMRGrid()
@@ -181,9 +181,10 @@ Density and Specific Energy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Since AMR grids have a more complex structure than regular 3-d arrays, the
-density should be added using an ``AMRGrid`` object. In this case, the
-``quantity`` attribute should be set for each grid object. For each physical
-quantity in the AMR grid, the dictionary should have an entry of the form::
+density should be added using an :class:`~hyperion.grid.AMRGrid` object. In
+this case, the ``quantity`` attribute should be set for each grid object. For
+each physical quantity in the AMR grid, the dictionary should have an entry of
+the form::
 
     grid.quantities[<quantity>] = quantity_array
 
@@ -192,7 +193,7 @@ where ``<quantity>`` is a string containing the name of the quantity (e.g.
 ``(grid.nz, grid.ny, grid.nx)`` (see :ref:`amr_indepth` for more details).
 
 When calling ``add_density_grid``, the density should be specified as an item
-of the AMRGrid object::
+of the :class:`~hyperion.grid.AMRGrid` object::
 
     m.add_density_grid(amr_object['density'], dust_file)
 
@@ -208,7 +209,7 @@ the ``specific_energy`` argument::
 
 Note that in this example, the ``amr`` object contains the geometry, the
 density, and the specific energy (i.e. it is not necessary to create a
-separate AMRGrid object for each one).
+separate :class:`~hyperion.grid.AMRGrid` object for each one).
 
 Octree grids
 ------------
