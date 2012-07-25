@@ -117,6 +117,8 @@ excess of the one specified will be gradually destroyed), or ``fast`` (dust
 with temperatures in excess of the one specified will be immediately
 destroyed). For more information, see Section 2.7.3 of `Robitaille (2011)`_.
 
+.. _sample_sources_evenly:
+
 Multiple sources
 ----------------
 

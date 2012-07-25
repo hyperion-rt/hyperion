@@ -17,7 +17,7 @@ source parameters::
     source.temperature = 10000.
     source.position = (0., 0., 0.)
 
-.. note:: it is also possible to specify the parameters using keyword
+.. note:: It is also possible to specify the parameters using keyword
           arguments during initialization, e.g.::
 
               m.add_point_source(luminosity=lsun, temperature=10000.,
@@ -46,12 +46,12 @@ three ways:
 * by using the local dust emissivity if neither a spectrum or temperature are
   specified.
 
-.. note:: by default, the number of photons emitted is proportional to the
+.. note:: By default, the number of photons emitted is proportional to the
           luminosity, so in cases where several sources with very different
           luminosities are included in the models, some sources might be
           under-sampled. You can instead change the configuration to emit
           equal number of photons from all sources -
-          see :ref:sample_sources_evenly for more details.
+          see :ref:`sample_sources_evenly` for more details.
 
 Point sources
 -------------
