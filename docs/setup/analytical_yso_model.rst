@@ -19,17 +19,16 @@ it is then easy to set up such a model using::
     m = AnalyticalYSOModel()
 
 The model can then be set up using methods of the :class:`~hyperion.model.AnalyticalYSOModel`
-instance. These are described in the following sections (the sections on
-images and radiative transfer configuration are the same as for the :class:`~hyperion.model.Model`
-class).
+instance. This is described in more detail in the following section:
 
 .. toctree::
    :maxdepth: 1
 
-   setup_dust
    setup_yso
-   setup_images
-   setup_conf
+
+To set up the dust, images, and configuration, see the :doc:`setup_dust`,
+:doc:`setup_images`, and :doc:`setup_conf` sections of the :doc:`model`
+description.
 
 Once the model is set up, the user can write it out to the disk for use
 with the Fortran radiation transfer code::
