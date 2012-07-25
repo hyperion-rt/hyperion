@@ -58,9 +58,6 @@ module type_dust
 
      logical :: is_lte ! Whether the emissivities assume therma emission from LTE dust
 
-     ! integer :: beta ! power of the photon energy sampling
-     ! real(dp),allocatable  :: a(:) ! Energy of the emitted photon = a*nu^beta * incoming energy
-
   end type dust
 
 contains
@@ -260,15 +257,6 @@ contains
        call set_pdf(d%b_nu(i),emiss_nu,emiss_jnu(i,:) / interp1d_loglog(d%nu, d%kappa_nu, emiss_nu),log=.true.)
     end do
 
-    ! Set power of energy sampling
-    ! d%beta = beta
-    ! do i=1,n_t
-    !   call set_pdf(d%j_nu(i),d%nu,d%kappa_nu*B_nu(d%nu,d%T(i))*d%nu**(-d%beta),log=.true.)
-    !   ! Find a
-    !   d%a(i) = integral(d%nu,d%kappa_nu*B_nu(d%nu,d%T(i))*d%nu**(-d%beta)) &
-    !   &      / integral(d%nu,d%kappa_nu*B_nu(d%nu,d%T(i)))
-    ! end do
-
   end subroutine dust_setup
 
   subroutine dust_jnu_var_pos_frac(d,specific_energy,jnu_var_id,jnu_var_frac)
@@ -327,7 +315,6 @@ contains
     s = stokes_dp(1._dp,0._dp,0._dp,0._dp)
 
     energy_scaling = 1.
-    ! energy_scaling = d%a(i)*nu**(d%beta)
 
     call random_sphere_angle3d(a)
 
