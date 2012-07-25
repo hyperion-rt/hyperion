@@ -163,4 +163,4 @@ Advanced parameters
 
 There are a number of more advanced parameters to control the radiative
 transfer, but since they are not essential initially, they are described in
-the :doc:`../advanced/advanced` section.
+the :doc:`../advanced/advanced_conf` section.
