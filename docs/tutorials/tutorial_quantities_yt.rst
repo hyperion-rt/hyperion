@@ -31,7 +31,7 @@ where ``pf`` is a ``StaticOutput`` yt object! This can then be used as a normal 
 .. note:: At the moment, the method used to plot Octrees is very
           inefficient, so plotting these will be very slow.
 
-Projection plots are just a very small fraction of the functionality of yt - you should have a careful look at their `documentation <http://yt-project.org/doc/index.html>` to find out about all the available functionality!
+Projection plots are just a very small fraction of the functionality of yt - you should have a careful look at their `documentation <http://yt-project.org/doc/index.html>`_ to find out about all the available functionality!
 
 If we apply this to the output for the radiative transfer model on the hydrodynamical simulation in `Robitaille (2011) <http://dx.doi.org/10.1051/0004-6361/201117150>`_, the density looks like:
 
