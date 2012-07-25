@@ -52,7 +52,7 @@ Regular 3-d grids
 Geometry
 ^^^^^^^^
 
-In the case of the cartesian and polar grids, the user should define the wall
+In the case of the cartesian and polar grids, you should define the wall
 position in each of the three directions, using cgs units for the spatial
 coordinates, and radians for the angular coordinates. These wall positions
 should be stored in one 1-d NumPy array for each dimension, with one element

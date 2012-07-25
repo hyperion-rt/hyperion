@@ -31,7 +31,7 @@ are described in the following sections.
    setup_images
    setup_conf
 
-Once the model is set up, the user can write it out to the disk for use
+Once the model is set up, you can write it out to the disk for use
 with the Fortran radiation transfer code::
 
     m.write('example.rtin')
