@@ -1,5 +1,5 @@
 .. _MPI: http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads
-.. _HDF5: http://www.hdfgroup.org/ftp/HDF5/current/src/
+.. _HDF5 downloads: http://www.hdfgroup.org/ftp/HDF5/current/src/
 
 
 .. _fortrandep:
@@ -15,21 +15,22 @@ The packages required for the Fortran code are:
 
 * A recent Fortran compiler
 
-* `HDF5 <http://www.hdfgroup.org/HDF5/>`_ 1.8.5 or later with the Fortran libraries built
+* `HDF5 <http://www.hdfgroup.org/HDF5/>`_ 1.8.5 or later with the Fortran bindings
 
-* An MPI installation (e.g. `MPICH2 <http://www.mcs.anl.gov/research/projects/mpich2/>`_ or `OpenMPI <http://www.open-mpi.org/>`_) with the Fortran libraries built
+* An MPI installation (e.g. `MPICH2 <http://www.mcs.anl.gov/research/projects/mpich2/>`_ or `OpenMPI <http://www.open-mpi.org/>`_) with the Fortran bindings
 
-Note that often, default installations of these packages do not include support for Fortran - this has to be explicitly enabled as described below.
+Note that often, default installations of HDF5 and MPI packages do not include support for Fortran - this has to be explicitly enabled as described below.
 
 Fortran compiler
 ================
 
-The first dependency is a fortran compiler. In addition to commercial
-compilers, there are a couple of free ones, the most common of which is
-``gfortran``. If you don't already have it installed, you can install it via
-package managers on Linux machines, or from MacPorts or binary installers on
-mac (e.g. `http://r.research.att.com/tools/ <http://r.research.att.com/tools/>`_). If you are unsure about how to
-do this, speak to your system administrator.
+The first dependency is a Fortran compiler. In addition to commercial
+compilers (e.g. ``ifort``, ``pgfortran``, ...), there are a couple of free
+ones, the most common of which is ``gfortran``. If you don't already have a
+compiler installed, you can install ``gfortran`` via package managers on Linux
+machines, or from MacPorts or binary installers on Mac (e.g.
+`http://r.research.att.com/tools/ <http://r.research.att.com/tools/>`_). If
+you are unsure about how to do this, speak to your system administrator.
 
 Non-root installs
 =================
@@ -177,7 +178,7 @@ managers such as Fink and MacPorts include HDF5, they often do not include the
 Fortran bindings. Therefore, it is best to install the HDF5 library manually
 from source.
 
-To start with, download the source code from the `HDF5`_ downloads page, then
+To start with, download the source code from the `HDF5 downloads`_ page, then
 go into the source code directory::
 
     cd hdf5-x.x.x
