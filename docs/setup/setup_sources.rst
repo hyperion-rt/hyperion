@@ -31,9 +31,9 @@ three ways:
 
 * by specifying a spectrum using the ``spectrum`` attribute (or ``spectrum=``
   argument). The spectrum should either be a ``(nu, fnu)`` pair or an instance
-  of an ``atpy.Table`` with two columns named 'nu' and 'fnu'. For example,
-  given a file ``spectrum.txt`` with two columns listing frequency and flux,
-  the spectrum can be set using::
+  of an ``atpy.Table`` with two columns named ``'nu'`` and ``'fnu'``. For
+  example, given a file ``spectrum.txt`` with two columns listing frequency
+  and flux, the spectrum can be set using::
 
     import numpy
     spectrum = np.loadtxt('spectrum.txt', dtype=[('nu', float),
