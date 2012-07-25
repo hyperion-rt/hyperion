@@ -831,8 +831,15 @@ class ModelOutput(FreezableClass):
             An object containing information about the geometry and quantities
         '''
 
+        if self.file['Input'].file != self.file.file:
+            # Workaround for h5py bug - can't access link directly,
+            # need to use file attribute
+            g_grid = self.file['Input'].file[self.file['Input'].name]['Grid']
+        else:
+            g_grid = self.file['Input/Grid']
+
         # Find coordinate grid type
-        coord_type = self.file['Input']['Grid']['Geometry'].attrs['grid_type'].decode('utf-8')
+        coord_type = g_grid['Geometry'].attrs['grid_type'].decode('utf-8')
 
         if coord_type == 'car':
             g = CartesianGrid()
@@ -846,7 +853,7 @@ class ModelOutput(FreezableClass):
             g = OctreeGrid()
 
         # Read in geometry and input quantities
-        g.read_geometry(self.file['Input']['Grid']['Geometry'])
+        g.read_geometry(g_grid['Geometry'])
 
         # If iteration is last one, find iteration number
         if iteration == -1:
@@ -859,7 +866,7 @@ class ModelOutput(FreezableClass):
 
         if not 'density' in g:
             logger.info("No density present in output, reading initial density")
-            g.read_quantities(self.file['Input']['Grid']['Quantities'], quantities=['density'])
+            g.read_quantities(g_grid['Quantities'], quantities=['density'])
 
         # Compute the temperature as a derived quantity
         if 'specific_energy' in g:
