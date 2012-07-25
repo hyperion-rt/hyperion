@@ -4,7 +4,4 @@ recursive-include fortranlib *.f90
 recursive-include deps *
 recursive-include docs *
 
-include hyperion/util/integrate_core.c
-include hyperion/util/interpolate_core.c
-
 recursive-exclude hyperion *.pyx *.pyc *.o

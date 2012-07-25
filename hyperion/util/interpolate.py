@@ -2,14 +2,14 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from .interpolate_core import interp1d_linear_scalar, \
-                              interp1d_linear_array, \
-                              interp1d_loglog_scalar, \
-                              interp1d_loglog_array, \
-                              interp1d_linlog_scalar, \
-                              interp1d_linlog_array, \
-                              interp1d_loglin_scalar, \
-                              interp1d_loglin_array
+from ._interpolate_core import interp1d_linear_scalar, \
+                               interp1d_linear_array, \
+                               interp1d_loglog_scalar, \
+                               interp1d_loglog_array, \
+                               interp1d_linlog_scalar, \
+                               interp1d_linlog_array, \
+                               interp1d_loglin_scalar, \
+                               interp1d_loglin_array
 
 
 class check_bounds(object):
@@ -57,14 +57,13 @@ def interp1d_fast(x, y, xval):
         raise Exception("x and y should have the same length")
     if x.dtype != float or y.dtype != float:
         x, y = x.astype(float), y.astype(float)
-    ipos = np.searchsorted(x, xval)
     if np.isscalar(xval):
-        return interp1d_linear_scalar(x, y, np.float(xval), ipos)
+        return interp1d_linear_scalar(x, y, np.float(xval))
     else:
         if xval.ndim > 1:
-            return interp1d_linear_array(x, y, xval.flatten(), ipos.flatten()).reshape(xval.shape)
+            return interp1d_linear_array(x, y, xval.flatten()).reshape(xval.shape)
         else:
-            return interp1d_linear_array(x, y, xval, ipos)
+            return interp1d_linear_array(x, y, xval)
 
 
 @check_bounds
@@ -74,14 +73,13 @@ def interp1d_fast_loglog(x, y, xval):
         raise Exception("x and y should have the same length")
     if x.dtype != float or y.dtype != float:
         x, y = x.astype(float), y.astype(float)
-    ipos = np.searchsorted(x, xval)
     if np.isscalar(xval):
-        return interp1d_loglog_scalar(x, y, np.float(xval), ipos)
+        return interp1d_loglog_scalar(x, y, np.float(xval))
     else:
         if xval.ndim > 1:
-            return interp1d_loglog_array(x, y, xval.flatten(), ipos.flatten()).reshape(xval.shape)
+            return interp1d_loglog_array(x, y, xval.flatten()).reshape(xval.shape)
         else:
-            return interp1d_loglog_array(x, y, xval, ipos)
+            return interp1d_loglog_array(x, y, xval)
 
 
 @check_bounds
@@ -91,14 +89,13 @@ def interp1d_fast_linlog(x, y, xval):
         raise Exception("x and y should have the same length")
     if x.dtype != float or y.dtype != float:
         x, y = x.astype(float), y.astype(float)
-    ipos = np.searchsorted(x, xval)
     if np.isscalar(xval):
-        return interp1d_linlog_scalar(x, y, np.float(xval), ipos)
+        return interp1d_linlog_scalar(x, y, np.float(xval))
     else:
         if xval.ndim > 1:
-            return interp1d_linlog_array(x, y, xval.flatten(), ipos.flatten()).reshape(xval.shape)
+            return interp1d_linlog_array(x, y, xval.flatten()).reshape(xval.shape)
         else:
-            return interp1d_linlog_array(x, y, xval, ipos)
+            return interp1d_linlog_array(x, y, xval)
 
 
 @check_bounds
@@ -108,11 +105,10 @@ def interp1d_fast_loglin(x, y, xval):
         raise Exception("x and y should have the same length")
     if x.dtype != float or y.dtype != float:
         x, y = x.astype(float), y.astype(float)
-    ipos = np.searchsorted(x, xval)
     if np.isscalar(xval):
-        return interp1d_loglin_scalar(x, y, np.float(xval), ipos)
+        return interp1d_loglin_scalar(x, y, np.float(xval))
     else:
         if xval.ndim > 1:
-            return interp1d_loglin_array(x, y, xval.flatten(), ipos.flatten()).reshape(xval.shape)
+            return interp1d_loglin_array(x, y, xval.flatten()).reshape(xval.shape)
         else:
-            return interp1d_loglin_array(x, y, xval, ipos)
+            return interp1d_loglin_array(x, y, xval)

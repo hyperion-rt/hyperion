@@ -5,6 +5,8 @@ import struct
 import pytest
 import numpy as np
 
+from numpy.testing import assert_array_almost_equal_nulp
+
 from ..integrate import *
 
 
@@ -37,12 +39,25 @@ def test_loglog_subset(xmin, xmax):
 
 
 @pytest.mark.parametrize(('xmin', 'xmax'), cases)
-def test_loglog_subset_special(xmin, xmax):
+def test_loglog_subset_special1(xmin, xmax):
     # Special case for loglog is y = x^-1
     x = np.array([1., 2., 3., 4., 5.])
     y = 1. / x
     assert almost_equal(integrate_loglog_subset(x, y, xmin, xmax), np.log(xmax) - np.log(xmin))
 
+@pytest.mark.parametrize(('xmin', 'xmax'), cases)
+def test_loglog_subset_special2(xmin, xmax):
+    # Special case for loglog is close to y = x^-1
+    x = np.array([1., 2., 3., 4., 5.])
+    y = x ** -1.1
+    assert_array_almost_equal_nulp(integrate_loglog_subset(x, y, xmin, xmax), -10. * (xmax ** -0.1 - xmin ** -0.1), 50)
+
+@pytest.mark.parametrize(('xmin', 'xmax'), cases)
+def test_loglog_subset_special3(xmin, xmax):
+    # Contains a zero value
+    x = np.array([0., 2., 3., 4., 5.])
+    y = 4. * x ** 3.
+    assert almost_equal(integrate_loglog_subset(x, y, xmin, xmax), (max(xmax, 2.) ** 4 - max(xmin, 2.) ** 4))
 
 @pytest.mark.parametrize(('xmin', 'xmax'), cases)
 def test_loglin_subset(xmin, xmax):
@@ -99,7 +114,10 @@ def test_linear_not_monotonic():
     y = 2. * x - 1.
     with pytest.raises(ValueError) as exc:
         integrate(x, y)
-    assert exc.value.args[0] == 'x is not monotonically increasing'
+    if isinstance(exc.value, basestring):
+        assert exc.value == 'x is not monotonically increasing'
+    else:
+        assert exc.value.args[0] == 'x is not monotonically increasing'
 
 
 def test_loglog_not_monotonic():
@@ -107,7 +125,10 @@ def test_loglog_not_monotonic():
     y = 2. * x - 1.
     with pytest.raises(ValueError) as exc:
         integrate_loglog(x, y)
-    assert exc.value.args[0] == 'x is not monotonically increasing'
+    if isinstance(exc.value, basestring):
+        assert exc.value == 'x is not monotonically increasing'
+    else:
+        assert exc.value.args[0] == 'x is not monotonically increasing'
 
 
 def test_loglin_not_monotonic():
@@ -115,7 +136,10 @@ def test_loglin_not_monotonic():
     y = 2. * x - 1.
     with pytest.raises(ValueError) as exc:
         integrate_loglin(x, y)
-    assert exc.value.args[0] == 'x is not monotonically increasing'
+    if isinstance(exc.value, basestring):
+        assert exc.value == 'x is not monotonically increasing'
+    else:
+        assert exc.value.args[0] == 'x is not monotonically increasing'
 
 
 def test_linlog_not_monotonic():
@@ -123,4 +147,7 @@ def test_linlog_not_monotonic():
     y = 2. * x - 1.
     with pytest.raises(ValueError) as exc:
         integrate_linlog(x, y)
-    assert exc.value.args[0] == 'x is not monotonically increasing'
+    if isinstance(exc.value, basestring):
+        assert exc.value == 'x is not monotonically increasing'
+    else:
+        assert exc.value.args[0] == 'x is not monotonically increasing'

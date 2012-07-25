@@ -40,9 +40,6 @@ then the module is not installed. If you see this
 
 then the module is already installed.
 
-.. note:: If you are installing Hyperion from the git repository, you will
-          also need the `Cython <http://www.cython.org>`_ module installed.
-
 MacOS X
 =======
 
