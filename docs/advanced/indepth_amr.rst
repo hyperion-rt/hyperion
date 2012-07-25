@@ -4,7 +4,7 @@
 AMR Grids
 =========
 
-AMR grids are specified by nested objects in the Python, with a layout described in :ref:`model`. These objects can be built in several ways:
+AMR grids are specified by nested objects in the Python, with a layout described in :doc:`../setup/setup_grid`. These objects can be built in several ways:
 
 Programmatically
 ================
@@ -68,7 +68,7 @@ The ``stars`` variable is a list of ``Star`` instances. These ``Star`` instances
 These can be used for example to set up sources of emission in the model::
 
     # Set up the stars
-    for star in amr.stars:
+    for star in stars:
         source = m.add_point_source()
         source.luminosity = lsun
         source.position = (star.x, star.y, star.z)
