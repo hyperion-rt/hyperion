@@ -1,15 +1,13 @@
 module grid_generic
 
-  use core_lib
-  use mpi_hdf5_io
-  use mpi_core
+  use core_lib, only : sp, dp, hid_t, warn, error
+  use mpi_hdf5_io, only : mp_create_group
+  use mpi_core, only : main_process
 
-  use grid_io
+  use grid_io, only : write_grid_3d, write_grid_4d
   use grid_geometry, only : geo
-  use grid_physics
-  use dust_main
-  use settings
-  use type_dust
+  use grid_physics, only : n_photons, last_photon_id, specific_energy_sum, specific_energy, density, density_original
+  use settings, only : output_n_photons, output_specific_energy, output_density, output_density_diff, physics_io_type
 
   implicit none
   save
