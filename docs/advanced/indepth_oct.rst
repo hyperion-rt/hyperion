@@ -4,7 +4,7 @@
 Octree Grids
 ============
 
-`Octrees <http://en.wikipedia.org/wiki/Octree>`_ are hirearchical in nature, and therefore it is easiest to think about setting them up in a recursive manner. To set up an octree, we want to populate a list of booleans (referred to as ``refined``).
+`Octrees <http://en.wikipedia.org/wiki/Octree>`_ are hierarchical in nature, and therefore it is easiest to think about setting them up in a recursive manner. To set up an octree, we want to populate a list of booleans (referred to as ``refined``).
 
 The first value indicates whether the parent cell is sub-divided. If it is, then the the second element indicates whether the first cell of the parent cell is sub-divided. If it isn't, then the next value indicates whether the second cell of the parent cell is sub-divided. If it is, then we need to specify the booleans for all the children of that cell before we move to the third cell of the parent cell.
 
