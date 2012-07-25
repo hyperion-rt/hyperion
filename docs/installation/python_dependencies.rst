@@ -40,6 +40,26 @@ then the module is not installed. If you see this
 
 then the module is already installed.
 
+Linux
+=====
+
+Numpy, Matplotlib, and h5py should be available in most major Linux package
+managers. If ATpy is not available, you can easily install it from source. To
+do this, go `here <http://atpy.github.com/>`_ and click on *Download latest
+stable version*. Then, expand the tar file and install using::
+
+    tar xvzf ATpy-x.x.x.tar.gz
+    cd ATpy-x.x.x
+    python setup.py install
+
+Finally, check that ATpy imports cleanly::
+
+   ~> python
+   Python 2.7.2 (default, Aug 19 2011, 20:41:43) [GCC] on linux2
+   Type "help", "copyright", "credits" or "license" for more information.
+    >>> import atpy
+    >>>
+
 MacOS X
 =======
 
