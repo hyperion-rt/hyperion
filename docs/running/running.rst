@@ -41,7 +41,7 @@ Calling the Fortran binaries directly
 * ``hyperion_amr`` and ``hyperion_amr_mpi`` for AMR grids
 * ``hyperion_oct`` and ``hyperion_oct_mpi`` for Oct-tree grids
 
-These binaries can be called directly instead of the `hyperion` wrapper. For example, to run a model with a cartesian grid in serial, you would use::
+These binaries can be called directly instead of the ``hyperion`` wrapper. For example, to run a model with a cartesian grid in serial, you would use::
 
     hyperion_car model.rtin model.rtout
 
@@ -49,7 +49,7 @@ To use the parallel version of the code, use the relevant binary, with the ``_mp
 
     mpirun -n 128 hyperion_car_mpi model.rtin model.rtout
 
-This can also be ``mpiexec`` or ``openmpirun`` or ``openmpiexec`` depending on your MPI installation. Note that there is no wrapper to select the correct grid for the MPI-enabled code.
+This can also be ``mpiexec`` or ``openmpirun`` or ``openmpiexec`` depending on your MPI installation.
 
 Running the model from the Python scripts
 -----------------------------------------
@@ -58,11 +58,11 @@ It is also possible to run the serial version of the code directly from the set-
 
     m = Model()
     ...
-    m.write()
-    m.run()
+    m.write('model.rtin')
+    m.run('model.rtout')
 
 To run in parallel, simply do::
 
-    m.run(mpi=True, n_cores=<n_processes>)
+    m.run('model.rtout', mpi=True, n_processes=<n_processes>)
 
 As for the ``hyperion`` command-line wrapper, this may not work with all MPI installations.
