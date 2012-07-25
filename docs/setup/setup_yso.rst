@@ -112,7 +112,7 @@ except that the accretion properties of the disk can also be specified. Either t
 
 or the accretion luminosity from viscous dissipation::
 
-    disk.lacc = 0.01 * lsun
+    disk.lvisc = 0.01 * lsun
 
 Note that this accretion luminosity only includes the luminosity down to
 ``disk.rmin``, and does not include the luminosity from the stellar surface (see `Magnetospheric accretion`_). For more details on the accretion luminosity from viscous dissipation, see :class:`~hyperion.densities.AlphaDisk`.

@@ -1,6 +1,9 @@
 Choosing the number of photons wisely
 =====================================
 
+.. note:: This section is incomplete at this time, and only covers choosing
+          the photon numbers for the specific energy/temperature calculation.
+
 As described in :doc:`../setup/setup_conf` and
 :doc:`../advanced/advanced_conf`, the number of photons should be set with
 the::
