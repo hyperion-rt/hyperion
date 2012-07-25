@@ -380,7 +380,10 @@ class AlphaDisk(FreezableClass):
 
         norm = self.mass / np.sum(rho * grid.volumes)
 
-        logger.info("Normalization factor for disk mass: %5.2f" % norm)
+        logger.info("Disk density is being re-scaled by a factor of %.2f to give the correct mass." % norm)
+
+        if norm > 1.1 or norm < 1. / 1.1:
+            logger.warn("Re-scaling factor is significantly different from 1, which indicates that the grid may be too coarse to properly resolve the disk.")
 
         # Normalize to total disk mass
         rho = rho * norm
