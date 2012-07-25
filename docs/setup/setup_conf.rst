@@ -30,7 +30,7 @@ how often to print out performance statistics (if it is not specified a
 sensible default is chosen).
 
 Since the number of photons is crucial to produce good quality results, you
-can read up more about setting sensible values at :doc:photon_numbers.
+can read up more about setting sensible values at :doc:`photon_numbers`.
 
 .. _convergence:
 
