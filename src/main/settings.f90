@@ -10,7 +10,6 @@ module settings
   integer(idp) :: n_reabs_max = 0
 
   integer(idp),public :: n_stats
-  ! integer(idp),public :: n_lucy_check
   integer,public :: n_initial_iter
   integer(idp),public :: n_initial_photons
   integer(idp),public :: n_last_photons = 0

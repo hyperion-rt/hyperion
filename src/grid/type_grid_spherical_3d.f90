@@ -25,7 +25,6 @@ module type_grid
      logical, allocatable :: mask(:)
      integer, allocatable :: mask_map(:)
 
-
   end type grid_geometry_desc
 
 end module type_grid

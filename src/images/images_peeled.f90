@@ -310,9 +310,6 @@ contains
 
     allocate(column_density(n_dust))
 
-    ! array_size = array_size + 8 * n_x * n_y * n_w / 1024.**2.
-    ! write(*,'(" [",F6.1,"Mb]")') array_size
-
   end subroutine peeled_images_setup
 
   subroutine peeled_images_write(group)

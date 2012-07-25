@@ -51,9 +51,6 @@ contains
 
     call image_setup(handle, path ,binned_image,n_theta*n_phi,n_sources,n_dust,.false.)
 
-    ! array_size = 8 * n_phi * n_theta * n_x * n_y * n_w / 1024.**2.
-    ! write(*,'(" [",F6.1,"Mb]")') array_size
-
   end subroutine binned_images_setup
 
   subroutine binned_images_bin_photon(p)
