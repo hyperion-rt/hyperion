@@ -173,15 +173,6 @@ def B_nu(nu, T):
     return f
 
 
-def filename2fits(filename):
-
-    ext = os.path.splitext(filename)[1]
-    if ext in ['.par', '.dat', '.txt', '.ascii']:
-        return filename.replace(ext, '.fits')
-    else:
-        raise Exception("Unknown extension: %s" % ext)
-
-
 def filename2hdf5(filename):
 
     ext = os.path.splitext(filename)[1]
