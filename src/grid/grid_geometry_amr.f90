@@ -181,6 +181,15 @@ contains
 
   ! Standard Grid Methods
 
+  logical function aligned(x1, x2, dx)
+    implicit none
+    real(dp),intent(in) :: x1, x2, dx
+    real(dp) :: r
+    r = mod(abs(x1 - x2), dx)
+    if(r > 0.5_dp * dx) r = dx - r
+    aligned = abs(r / dx) < 1.e-10
+  end function aligned
+
   subroutine setup_grid_geometry(group)
 
     implicit none
@@ -234,27 +243,27 @@ contains
        grid_ref => level%grids(1)
        do igrid=2,size(level%grids)
           grid => level%grids(igrid)
-          if(grid%width(1) /= grid_ref%width(1)) then
+          if(abs(grid%width(1) - grid_ref%width(1)) > 1.e-10 * grid%width(1)) then
              write(message, '("Grids ", I0, " and ", I0, " in level ", I0, " have differing cell widths in the x direction (", ES11.4, " and ", ES11.4, " respectively)")') 1, igrid, ilevel, grid_ref%width(1), grid%width(1)
              call error("setup_grid_geometry", trim(message))
           end if
-          if(grid%width(2) /= grid_ref%width(2)) then
+          if(abs(grid%width(2) - grid_ref%width(2)) > 1.e-10 * grid%width(2)) then
              write(message, '("Grids ", I0, " and ", I0, " in level ", I0, " have differing cell widths in the y direction (", ES11.4, " and ", ES11.4, " respectively)")') 1, igrid, ilevel, grid_ref%width(2), grid%width(2)
              call error("setup_grid_geometry", trim(message))
           end if
-          if(grid%width(3) /= grid_ref%width(3)) then
+          if(abs(grid%width(3) - grid_ref%width(3)) > 1.e-10 * grid%width(3)) then
              write(message, '("Grids ", I0, " and ", I0, " in level ", I0, " have differing cell widths in the z direction (", ES11.4, " and ", ES11.4, " respectively)")') 1, igrid, ilevel, grid_ref%width(3), grid%width(3)
              call error("setup_grid_geometry", trim(message))
           end if
-          if(mod(abs(grid%xmin - grid_ref%xmin), grid_ref%width(1)) > 1.e-10) then
+          if(.not.aligned(grid%xmin, grid_ref%xmin, grid_ref%width(1))) then
              write(message, '("Grids ", I0, " and ", I0, " in level ", I0, " have edges that are not separated by an integer number of cells in the x direction")') 1, igrid, ilevel
              call error("setup_grid_geometry", trim(message))
           end if
-          if(mod(abs(grid%ymin - grid_ref%ymin), grid_ref%width(2)) > 1.e-10) then
+          if(.not.aligned(grid%ymin, grid_ref%ymin, grid_ref%width(2))) then
              write(message, '("Grids ", I0, " and ", I0, " in level ", I0, " have edges that are not separated by an integer number of cells in the y direction")') 1, igrid, ilevel
              call error("setup_grid_geometry", trim(message))
           end if
-          if(mod(abs(grid%zmin - grid_ref%zmin), grid_ref%width(3)) > 1.e-10) then
+          if(.not.aligned(grid%zmin, grid_ref%zmin, grid_ref%width(3))) then
              write(message, '("Grids ", I0, " and ", I0, " in level ", I0, " have edges that are not separated by an integer number of cells in the z direction")') 1, igrid, ilevel
              call error("setup_grid_geometry", trim(message))
           end if
@@ -289,15 +298,15 @@ contains
        grid_ref => level1%grids(1)
        do igrid=1,size(level2%grids)
           grid => level2%grids(igrid)
-          if(mod(abs(grid%xmin - grid_ref%xmin), grid_ref%width(1)) > 1.e-10) then
+          if(.not.aligned(grid%xmin, grid_ref%xmin, grid_ref%width(1))) then
              write(message, '("Grid ", I0, " in level ", I0, " is not aligned with cells in level ", I0, " in the x direction")') igrid, ilevel + 1, ilevel
              call error("setup_grid_geometry", trim(message))
           end if
-          if(mod(abs(grid%ymin - grid_ref%ymin), grid_ref%width(2)) > 1.e-10) then
+          if(.not.aligned(grid%ymin, grid_ref%ymin, grid_ref%width(2))) then
              write(message, '("Grid ", I0, " in level ", I0, " is not aligned with cells in level ", I0, " in the y direction")') igrid, ilevel + 1, ilevel
              call error("setup_grid_geometry", trim(message))
           end if
-          if(mod(abs(grid%zmin - grid_ref%zmin), grid_ref%width(3)) > 1.e-10) then
+          if(.not.aligned(grid%zmin, grid_ref%zmin, grid_ref%width(3))) then
              write(message, '("Grid ", I0, " in level ", I0, " is not aligned with cells in level ", I0, " in the z direction")') igrid, ilevel + 1, ilevel
              call error("setup_grid_geometry", trim(message))
           end if
