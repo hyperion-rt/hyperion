@@ -82,7 +82,8 @@ demonstrate adding different point sources:
     source2.temperature = 1300.  # [K]
 
 * Set up a 10 solar luminosity source at the origin with a spectrum read in
-  from a file with two columns giving wav (in microns) and fnu::
+  from a file with two columns giving wavelength (in microns) and
+  monochromatic flux::
 
     # Use NumPy to read in the spectrum
     import numpy as np

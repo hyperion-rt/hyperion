@@ -130,7 +130,7 @@ you may want to emit equal numbers of photons from each source instead. For
 example, if you have two sources that have a bolometric luminosity that is
 different by a factor of 100, but at the specific wavelength you are
 interested in they have the same flux, then you will probably want equal
-numbers of photons for both sources. You can enable this with:
+numbers of photons for both sources. You can enable this with::
 
     m.set_sample_sources_evenly(True)
 

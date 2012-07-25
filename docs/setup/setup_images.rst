@@ -66,6 +66,11 @@ to edge-on at constant phi using 20 viewing angles::
 
 A few more advanced parameters are also available, and these are described in :doc:`../advanced/peeloff`.
 
+.. note:: For peeled images, the number of viewing angles directly impacts the
+          performance of the code - once the specific energy/temperature has
+          been computed, the code will then run approximately in a time
+          proportional to the number of viewing angles.
+
 Uncertainties
 -------------
 
