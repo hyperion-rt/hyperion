@@ -52,6 +52,9 @@ scripts = ['hyperion', 'hyperion2fits', 'mctherm2hyperion']
 
 setup(name='hyperion',
       version=__version__,
+      url='http://www.hyperion-rt.org',
+      author='Thomas Robitaille',
+      author_email='thomas.robitaille@gmail.com',
       packages=['hyperion',
                 'hyperion.conf',
                 'hyperion.densities',
