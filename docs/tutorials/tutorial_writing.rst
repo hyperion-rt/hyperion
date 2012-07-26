@@ -153,6 +153,9 @@ extracted, we can write them out to a FITS file using
     # We can also just output one of the wavelengths
     pyfits.writeto('image_slice.fits', nufnu[:, :, 0], clobber=True)
 
+Writing out images (with WCS)
+=============================
+
 Adding World Coordinate System (WCS) information is easy using
 `PyWCS`_::
 

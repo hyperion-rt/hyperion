@@ -9,7 +9,7 @@ Post-processing
 ===============
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    tutorial_model.rst
    tutorial_plotting.rst
