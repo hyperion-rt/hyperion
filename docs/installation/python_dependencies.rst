@@ -45,7 +45,7 @@ Linux
 
 Numpy, Matplotlib, and h5py should be available in most major Linux package
 managers. If ATpy is not available, you can easily install it from source. To
-do this, go `here <http://atpy.github.com/>`_ and click on *Download latest
+do this, go to the `ATpy homepage <http://atpy.github.com/>`_ and click on *Download latest
 stable version*. Then, expand the tar file and install using::
 
     tar xvzf ATpy-x.x.x.tar.gz
@@ -114,7 +114,7 @@ create a clean installation without the fortran bindings, or else h5py will
 not install properly. Make sure that you perform the following installation in
 a different directory from before, to avoid overwriting any files.
 
-To install the plain HDF5 library download the source code from `here
+To install the plain HDF5 library download the source code from the latest `HDF5 downloads
 <http://www.hdfgroup.org/ftp/HDF5/current/src/>`_ (choose the hdf5-x.x.x.tar.gz file), then expand the source code::
 
     tar xvzf hdf5-x.x.x.tar.gz
@@ -126,7 +126,7 @@ and carry out the installation::
     make
     sudo make install
 
-Now, download the latest ``h5py-x.x.x.tar.gz`` package from the ``h5py`` `website <http://code.google.com/p/h5py/>`_, and do::
+Now, download the latest ``h5py-x.x.x.tar.gz`` package from the `h5py website <http://code.google.com/p/h5py/>`_, and do::
 
     tar xvzf h5py-x.x.x.tar.gz
     cd h5py-x.x.x
@@ -145,7 +145,7 @@ Now, go back to your home directory, and check that ``h5py`` imports cleanly::
 ATpy
 ^^^^
 
-Finally, if needed, install ATpy by going `here <http://atpy.github.com/>`_ and clicking on *Download latest stable version*. Then, expand the tar file and install using::
+Finally, if needed, install ATpy by going to the `ATpy homepage`_ and clicking on *Download latest stable version*. Then, expand the tar file and install using::
 
     tar xvzf ATpy-x.x.x.tar.gz
     cd ATpy-x.x.x
