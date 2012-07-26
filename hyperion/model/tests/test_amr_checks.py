@@ -40,8 +40,6 @@ def test_amr_differing_widths(direction):
     with pytest.raises(SystemExit) as exc:
         m.run(random_filename(), logfile=log_file)
 
-    print repr(open(log_file).read())
-
     assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
                                 'complete'
     assert ('Grids 1 and 2 in level 1 have differing cell widths in the %s \n           direction ( 5.0000E+00 and  5.0250E+00 respectively)' % direction) in open(log_file).read()
@@ -81,9 +79,6 @@ def test_amr_misaligned_grids_same_level(direction):
     log_file = random_filename()
     with pytest.raises(SystemExit) as exc:
         m.run(random_filename(), logfile=log_file)
-
-    print repr(open(log_file).read())
-    print open(log_file).read()
 
     assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
                                 'complete'
@@ -126,9 +121,6 @@ def test_amr_non_integer_refinement(direction):
     with pytest.raises(SystemExit) as exc:
         m.run(random_filename(), logfile=log_file)
 
-    print repr(open(log_file).read())
-    print open(log_file).read()
-
     assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
                                 'complete'
     assert ('Refinement factor in the %s direction between level 1 and \n           level 2 is not an integer (1.818)' % direction) in open(log_file).read()
@@ -170,9 +162,6 @@ def test_amr_not_aligned_across_levels(direction):
     log_file = random_filename()
     with pytest.raises(SystemExit) as exc:
         m.run(random_filename(), logfile=log_file)
-
-    print repr(open(log_file).read())
-    print open(log_file).read()
 
     assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
                                 'complete'
