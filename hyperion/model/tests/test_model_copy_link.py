@@ -1,15 +1,10 @@
 from __future__ import print_function, division
 
-import os
-import tempfile
-
 import h5py
 import pytest
 import numpy as np
 
-from .. import Model
 from ...util.functions import random_filename
-from ...dust import IsotropicDust
 from .test_helpers import get_test_model_noimaging, get_test_dust
 
 

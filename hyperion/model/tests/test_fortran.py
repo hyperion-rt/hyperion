@@ -3,7 +3,6 @@ import numpy as np
 
 from ...dust import IsotropicDust
 from ...util.functions import B_nu
-from ...util.constants import c
 
 from .. import Model
 

@@ -2,7 +2,6 @@ import numpy as np
 
 from ..model import Model
 from .test_helpers import random_filename, get_test_dust
-from ...dust import SphericalDust
 
 
 def test_mono_zero_prob():

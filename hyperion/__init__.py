@@ -1,9 +1,5 @@
 from __future__ import print_function, division
 
-import os
-import glob
-import hashlib
-
 from .version import __version__
 
 # Set up the test function

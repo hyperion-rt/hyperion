@@ -8,7 +8,6 @@ from ..grid.amr_grid import AMRGridView
 from ..util.functions import B_nu, random_id, FreezableClass, \
                              is_numpy_array, bool2str, monotonically_increasing
 from ..util.integrate import integrate_loglog
-from ..util.constants import c
 from ..util.validator import validate_scalar
 from ..util.logger import logger
 

@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from .. import AnalyticalYSOModel
-from ...util.constants import msun, rsun, lsun, tsun, au, pc
+from ...util.constants import msun, rsun, lsun, tsun, au
 from ...util.functions import random_filename
 from .test_helpers import get_test_dust
 from ...util.convenience import OptThinRadius

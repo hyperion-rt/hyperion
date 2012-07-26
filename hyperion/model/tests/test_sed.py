@@ -1,10 +1,5 @@
 from __future__ import print_function, division
 
-import os
-import random
-import string
-import tempfile
-
 import pytest
 import numpy as np
 
@@ -80,11 +75,6 @@ class TestSEDSimpleModel(object):
             wav, nufnu = self.m.get_sed(inclination=12.3)
         assert exc.value.args[0] == "inclination should be an integer (it should be the index of the inclination, not the value itself)"
 
-    def test_sed_dim_incl_invalid3(self):
-        with pytest.raises(Exception) as exc:
-            wav, nufnu = self.m.get_sed(inclination=12.3)
-        assert exc.value.args[0] == "inclination should be an integer (it should be the index of the inclination, not the value itself)"
-
     def test_sed_dim_aper1(self):
         wav, nufnu = self.m.get_sed(aperture=0)
         assert nufnu.shape == (2, 5)
@@ -100,11 +90,6 @@ class TestSEDSimpleModel(object):
     def test_sed_dim_aper_invalid2(self):
         with pytest.raises(IndexError):
             wav, nufnu = self.m.get_sed(aperture=-4)
-
-    def test_sed_dim_aper_invalid3(self):
-        with pytest.raises(Exception) as exc:
-            wav, nufnu = self.m.get_sed(aperture=344.3)
-        assert exc.value.args[0] == "aperture should be an integer (it should be the index of the aperture, not the value itself)"
 
     def test_sed_dim_aper_invalid3(self):
         with pytest.raises(Exception) as exc:
