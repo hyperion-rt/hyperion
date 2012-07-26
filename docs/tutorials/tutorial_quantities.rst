@@ -26,7 +26,7 @@ We first set up a model of a box containing 100 sources heating up dust::
     # Initialize model and set up density grid
     m = Model('example_cartesian')
     m.set_cartesian_grid(x, y, z)
-    m.add_density_grid(np.ones((100, 100, 100)) * 1.e-20, 'kmh.hdf5')
+    m.add_density_grid(np.ones((100, 100, 100)) * 1.e-20, 'kmh_lite.hdf5')
 
     # Generate random sources
     for i in range(100):
@@ -129,7 +129,7 @@ Polar grids are another interest case, because one might want to plot the result
     d.beta = 1.25
     d.h_0 = 0.01 * au
     d.r_0 = au
-    d.dust = 'kmh.hdf5'
+    d.dust = 'kmh_lite.hdf5'
 
     # Specify that the specific energy and density are needed
     m.conf.output.output_specific_energy = 'last'

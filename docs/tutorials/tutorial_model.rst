@@ -58,7 +58,7 @@ can create the model by running the following script::
     m.write('tutorial_model.rtin')
 
 Copy the above script into a file, say ``setup.py``, and download the :download:`kmh_lite.hdf5 <kmh_lite.hdf5>` dust file into the same
-directory, then set up the model with::
+directory (**disclaimer**: do not use this dust file outside of these tutorials!), then set up the model with::
 
     $ python setup.py
 
