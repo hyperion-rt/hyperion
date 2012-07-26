@@ -151,7 +151,7 @@ extracted, we can write them out to a FITS file using
     pyfits.writeto('image_cube.fits', nufnu, clobber=True)
 
     # We can also just output one of the wavelengths
-    pyfits.writeto('image_slice.fits', nufnu[0, :, :], clobber=True)
+    pyfits.writeto('image_slice.fits', nufnu[:, :, 0], clobber=True)
 
 Adding World Coordinate System (WCS) information is easy using
 `PyWCS`_::
@@ -185,5 +185,5 @@ Adding World Coordinate System (WCS) information is easy using
     header = wcs.to_header()
 
     # Write out to a file including the new header
-    pyfits.writeto('image_slice_wcs.fits', nufnu[0,:,:], header,
+    pyfits.writeto('image_slice_wcs.fits', nufnu[:, :, 0], header,
                    clobber=True)

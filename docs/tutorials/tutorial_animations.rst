@@ -47,7 +47,7 @@ The following script describes how to generate PNG frames for an animation::
         # include plt.cm.gray (grayscale), plt.cm.gist_yarg (inverted grayscale),
         # plt.cm.jet (default, colorful). The np.sqrt() is used to plot the
         # images on a sqrt stretch.
-        ax.imshow(np.sqrt(nufnu[iview, iwav, :, :]), vmin=0, vmax=np.sqrt(1.e-11), \
+        ax.imshow(np.sqrt(nufnu[iview, :, :, iwav]), vmin=0, vmax=np.sqrt(1.e-11), \
                   cmap=plt.cm.gist_heat, origin='lower')
 
         # Save figure. The facecolor='black' and edgecolor='black' are for
