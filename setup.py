@@ -48,7 +48,10 @@ ext_modules = [Extension("hyperion.util._integrate_core",
                          ['hyperion/util/_interpolate_core.c'],
                          include_dirs=[numpy_includes])]
 
-scripts = ['hyperion', 'hyperion2fits', 'mctherm2hyperion']
+scripts = ['hyperion', 'hyperion2fits']
+
+if __dev__:
+    scripts.append('mctherm2hyperion')
 
 setup(name='hyperion',
       version=__version__,
