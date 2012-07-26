@@ -533,6 +533,97 @@ class TestPinteBenchmark(object):
     @bit_level
     @generate_reference
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
+    def test_pinte_images(self, tau, generate=False):
+
+        m = AnalyticalYSOModel()
+
+        # Star:
+        #
+        # T_star = 4,000K
+        # R_star = 2 * R_sun
+
+        m.star.radius = 2. * rsun
+        m.star.temperature = 4000.
+        m.star.luminosity = 4. * pi * (2. * rsun) ** 2. * sigma * 4000. ** 4.
+
+        # Disk:
+        #
+        # Sigma(r) = Sigma_0 * (r/r_0)^-1.5
+        # h(r) = h_0 * (r/r_0)^1.125
+        # h_0 = 10 AU at 100AU
+        # r_in = 0.1AU, r_out = 400AU\
+        # Sharp vertical edges in cylindrical polar coordinates
+        # Disk mass (dust!) = 3e-8, 3e-7, 3e-6, 3e-5
+
+        disk = m.add_flared_disk()
+        disk.p = -1.5
+        disk.beta = 1.125
+        disk.mass = 3.e-8 * msun * tau / 1.e3
+        disk.rmin = 0.1 * au
+        disk.rmax = 400 * au
+        disk.h_0 = 10 * au
+        disk.r_0 = 100. * au
+
+        disk.cylindrical_inner_rim = True
+        disk.cylindrical_outer_rim = True
+
+        # Dust:
+        #
+        # Spherical grains, 1 micron, 3.5g/cm^3
+
+        disk.dust = SphericalDust(os.path.join(DATA, 'pinte_dust_lite.hdf5'))
+
+        # SEDs/Images:
+        #
+        # cos(i) = 0.05 to 0.95 in steps of 0.1
+        # Images computed at 1 micron
+        # 251 pixels/900 AU across, at 140 pc
+
+        # theta = np.degrees(np.arccos(np.linspace(0.05,0.95,10)))
+        # phi = np.ones(10) * 30
+
+        theta = np.array([69.5, 87.1])
+        phi = np.array([45., 45.])
+
+        image = m.add_peeled_images()
+        image.set_viewing_angles(theta, phi)
+        image.set_image_size(51, 51)
+        image.set_image_limits(-450.*au, 450.*au, -450.*au, 450.*au)
+        image.set_aperture_range(1, 450.*au, 450.*au)
+        image.set_wavelength_range(1, 0.9, 1.1)
+
+        m.set_raytracing(True)
+
+        m.set_n_initial_iterations(3)
+
+        m.set_cylindrical_polar_grid_auto(100, 30, 1)
+
+        m.set_monochromatic(True, wavelengths=[1.])
+
+        m.set_mrw(True, gamma=2.)
+        # Don't use the PDA here because it's too slow when there are too few photons
+
+        m.set_n_photons(initial=10000, imaging_sources=250000, imaging_dust=500000,
+                        raytracing_sources=100000, raytracing_dust=100000)
+
+        m.set_max_interactions(10000000)
+
+        m.set_copy_input(False)
+        m.write(random_filename(), copy=False, absolute_paths=True)
+        output_file = random_filename()
+        m.run(output_file)
+
+        if generate:
+            reference_file = os.path.join(generate, function_name() + ".rtout")
+            shutil.copy(output_file, reference_file)
+            pytest.skip("Skipping test, since generating data")
+        else:
+            reference_file = os.path.join(DATA, function_name() + ".rtout")
+            assert_identical_results(output_file, reference_file)
+
+    @bit_level
+    @generate_reference
+    @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
     def test_pinte_specific_energy(self, tau, generate=False):
 
         m = AnalyticalYSOModel()
