@@ -359,16 +359,14 @@ class CoatsphSingle(SphericalDust):
         '''
         Initialize single-component dust.
 
-        Required Arguments:
-
-            *directory*: [ string ]
-                Directory containing all the files describing the dust
-
-            *size*: [ float ]
-                Grain size, in cm
-
-            *density*: [ float ]
-                Dust grain density, in g/cm^3
+        Parameters
+        ----------
+        directory : str
+            Directory containing all the files describing the dust
+        size : float
+            Grain size, in cm
+        density : float
+            Dust grain density, in g/cm^3
         '''
 
         SphericalDust.__init__(self)
@@ -417,10 +415,10 @@ class CoatsphMultiple(SphericalDust):
         '''
         Initialize multi-component dust.
 
-        Required Arguments:
-
-            *directory*: [ string ]
-                Directory containing all the files describing the dust
+        Parameters
+        ----------
+        directory : str
+            Directory containing all the files describing the dust
         '''
 
         SphericalDust.__init__(self)
