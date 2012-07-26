@@ -63,7 +63,7 @@ program main
   character(len=30) :: datetime
   integer :: seed
 
-  character(len=5), parameter :: fortran_version = '0.9.0rc2'
+  character(len=5), parameter :: fortran_version = '0.9.0'
 
   call mp_set_compression(.true.)
 
