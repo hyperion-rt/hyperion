@@ -52,9 +52,9 @@ class Source(FreezableClass):
 
     @property
     def luminosity(self):
-        """
+        '''
         The bolometric luminosity of the source (ergs/s)
-        """
+        '''
         return self._luminosity
 
     @luminosity.setter
@@ -65,9 +65,9 @@ class Source(FreezableClass):
 
     @property
     def temperature(self):
-        """
+        '''
         The temperature of the source (K)
-        """
+        '''
         return self._temperature
 
     @temperature.setter
@@ -80,9 +80,9 @@ class Source(FreezableClass):
 
     @property
     def spectrum(self):
-        """
+        '''
         The spectrum of the source, specified either as an atpy.Table instance with ``'nu'`` and ``'fnu'`` columns, or as a ``(nu, fnu)`` tuple, where the frequency is given in Hz, and the flux is given as F_nu (units are unimportant since the normalization is set by the luminosity).
-        """
+        '''
         return self._spectrum
 
     @spectrum.setter
@@ -216,21 +216,21 @@ class SpotSource(Source):
 
         Attributes
         ----------
-        luminosity: float
+        luminosity : float
             The luminosity of the source (in ergs/s)
-        spectrum: atpy.Table or tuple
+        spectrum : atpy.Table or tuple
             The spectrum of the source, specified either as:
                 * an ATpy table with ``nu`` and ``fnu`` column
                 * a ``(nu, fnu)`` tuple
             ``nu`` should be in Hz, and the units for ``fnu`` are not
             important, since the luminosity determined the absolute scaling``
-        temperature: float
+        temperature : float
             The temperature of the source (in K)
-        longitude: float
+        longitude : float
             The longitude of the spot on the spherical source (in degrees)
-        latitude: float
+        latitude : float
             The latitude of the spot on the spherical source (in degrees)
-        radius: float
+        radius : float
             The radius of the spherical source (in cm)
         '''
 
@@ -296,9 +296,9 @@ class PointSource(Source):
 
     @property
     def position(self):
-        """
+        '''
         The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
-        """
+        '''
         return self._position
 
     @position.setter
@@ -360,9 +360,9 @@ class SphericalSource(Source):
 
     @property
     def radius(self):
-        """
+        '''
         The radius of the source (cm)
-        """
+        '''
         return self._radius
 
     @radius.setter
@@ -373,9 +373,9 @@ class SphericalSource(Source):
 
     @property
     def position(self):
-        """
+        '''
         The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
-        """
+        '''
         return self._position
 
     @position.setter
@@ -395,9 +395,9 @@ class SphericalSource(Source):
 
     @property
     def limb(self):
-        """
+        '''
         Whether to include limb darkening
-        """
+        '''
         return self._limb
 
     @limb.setter
@@ -473,9 +473,9 @@ class ExternalSphericalSource(Source):
 
     @property
     def radius(self):
-        """
+        '''
         The radius of the source (cm)
-        """
+        '''
         return self._radius
 
     @radius.setter
@@ -486,9 +486,9 @@ class ExternalSphericalSource(Source):
 
     @property
     def position(self):
-        """
+        '''
         The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
-        """
+        '''
         return self._position
 
     @position.setter
@@ -555,10 +555,10 @@ class ExternalBoxSource(Source):
 
     @property
     def bounds(self):
-        """
+        '''
         The cartesian boundaries of the rectangular box specified as
         ``[[xmin, xmax], [ymin, ymax], [zmin, zmax]]`` (cm)
-        """
+        '''
         return self._bounds
 
     @bounds.setter
@@ -625,9 +625,9 @@ class MapSource(Source):
 
     @property
     def map(self):
-        """
+        '''
         The relative luminosity in each cell, given as a Numpy array or an AMRGridView instance
-        """
+        '''
         return self._map
 
     @map.setter
@@ -688,9 +688,9 @@ class PlaneParallelSource(Source):
 
     @property
     def radius(self):
-        """
+        '''
         The radius of the source (cm)
-        """
+        '''
         return self._radius
 
     @radius.setter
@@ -701,9 +701,9 @@ class PlaneParallelSource(Source):
 
     @property
     def position(self):
-        """
+        '''
         The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
-        """
+        '''
         return self._position
 
     @position.setter
@@ -723,9 +723,9 @@ class PlaneParallelSource(Source):
 
     @property
     def direction(self):
-        """
+        '''
         The direction the photons should be emitted in ``(theta, phi)`` where ``theta`` and ``phi`` are spherical polar angles (rad)
-        """
+        '''
         return self._direction
 
     @direction.setter

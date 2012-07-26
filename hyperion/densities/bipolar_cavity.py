@@ -66,7 +66,7 @@ class BipolarCavity(FreezableClass):
 
     @property
     def power(self):
-        """Power of the cavity shape"""
+        '''Power of the cavity shape'''
         return self._power
 
     @power.setter
@@ -77,7 +77,7 @@ class BipolarCavity(FreezableClass):
 
     @property
     def r_0(self):
-        """radius at which ``theta_0`` and  ``rho_0`` are defined (cm)"""
+        '''radius at which ``theta_0`` and  ``rho_0`` are defined (cm)'''
         return self._r_0
 
     @r_0.setter

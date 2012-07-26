@@ -10,14 +10,14 @@ def single_grid_dims(data, ndim=3):
 
     Parameters
     ----------
-    data: list or tuple or np.ndarray or h5py.ExternalLink
+    data : list or tuple or np.ndarray or h5py.ExternalLink
         The data to find the number of populations and shape for
 
     Returns
     -------
-    n_pop: int
+    n_pop : int
         Number of (dust) populations
-    shape: tuple
+    shape : tuple
         The dimensions of the grid
     '''
 

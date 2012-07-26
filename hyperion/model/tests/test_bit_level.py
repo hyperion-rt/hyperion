@@ -229,15 +229,15 @@ class TestBasic(object):
 
 
 class TestPascucciBenchmark(object):
-    """
+    '''
     Run a very low signal-to-noise version of the Pascucci benchmark models.
     The point is not to have high signal-to-noise but to look for bit-level
     changes.
-    """
+    '''
 
     def setup_class(self):
 
-        optSi = """
+        optSi = '''
            0.1200000       5.8811883E-14   1.1439794E-13
            0.1400000       5.8397304E-14   1.1660481E-13
            0.1600000       6.2787212E-14   1.2265337E-13
@@ -299,7 +299,7 @@ class TestPascucciBenchmark(object):
             700.0000       9.9398631E-26   1.4894551E-18
             1200.000       1.1479267E-26   5.0961962E-19
             2000.000       1.4912529E-27   1.8238127E-19
-            """
+            '''
 
         # Read in dust
         from StringIO import StringIO
@@ -417,7 +417,7 @@ class TestPascucciBenchmark(object):
 
 
 class TestPinteBenchmark(object):
-    """
+    '''
     Run a very low signal-to-noise version of the Pinte benchmark models.
     The point is not to have high signal-to-noise but to look for bit-level
     changes.
@@ -426,7 +426,7 @@ class TestPinteBenchmark(object):
     -----
 
     The current tests do not test the imaging part of the Pinte benchmark.
-    """
+    '''
 
     @bit_level
     @generate_reference

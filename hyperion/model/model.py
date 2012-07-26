@@ -38,7 +38,7 @@ class Model(FreezableClass, RunConf):
 
         Parameters
         ----------
-        name: str
+        name : str
             The name of the model. This can be a descriptive name to identify
             the model. It is used by Model.write() to generate an input
             filename if none is specified.
@@ -129,7 +129,7 @@ class Model(FreezableClass, RunConf):
 
         Parameters
         ----------
-        filename: str
+        filename : str
             The file to read the grid from. This can be either the input or
             output file from a radiation transfer run.
         '''
@@ -180,19 +180,19 @@ class Model(FreezableClass, RunConf):
 
         Parameters
         ----------
-        filename: str
+        filename : str
             The file to read the quantities from. This should be the output
             file of a radiation transfer run.
-        quantities: list
+        quantities : list
             Which physical quantities to read in. Can include 'density' and
             'specific_energy'.
-        copy: bool
+        copy : bool
             Whether to copy the quantities into the new input file, or whether
             to just link to them.
-        use_minimum_specific_energy: bool
+        use_minimum_specific_energy : bool
             Whether to also use the minimum specific energy values from the
             file specified
-        use_dust: bool
+        use_dust : bool
             Whether to also use the dust properties from the file specified
         '''
 
@@ -249,23 +249,23 @@ class Model(FreezableClass, RunConf):
 
         Parameters
         ----------
-        filename: str
+        filename : str
             The name of the input file to write. If no name is specified, the
             filename is constructed from the model name.
-        compression: bool
+        compression : bool
             Whether to compress the datasets inside the HDF5 file.
-        copy: bool
+        copy : bool
             Whether to copy all external content into the input file, or
             whether to just link to external content.
-        absolute_paths: bool
+        absolute_paths : bool
             If copy=False, then if absolute_paths is True, absolute filenames
             are used in the link, otherwise the path relative to the input
             file is used.
-        wall_dtype: type
+        wall_dtype : type
             Numerical type to use for wall positions.
-        physics_dtype: type
+        physics_dtype : type
             Numerical type to use for physical grids.
-        overwrite: bool
+        overwrite : bool
             Whether to overwrite any pre-existing file
         '''
 

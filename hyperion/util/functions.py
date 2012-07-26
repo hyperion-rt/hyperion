@@ -28,15 +28,15 @@ def link_or_copy(group, name, link, copy, absolute_paths=False):
 
     Parameters
     ----------
-    group: h5py.Group
+    group : h5py.Group
         The group to create the link, dataset, or group in
-    name: str
+    name : str
         The name of the link, dataset, or group in the new file
-    link: h5py.ExternalLink
+    link : h5py.ExternalLink
         A link to the group or dataset to include
-    copy: bool
+    copy : bool
         Whether to copy or link to the dataset
-    absolute_paths: bool
+    absolute_paths : bool
         If copy=False, then if absolute_paths is True, absolute filenames
         are used in the link, otherwise the path relative to the file is used.
     '''

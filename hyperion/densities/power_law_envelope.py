@@ -55,7 +55,7 @@ class PowerLawEnvelope(Envelope):
 
     @property
     def rmin(self):
-        """inner radius (cm)"""
+        '''inner radius (cm)'''
         return self._rmin
 
     @rmin.setter
@@ -66,7 +66,7 @@ class PowerLawEnvelope(Envelope):
 
     @property
     def rmax(self):
-        """outer radius (cm)"""
+        '''outer radius (cm)'''
         return self._rmax
 
     @rmax.setter
@@ -195,7 +195,7 @@ class PowerLawEnvelope(Envelope):
 
         Parameters
         ----------
-        grid : :class:`~hyperion.grid.SphericalPolarGrid instance.
+        grid : :class:`~hyperion.grid.SphericalPolarGrid` instance.
             The spherical polar grid object containing information about the
             position of the grid cells.
 

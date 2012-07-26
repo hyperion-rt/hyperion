@@ -89,7 +89,7 @@ class AlphaDisk(FreezableClass):
 
     @property
     def rmin(self):
-        """inner radius (cm)"""
+        '''inner radius (cm)'''
         return self._rmin
 
     @rmin.setter
@@ -100,7 +100,7 @@ class AlphaDisk(FreezableClass):
 
     @property
     def rmax(self):
-        """outer radius (cm)"""
+        '''outer radius (cm)'''
         return self._rmax
 
     @rmax.setter

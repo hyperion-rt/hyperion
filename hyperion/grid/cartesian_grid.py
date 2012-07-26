@@ -189,7 +189,7 @@ class CartesianGrid(FreezableClass):
 
         Parameters
         ----------
-        array: np.ndarray or list of np.ndarray, optional
+        array : np.ndarray or list of np.ndarray, optional
             The array for which to test the dimensions. If this is not
             specified, this method performs a self-consistency check of array
             dimensions and meta-data.
@@ -221,10 +221,10 @@ class CartesianGrid(FreezableClass):
 
         Parameters
         ----------
-        group: h5py.Group
+        group : h5py.Group
             The HDF5 group to read the grid from. This group should contain
             groups named 'Geometry' and 'Quantities'.
-        quantities: 'all' or list
+        quantities : 'all' or list
             Which physical quantities to read in. Use 'all' to read in all
             quantities or a list of strings to read only specific quantities.
         '''
@@ -244,7 +244,7 @@ class CartesianGrid(FreezableClass):
 
         Parameters
         ----------
-        group: h5py.Group
+        group : h5py.Group
             The HDF5 group to read the grid geometry from.
         '''
 
@@ -265,9 +265,9 @@ class CartesianGrid(FreezableClass):
 
         Parameters
         ----------
-        group: h5py.Group
+        group : h5py.Group
             The HDF5 group to read the grid quantities from
-        quantities: 'all' or list
+        quantities : 'all' or list
             Which physical quantities to read in. Use 'all' to read in all
             quantities or a list of strings to read only specific quantities.
         '''
@@ -291,21 +291,21 @@ class CartesianGrid(FreezableClass):
 
         Parameters
         ----------
-        group: h5py.Group
+        group : h5py.Group
             The HDF5 group to write the grid to
-        quantities: 'all' or list
+        quantities : 'all' or list
             Which physical quantities to write out. Use 'all' to write out all
             quantities or a list of strings to write only specific quantities.
-        copy: bool
+        copy : bool
             Whether to copy external links, or leave them as links.
-        absolute_paths: bool
+        absolute_paths : bool
             If copy is False, then this indicates whether to use absolute or
             relative paths for links.
-        compression: bool
+        compression : bool
             Whether to compress the arrays in the HDF5 file
-        wall_dtype: type
+        wall_dtype : type
             The datatype to use to write the wall positions
-        physics_dtype: type
+        physics_dtype : type
             The datatype to use to write the physical quantities
         '''
 
@@ -356,22 +356,22 @@ class CartesianGrid(FreezableClass):
 
         Parameters
         ----------
-        group: h5py.Group
+        group : h5py.Group
             The HDF5 group to write the grid to
-        name: str
+        name : str
             The name of the array in the group
-        array: np.ndarray
+        array : np.ndarray
             The array to write out
-        copy: bool
+        copy : bool
             Whether to copy external links, or leave them as links.
-        absolute_paths: bool
+        absolute_paths : bool
             If copy is False, then this indicates whether to use absolute or
             relative paths for links.
-        compression: bool
+        compression : bool
             Whether to compress the arrays in the HDF5 file
-        wall_dtype: type
+        wall_dtype : type
             The datatype to use to write the wall positions
-        physics_dtype: type
+        physics_dtype : type
             The datatype to use to write the physical quantities
         '''
 
@@ -435,7 +435,7 @@ class CartesianGridView(CartesianGrid):
 
         Parameters
         ----------
-        grid: 3D Numpy array or CartesianGridView instance
+        grid : 3D Numpy array or CartesianGridView instance
             The grid to copy the quantity from
         '''
         if isinstance(grid, CartesianGridView):
@@ -457,7 +457,7 @@ class CartesianGridView(CartesianGrid):
 
         Parameters
         ----------
-        grid: 3D Numpy array or CartesianGridView instance
+        grid : 3D Numpy array or CartesianGridView instance
             The grid to copy the quantity from
         '''
         if type(self.quantities[self.viewed_quantity]) is list:

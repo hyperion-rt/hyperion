@@ -18,7 +18,7 @@ def _get_test_runner():
 def test(package=None, test_path=None, args=None, plugins=None,
          verbose=False, pastebin=None, generate_reference=False,
          bit_level_tests=False, coverage=False):
-    """
+    '''
     Run Hyperion tests using py.test. A proper set of arguments is
     constructed and passed to `pytest.main`.
 
@@ -66,7 +66,7 @@ def test(package=None, test_path=None, args=None, plugins=None,
     --------
     pytest.main : py.test function wrapped by `run_tests`.
 
-    """
+    '''
     test_runner = _get_test_runner()
     return test_runner.run_tests(
         package=package, test_path=test_path, args=args,

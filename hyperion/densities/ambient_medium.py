@@ -52,7 +52,7 @@ class AmbientMedium(FreezableClass):
 
     @property
     def rmin(self):
-        """inner radius (cm)"""
+        '''inner radius (cm)'''
         return self._rmin
 
     @rmin.setter
@@ -63,7 +63,7 @@ class AmbientMedium(FreezableClass):
 
     @property
     def rmax(self):
-        """outer radius (cm)"""
+        '''outer radius (cm)'''
         return self._rmax
 
     @rmax.setter
@@ -104,7 +104,7 @@ class AmbientMedium(FreezableClass):
 
         Parameters
         ----------
-        grid : :class:`~hyperion.grid.SphericalPolarGrid instance.
+        grid : :class:`~hyperion.grid.SphericalPolarGrid` instance.
             The spherical polar grid object containing information about the
             position of the grid cells.
 

@@ -451,7 +451,7 @@ class RunConf(object):
 
         Parameters
         ----------
-        copy: bool
+        copy : bool
             Whether to copy the input data into the output file (True) or
             whether to link to it (False)
         '''

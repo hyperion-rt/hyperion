@@ -1,8 +1,8 @@
-"""
+'''
 This module prvoides the tools used to internally run the Hyperion test suite
 from the installed version. It makes use of the `pytest` testing framework,
 and is adapted from Astropy.
-"""
+'''
 
 import shlex
 import sys

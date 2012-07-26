@@ -134,7 +134,7 @@ class AnalyticalYSOModel(Model):
     # DENSITY COMPONENTS
 
     def add_ambient_medium(self):
-        """
+        '''
         Add an infalling rotationally flatted envelope to the model
 
         Returns
@@ -166,7 +166,7 @@ class AnalyticalYSOModel(Model):
         threshold. That is, anywhere within ``ambient.rmin`` and
         ``ambient.rmax``, the density is reset to ``ambient.rho`` if it was
         initially lower.
-        """
+        '''
         if self.ambient is not None:
             raise Exception("Ambient medium already present")
         ambient = AmbientMedium()
@@ -174,7 +174,7 @@ class AnalyticalYSOModel(Model):
         return ambient
 
     def add_flared_disk(self):
-        """
+        '''
         Add a flared disk to the model
 
         Returns
@@ -197,13 +197,13 @@ class AnalyticalYSOModel(Model):
 
         See the :class:`~hyperion.densities.FlaredDisk` documentation
         to see which parameters can be set.
-        """
+        '''
         disk = FlaredDisk()
         self.disks.append(disk)
         return disk
 
     def add_alpha_disk(self):
-        """
+        '''
         Add an alpha disk to the geometry
 
         This is similar to a flared disk, but with accretion luminosity. See
@@ -229,7 +229,7 @@ class AnalyticalYSOModel(Model):
 
         See the :class:`~hyperion.densities.AlphaDisk` documentation
         to see which parameters can be set.
-        """
+        '''
         disk = AlphaDisk()
         disk.star = self.star
         self.disks.append(disk)
@@ -237,11 +237,11 @@ class AnalyticalYSOModel(Model):
 
     def add_settled_disks(self, reference_disk, reference_size, eta=0.,
                           sizes=[], dust_files=[]):
-        """
+        '''
         Automatically create disks with varying degrees of settling
 
         .. warning:: this function is still experimental, and will be documented once stable
-        """
+        '''
 
         exists = False
 
@@ -261,7 +261,7 @@ class AnalyticalYSOModel(Model):
             self.disks.append(disk)
 
     def add_ulrich_envelope(self):
-        """
+        '''
         Add an infalling rotationally flatted envelope to the model
 
         Returns
@@ -285,14 +285,14 @@ class AnalyticalYSOModel(Model):
 
         See the :class:`~hyperion.densities.UlrichEnvelope` documentation
         to see which parameters can be set.
-        """
+        '''
         envelope = UlrichEnvelope()
         envelope.star = self.star
         self.envelopes.append(envelope)
         return envelope
 
     def add_power_law_envelope(self):
-        """
+        '''
         Add a spherically symmetric power-law envelope to the model
 
         Returns
@@ -316,7 +316,7 @@ class AnalyticalYSOModel(Model):
 
         See the :class:`~hyperion.densities.PowerLawEnvelope` documentation
         to see which parameters can be set.
-        """
+        '''
         envelope = PowerLawEnvelope()
         self.envelopes.append(envelope)
         return envelope
@@ -707,25 +707,25 @@ class AnalyticalYSOModel(Model):
 
         Parameters
         ----------
-        filename: str
+        filename : str
             The name of the input file to write. If no name is specified, the
             filename is constructed from the model name.
-        compression: bool
+        compression : bool
             Whether to compress the datasets inside the HDF5 file.
-        copy: bool
+        copy : bool
             Whether to copy all external content into the input file, or
             whether to just link to external content.
-        absolute_paths: bool
+        absolute_paths : bool
             If copy=False, then if absolute_paths is True, absolute filenames
             are used in the link, otherwise the path relative to the input
             file is used.
-        wall_dtype: type
+        wall_dtype : type
             Numerical type to use for wall positions.
-        physics_dtype: type
+        physics_dtype : type
             Numerical type to use for physical grids.
-        overwrite: bool
+        overwrite : bool
             Whether to overwrite any pre-existing file
-        merge_if_possible: bool
+        merge_if_possible : bool
             Whether to merge density arrays that have the same dust type
         '''
 
