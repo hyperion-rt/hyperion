@@ -60,6 +60,13 @@ Documentation
    running/running.rst
    postprocessing/postprocessing.rst
    tutorials/index.rst
+
+Advanced
+--------
+
+.. toctree::
+   :maxdepth: 1
+
    advanced/advanced.rst
    api/api.rst
    contributing.rst
