@@ -75,3 +75,18 @@ In the above case, the model would run on 24 cores, but you can change this to
 match the number of cores you can use. This will create a file named
 ``tutorial_model.rtout``. You are now ready to follow the
 :ref:`tutorials-post-processing` tutorials!
+
+.. note:: The model will take a little while to run (~1 hour on one
+          core, 5 minutes on 12 cores) since it is computing many
+          viewing angles for a fly-around, so if you are impatient, just
+          reduce all the photon numbers::
+
+              m.set_n_photons(initial=1e6, imaging=1e7,
+                              raytracing_sources=1e6, raytracing_dust=1e6)
+
+          by an order of magnitude::
+
+              m.set_n_photons(initial=1e5, imaging=1e6,
+                              raytracing_sources=1e5, raytracing_dust=1e5)
+
+          and it should run much faster.
