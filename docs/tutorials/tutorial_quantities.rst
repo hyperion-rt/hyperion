@@ -24,7 +24,7 @@ We first set up a model of a box containing 100 sources heating up dust::
     z = np.linspace(-10., 10., 101) * pc
 
     # Initialize model and set up density grid
-    m = Model('example_cartesian')
+    m = Model()
     m.set_cartesian_grid(x, y, z)
     m.add_density_grid(np.ones((100, 100, 100)) * 1.e-20, 'kmh_lite.hdf5')
 
@@ -46,8 +46,8 @@ We first set up a model of a box containing 100 sources heating up dust::
     m.set_n_photons(initial=10000000, imaging=0)
 
     # Write output and run model
-    m.write()
-    m.run()
+    m.write('example_cartesian.rtin')
+    m.run('example_cartesian.rtout', mpi=True)
 
 We can then use the ``get_quantities`` method described above to produce a
 density-weighted temperature map collapsed in the z direction::
@@ -113,7 +113,7 @@ Polar grids are another interest case, because one might want to plot the result
     from hyperion.util.constants import lsun, rsun, tsun, msun, au
 
     # Initialize model and set up density grid
-    m = AnalyticalYSOModel('example_spherical_polar')
+    m = AnalyticalYSOModel()
 
     # Set up the central source
     m.star.radius = rsun
@@ -146,8 +146,8 @@ Polar grids are another interest case, because one might want to plot the result
     m.set_pda(True)
 
     # Write output and run model
-    m.write()
-    m.run(mpi=True)
+    m.write('example_spherical_polar.rtin')
+    m.run('example_spherical_polar.rtout', mpi=True)
 
 Making a plot of temperature in (r, theta) space is similar to before::
 
