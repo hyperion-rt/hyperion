@@ -1,5 +1,5 @@
 .. _Hyperion: http://www.hyperion-rt.org
-.. _Hyperion GitHub: http://www.github.com/astrofrog/hyperion
+.. _Hyperion GitHub: http://www.github.com/hyperion-rt/hyperion
 .. _GitHub Help: http://help.github.com
 .. _git: http://www.git-scm.com
 .. _deleting master on github: http://matthew-brett.github.com/pydagogue/gh_delete_master.html
@@ -105,8 +105,8 @@ Setting up the fork to work on
    Just for your own satisfaction, show yourself that you now have a new
    'remote', with ``git remote -v show``, giving you something like::
 
-    upstream   git://github.com/astrofrog/hyperion.git (fetch)
-    upstream   git://github.com/astrofrog/hyperion.git (push)
+    upstream   git://github.com/hyperion-rt/hyperion.git (fetch)
+    upstream   git://github.com/hyperion-rt/hyperion.git (push)
     origin     git@github.com:your-user-name/hyperion.git (fetch)
     origin     git@github.com:your-user-name/hyperion.git (push)
 

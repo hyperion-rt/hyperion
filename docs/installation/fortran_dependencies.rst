@@ -84,7 +84,7 @@ that can be seen with::
 
     python install.py --help
 
-If the installation fails, a log will be posted to the `Pastebin <http://pastebin.com/>`_ service. Copy the URL and report it either by email or on the Github `Issues <https://github.com/astrofrog/hyperion/issues>`_.
+If the installation fails, a log will be posted to the `Pastebin <http://pastebin.com/>`_ service. Copy the URL and report it either by email or on the Github `Issues <https://www.github.com/hyperion-rt/hyperion/issues>`_.
 
 If the installation succeeds, you can ignore the rest of this document, and move on to the :doc:`python_dependencies`.
 
