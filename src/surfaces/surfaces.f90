@@ -1,4 +1,4 @@
-module surfaces
+module surface_collection
 
   use core_lib
   use mpi_core
@@ -12,8 +12,6 @@ module surfaces
   private
   public :: setup_surfaces
 
-contains
-
   integer, public :: n_surfaces
   ! number of surfaces
 
@@ -22,6 +20,8 @@ contains
 
   integer :: is
   ! loop variable
+
+contains
 
   subroutine setup_surfaces(group)
 
@@ -34,19 +34,19 @@ contains
 
     integer(hid_t), intent(in) :: group
 
-    character(len=30), allocatable :: source_names(:)
-    integer(hid_t) :: g_source
+    character(len=30), allocatable :: surface_names(:)
+    integer(hid_t) :: g_surface
 
     if(main_process()) write(*, '(" [surfaces] setting up surfaces")')
 
     call mp_list_groups(group, '.', surface_names)
 
     n_surfaces = size(surface_names)
-    allocate(s(n_surfaces))
+    allocate(surfaces(n_surfaces))
 
     do is=1, n_surfaces
        g_surface = mp_open_group(group, surface_names(is))
-       call surface_read(g_surface, s(is))
+       call surface_read(g_surface, surfaces(is))
        call mp_close_group(g_surface)
     end do
 
@@ -64,7 +64,7 @@ contains
     type(vector3d_dp), intent(in) :: r1, r2
 
     do is=1, n_surfaces
-       if(surface_intersect(s(is), r1, r2)) then
+       if(surface_intersect(surfaces(is), r1, r2)) then
           intersects_surfaces = .true.
           return
        end if
@@ -88,9 +88,9 @@ contains
     ! Returns
     ! -------
     ! nearest_distance : real(dp)
-    !     The distance to the nearest source
+    !     The distance to the nearest surface
     ! nearest_id : integer
-    !     The index of the nearest source
+    !     The index of the nearest surface
 
     type(vector3d_dp), intent(in) :: r, v
 
@@ -101,14 +101,12 @@ contains
     nearest_distance = infinity_dp()
 
     do is=1, n_surfaces
-       if(s(is)%intersect) then
-          if(surface_distance(s(is), r, v) < nearest_distance) then
-             nearest_distance = surface_distance(s(is), r, v)
-             nearest_id = is
-          end if
+       if(surface_distance(surfaces(is), r, v) < nearest_distance) then
+          nearest_distance = surface_distance(surfaces(is), r, v)
+          nearest_id = is
        end if
     end do
 
   end subroutine find_nearest_surface
 
-end module surfaces
+end module surface_collection

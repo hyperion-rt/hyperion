@@ -7,6 +7,7 @@ module setup
   use grid_physics, only : setup_grid_physics
   use grid_geometry, only : setup_grid_geometry
   use sources
+  use surface_collection
   use dust_main
   use type_dust
   use lib_conf
@@ -28,7 +29,7 @@ contains
     implicit none
 
     integer(hid_t),intent(in) :: input_handle
-    integer(hid_t) :: g_dust, g_geometry, g_physics, g_sources, g_output
+    integer(hid_t) :: g_dust, g_geometry, g_physics, g_surfaces, g_sources, g_output
     integer :: physics_io_bytes
     type(version) :: python_version
 
@@ -130,6 +131,12 @@ contains
     if(use_exact_nu) then
        call mp_table_read_column_auto(input_handle, 'frequencies', 'nu', frequencies)
     end if
+
+    ! SURFACES
+
+    g_surfaces = mp_open_group(input_handle, '/Surfaces')
+    call setup_surfaces(g_surfaces)
+    call mp_close_group(g_surfaces)
 
     ! SOURCES
 

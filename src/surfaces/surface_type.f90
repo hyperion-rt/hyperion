@@ -34,7 +34,7 @@ module type_surface
 
 contains
 
-  subroutine surface_read(group, s)
+  subroutine surface_read(group, srf)
 
     ! Read a surface from an HDF5 group
     !
@@ -45,13 +45,13 @@ contains
     !
     ! Returns
     ! -------
-    ! s : surface object
+    ! srf : surface object
     !     The surface object read in from the HDF5 group
 
     implicit none
 
     integer(hid_t),intent(in) :: group
-    type(source), intent(out) :: s
+    type(surface), intent(out) :: srf
 
     character(len=15) :: type
 
@@ -61,12 +61,12 @@ contains
     select case(trim(type))
     case('sphere')
 
-       s%type = 2
+       srf%type = 2
 
-       call mp_read_keyword(group, '.', 'x', s%position%x)
-       call mp_read_keyword(group, '.', 'y', s%position%y)
-       call mp_read_keyword(group, '.', 'z', s%position%z)
-       call mp_read_keyword(group, '.', 'r', s%radius)
+       call mp_read_keyword(group, '.', 'x', srf%position%x)
+       call mp_read_keyword(group, '.', 'y', srf%position%y)
+       call mp_read_keyword(group, '.', 'z', srf%position%z)
+       call mp_read_keyword(group, '.', 'r', srf%radius)
 
     case default
 
@@ -74,98 +74,100 @@ contains
 
     end select
 
-    real(dp) function surface_distance(s, r, v)
+  end subroutine surface_read
 
-      ! Find the distance along a ray to a surface
-      !
-      ! Parameters
-      ! ----------
-      ! s : surface object
-      !     The surface to find the distance to
-      ! r : vector3d_dp
-      !     The current position of the photon
-      ! v : vector3d_dp
-      !     The direction vector of the photon
-      !
-      ! Returns
-      ! -------
-      ! distance : real(dp)
-      !     The distance to the surface
+  real(dp) function surface_distance(srf, r, v)
 
-      implicit none
+    ! Find the distance along a ray to a surface
+    !
+    ! Parameters
+    ! ----------
+    ! srf : surface object
+    !     The surface to find the distance to
+    ! r : vector3d_dp
+    !     The current position of the photon
+    ! v : vector3d_dp
+    !     The direction vector of the photon
+    !
+    ! Returns
+    ! -------
+    ! distance : real(dp)
+    !     The distance to the surface
 
-      type(surface),intent(in) :: s
-      type(vector3d_dp),intent(in) :: r, v
+    implicit none
 
-      type(vector3d_dp) :: dr
-      real(dp) :: pB,pC,t1,t2
-      real(dp),parameter :: TOL = 1.e-8
+    type(surface),intent(in) :: srf
+    type(vector3d_dp),intent(in) :: r, v
 
-      surface_distance = infinity_dp()
+    type(vector3d_dp) :: dr
+    real(dp) :: pB,pC,t1,t2
+    real(dp),parameter :: TOL = 1.e-8
 
-      select case(src%type)
-      case(2)
+    surface_distance = infinity_dp()
 
-         dr = r - src%position
+    select case(srf%type)
+    case(2)
 
-         pB = 2._dp * (dr.dot.v)
-         pC = (dr.dot.dr) - src%radius*src%radius
+       dr = r - srf%position
 
-         call quadratic_pascal_reduced(pB,pC,t1,t2)
+       pB = 2._dp * (dr.dot.v)
+       pC = (dr.dot.dr) - srf%radius*srf%radius
 
-         if(t1 < surface_distance .and. t1 > TOL * src%radius) surface_distance = t1
-         if(t2 < surface_distance .and. t2 > TOL * src%radius) surface_distance = t2
+       call quadratic_pascal_reduced(pB,pC,t1,t2)
 
-      end select
+       if(t1 < surface_distance .and. t1 > TOL * srf%radius) surface_distance = t1
+       if(t2 < surface_distance .and. t2 > TOL * srf%radius) surface_distance = t2
 
-    end function surface_distance
+    end select
 
-    logical function surface_intersect(s, r1, r2)
+  end function surface_distance
 
-      ! Find whether a segment (r1, r2) intersects a surface
-      !
-      ! Parameters
-      ! ----------
-      ! s : surface object
-      !     The surface to check for an intersection with
-      ! r1, r2 : vector3d_dp
-      !     The positions defining the extremities of the segment
-      !
-      ! Returns
-      ! -------
-      ! intersect : logical
-      !     The distance to the surface
+  logical function surface_intersect(srf, r1, r2)
 
-      implicit none
+    ! Find whether a segment (r1, r2) intersects a surface
+    !
+    ! Parameters
+    ! ----------
+    ! srf : surface object
+    !     The surface to check for an intersection with
+    ! r1, r2 : vector3d_dp
+    !     The positions defining the extremities of the segment
+    !
+    ! Returns
+    ! -------
+    ! intersect : logical
+    !     The distance to the surface
 
-      type(surface), intent(in) :: src
-      type(vector3d_dp), intent(in) :: r1, r2
+    implicit none
 
-      type(vector3d_dp) :: r,v
-      real(dp) :: A,B,C,t1,t2
-      real(dp),parameter :: TOL = 1.e-8
+    type(surface), intent(in) :: srf
+    type(vector3d_dp), intent(in) :: r1, r2
 
-      select case(src%type)
-      case(2)
+    type(vector3d_dp) :: r,v
+    real(dp) :: A,B,C,t1,t2
+    real(dp),parameter :: TOL = 1.e-8
 
-         r = r1 - src%position
-         v = r2 - r1
+    select case(srf%type)
+    case(2)
 
-         A = v .dot. v
-         B = ( r .dot. v ) *  2._dp
-         C = ( r .dot. r ) - src%radius * src%radius
+       r = r1 - srf%position
+       v = r2 - r1
 
-         call quadratic(A, B, C, t1, t2)
+       A = v .dot. v
+       B = ( r .dot. v ) *  2._dp
+       C = ( r .dot. r ) - srf%radius * srf%radius
 
-         if((t1 > TOL .and. t1 < 1.) .or. (t2 > TOL .and. t2 < 1.)) then
-            surface_intersect = .true.
-         else
-            surface_intersect = .false.
-         end if
-      case default
-         surface_intersect = .false.
-      end select
+       call quadratic(A, B, C, t1, t2)
 
-    end function surface_intersect
+       if((t1 > TOL .and. t1 < 1.) .or. (t2 > TOL .and. t2 < 1.)) then
+          surface_intersect = .true.
+       else
+          surface_intersect = .false.
+       end if
+    case default
+       surface_intersect = .false.
+    end select
 
-  end module type_surface
+  end function surface_intersect
+
+end module type_surface
