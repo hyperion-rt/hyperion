@@ -9,8 +9,8 @@ module type_surface
   private
 
   public :: surface_read
-  public :: surface_intersect
   public :: surface_distance
+  public :: surface_intersect
 
   public :: surface
   type surface
