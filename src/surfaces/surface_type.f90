@@ -30,6 +30,9 @@ module type_surface
      ! Surface properties
      ! TBD
 
+     ! if positive, the surface is connected to a source
+     integer :: source_id = -1
+
   end type surface
 
 contains

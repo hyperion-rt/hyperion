@@ -4,6 +4,7 @@ module type_source
   use mpi_hdf5_io
   use type_grid_cell
   use type_photon
+  use type_surface
   use grid_geometry
   use grid_physics
   use type_dust
@@ -17,8 +18,6 @@ module type_source
   public :: source_read
   public :: source_emit
   public :: source_emit_peeloff
-  public :: source_intersect
-  public :: source_distance
 
   public :: spot
 
@@ -84,7 +83,8 @@ module type_source
      type(pdf_dp) :: spectrum
      real(dp) :: temperature
 
-     logical :: intersect = .false.
+     logical :: intersectable = .false.
+     type(surface) :: srf
 
   end type source
 
@@ -135,7 +135,13 @@ contains
 
        if(s%freq_type == 3) call error("source_read", "Spherical source cannot have LTE spectrum")
 
-       s%intersect = .true.
+       ! Spheres are intersectable, and should be added as a surface
+       s%intersectable = .true.
+       s%srf%type = 2
+       s%srf%position%x = s%position%x
+       s%srf%position%y = s%position%y
+       s%srf%position%z = s%position%z
+       s%srf%radius = s%radius
 
        call mp_list_groups(group, '.', spot_names)
        s%n_spots = size(spot_names)
@@ -289,80 +295,6 @@ contains
     end select
 
   end subroutine set_spectrum
-
-  real(dp) function source_distance(src,r,v)
-
-    ! --- Input --- !
-
-    type(source),intent(in) :: src
-    ! the source to emit from
-
-    type(vector3d_dp),intent(in) :: r,v
-    ! photon position and direction
-
-    type(vector3d_dp) :: dr
-
-    real(dp) :: pB,pC,t1,t2
-
-    real(dp),parameter :: tol = 1.e-8
-
-    source_distance = infinity_dp()
-
-    select case(src%type)
-    case(2,3)
-
-       dr = r - src%position
-
-       pB = 2._dp * (dr.dot.v)
-       pC = (dr.dot.dr) - src%radius*src%radius
-
-       call quadratic_pascal_reduced(pB,pC,t1,t2)
-
-       if(t1 < source_distance.and.t1 > tol*src%radius) source_distance = t1
-       if(t2 < source_distance.and.t2 > tol*src%radius) source_distance = t2
-
-    end select
-
-  end function source_distance
-
-  logical function source_intersect(src,r1,r2)
-
-    implicit none
-    ! --- Input --- !
-
-    type(source),intent(in) :: src
-    ! the source to emit from
-
-    type(vector3d_dp),intent(in) :: r1,r2
-    ! start and end position
-
-    type(vector3d_dp) :: r,v
-
-    real(dp) :: A,B,C,t1,t2
-
-    select case(src%type)
-    case(2)
-
-       r = r1 - src%position
-       v = r2 - r1
-
-       A = v .dot. v
-       B = ( r .dot. v )* 2._dp
-       C = ( r .dot. r ) - src%radius*src%radius
-
-       call quadratic(A,B,C,t1,t2)
-
-       if((t1.gt.1.e-8.and.t1.lt.1.).or.&
-            &(t2.gt.1.e-8.and.t2.lt.1.)) then
-          source_intersect = .true.
-       else
-          source_intersect = .false.
-       end if
-    case default
-       source_intersect = .false.
-    end select
-
-  end function source_intersect
 
   subroutine source_emit(src,p,nu)
 

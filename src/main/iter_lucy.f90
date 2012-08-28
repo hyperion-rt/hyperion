@@ -22,6 +22,8 @@ module iteration_lucy
 
   use dust_interact, only : interact
 
+  use surface_interact, only : interact_with_surface
+
   use grid_geometry, only : escaped
 
   use grid_generic, only : grid_reset_energy
@@ -150,22 +152,19 @@ contains
              call random_exp(tau)
              call grid_integrate(p,tau,tau_achieved)
 
-             if(p%reabsorbed) then
+             if(p%intersected) then
 
                 ! Loop until the photon finally escapes interacting with sources
                 do ia=1,n_reabs_max
 
-                   ! The parentheses are required in the following expression to
-                   ! force the evaluation of the option (otherwise it gets reset
-                   ! because p has intent(out) from emit)
-                   call emit(p, reemit=.true., reemit_id=(p%reabsorbed_id), reemit_energy=(p%energy))
+                   call interact_with_surface(p) ! can either re-emit or scatter (like dust)
 
                    ! Sample optical depth and travel
                    call random_exp(tau)
-                   call grid_integrate(p,tau,tau_achieved)
+                   call grid_integrate(p, tau, tau_achieved)
 
                    ! If we haven't intersected another source, we can proceed
-                   if(.not.p%reabsorbed) exit
+                   if(.not.p%intersected) exit
 
                 end do
 

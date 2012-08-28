@@ -26,8 +26,8 @@ module type_photon
      integer(idp) :: id = 0 ! Photon ID (unique)
 
      logical :: killed = .false.
-     logical :: reabsorbed = .false.
-     integer :: reabsorbed_id = 0
+     logical :: intersected = .false.
+     integer :: surface_id = 0
 
      real(dp),allocatable  :: current_chi(:)
      real(dp),allocatable  :: current_albedo(:)

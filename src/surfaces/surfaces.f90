@@ -4,18 +4,20 @@ module surface_collection
   use mpi_core
   use mpi_hdf5_io
 
-  use type_surface
+  use type_surface, only : surface, surface_intersect, surface_distance, surface_read
 
   implicit none
   save
 
   private
   public :: setup_surfaces
+  public :: register_surface
+  public :: find_nearest_surface
 
   integer, public :: n_surfaces
   ! number of surfaces
 
-  type(surface), allocatable, public :: surfaces(:)
+  type(surface), allocatable, target, public :: surfaces(:)
   ! the surfaces
 
   integer :: is
@@ -108,5 +110,36 @@ contains
     end do
 
   end subroutine find_nearest_surface
+
+  subroutine register_surface(srf)
+
+    ! Register a surface with the collection
+    !
+    ! Parameters
+    ! ----------
+    ! srf : surface object
+    !     The surface object to register with the surface collection
+
+    type(surface), intent(in) :: srf
+
+    type(surface), allocatable :: surfaces_tmp(:)
+
+    ! Backup current surface list
+    allocate(surfaces_tmp(n_surfaces))
+    surfaces_tmp = surfaces
+
+    ! Increase size of surface list
+    deallocate(surfaces)
+    allocate(surfaces(n_surfaces + 1))
+    surfaces(1:n_surfaces) = surfaces_tmp
+
+    ! Add new surface to list
+    surfaces(n_surfaces + 1) = srf
+
+    ! Increase surface counter
+    n_surfaces = n_surfaces + 1
+
+  end subroutine register_surface
+
 
 end module surface_collection

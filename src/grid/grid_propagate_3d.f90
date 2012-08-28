@@ -6,7 +6,7 @@ module grid_propagate
   use dust_main, only : n_dust
   use grid_geometry, only : escaped, find_wall, in_correct_cell, next_cell, opposite_wall
   use grid_physics, only : specific_energy_sum, density, n_photons, last_photon_id
-  use sources
+  use surface_collection, only : find_nearest_surface
   use counters
   use settings, only : frac_check => propagation_check_frequency
 
@@ -51,11 +51,11 @@ contains
 
     logical :: radial
 
-    real(dp) :: t_achieved, t_source
+    real(dp) :: t_achieved, t_surface
 
     real(dp) :: xi
 
-    integer :: source_id
+    integer :: surface_id
 
     radial = (p%r .dot. p%v) > 0.
 
@@ -78,9 +78,9 @@ contains
 
     if(tau_required==0._dp) return
 
-    ! Check what the distance to the nearest source is
+    ! Check what the distance to the nearest surface is
+    call find_nearest_surface(p%r, p%v, t_surface, surface_id)
 
-    call find_nearest_source(p%r, p%v, t_source, source_id)
     t_achieved = 0._dp
 
     ! Start the big integral loop
@@ -119,13 +119,13 @@ contains
 
           ! Just move to next cell
 
-          t_achieved = t_achieved + tmin
-
-          if(t_achieved > t_source) then
-             p%reabsorbed = .true.
-             p%reabsorbed_id = source_id
-             return
+          if(t_achieved + tmin > t_surface) then
+             p%intersected = .true.
+             p%surface_id = surface_id
+             tmin = t_surface - t_achieved
           end if
+
+          t_achieved = t_achieved + tmin
 
           p%r = p%r + tmin * p%v
           tau_achieved = tau_achieved + tau_cell
@@ -138,6 +138,8 @@ contains
                      & specific_energy_sum(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
              end if
           end do
+
+          if(p%intersected) return
 
           p%on_wall = .true.
           p%icell = next_cell(p%icell, id_min, intersection=p%r)
@@ -163,17 +165,20 @@ contains
 
           tact = tmin * (tau_needed / tau_cell)
 
+          if(t_achieved + tact > t_surface) then
+             p%intersected = .true.
+             p%surface_id = surface_id
+             tact = t_surface - t_achieved
+          end if
+
           t_achieved = t_achieved + tact
 
-          if(t_achieved > t_source) then
-             p%reabsorbed = .true.
-             p%reabsorbed_id = source_id
-             return
-          end if
 
           p%r = p%r + tact * p%v
 
           tau_achieved = tau_achieved + tau_needed
+
+          if(p%intersected) return
 
           p%on_wall    = .false.
           p%on_wall_id = no_wall
@@ -215,11 +220,11 @@ contains
 
     logical :: radial
 
-    real(dp) :: t_achieved, t_source
+    real(dp) :: t_achieved, t_surface
 
     real(dp) :: xi
 
-    integer :: source_id
+    integer :: surface_id
 
     radial = (p%r .dot. p%v) > 0.
 
@@ -235,9 +240,9 @@ contains
 
     if(tau_required==0._dp) return
 
-    ! Check what the distance to the nearest source is
+    ! Check what the distance to the nearest surface is
+    call find_nearest_surface(p%r, p%v, t_surface, surface_id)
 
-    call find_nearest_source(p%r, p%v, t_source, source_id)
     t_achieved = 0._dp
 
     ! Start the big integral loop
@@ -277,16 +282,18 @@ contains
 
           ! Just move to next cell
 
-          t_achieved = t_achieved + tmin
-
-          if(t_achieved > t_source) then
-             p%reabsorbed = .true.
-             p%reabsorbed_id = source_id
-             return
+          if(t_achieved + tmin > t_surface) then
+             p%intersected = .true.
+             p%surface_id = surface_id
+             tmin = t_surface - t_achieved
           end if
+
+          t_achieved = t_achieved + tmin
 
           p%r = p%r + tmin * p%v
           tau_achieved = tau_achieved + tau_cell
+
+          if(p%intersected) return
 
           p%on_wall = .true.
           p%icell = next_cell(p%icell, id_min, intersection=p%r)
@@ -305,17 +312,19 @@ contains
 
           tact = tmin * (tau_needed / tau_cell)
 
-          t_achieved = t_achieved + tact
-
-          if(t_achieved > t_source) then
-             p%reabsorbed = .true.
-             p%reabsorbed_id = source_id
-             return
+          if(t_achieved + tact > t_surface) then
+             p%intersected = .true.
+             p%surface_id = surface_id
+             tact = t_surface - t_achieved
           end if
+
+          t_achieved = t_achieved + tact
 
           p%r = p%r + tact * p%v
 
           tau_achieved = tau_achieved + tau_needed
+
+          if(p%intersected) return
 
           p%on_wall    = .false.
           p%on_wall_id = no_wall
@@ -342,11 +351,11 @@ contains
     real(dp),intent(out) :: tau
     logical,intent(out) :: killed
 
-    real(dp)  :: tmin, t_source, t_current
+    real(dp)  :: tmin, t_surface, t_current
     type(wall_id) :: id_min
     logical :: radial, finished
     real(dp) :: xi
-    integer :: source_id
+    integer :: surface_id
 
     real(dp),parameter :: tau_max = 20._dp
 
@@ -362,12 +371,11 @@ contains
 
     if(.not.p%in_cell) call error("grid_escape_tau", "photon has not been placed in a cell")
 
-    ! Check what the distance to the nearest source is
-
-    call find_nearest_source(p%r, p%v, t_source, source_id)
+    ! Check what the distance to the nearest surface is
+    call find_nearest_surface(p%r, p%v, t_surface, surface_id)
 
     ! If we are in peeloff mode, there's no point in going on
-    if(t_source < tmax) then
+    if(t_surface < tmax) then
        killed = .true.
        return
     end if
@@ -446,11 +454,11 @@ contains
     real(dp),intent(out) :: column_density(:)
     logical,intent(out) :: killed
 
-    real(dp)  :: tmin, t_source, t_current
+    real(dp)  :: tmin, t_surface, t_current
     type(wall_id) :: id_min
     logical :: radial, finished
     real(dp) :: xi
-    integer :: source_id
+    integer :: surface_id
 
     p = p_orig
 
@@ -464,12 +472,11 @@ contains
 
     if(.not.p%in_cell) call error("grid_escape_column_density", "photon has not been placed in a cell")
 
-    ! Check what the distance to the nearest source is
-
-    call find_nearest_source(p%r, p%v, t_source, source_id)
+    ! Check what the distance to the nearest surface is
+    call find_nearest_surface(p%r, p%v, t_surface, surface_id)
 
     ! If we are in peeloff mode, there's no point in going on
-    if(t_source < tmax) then
+    if(t_surface < tmax) then
        killed = .true.
        return
     end if
