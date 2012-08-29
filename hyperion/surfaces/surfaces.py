@@ -1,6 +1,8 @@
 import abc
 
-from ..util.functions import FreezableClass
+import numpy as np
+
+from ..util.functions import FreezableClass, is_numpy_array
 from ..util.validator import validate_scalar
 
 

@@ -12,6 +12,7 @@ from ..version import __version__
 from ..util.functions import delete_file
 from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid
 from ..sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource
+from ..surfaces import SphericalSurface
 from ..conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from ..util.constants import c
 from ..util.functions import FreezableClass, link_or_copy, is_numpy_array, bool2str
@@ -49,6 +50,7 @@ class Model(FreezableClass, RunConf):
         self.name = name
 
         self.reset_dust()
+        self.reset_surfaces()
         self.reset_sources()
         self.reset_images()
 
@@ -67,6 +69,9 @@ class Model(FreezableClass, RunConf):
 
     def reset_dust(self):
         self.dust = None
+
+    def reset_surfaces(self):
+        self.surfaces = []
 
     def reset_sources(self):
         self.sources = []
@@ -303,10 +308,15 @@ class Model(FreezableClass, RunConf):
 
         # Create all the necessary groups and sub-groups
         g_grid = root.create_group('Grid')
+        g_surfaces = root.create_group('Surfaces')
         g_sources = root.create_group('Sources')
         g_output = root.create_group('Output')
         g_peeled = g_output.create_group('Peeled')
         g_binned = g_output.create_group('Binned')
+
+        # Output surfaces
+        for i, surface in enumerate(self.surfaces):
+            surface.write(g_surfaces, 'surfacfe_%05i' % (i + 1))
 
         # Output sources
         for i, source in enumerate(self.sources):
@@ -436,6 +446,14 @@ class Model(FreezableClass, RunConf):
         root.close()
 
         self.filename = filename
+
+    def add_spherical_surface(self, *args, **kwargs):
+        surface = SphericalSurface(*args, **kwargs)
+        self.add_surface(surface)
+        return surface
+
+    def add_surface(self, surface):
+        self.surfaces.append(surface)
 
     def add_point_source(self, *args, **kwargs):
         source = PointSource(*args, **kwargs)
