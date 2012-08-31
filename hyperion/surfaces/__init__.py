@@ -1,1 +1,1 @@
-from .surfaces import Surface, SphericalSurface
+from .surfaces import Surface, SphericalSurface, SurfaceProperties

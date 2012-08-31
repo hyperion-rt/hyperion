@@ -1,6 +1,12 @@
+from __future__ import print_statement
+
+import os
 import abc
 
+import h5py
 import numpy as np
+
+from .surface_properties import SurfaceProperties
 
 from ..util.functions import FreezableClass, is_numpy_array
 from ..util.validator import validate_scalar
@@ -41,7 +47,13 @@ class Surface(FreezableClass):
 
     @surface_properties.setter
     def surface_properties(self, value):
-        self._surface_properties = value
+        if value is not None:
+            if isinstance(value, SurfaceProperties):
+                self._surface_properties = value
+            else:
+                raise TypeError("surface_properties should be a SurfaceProperties instance")
+        else:
+            self._surface_properties = None
 
     def _check_all_set(self):
         if self.surface_properties is None:
@@ -54,7 +66,7 @@ class Surface(FreezableClass):
 
         self._check_all_set()
 
-        handle.attrs['surface_properties'] = self.surface_properties
+        # handle.attrs['surface_properties'] = self.surface_properties
 
 
 class SphericalSurface(Surface):
@@ -106,14 +118,18 @@ class SphericalSurface(Surface):
     def _check_all_set(self):
         if self.radius is None:
             raise ValueError("radius is not set")
+        Surface._check_all_set(self)
 
-    def write(self, handle, name):
+    def write(self, handle, name, copy=True, absolute_paths=False):
         """
         Write the properties of the surface to an HDF5 group
+
+        TODO: allow dictionary of existing surfaces to be passed to avoid duplication. Also deal with linking better, like for dust.
         """
 
         self._check_all_set()
 
+        # Write attributes
         g = handle.create_group(name)
         g.attrs['type'] = np.string_('sphere'.encode('utf-8'))
         g.attrs['x'] = self.position[0]
@@ -121,3 +137,27 @@ class SphericalSurface(Surface):
         g.attrs['z'] = self.position[2]
         g.attrs['r'] = self.radius
         Surface.write(self, g)
+
+        # Write surface properties
+
+        if copy:
+
+            g_prop = g.create_group('surface_properties')
+
+            if isinstance(self.surface_properties, basestring):
+                self.surface_properties = SurfaceProperties(self.surface_properties)
+
+            self.surface_properties.write(g_prop)
+
+        else:
+
+            if not isinstance(self.surface_properties, basestring):
+                raise ValueError("cannot use copy=False unless surface_properties is set to a filename")
+
+            if absolute_paths:
+                path = os.path.abspath(self.surface_properties)
+            else:
+                # Relative path should be relative to input file, not current directory.
+                path = os.path.relpath(self.surface_properties, os.path.dirname(g_prop.file))
+
+            g['surface_properties'] = h5py.ExternalLink(path, '/')

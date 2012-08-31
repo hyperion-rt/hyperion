@@ -316,7 +316,7 @@ class Model(FreezableClass, RunConf):
 
         # Output surfaces
         for i, surface in enumerate(self.surfaces):
-            surface.write(g_surfaces, 'surfacfe_%05i' % (i + 1))
+            surface.write(g_surfaces, 'surface_%05i' % (i + 1), copy=copy, absolute_paths=absolute_paths)
 
         # Output sources
         for i, source in enumerate(self.sources):

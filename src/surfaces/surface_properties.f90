@@ -9,6 +9,8 @@ module type_surface_properties
 
   private
 
+  public :: setup_surface_properties
+
   public :: surface_properties
   type surface_properties
 
@@ -104,14 +106,14 @@ contains
     path = 'radiance_pdf'
     call mp_read_array_auto(group, path, radiance_array)
 
-    if(size(radiance_array, 1) /= sp%n_e) call error("setup_surface_properties", "radiance_array has incorrect dimension 1")
-    if(size(radiance_array, 2) /= sp%n_g) call error("setup_surface_properties", "radiance_array has incorrect dimension 2")
-    if(size(radiance_array, 3) /= sp%n_nu) call error("setup_surface_properties", "radiance_array has incorrect dimension 3")
-    if(size(radiance_array, 4) /= sp%n_i) call error("setup_surface_properties", "radiance_array has incorrect dimension 4")
+    if(size(radiance_array, 1) /= sp%n_g) call error("setup_surface_properties", "radiance_array has incorrect dimension 1")
+    if(size(radiance_array, 2) /= sp%n_e) call error("setup_surface_properties", "radiance_array has incorrect dimension 2")
+    if(size(radiance_array, 3) /= sp%n_i) call error("setup_surface_properties", "radiance_array has incorrect dimension 3")
+    if(size(radiance_array, 4) /= sp%n_nu) call error("setup_surface_properties", "radiance_array has incorrect dimension 4")
 
     if(any(is_nan(radiance_array))) call error("setup_surface_properties", "NaN values in radiance_array")
 
-    sp%radiance = set_var2d_pdf2d(sp%e, sp%g, sp%nu, sp%i, radiance_array)
+    sp%radiance = set_var2d_pdf2d(sp%g, sp%e, sp%i, sp%nu, radiance_array)
 
   end subroutine setup_surface_properties
 

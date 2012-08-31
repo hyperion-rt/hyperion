@@ -3,6 +3,8 @@ module type_surface
   use core_lib
   use mpi_hdf5_io
 
+  use type_surface_properties, only : surface_properties, setup_surface_properties
+
   implicit none
   save
 
@@ -11,6 +13,7 @@ module type_surface
   public :: surface_read
   public :: surface_distance
   public :: surface_intersect
+  public :: surface_normal
 
   public :: surface
   type surface
@@ -28,7 +31,7 @@ module type_surface
      real(dp) :: radius
 
      ! Surface properties
-     ! TBD
+     type(surface_properties) :: prop
 
      ! if positive, the surface is connected to a source
      integer :: source_id = -1
@@ -56,6 +59,8 @@ contains
     integer(hid_t),intent(in) :: group
     type(surface), intent(out) :: srf
 
+    integer(hid_t) :: g_prop
+
     character(len=15) :: type
 
     ! Read in type first to figure out how to read the rest
@@ -76,6 +81,10 @@ contains
        call error("surface_read", "unknown type in surface list: "//trim(type))
 
     end select
+
+    g_prop = mp_open_group(group, 'surface_properties')
+    call setup_surface_properties(g_prop, srf%prop)
+    call mp_close_group(g_prop)
 
   end subroutine surface_read
 
@@ -172,5 +181,37 @@ contains
     end select
 
   end function surface_intersect
+
+  type(vector3d_dp) function surface_normal(srf, r) result(n)
+
+    ! Find the vector normal to a surface
+    !
+    ! Parameters
+    ! ----------
+    ! srf : surface object
+    !     The surface to find the normal to
+    ! r : vector3d_dp
+    !     The position of the photon on the surface
+    !
+    ! Returns
+    ! -------
+    ! n : vector3d_dp
+    !     The normal to the surface (normalized)
+
+    type(surface), intent(in) :: srf
+    type(vector3d_dp), intent(in) :: r
+    real(dp) :: norm
+
+    select case(srf%type)
+    case(2)
+
+       n = r - srf%position
+       n = n / sqrt(n .dot. n)
+
+    end select
+
+
+  end function surface_normal
+
 
 end module type_surface
