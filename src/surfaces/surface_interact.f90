@@ -1,18 +1,19 @@
 module surface_interact
 
-  use core_lib, only : vector3d_dp
+  use core_lib, only : vector3d_dp, error
   use type_photon, only : photon
-  use type_surface, only : surface, surface_normal, surface_scatter
+  use type_surface, only : surface, surface_normal, surface_scatter, surface_scatter_peeloff
   use surface_collection, only : surfaces
   use sources, only : emit
   use type_vector3d, only : angle3d_to_vector3d
+  use type_angle3d, only : angle3d_dp
 
   implicit none
   save
 
   private
   public :: interact_with_surface
-
+  public :: interact_surface_peeloff
 contains
 
   subroutine interact_with_surface(p, inu)
@@ -37,6 +38,8 @@ contains
 
        call emit(p, reemit=.true., reemit_id=srf%source_id, reemit_energy=(p%energy), inu=inu)
 
+       p%last = 'sr'
+
     else
 
        ! Scatter from source surface
@@ -46,8 +49,45 @@ contains
 
        p%intersected = .false.
 
+       p%last = 'su'
+
     end if
 
   end subroutine interact_with_surface
+
+  subroutine interact_surface_peeloff(p, a_req)
+
+    ! Peeloff photon from a surface interaction
+    !
+    ! Parameters
+    ! ----------
+    ! p : photon
+    !     The photon to peeloff
+    ! a_req : angle3d_dp
+    !     The requested peeloff angle
+    !
+    ! Returns
+    ! -------
+    ! p : photon
+    !     The modified photon object
+
+    implicit none
+
+    type(photon),intent(inout) :: p
+    type(angle3d_dp),intent(in)    :: a_req
+
+    type(surface), pointer :: srf
+
+    select case(p%last)
+    case('su')
+       srf => surfaces(p%surface_id)
+       call surface_scatter_peeloff(srf,p%nu,p%r, p%a,p%s,a_req)
+    case default
+       call error("interact_surface_peeloff","unexpected p%last flag: "//p%last)
+    end select
+
+    call angle3d_to_vector3d(p%a,p%v)
+
+  end subroutine interact_surface_peeloff
 
 end module surface_interact

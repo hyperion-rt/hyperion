@@ -13,6 +13,7 @@ module peeled_images
   use sources
   use dust_main
   use dust_interact
+  use surface_interact
 
   use grid_mrw
 
@@ -106,6 +107,8 @@ contains
              call emit_peeloff(p, a_req)
           case('ds','de')
              call interact_peeloff(p, a_req)
+          case('su')
+             call interact_surface_peeloff(p, a_req)
           case('me')
              call mrw_peeloff(p, a_req)
           case default

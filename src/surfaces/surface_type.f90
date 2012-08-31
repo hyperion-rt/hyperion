@@ -17,6 +17,7 @@ module type_surface
   public :: surface_intersect
   public :: surface_normal
   public :: surface_scatter
+  public :: surface_scatter_peeloff
 
   public :: surface
   type surface
@@ -258,7 +259,7 @@ contains
     call angle3d_to_vector3d(a, v)
 
     ! Find incident angle
-    i = - (v .dot. n)
+    i = acos(- (v .dot. n))
 
     ! Check incident angle interval (can't be greater than pi/2)
     if (i < 0._dp .or. i > pi / 2._dp) call error("surface_scatter", "i should be in the range [0:pi/2]")
@@ -287,5 +288,94 @@ contains
     ! Leave Stokes parameters untouched (for now!)
 
   end subroutine surface_scatter
+
+  subroutine surface_scatter_peeloff(srf,nu,r,a,s,a_req)
+
+    ! Peeloff a photon from a surface
+    !
+    ! Parameters
+    ! ----------
+    ! srf : surface object
+    !     The surface the photon is scattering off
+    ! nu : real(dp)
+    !     The frequency of the incoming photon
+    ! r : vector3d_dp
+    !     The position of the photon
+    ! a : angle3d_dp
+    !     The incoming angle
+    ! s : stokes object
+    !     Incoming Stokes parameters
+    ! a_req : angle3d_dp
+    !     The requested peeloff angle
+    !
+    ! Returns
+    ! -------
+    ! a : angle3d_dp
+    !     The emergent angle
+    ! s : stokes object
+    !     Emergent Stokes parameters
+
+    implicit none
+
+    type(surface),intent(in) :: srf
+    real(dp),intent(in) :: nu
+    type(vector3d_dp),intent(in) :: r
+    type(angle3d_dp),intent(inout) :: a
+    type(stokes_dp),intent(inout) :: s
+    type(angle3d_dp),intent(in) :: a_req
+
+    type(angle3d_dp) :: a_local, a_coord
+    type(vector3d_dp) :: v, n
+    real(dp) :: prob, i, psi, e
+
+    ! Find local normal vector (normalized)
+    n = surface_normal(srf, r)
+
+    ! Convert incoming angle to vector
+    call angle3d_to_vector3d(a, v)
+
+    ! Find incident angle
+    i = acos(- (v .dot. n))
+
+    ! Recover local angle from normal vector and requested angle
+    call vector3d_to_angle3d(n, a_coord)
+    call difference_angle3d(a_coord, a_req, a_local)
+
+    if(a_local%cost < 0. .or. a_local%cost > pi / 2.) then
+
+       ! This corresponds to peeloff angles that go through the surface, so
+       !the intensities should be set to zero
+
+       s%i = 0.
+       s%q = 0.
+       s%u = 0.
+       s%v = 0.
+
+    else
+
+       ! TODO - express prob with mu and mu0 instead of i and e?
+
+       ! Find emergent e and psi
+       e = atan2(a_local%sint, a_local%cost)
+       psi = atan2(a_local%sinp, a_local%cosp)
+
+       ! atan2 gives a value between -pi and pi, so need to wrap
+       if(psi < 0._dp) psi = psi + 2. * pi
+
+       ! interpolate the PDF at the requested (i, nu) for the requested (psi,
+       ! e). The factor of 4pi is because the rest of the code assumes that
+       ! angular distributions are normalized to 4*pi, but the 2-d PDF type
+       ! normalizes to 1.
+
+       s%i = interpolate_var2d_pdf2d(i, nu, srf%prop%radiance, psi, e) * 4 * pi
+       s%q = 0.
+       s%u = 0.
+       s%v = 0.
+
+    end if
+
+    a = a_req
+
+  end subroutine surface_scatter_peeloff
 
 end module type_surface
