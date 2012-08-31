@@ -1,4 +1,4 @@
-from __future__ import print_statement
+from __future__ import print_function
 
 import atpy
 import numpy as np
@@ -6,16 +6,17 @@ import numpy as np
 from ..util.functions import FreezableClass, is_numpy_array, monotonically_increasing
 from ..version import __version__
 
-# Bi-directional scattering distribution function
+
+# The notation used here for the angles (i, e, psi) is from Hapke (2012)
 
 class SurfaceProperties(FreezableClass):
 
     def __init__(self):
         self.nu = None
         self.albedo = None
-        self.theta_i = None
-        self.theta_e = None
-        self.g = None
+        self.i = None
+        self.e = None
+        self.psi = None
         self.radiance = None
 
         self._freeze()
@@ -63,60 +64,60 @@ class SurfaceProperties(FreezableClass):
             self._albedo = value
 
     @property
-    def theta_i(self):
+    def i(self):
         """
         The incident theta angles for which the scattering properties are defined
         """
-        return self._theta_i
+        return self._i
 
-    @theta_i.setter
-    def theta_i(self, value):
+    @i.setter
+    def i(self, value):
         if value is None:
-            self._theta_i = None
+            self._i = None
         else:
             if type(value) in [list, tuple]:
                 value = np.array(value)
             if not is_numpy_array(value) or value.ndim != 1:
-                raise ValueError("theta_i should be a 1-D sequence")
+                raise ValueError("i should be a 1-D sequence")
             if not monotonically_increasing(value):
-                raise ValueError("theta_i should be monotonically increasing")
+                raise ValueError("i should be monotonically increasing")
             if value[0] < 0.:
-                raise ValueError("theta_i should be positive")
-            self._theta_i = value
+                raise ValueError("i should be positive")
+            self._i = value
 
     @property
-    def theta_e(self):
+    def e(self):
         """
         The emergent theta angles for which the scattering properties are defined
         """
-        return self._theta_e
+        return self._e
 
-    @theta_e.setter
-    def theta_e(self, value):
+    @e.setter
+    def e(self, value):
         if value is None:
-            self._theta_e = None
+            self._e = None
         else:
             if type(value) in [list, tuple]:
                 value = np.array(value)
             if not is_numpy_array(value) or value.ndim != 1:
-                raise ValueError("theta_e should be a 1-D sequence")
+                raise ValueError("e should be a 1-D sequence")
             if not monotonically_increasing(value):
-                raise ValueError("theta_e should be monotonically increasing")
+                raise ValueError("e should be monotonically increasing")
             if value[0] < 0.:
-                raise ValueError("theta_e should be positive")
-            self._theta_e = value
+                raise ValueError("e should be positive")
+            self._e = value
 
     @property
-    def g(self):
+    def psi(self):
         """
-        The emergent phase angles for which the scattering properties are defined
+        The emergent psi for which the scattering properties are defined
         """
-        return self._g
+        return self._psi
 
-    @g.setter
-    def g(self, value):
+    @psi.setter
+    def psi(self, value):
         if value is None:
-            self._g = None
+            self._psi = None
         else:
             if type(value) in [list, tuple]:
                 value = np.array(value)
@@ -126,7 +127,7 @@ class SurfaceProperties(FreezableClass):
                 raise ValueError("g should be monotonically increasing")
             if value[0] < 0.:
                 raise ValueError("g should be positive")
-            self._g = value
+            self._psi = value
 
     @property
     def radiance(self):
@@ -142,15 +143,15 @@ class SurfaceProperties(FreezableClass):
         else:
             if self.nu is None:
                 raise Exception("nu has to be defined first")
-            if self.theta_i is None:
-                raise Exception("theta_i has to be defined first")
-            if self.theta_e is None:
-                raise Exception("theta_e has to be defined first")
-            if self.g is None:
+            if self.i is None:
+                raise Exception("i has to be defined first")
+            if self.e is None:
+                raise Exception("e has to be defined first")
+            if self.psi is None:
                 raise Exception("g has to be defined first")
             if not is_numpy_array(value) or value.ndim != 4:
                 raise ValueError("radiance should be a 4-d Numpy array")
-            expected_shape = (len(self.nu), len(self.theta_i), len(self.theta_e), len(self.g))
+            expected_shape = (len(self.nu), len(self.i), len(self.e), len(self.psi))
             if value.shape != expected_shape:
                 raise ValueError("radiance has an incorrect shape: {0:s} but expected {1:s}".format(value.shape, expected_shape))
             self._radiance = value
@@ -158,9 +159,9 @@ class SurfaceProperties(FreezableClass):
     def all_set(self):
         return self.nu is not None and \
                self.albedo is not None and \
-               self.theta_i is not None and \
-               self.theta_e is not None and \
-               self.g is not None and \
+               self.i is not None and \
+               self.e is not None and \
+               self.psi is not None and \
                self.radiance is not None
 
     def write(self, handle, compression=True):
@@ -185,15 +186,15 @@ class SurfaceProperties(FreezableClass):
         # Add angles
 
         ti = atpy.Table(name="incident_angles")
-        ti.add_column('i', self.theta_i)
+        ti.add_column('i', self.i)
         ts.append(ti)
 
-        te = atpy.Table(name="emergent_angles")
-        te.add_column('e', self.theta_e)
+        te = atpy.Table(name="emergent_e_angles")
+        te.add_column('e', self.e)
         ts.append(te)
 
-        tg = atpy.Table(name="phase_angles")
-        tg.add_column('g', self.g)
+        tg = atpy.Table(name="emergent_psi_angles")
+        tg.add_column('psi', self.psi)
         ts.append(tg)
 
         # Write the table set to the HDF5 file

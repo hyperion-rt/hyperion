@@ -27,18 +27,18 @@ module type_surface_properties
      ! * nu: the frequency at which the scattering happens
      ! * i: the incident theta angle (relative to the surface normal)
      ! * e: emerging theta angle (relative to the surface normal)
-     ! * g: the scattering phase angle (in the plane of the scattering rays)
+     ! * psi: the difference in azimuthal angles between the incoming and emergent planes
      !
-     ! We use the naming conventions from Hapke et al. (2009). The incoming 
-     ! photons define nu and i, and we then have to sample from a 2-d PDF 
-     ! that gives the probability of scattering as a function of e and g. 
-     ! We can use the var2d_pdf2d type, which defines a 2-d PDF that 
-     ! depends on 2 input variables. Bilinear interpolation is used to 
-     ! interpolate in (nu, i), and bilinear interpolation is also used in 
-     ! the random sampling to interpolate between e and g values.
+     ! We use the naming conventions from Hapke (2012). The incoming
+     ! photons define nu and i, and we then have to sample from a 2-d PDF
+     ! that gives the probability of scattering as a function of e and psi.
+     ! We can use the var2d_pdf2d type, which defines a 2-d PDF that
+     ! depends on 2 input variables. Bilinear interpolation is used to
+     ! interpolate in (nu, i), and bilinear interpolation is also used in
+     ! the random sampling to interpolate between e and psi values.
 
-     integer :: n_i, n_e, n_g
-     real(dp),allocatable :: i(:), e(:), g(:)
+     integer :: n_i, n_e, n_psi
+     real(dp),allocatable :: i(:), e(:), psi(:)
      type(var2d_pdf2d_dp) :: radiance
 
   end type surface_properties
@@ -53,7 +53,7 @@ contains
     ! ----------
     ! group : HDF5 group/file handle
     !     The group to read the surface properties from
-    ! 
+    !
     ! Returns
     ! -------
     ! sp : surface_properties object
@@ -87,7 +87,7 @@ contains
 
     ! Emergent angles
 
-    path = 'emergent_angles'
+    path = 'emergent_e_angles'
     call mp_table_read_column_auto(group, path, 'e', sp%e)
     sp%n_e = size(sp%e)
 
@@ -95,25 +95,25 @@ contains
 
     ! Phase angles
 
-    path = 'phase_angles'
-    call mp_table_read_column_auto(group, path, 'g', sp%g)
-    sp%n_g = size(sp%g)
+    path = 'emergent_psi_angles'
+    call mp_table_read_column_auto(group, path, 'psi', sp%psi)
+    sp%n_psi = size(sp%psi)
 
-    if(any(is_nan(sp%g))) call error("setup_surface_properties", "NaN values in g")
+    if(any(is_nan(sp%psi))) call error("setup_surface_properties", "NaN values in psi")
 
     ! Radiance PDF
 
     path = 'radiance_pdf'
     call mp_read_array_auto(group, path, radiance_array)
 
-    if(size(radiance_array, 1) /= sp%n_g) call error("setup_surface_properties", "radiance_array has incorrect dimension 1")
+    if(size(radiance_array, 1) /= sp%n_psi) call error("setup_surface_properties", "radiance_array has incorrect dimension 1")
     if(size(radiance_array, 2) /= sp%n_e) call error("setup_surface_properties", "radiance_array has incorrect dimension 2")
     if(size(radiance_array, 3) /= sp%n_i) call error("setup_surface_properties", "radiance_array has incorrect dimension 3")
     if(size(radiance_array, 4) /= sp%n_nu) call error("setup_surface_properties", "radiance_array has incorrect dimension 4")
 
     if(any(is_nan(radiance_array))) call error("setup_surface_properties", "NaN values in radiance_array")
 
-    sp%radiance = set_var2d_pdf2d(sp%g, sp%e, sp%i, sp%nu, radiance_array)
+    sp%radiance = set_var2d_pdf2d(sp%psi, sp%e, sp%i, sp%nu, radiance_array)
 
   end subroutine setup_surface_properties
 
