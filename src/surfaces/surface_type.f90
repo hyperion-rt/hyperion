@@ -2,7 +2,9 @@ module type_surface
 
   use core_lib
   use mpi_hdf5_io
-
+  use type_var2d_pdf2d
+  use type_vector3d
+  use type_angle3d
   use type_surface_properties, only : surface_properties, setup_surface_properties
 
   implicit none
@@ -14,6 +16,7 @@ module type_surface
   public :: surface_distance
   public :: surface_intersect
   public :: surface_normal
+  public :: surface_scatter
 
   public :: surface
   type surface
@@ -210,8 +213,79 @@ contains
 
     end select
 
-
   end function surface_normal
 
+  subroutine surface_scatter(srf, nu, r, a, s)
+
+    ! Scatter a photon on a surface
+    !
+    ! Parameters
+    ! ----------
+    ! srf : surface object
+    !     The surface the photon is scattering off
+    ! nu : real(dp)
+    !     The frequency of the incoming photon
+    ! r : vector3d_dp
+    !     The position of the photon
+    ! a : angle3d_dp
+    !     The incoming angle
+    ! s : stokes object
+    !     Incoming Stokes parameters
+    !
+    ! Returns
+    ! -------
+    ! a : angle3d_dp
+    !     The emergent angle
+    ! s : stokes object
+    !     Emergent Stokes parameters
+
+    implicit none
+
+    type(surface),intent(in) :: srf
+    real(dp),intent(in) :: nu
+    type(vector3d_dp),intent(in) :: r
+    type(angle3d_dp),intent(inout) :: a
+    type(stokes_dp),intent(inout) :: s
+
+    type(angle3d_dp) :: a_local, a_final, a_normal
+    type(vector3d_dp) :: v, n
+    real(dp) :: i, e, psi
+
+    ! Find local normal vector (normalized)
+    n = surface_normal(srf, r)
+
+    ! Convert incoming angle to vector
+    call angle3d_to_vector3d(a, v)
+
+    ! Find incident angle
+    i = - (v .dot. n)
+
+    ! Check incident angle interval (can't be greater than pi/2)
+    if (i < 0._dp .or. i > pi / 2._dp) call error("surface_scatter", "i should be in the range [0:pi/2]")
+
+    ! Sample random outgoing angles
+    call sample_var2d_pdf2d(i, nu, srf%prop%radiance, psi, e)
+
+    ! Check emergent angle intervals
+    if (psi < 0._dp .or. psi > 2._dp * pi) call error("surface_scatter", "psi should be in the range [0:2pi]")
+    if (e < 0._dp .or. e > pi / 2._dp) call error("surface_scatter", "e should be in the range [0:pi/2]")
+
+    ! Construct angle object
+    a_local%cosp = cos(psi)
+    a_local%sinp = sin(psi)
+    a_local%cost = cos(e)
+    a_local%sint = sin(e)
+
+    call vector3d_to_angle3d(n, a_normal)
+
+    ! Add to original incoming angle
+    call rotate_angle3d(a_local, a_normal, a_final)
+
+    ! Set outgoing angle to a_final
+    a = a_final
+
+    ! Leave Stokes parameters untouched (for now!)
+
+  end subroutine surface_scatter
 
 end module type_surface

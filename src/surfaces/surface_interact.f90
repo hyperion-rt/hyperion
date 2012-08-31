@@ -1,9 +1,11 @@
 module surface_interact
 
+  use core_lib, only : vector3d_dp
   use type_photon, only : photon
-  use type_surface, only : surface
+  use type_surface, only : surface, surface_normal, surface_scatter
   use surface_collection, only : surfaces
   use sources, only : emit
+  use type_vector3d, only : angle3d_to_vector3d
 
   implicit none
   save
@@ -21,6 +23,8 @@ contains
 
     integer,intent(in),optional :: inu
 
+    type(vector3d_dp) :: n
+
     srf => surfaces(p%surface_id)
 
     if(srf%source_id > 0) then
@@ -35,7 +39,12 @@ contains
 
     else
 
-       ! Scatter
+       ! Scatter from source surface
+
+       call surface_scatter(srf, p%nu, p%r, p%a, p%s)
+       call angle3d_to_vector3d(p%a,p%v)
+
+       p%intersected = .false.
 
     end if
 
