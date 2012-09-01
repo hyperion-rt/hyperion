@@ -265,7 +265,7 @@ contains
     if (mu0 < 0._dp .or. mu0 > 1._dp) call error("surface_scatter", "mu0 should be in the range [0:1]")
 
     ! Sample random outgoing angles
-    call sample_var2d_pdf2d(mu0, nu, srf%prop%radiance, psi, mu)
+    call sample_var2d_pdf2d(mu0, nu, srf%prop%brdf, psi, mu)
 
     ! Check emergent angle intervals
     if (psi < 0._dp .or. psi > 2._dp * pi) call error("surface_scatter", "psi should be in the range [0:2pi]")
@@ -365,7 +365,7 @@ contains
        ! angular distributions are normalized to 4*pi, but the 2-d PDF type
        ! normalizes to 1.
 
-       s%i = interpolate_var2d_pdf2d(mu0, nu, srf%prop%radiance, psi, mu) * 4._dp * pi
+       s%i = interpolate_var2d_pdf2d(mu0, nu, srf%prop%brdf, psi, mu) * 4._dp * pi
        s%q = 0.
        s%u = 0.
        s%v = 0.

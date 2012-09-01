@@ -28,6 +28,7 @@ are described in the following sections.
    setup_dust
    setup_grid
    setup_sources
+   setup_surfaces
    setup_images
    setup_conf
 

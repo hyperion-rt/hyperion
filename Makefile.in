@@ -34,13 +34,13 @@ OBJECTS2 =	src/grid/grid_physics_3d.f90 \
 		src/surfaces/surfaces.f90 \
 		src/sources/source_type.f90 \
 		src/sources/source.f90 \
+		src/surfaces/surface_interact.f90 \
 		src/grid/grid_propagate_3d.f90 \
 		src/grid/grid_mrw_3d.f90 \
 		src/grid/grid_pda_3d.f90 \
 		src/grid/grid_generic.f90 \
 		src/images/images_binned.f90 \
 		src/images/images_peeled.f90 \
-		src/surfaces/surface_interact.f90 \
 		src/main/setup_rt.f90
 
 OBJECTS3 =	src/main/iter_lucy.f90 \

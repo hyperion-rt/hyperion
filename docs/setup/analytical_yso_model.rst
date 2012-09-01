@@ -26,9 +26,9 @@ instance. This is described in more detail in the following section:
 
    setup_yso
 
-To set up the dust, images, and configuration, see the :doc:`setup_dust`,
-:doc:`setup_images`, and :doc:`setup_conf` sections of the :doc:`model`
-description.
+To set up the dust, surfaces, images, and configuration, see the
+:doc:`setup_dust`, :doc`setup_surfaces`, :doc:`setup_images`, and
+:doc:`setup_conf` sections of the :doc:`model` description.
 
 Once the model is set up, you can write it out to the disk for use
 with the Fortran radiation transfer code::

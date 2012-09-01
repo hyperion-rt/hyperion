@@ -6,7 +6,7 @@ import abc
 import h5py
 import numpy as np
 
-from .surface_properties import SurfaceProperties
+from .surface_scattering_properties import SurfaceScatteringProperties
 
 from ..util.functions import FreezableClass, is_numpy_array
 from ..util.validator import validate_scalar
@@ -48,10 +48,10 @@ class Surface(FreezableClass):
     @surface_properties.setter
     def surface_properties(self, value):
         if value is not None:
-            if isinstance(value, SurfaceProperties):
+            if isinstance(value, SurfaceScatteringProperties) or isinstance(value, basestring):
                 self._surface_properties = value
             else:
-                raise TypeError("surface_properties should be a SurfaceProperties instance")
+                raise TypeError("surface_properties should be a string or a SurfaceScatteringProperties instance")
         else:
             self._surface_properties = None
 
@@ -145,7 +145,7 @@ class SphericalSurface(Surface):
             g_prop = g.create_group('surface_properties')
 
             if isinstance(self.surface_properties, basestring):
-                self.surface_properties = SurfaceProperties(self.surface_properties)
+                self.surface_properties = SurfaceScatteringProperties(self.surface_properties)
 
             self.surface_properties.write(g_prop)
 

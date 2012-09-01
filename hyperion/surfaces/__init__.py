@@ -1,1 +1,2 @@
-from .surfaces import Surface, SphericalSurface, SurfaceProperties
+from .surfaces import Surface, SphericalSurface
+from .surface_scattering_properties import SurfaceScatteringProperties

@@ -45,6 +45,15 @@ Sources
    hyperion.sources.MapSource.rst
    hyperion.sources.PlaneParallelSource.rst
 
+Surfaces
+--------
+
+.. toctree::
+   :maxdepth: 1
+
+   hyperion.surfaces.SphericalSurface.rst
+   hyperion.surfaces.SurfaceScatteringProperties.rst
+
 Grid
 ----
 

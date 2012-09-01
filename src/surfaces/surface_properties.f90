@@ -39,7 +39,7 @@ module type_surface_properties
 
      integer :: n_mu0, n_mu, n_psi
      real(dp),allocatable :: mu0(:), mu(:), psi(:)
-     type(var2d_pdf2d_dp) :: radiance
+     type(var2d_pdf2d_dp) :: brdf
 
   end type surface_properties
 
@@ -64,7 +64,7 @@ contains
     integer(hid_t), intent(in) :: group
     type(surface_properties), intent(out) :: sp
 
-    real(dp), allocatable :: radiance_array(:, :, :, :)
+    real(dp), allocatable :: brdf_array(:, :, :, :)
 
     character(len=100) :: path
 
@@ -103,17 +103,17 @@ contains
 
     ! Radiance PDF
 
-    path = 'radiance_pdf'
-    call mp_read_array_auto(group, path, radiance_array)
+    path = 'brdf'
+    call mp_read_array_auto(group, path, brdf_array)
 
-    if(size(radiance_array, 1) /= sp%n_psi) call error("setup_surface_properties", "radiance_array has incorrect dimension 1")
-    if(size(radiance_array, 2) /= sp%n_mu) call error("setup_surface_properties", "radiance_array has incorrect dimension 2")
-    if(size(radiance_array, 3) /= sp%n_mu0) call error("setup_surface_properties", "radiance_array has incorrect dimension 3")
-    if(size(radiance_array, 4) /= sp%n_nu) call error("setup_surface_properties", "radiance_array has incorrect dimension 4")
+    if(size(brdf_array, 1) /= sp%n_psi) call error("setup_surface_properties", "brdf_array has incorrect dimension 1")
+    if(size(brdf_array, 2) /= sp%n_mu) call error("setup_surface_properties", "brdf_array has incorrect dimension 2")
+    if(size(brdf_array, 3) /= sp%n_mu0) call error("setup_surface_properties", "brdf_array has incorrect dimension 3")
+    if(size(brdf_array, 4) /= sp%n_nu) call error("setup_surface_properties", "brdf_array has incorrect dimension 4")
 
-    if(any(is_nan(radiance_array))) call error("setup_surface_properties", "NaN values in radiance_array")
+    if(any(is_nan(brdf_array))) call error("setup_surface_properties", "NaN values in brdf_array")
 
-    sp%radiance = set_var2d_pdf2d(sp%psi, sp%mu, sp%mu0, sp%nu, radiance_array)
+    sp%brdf = set_var2d_pdf2d(sp%psi, sp%mu, sp%mu0, sp%nu, brdf_array)
 
   end subroutine setup_surface_properties
 
