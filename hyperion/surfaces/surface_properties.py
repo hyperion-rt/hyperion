@@ -7,20 +7,20 @@ from ..util.functions import FreezableClass, is_numpy_array, monotonically_incre
 from ..version import __version__
 
 
-# The notation used here for the angles (i, e, psi) is from Hapke (2012)
+# The notation used here for the angles (mu0, mu, psi) is from Hapke (2012)
 
 class SurfaceProperties(FreezableClass):
 
     def __init__(self):
         self.nu = None
         self.albedo = None
-        self.i = None
-        self.e = None
+        self.mu0 = None
+        self.mu = None
         self.psi = None
         self.radiance = None
 
         self._freeze()
-        
+
     @property
     def nu(self):
         """
@@ -64,16 +64,16 @@ class SurfaceProperties(FreezableClass):
             self._albedo = value
 
     @property
-    def i(self):
+    def mu0(self):
         """
-        The incident theta angles for which the scattering properties are defined
+        The incident cos(theta) angles for which the scattering properties are defined
         """
-        return self._i
+        return self._mu0
 
-    @i.setter
-    def i(self, value):
+    @mu0.setter
+    def mu0(self, value):
         if value is None:
-            self._i = None
+            self._mu0 = None
         else:
             if type(value) in [list, tuple]:
                 value = np.array(value)
@@ -83,29 +83,29 @@ class SurfaceProperties(FreezableClass):
                 raise ValueError("i should be monotonically increasing")
             if value[0] < 0.:
                 raise ValueError("i should be positive")
-            self._i = value
+            self._mu0 = value
 
     @property
-    def e(self):
+    def mu(self):
         """
-        The emergent theta angles for which the scattering properties are defined
+        The emergent cos(theta) angles for which the scattering properties are defined
         """
-        return self._e
+        return self._mu
 
-    @e.setter
-    def e(self, value):
+    @mu.setter
+    def mu(self, value):
         if value is None:
-            self._e = None
+            self._mu = None
         else:
             if type(value) in [list, tuple]:
                 value = np.array(value)
             if not is_numpy_array(value) or value.ndim != 1:
-                raise ValueError("e should be a 1-D sequence")
+                raise ValueError("mu should be a 1-D sequence")
             if not monotonically_increasing(value):
-                raise ValueError("e should be monotonically increasing")
+                raise ValueError("mu should be monotonically increasing")
             if value[0] < 0.:
-                raise ValueError("e should be positive")
-            self._e = value
+                raise ValueError("mu should be positive")
+            self._mu = value
 
     @property
     def psi(self):
@@ -122,11 +122,11 @@ class SurfaceProperties(FreezableClass):
             if type(value) in [list, tuple]:
                 value = np.array(value)
             if not is_numpy_array(value) or value.ndim != 1:
-                raise ValueError("g should be a 1-D sequence")
+                raise ValueError("psi should be a 1-D sequence")
             if not monotonically_increasing(value):
-                raise ValueError("g should be monotonically increasing")
+                raise ValueError("psi should be monotonically increasing")
             if value[0] < 0.:
-                raise ValueError("g should be positive")
+                raise ValueError("psi should be positive")
             self._psi = value
 
     @property
@@ -143,15 +143,15 @@ class SurfaceProperties(FreezableClass):
         else:
             if self.nu is None:
                 raise Exception("nu has to be defined first")
-            if self.i is None:
-                raise Exception("i has to be defined first")
-            if self.e is None:
-                raise Exception("e has to be defined first")
+            if self.mu0 is None:
+                raise Exception("mu0 has to be defined first")
+            if self.mu is None:
+                raise Exception("mu has to be defined first")
             if self.psi is None:
-                raise Exception("g has to be defined first")
+                raise Exception("psi has to be defined first")
             if not is_numpy_array(value) or value.ndim != 4:
                 raise ValueError("radiance should be a 4-d Numpy array")
-            expected_shape = (len(self.nu), len(self.i), len(self.e), len(self.psi))
+            expected_shape = (len(self.nu), len(self.mu0), len(self.mu), len(self.psi))
             if value.shape != expected_shape:
                 raise ValueError("radiance has an incorrect shape: {0:s} but expected {1:s}".format(value.shape, expected_shape))
             self._radiance = value
@@ -159,8 +159,8 @@ class SurfaceProperties(FreezableClass):
     def all_set(self):
         return self.nu is not None and \
                self.albedo is not None and \
-               self.i is not None and \
-               self.e is not None and \
+               self.mu0 is not None and \
+               self.mu is not None and \
                self.psi is not None and \
                self.radiance is not None
 
@@ -185,17 +185,17 @@ class SurfaceProperties(FreezableClass):
 
         # Add angles
 
-        ti = atpy.Table(name="incident_angles")
-        ti.add_column('i', self.i)
-        ts.append(ti)
+        tmu0 = atpy.Table(name="incident_angles")
+        tmu0.add_column('mu0', self.mu0)
+        ts.append(tmu0)
 
-        te = atpy.Table(name="emergent_e_angles")
-        te.add_column('e', self.e)
-        ts.append(te)
+        tmu = atpy.Table(name="emergent_e_angles")
+        tmu.add_column('mu', self.mu)
+        ts.append(tmu)
 
-        tg = atpy.Table(name="emergent_psi_angles")
-        tg.add_column('psi', self.psi)
-        ts.append(tg)
+        tpsi = atpy.Table(name="emergent_psi_angles")
+        tpsi.add_column('psi', self.psi)
+        ts.append(tpsi)
 
         # Write the table set to the HDF5 file
         ts.write(handle, type='hdf5')

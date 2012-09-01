@@ -250,7 +250,7 @@ contains
 
     type(angle3d_dp) :: a_local, a_final, a_normal
     type(vector3d_dp) :: v, n
-    real(dp) :: i, e, psi
+    real(dp) :: mu0, mu, psi
 
     ! Find local normal vector (normalized)
     n = surface_normal(srf, r)
@@ -259,23 +259,23 @@ contains
     call angle3d_to_vector3d(a, v)
 
     ! Find incident angle
-    i = acos(- (v .dot. n))
+    mu0 = - (v .dot. n)
 
     ! Check incident angle interval (can't be greater than pi/2)
-    if (i < 0._dp .or. i > pi / 2._dp) call error("surface_scatter", "i should be in the range [0:pi/2]")
+    if (mu0 < 0._dp .or. mu0 > 1._dp) call error("surface_scatter", "mu0 should be in the range [0:1]")
 
     ! Sample random outgoing angles
-    call sample_var2d_pdf2d(i, nu, srf%prop%radiance, psi, e)
+    call sample_var2d_pdf2d(mu0, nu, srf%prop%radiance, psi, mu)
 
     ! Check emergent angle intervals
     if (psi < 0._dp .or. psi > 2._dp * pi) call error("surface_scatter", "psi should be in the range [0:2pi]")
-    if (e < 0._dp .or. e > pi / 2._dp) call error("surface_scatter", "e should be in the range [0:pi/2]")
+    if (mu < 0._dp .or. mu > 1._dp) call error("surface_scatter", "mu should be in the range [0:1]")
 
     ! Construct angle object
     a_local%cosp = cos(psi)
     a_local%sinp = sin(psi)
-    a_local%cost = cos(e)
-    a_local%sint = sin(e)
+    a_local%cost = mu
+    a_local%sint = sqrt(1._dp - mu * mu)
 
     call vector3d_to_angle3d(n, a_normal)
 
@@ -326,16 +326,13 @@ contains
 
     type(angle3d_dp) :: a_local, a_coord
     type(vector3d_dp) :: v, n
-    real(dp) :: prob, i, psi, e
+    real(dp) :: prob, mu0, psi, mu
 
     ! Find local normal vector (normalized)
     n = surface_normal(srf, r)
 
     ! Convert incoming angle to vector
     call angle3d_to_vector3d(a, v)
-
-    ! Find incident angle
-    i = acos(- (v .dot. n))
 
     ! Recover local angle from normal vector and requested angle
     call vector3d_to_angle3d(n, a_coord)
@@ -353,10 +350,11 @@ contains
 
     else
 
-       ! TODO - express prob with mu and mu0 instead of i and e?
+       ! Find incident angle
+       mu0 = - (v .dot. n)
 
        ! Find emergent e and psi
-       e = atan2(a_local%sint, a_local%cost)
+       mu = a_local%cost
        psi = atan2(a_local%sinp, a_local%cosp)
 
        ! atan2 gives a value between -pi and pi, so need to wrap
@@ -367,7 +365,7 @@ contains
        ! angular distributions are normalized to 4*pi, but the 2-d PDF type
        ! normalizes to 1.
 
-       s%i = interpolate_var2d_pdf2d(i, nu, srf%prop%radiance, psi, e) * 4 * pi
+       s%i = interpolate_var2d_pdf2d(mu0, nu, srf%prop%radiance, psi, mu) * 4._dp * pi
        s%q = 0.
        s%u = 0.
        s%v = 0.
