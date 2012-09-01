@@ -69,8 +69,8 @@ class SurfaceScatteringProperties(FreezableClass):
                 value = np.array(value)
             if not is_numpy_array(value) or value.ndim != 1:
                 raise ValueError("albedo should be a 1-D sequence")
-            if np.any(value < 0.):
-                raise ValueError("albedo should be positive")
+            if np.any(value < 0.) or np.any(value > 1.):
+                raise ValueError("albedo should be in the range [0:1]")
             if len(value) != len(self.nu):
                 raise ValueError("albedo should have the same length as nu")
             self._albedo = value
@@ -90,11 +90,11 @@ class SurfaceScatteringProperties(FreezableClass):
             if type(value) in [list, tuple]:
                 value = np.array(value)
             if not is_numpy_array(value) or value.ndim != 1:
-                raise ValueError("i should be a 1-D sequence")
+                raise ValueError("mu0 should be a 1-D sequence")
             if not monotonically_increasing(value):
-                raise ValueError("i should be monotonically increasing")
-            if value[0] < 0.:
-                raise ValueError("i should be positive")
+                raise ValueError("mu0 should be monotonically increasing")
+            if value[0] < 0. or value[-1] > 1.:
+                raise ValueError("mu0 should be in the range [0:1]")
             self._mu0 = value
 
     @property
@@ -115,8 +115,8 @@ class SurfaceScatteringProperties(FreezableClass):
                 raise ValueError("mu should be a 1-D sequence")
             if not monotonically_increasing(value):
                 raise ValueError("mu should be monotonically increasing")
-            if value[0] < 0.:
-                raise ValueError("mu should be positive")
+            if value[0] < 0. or value[-1] > 1.:
+                raise ValueError("mu should be in the range [0:1]")
             self._mu = value
 
     @property
@@ -137,8 +137,8 @@ class SurfaceScatteringProperties(FreezableClass):
                 raise ValueError("psi should be a 1-D sequence")
             if not monotonically_increasing(value):
                 raise ValueError("psi should be monotonically increasing")
-            if value[0] < 0.:
-                raise ValueError("psi should be positive")
+            if value[0] < 0. or value[-1] > 2. * np.pi:
+                raise ValueError("psi should be in the range [0:2pi]")
             self._psi = value
 
     @property
@@ -186,7 +186,7 @@ class SurfaceScatteringProperties(FreezableClass):
             The name of the file to read the properties from
         """
 
-        ts = atpy.TableSet(filename)
+        ts = atpy.TableSet(filename, type='hdf5')
 
         self.nu = ts['optical_properties']['nu']
         self.albedo = ts['optical_properties']['albedo']
