@@ -406,7 +406,7 @@ class AnalyticalYSOModel(Model):
 
         return rmin, rmax
 
-    def set_cylindrical_polar_grid_auto(self, n_w, n_z, n_phi, zmax=None):
+    def set_cylindrical_polar_grid_auto(self, n_w, n_z, n_phi, wmax=None, zmax=None):
         '''
         Set the grid to be cylindrical polar with automated resolution.
 
@@ -415,12 +415,16 @@ class AnalyticalYSOModel(Model):
         n_w, n_z, n_phi : int
             Number of cells to use in the radial, vertical, and azimuthal
             directions.
+        wmax : float, optional
+            The maximum radius to extend out to. If not specified, this is
+            set to the maximum  cylindrical radius of the dust geometry in the
+            mid-plane.
         zmax : float, optional
             The maximum height above and below the midplane to extend to. If
             not specified, this is set to the maximum cylindrical radius of
             the dust geometry.
         '''
-        self._set_polar_grid_auto(n_w, n_z, n_phi, 'cylindrical', zmax=zmax)
+        self._set_polar_grid_auto(n_w, n_z, n_phi, 'cylindrical', rmax=wmax, zmax=zmax)
 
     def set_spherical_polar_grid_auto(self, n_r, n_theta, n_phi, rmax=None):
         '''
@@ -441,8 +445,7 @@ class AnalyticalYSOModel(Model):
         '''
         self._set_polar_grid_auto(n_r, n_theta, n_phi, 'spherical', rmax=rmax)
 
-    def _set_polar_grid_auto(self, n1, n2, n3, grid_type, zmax=None,
-                             rmax=None):
+    def _set_polar_grid_auto(self, n1, n2, n3, grid_type, zmax=None, rmax=None):
 
         self.star._finalize()
         self.evaluate_optically_thin_radii()
@@ -476,7 +479,7 @@ class AnalyticalYSOModel(Model):
             rmax = _max_none(*rmax_values)
 
         if rmax < rmin:
-            logger.warn("Grid rmax < rmin, model with consist only of central star")
+            logger.warn("Grid rmax < rmin, model will consist only of central star")
             rmin = self.star.radius
             rmax = 2. * self.star.radius
 
