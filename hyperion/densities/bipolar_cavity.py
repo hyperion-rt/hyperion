@@ -150,7 +150,7 @@ class BipolarCavity(FreezableClass):
                 raise Exception("rho_0 is not set")
             if self.rho_exp is None:
                 raise Exception("rho_exp is not set")
-            if self.envelope is None:
+            if self._envelope is None:
                 raise Exception("envelope is not set")
 
     def density(self, grid):
@@ -178,15 +178,15 @@ class BipolarCavity(FreezableClass):
 
         rho = self.rho_0 * np.abs(grid.gr / self.r_0) ** (-self.rho_exp)
 
-        rho[grid.gr < self.envelope.rmin] = 0.
-        rho[grid.gr > self.envelope.rmax] = 0.
+        rho[grid.gr < self._envelope.rmin] = 0.
+        rho[grid.gr > self._envelope.rmax] = 0.
 
         rho[self.mask(grid)] = 0.
 
         if self.cap_to_envelope_density:
 
             # Find envelope density
-            envelope_density = self.envelope.density(grid, ignore_cavity=True)
+            envelope_density = self._envelope.density(grid, ignore_cavity=True)
 
             # Find cells where cavity density is larger than envelope and
             # reset
