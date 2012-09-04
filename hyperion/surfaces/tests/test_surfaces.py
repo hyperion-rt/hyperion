@@ -21,11 +21,13 @@ def random_id(length=32):
 def virtual_file():
     return h5py.File(random_id(), driver='core', backing_store=False)
 
+
 @pytest.mark.parametrize(('surface_type'), ALL_SURFACES)
 def test_init(surface_type):
     surface_type()
 
 # SURFACE PROPERTIES
+
 
 @pytest.mark.parametrize(('surface_type'), ALL_SURFACES)
 def test_surface_properties_class(surface_type):
