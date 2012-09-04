@@ -33,18 +33,27 @@ for filename in arguments:
         continue
 
     if images:
-        if 'Peeled' in f:
-            n_groups = len(f['Peeled'])
-            for ig in range(n_groups):
-                group = f['Peeled/group_%05i' % (ig + 1)]
+        if 'Peeled' in f or 'Binned' in f:
+            if 'Peeled' in f:
+                n_groups = len(f['Peeled'])
+                for ig in range(n_groups):
+                    group = f['Peeled/group_%05i' % (ig + 1)]
+                    if 'images' in group:
+                        image = np.array(group['images'])
+                        image = image.swapaxes(-1, -2)
+                        image = image.swapaxes(-2, -3)
+                        pyfits.writeto(filename.replace('.rtout', '_%05i_images.fits' % (ig + 1)),
+                                       image, clobber=True)
+            if 'Binned' in f:
+                group = f['Binned']
                 if 'images' in group:
                     image = np.array(group['images'])
                     image = image.swapaxes(-1, -2)
                     image = image.swapaxes(-2, -3)
-                    pyfits.writeto(filename.replace('.rtout', '_%05i_images.fits' % (ig + 1)),
+                    pyfits.writeto(filename.replace('.rtout', '_binned_images.fits'),
                                    image, clobber=True)
         else:
-            print "No peeled images in %s" % filename
+            print "No images in %s" % filename
 
     if physics:
         for group_name in f:
