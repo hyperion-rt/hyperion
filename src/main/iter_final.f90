@@ -192,6 +192,7 @@ contains
           do ia=1,n_reabs_max
 
              call interact_with_surface(p) ! can either re-emit or scatter (like dust)
+             if(p%killed) exit
 
              ! We now peeloff the photon even if only scattered photons are
              ! wanted because this is a kind of scattering, and will not be

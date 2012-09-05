@@ -1,6 +1,6 @@
 module surface_interact
 
-  use core_lib, only : vector3d_dp, error
+  use core_lib, only : vector3d_dp, error, dp, interp1d_loglog
   use type_photon, only : photon
   use type_surface, only : surface, surface_normal, surface_scatter, surface_scatter_peeloff
   use surface_collection, only : surfaces
@@ -26,7 +26,11 @@ contains
 
     type(vector3d_dp) :: n
 
+    real(dp) :: albedo, xi
+
     srf => surfaces(p%surface_id)
+
+    p%intersected = .false.
 
     if(srf%source_id > 0) then
 
@@ -44,12 +48,18 @@ contains
 
        ! Scatter from source surface
 
-       call surface_scatter(srf, p%nu, p%r, p%a, p%s)
-       call angle3d_to_vector3d(p%a,p%v)
+       ! First, interpolate albedo
+       albedo = interp1d_loglog(srf%prop%nu, srf%prop%albedo_nu, p%nu)
 
-       p%intersected = .false.
-
-       p%last = 'su'
+       ! Sample random value, and either scatter or kill the photon accordingly
+       call random(xi)
+       if(xi > albedo) then
+          p%killed = .true.
+       else
+          call surface_scatter(srf, p%nu, p%r, p%a, p%s)
+          call angle3d_to_vector3d(p%a,p%v)
+          p%last = 'su'
+       end if
 
     end if
 

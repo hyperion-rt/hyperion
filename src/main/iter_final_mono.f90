@@ -263,6 +263,7 @@ contains
              ! force the evaluation of the option (otherwise it gets reset
              ! because p has intent(out) from emit)
              call interact_with_surface(p, inu=(p%inu)) ! can either re-emit or scatter (like dust)
+             if(p%killed) exit
 
              ! We now peeloff the photon even if only scattered photons are
              ! wanted because this is a kind of scattering, and will not be

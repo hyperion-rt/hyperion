@@ -158,6 +158,7 @@ contains
                 do ia=1,n_reabs_max
 
                    call interact_with_surface(p) ! can either re-emit or scatter (like dust)
+                   if(p%killed) exit
 
                    ! Sample optical depth and travel
                    call random_exp(tau)
