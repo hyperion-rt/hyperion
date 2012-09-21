@@ -113,7 +113,8 @@ if prefix is None:
     sys.exit(1)
 
 def run(command, logfile):
-    status = os.system(command + ' >& ' + logfile)
+    import subprocess
+    status = subprocess.call(command + ' >& ' + logfile, shell=True, executable="/bin/bash")
     if status != 0:
         par = {}
         par['api_dev_key'] = 'd3b3e1a0b666fbcbe383162be949f81e'
