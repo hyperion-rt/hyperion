@@ -64,6 +64,11 @@ such as ``/usr/local/hyperion``::
 
 and the libraries will be installed in the ``lib``, ``include``, etc. directories inside ``/usr/local/hyperion``. Once the installation is complete, the installer will instruct you to add certain commands to your startup files.
 
+.. note:: if you are installing to a location outside your user directory,
+          you will need to run the command with ``sudo``, i.e.::
+
+            sudo python install.py <prefix>
+
 Next, open a new terminal and ensure that the following commands::
 
     which mpif90
