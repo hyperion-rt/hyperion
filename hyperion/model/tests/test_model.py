@@ -1,12 +1,16 @@
 from __future__ import print_function, division
 
+import os
+
 import numpy as np
 import pytest
 
 from .. import Model
-from .test_helpers import random_filename, get_test_dust
+from .test_helpers import random_filename, get_test_dust, get_realistic_test_dust
 from ...grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid, AMRGrid, OctreeGrid
 from ...dust import IsotropicDust
+
+DATA = os.path.join(os.path.dirname(__file__), 'data')
 
 
 def test_basic():
@@ -232,3 +236,27 @@ class TestMerge(object):
         m.add_density_grid(self.density[grid_type], self.dust1)
         m.add_density_grid(self.density[grid_type], self.dust4, merge_if_possible=True)
         assert m.grid.n_dust == 2
+
+
+def test_dust_mix():
+    # This is a regression test for a bug which caused the code to crash if
+    # isotropic dust and non-isotropic dust were used together.
+
+    iso_dust = get_realistic_test_dust()
+    kmh_dust = os.path.join(DATA, 'kmh_lite.hdf5')
+
+    m = Model()
+
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+
+    s = m.add_point_source()
+    s.luminosity = 1.
+    s.temperature = 6000.
+
+    m.add_density_grid(np.array([[[1.]]]), kmh_dust)
+    m.add_density_grid(np.array([[[1.]]]), iso_dust)
+
+    m.set_n_photons(initial=100000, imaging=0)
+
+    m.write(random_filename())
+    m.run(random_filename())

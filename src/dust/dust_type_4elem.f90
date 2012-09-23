@@ -58,6 +58,8 @@ module type_dust
 
      logical :: is_lte ! Whether the emissivities assume therma emission from LTE dust
 
+     logical :: zero_p2  ! Whether the P2 term is zero (since it makes the mu sampling simpler)
+
   end type dust
 
 contains
@@ -123,6 +125,9 @@ contains
     call mp_table_read_column_auto(group,path,'P2',d%P2)
     call mp_table_read_column_auto(group,path,'P3',d%P3)
     call mp_table_read_column_auto(group,path,'P4',d%P4)
+
+    ! Check whether there is an (I,Q) cross-term
+    d%zero_p2 = all(d%P2 == 0._dp)
 
     ! Check for NaN values
     if(any(is_nan(d%nu))) call error("dust_setup","nu array contains NaN values")
@@ -465,26 +470,42 @@ contains
        ! Frequency is out of bounds, use isotropic scattering
        P1 = 1._dp
        P2 = 0._dp
-       P3 = 0._dp
+       P3 = 1._dp
        P4 = 0._dp
 
     else
 
        call random(xi)
 
-       do iter=1,maxiter
-          imu = (imax + imin) / 2
-          cdf1 = c1 * d%P1_cdf(imu, inu) + c2 * d%P2_cdf(imu, inu)
-          cdf2 = c1 * d%P1_cdf(imu+1, inu) + c2 * d%P2_cdf(imu+1, inu)
-          if(xi > cdf2) then
-             imin = imu
-          else if(xi < cdf1) then
-             imax = imu
-          else
-             exit
-          end if
-          if(imin==imax) stop "ERROR: in sampling mu for scattering"
-       end do
+       if(d%zero_p2) then  ! no I and Q cross term, simple sampling
+          do iter=1,maxiter
+             imu = (imax + imin) / 2
+             cdf1 = d%P1_cdf(imu, inu)
+             cdf2 = d%P1_cdf(imu+1, inu)
+             if(xi > cdf2) then
+                imin = imu
+             else if(xi < cdf1) then
+                imax = imu
+             else
+                exit
+             end if
+             if(imin==imax) stop "ERROR: in sampling mu for scattering"
+          end do
+       else
+          do iter=1,maxiter
+             imu = (imax + imin) / 2
+             cdf1 = c1 * d%P1_cdf(imu, inu) + c2 * d%P2_cdf(imu, inu)
+             cdf2 = c1 * d%P1_cdf(imu+1, inu) + c2 * d%P2_cdf(imu+1, inu)
+             if(xi > cdf2) then
+                imin = imu
+             else if(xi < cdf1) then
+                imax = imu
+             else
+                exit
+             end if
+             if(imin==imax) stop "ERROR: in sampling mu for scattering"
+          end do
+       end if
 
        if(iter==maxiter+1) stop "ERROR: stuck in do loop in dust_scatter"
 
