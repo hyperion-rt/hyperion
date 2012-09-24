@@ -861,8 +861,9 @@ class ModelOutput(FreezableClass):
         else:
             iteration = iteration + 1  # Python value is zero based
 
-        # Read in quantities from the requested iteration
-        g.read_quantities(self.file['iteration_%05i' % iteration])
+        # Read in quantities from the requested iteration (if available)
+        if iteration > 0:
+            g.read_quantities(self.file['iteration_%05i' % iteration])
 
         if not 'density' in g:
             logger.info("No density present in output, reading initial density")

@@ -113,7 +113,8 @@ if prefix is None:
     sys.exit(1)
 
 def run(command, logfile):
-    status = os.system(command + ' >& ' + logfile)
+    import subprocess
+    status = subprocess.call(command + ' >& ' + logfile, shell=True, executable="/bin/bash")
     if status != 0:
         par = {}
         par['api_dev_key'] = 'd3b3e1a0b666fbcbe383162be949f81e'
@@ -139,6 +140,9 @@ print "=" * 72
 start_dir = os.path.abspath('.')
 
 prefix = os.path.abspath(prefix)
+
+ZLIB_URL = 'http://zlib.net/zlib-1.2.7.tar.gz'
+ZLIB_SHA1 = '4aa358a95d1e5774603e6fa149c926a80df43559'
 
 HDF5_URL = 'http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.9/src/hdf5-1.8.9.tar.gz'
 HDF5_SHA1 = '4ba3ede947b1571e9586fdeb8351d6585a56133c'
@@ -294,6 +298,38 @@ if system == 'Darwin' and is_gcc:
 if INSTALL_HDF5:
 
     print "=" * 72
+    print "Installing ZLIB (for HDF5)"
+    print "=" * 72
+
+    zlib_file = os.path.basename(ZLIB_URL)
+    if os.path.exists(zlib_file):
+        sha1 = hashlib.sha1(open(zlib_file, 'rb').read()).hexdigest()
+        if sha1 == ZLIB_SHA1:
+            print " -> file exists, skipping download"
+        else:
+            print " -> file exists but incorrect SHA1, re-downloading"
+            open(zlib_file, 'wb').write(urllib.urlopen(ZLIB_URL).read())
+    else:
+        print " -> downloading"
+        open(zlib_file, 'wb').write(urllib.urlopen(ZLIB_URL).read())
+
+    print ' -> expanding tarfile'
+    t = tarfile.open(zlib_file, 'r:gz')
+    t.extractall()
+    os.chdir(zlib_file.replace('.tar.gz', ''))
+
+    print " -> configuring"
+    run('./configure --prefix={prefix}'.format(prefix=prefix), 'log_configure')
+
+    print " -> making"
+    run('make', 'log_make')
+
+    print " -> installing"
+    run('make install', 'log_make_install')
+
+    os.chdir(work_dir)
+
+    print "=" * 72
     print "Installing HDF5"
     print "=" * 72
 
@@ -322,7 +358,7 @@ if INSTALL_HDF5:
         open('config/gnu-fflags', 'wb').write(conf)
 
     print " -> configuring"
-    run('./configure FC="{fc}" --enable-fortran --enable-hl --prefix={prefix}'.format(fc=fc, prefix=prefix), 'log_configure')
+    run('./configure FC="{fc}" --enable-fortran --enable-hl --with-zlib={prefix}/include,{prefix}/lib --prefix={prefix}'.format(fc=fc, prefix=prefix), 'log_configure')
 
     print " -> making"
     run('make', 'log_make')
