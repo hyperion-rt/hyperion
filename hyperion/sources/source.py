@@ -113,10 +113,14 @@ class Source(FreezableClass):
                                     " two elements")
 
                 if type(nu) in [list, tuple]:
-                    nu = np.array(nu)
+                    nu = np.array(nu, dtype=float)
+                else:
+                    nu = nu.astype(float)
 
                 if type(fnu) in [list, tuple]:
-                    fnu = np.array(fnu)
+                    fnu = np.array(fnu, dtype=float)
+                else:
+                    fnu = fnu.astype(float)
 
                 if not is_numpy_array(nu) or nu.ndim != 1:
                     raise TypeError("nu should be a 1-D sequence")
