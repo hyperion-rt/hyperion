@@ -130,7 +130,7 @@ contains
           tmax = - d_min(ig) + d
        end if
 
-       if(d < d_min(ig) .or. d > d_max(ig)) return
+       if(d < d_min(ig) .or. d > d_max(ig)) cycle
 
        if(inside_observer(ig)) then
 
