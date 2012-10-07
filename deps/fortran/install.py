@@ -295,6 +295,39 @@ if system == 'Darwin' and is_gcc:
             print "ERROR: unexpected output for %s -print-search-dirs: %s" % (cc, output)
             sys.exit(1)
 
+    # Check whether the C and Fotran compiler give different architecture builds by default
+
+    subprocess.Popen(shlex.split(cc + ' %s/test_arch.c -o test_arch_c' % start_dir)).wait()
+    p = subprocess.Popen(shlex.split('file test_arch_c'), stdout=subprocess.PIPE)
+    output = p.communicate()[0].split('\n')[0].strip()
+    if output == 'test_arch_c: Mach-O 64-bit executable x86_64':
+        arch_c = 64
+    elif output == 'test_arch_c: Mach-O executable i386':
+        arch_c = 32
+    else:
+        arch_c = None
+
+    subprocess.Popen(shlex.split(fc + ' %s/test_arch.f90 -o test_arch_f90' % start_dir)).wait()
+    p = subprocess.Popen(shlex.split('file test_arch_f90'), stdout=subprocess.PIPE)
+    output = p.communicate()[0].split('\n')[0].strip()
+    if output == 'test_arch_f90: Mach-O 64-bit executable x86_64':
+        arch_f90 = 64
+    elif output == 'test_arch_f90: Mach-O executable i386':
+        arch_f90 = 32
+    else:
+        arch_f90 = None
+
+    if arch_c is None or arch_f90 is None:
+        pass  # just be safe and don't assume anything
+    elif arch_c != arch_f90:
+        if arch_c == 32:
+            cc += '- m64'
+            cxx += ' -m64'
+            print " -> SPECIAL CASE: adjusting C compiler:", cc
+        else:
+            fc += ' -m64'
+            print " -> SPECIAL CASE: adjusting fortran compiler:", fc
+
 if INSTALL_HDF5:
 
     print "=" * 72
