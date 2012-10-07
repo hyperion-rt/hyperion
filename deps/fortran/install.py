@@ -57,6 +57,7 @@ cxx = None
 
 prefix = None
 
+
 def usage():
     print ""
     print " Usage: python install.py [options] installation_path"
@@ -112,6 +113,7 @@ if prefix is None:
     print "ERROR: please specify installation directory with 'python install.py directory'"
     sys.exit(1)
 
+
 def run(command, logfile):
     import subprocess
     status = subprocess.call(command + ' >& ' + logfile, shell=True, executable="/bin/bash")
@@ -123,7 +125,7 @@ def run(command, logfile):
         par['api_paste_name'] = command
         par['api_paste_format'] = 'bash'
         u = urllib.urlopen('http://pastebin.com/api/api_post.php',
-                       data=urllib.urlencode(par))
+                           data=urllib.urlencode(par))
         url = u.read()
         print "=" * 72
         print "The installation failed. The log of the failed command has been sent"
@@ -454,14 +456,14 @@ os.chdir(start_dir)
 print "Installation succeeded! You will now need to add the installation\n" \
     + "directory to your $PATH environment variable. For example, in bash,\n" \
     + "you should add the following to your ~/.bash_profile:\n" \
-    +  "\n" \
-    +  "export PATH=%s/bin:$PATH\n" % prefix \
-    +  "\n" \
-    +  "Check that your installation is being correctly picked up:" \
-    +  "\n" \
-    +  "$ which h5fc\n" \
-    +  "%s/bin/h5fc\n" % prefix\
-    +  "$ which mpif90\n" \
-    +  "%s/bin/mpif90" % prefix
+    + "\n" \
+    + "export PATH=%s/bin:$PATH\n" % prefix \
+    + "\n" \
+    + "Check that your installation is being correctly picked up:" \
+    + "\n" \
+    + "$ which h5fc\n" \
+    + "%s/bin/h5fc\n" % prefix\
+    + "$ which mpif90\n" \
+    + "%s/bin/mpif90" % prefix
 
 print "=" * 72
