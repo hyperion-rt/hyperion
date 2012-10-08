@@ -48,6 +48,13 @@ program test
 end program test
 '''
 
+TEST_ARCH_C = "int main() {}"
+
+TEST_ARCH_F90 = '''
+program test
+end program test
+'''
+
 INSTALL_HDF5 = True
 INSTALL_MPICH2 = True
 
@@ -299,7 +306,8 @@ if system == 'Darwin' and is_gcc:
 
     # Check whether the C and Fotran compiler give different architecture builds by default
 
-    subprocess.Popen(shlex.split(cc + ' %s/test_arch.c -o test_arch_c' % start_dir)).wait()
+    open('test_arch.c', 'wb').write(TEST_ARCH_C)
+    subprocess.Popen(shlex.split(cc + ' test_arch.c -o test_arch_c')).wait()
     p = subprocess.Popen(shlex.split('file test_arch_c'), stdout=subprocess.PIPE)
     output = p.communicate()[0].split('\n')[0].strip()
     if output == 'test_arch_c: Mach-O 64-bit executable x86_64':
@@ -309,7 +317,8 @@ if system == 'Darwin' and is_gcc:
     else:
         arch_c = None
 
-    subprocess.Popen(shlex.split(fc + ' %s/test_arch.f90 -o test_arch_f90' % start_dir)).wait()
+    open('test_arch.f90', 'wb').write(TEST_ARCH_F90)
+    subprocess.Popen(shlex.split(fc + ' test_arch.f90 -o test_arch_f90')).wait()
     p = subprocess.Popen(shlex.split('file test_arch_f90'), stdout=subprocess.PIPE)
     output = p.communicate()[0].split('\n')[0].strip()
     if output == 'test_arch_f90: Mach-O 64-bit executable x86_64':
