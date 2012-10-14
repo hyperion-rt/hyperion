@@ -13,7 +13,11 @@ Summary of dependencies
 
 The packages required for the Fortran code are:
 
-* A recent Fortran compiler
+* A recent Fortran compiler. The following compilers are known to work:
+
+  * gfortran 4.3 and later
+  * ifort 11 and later
+  * pgfortran 11 and above
 
 * `HDF5 <http://www.hdfgroup.org/HDF5/>`_ 1.8.5 or later with the Fortran bindings
 
@@ -29,7 +33,7 @@ compilers (e.g. ``ifort``, ``pgfortran``, ...), there are a couple of free
 ones, the most common of which is ``gfortran``. If you don't already have a
 compiler installed, you can install ``gfortran`` via package managers on Linux
 machines, or from MacPorts or binary installers on Mac (e.g.
-`http://r.research.att.com/tools/ <http://r.research.att.com/tools/>`_). If
+`http://gcc.gnu.org/wiki/GFortranBinaries <http://gcc.gnu.org/wiki/GFortranBinaries>`_). If
 you are unsure about how to do this, speak to your system administrator.
 
 Non-root installs
