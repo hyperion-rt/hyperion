@@ -26,7 +26,7 @@ the properties, and optionally writing out the dust properties to a file::
 
     from hyperion.dust import SphericalDust
     d = SphericalDust()
-    # set dust properties here
+    < set dust properties here >
     d.write('mydust.hdf5')
 
 .. note:: Carefully look at the warnings that are raised when writing the dust

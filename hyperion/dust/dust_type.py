@@ -87,6 +87,9 @@ class SphericalDust(FreezableClass):
 
     def plot(self, filename):
 
+        # Check that the optical properties have been set
+        self.optical_properties.ensure_all_set()
+
         import matplotlib.pyplot as plt
 
         # Save original rc parameters
@@ -206,6 +209,9 @@ class SphericalDust(FreezableClass):
         Write out to a standard dust file, including calculations of the mean
         opacities and optionally thermal emissivities.
         '''
+
+        # Check that the optical properties have been set
+        self.optical_properties.ensure_all_set()
 
         # Check that emissivities are set (before computing mean opacities)
         if not self.emissivities.all_set():

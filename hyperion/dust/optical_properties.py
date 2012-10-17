@@ -293,19 +293,23 @@ class OpticalProperties(FreezableClass):
         return interp1d_fast_loglog(self.nu, self.kappa, nu)
 
     def all_set(self):
-        return self.nu is not None and \
-               self.chi is not None and \
-               self.albedo is not None and \
-               self.mu is not None and \
-               self.P1 is not None and \
-               self.P2 is not None and \
-               self.P3 is not None and \
-               self.P4 is not None
+        return self.get_missing_attributes() == []
+
+    def get_missing_attributes(self):
+        missing = []
+        for attribute in ['nu', 'chi', 'albedo', 'mu', 'P1', 'P2', 'P3', 'P4']:
+            if getattr(self, attribute) is None:
+                missing.append(attribute)
+        return missing
+
+    def ensure_all_set(self):
+        if not self.all_set():
+            missing = self.get_missing_attributes()
+            raise Exception("The following attributes of the optical properties have not been set: {0:s}".format(', '.join(missing)))
 
     def plot(self, figure, subplots):
 
-        if not self.all_set():
-            raise Exception("Not all attributes of the optical properties are set")
+        self.ensure_all_set()
 
         import matplotlib.pyplot as plt
 
