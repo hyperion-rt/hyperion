@@ -201,3 +201,60 @@ class TestSimpleModelInside(object):
         with pytest.raises(ValueError) as e:
             wav, nufnu = self.m.get_image(distance=1.)
         assert e.value.args[0] == 'Cannot specify distance for inside observers'
+
+
+def test_regression_depth_bug():
+    """
+    This is a regression test for issue #21 reported by T. Bowers. If multiple
+    images are requested with different depths, then if a photon did not fall
+    in a depth interval, it was not included in subsequent image groups
+    because 'return' was used instead 'cycle'.
+    """
+
+    m = Model()
+
+    m.set_cartesian_grid([-1., 1.],
+                         [-1., 1.],
+                         [-1., 1.])
+
+    m.add_density_grid(np.array([[[1.e-30]]]), get_test_dust())
+
+    s = m.add_point_source()
+    s.luminosity = 1.
+    s.temperature = 6000.
+
+    i = m.add_peeled_images(sed=False, image=True)
+    i.set_viewing_angles([0.], [0.])
+    i.set_image_limits(-1., 1., -1., 1.)
+    i.set_image_size(1, 1)
+    i.set_wavelength_range(1, 0.01, 1000.)
+    i.set_depth(0.5, 1.0)
+
+    i = m.add_peeled_images(sed=False, image=True)
+    i.set_viewing_angles([0.], [0.])
+    i.set_image_limits(-1., 1., -1., 1.)
+    i.set_image_size(1, 1)
+    i.set_wavelength_range(1, 0.01, 1000.)
+    i.set_depth(-0.5, 0.5)
+
+    i = m.add_peeled_images(sed=False, image=True)
+    i.set_viewing_angles([0.], [0.])
+    i.set_image_limits(-1., 1., -1., 1.)
+    i.set_image_size(1, 1)
+    i.set_wavelength_range(1, 0.01, 1000.)
+
+    m.set_n_initial_iterations(0)
+
+    m.set_n_photons(imaging=1)
+
+    m.write(random_filename())
+
+    mo = m.run(random_filename())
+
+    wav, image1 = mo.get_image(group=0)
+    wav, image2 = mo.get_image(group=1)
+    wav, image3 = mo.get_image(group=2)
+
+    assert image1.sum() == 0.
+    assert image2.sum() > 0.
+    assert image3.sum() == image2.sum()
