@@ -417,9 +417,9 @@ class UlrichEnvelope(Envelope):
 
         if gamma_0 < 1.:
 
-            rho[gamma_1 < 1.] = self.rho_0 * self.rc \
-                              * (np.log((np.sqrt(gamma_1) + 1) / (1. - np.sqrt(gamma_1))) \
-                              - np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0))))
+            rho[:] = self.rho_0 * self.rc \
+                     * (np.log((np.sqrt(gamma_1) + 1) / (1. - np.sqrt(gamma_1))) \
+                     - np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0))))
 
             rho[gamma_1 >= 1.] = np.inf
 
