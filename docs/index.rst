@@ -70,6 +70,7 @@ Advanced
    advanced/advanced.rst
    api/api.rst
    contributing.rst
+   changes.rst
 
 Credits
 -------

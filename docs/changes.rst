@@ -1,4 +1,7 @@
-0.9.1 (unreleased)
+Version History
+===============
+
+0.9.1 (2012-10-26)
 ------------------
 
 New Features
