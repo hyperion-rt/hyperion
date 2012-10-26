@@ -1,4 +1,4 @@
-include configure Makefile.in src/modules/empty.txt bin/empty.txt LICENSE CHANGES.rst
+include configure Makefile.in src/modules/empty.txt bin/empty.txt LICENSE
 exclude scripts/mctherm2hyperion
 
 recursive-include src *.f90
