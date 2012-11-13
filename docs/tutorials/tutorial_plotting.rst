@@ -163,11 +163,11 @@ This script produces the following plot:
 
 Now let's do something a little more fancy. Assuming that you set up the SEDs with photon tracking::
 
-    sed.set_track_photon_origin('basic')
+    sed.set_track_origin('basic')
 
 or::
 
-    sed.set_track_photon_origin('detailed')
+    sed.set_track_origin('detailed')
 
 you can plot the individual components. The following example retrieves each separate components, and plots it in a different color::
 
