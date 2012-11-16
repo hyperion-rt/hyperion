@@ -282,7 +282,17 @@ contains
 
           ! Just move to next cell
 
-          if(t_achieved + tmin > t_surface) then
+          ! If the surface and the cell wall are almost in the same place, we
+          ! need to treat this as a special case, noting *both* an
+          ! intersection, and placing the photon on the cell wall.
+          if(t_surface < t_achieved + tmin + 3._dp * spacing(t_surface)) then
+             if(t_surface > t_achieved + tmin - 3._dp * spacing(t_surface)) then
+                p%on_wall = .true.
+                p%on_wall_id = id_min
+             else
+                p%on_wall = .false.
+                p%on_wall_id = no_wall
+             end if
              p%intersected = .true.
              p%surface_id = surface_id
              tmin = t_surface - t_achieved
