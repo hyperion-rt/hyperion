@@ -262,7 +262,13 @@ contains
     mu0 = - (v .dot. n)
 
     ! Check incident angle interval (can't be greater than pi/2)
-    if (mu0 < 0._dp .or. mu0 > 1._dp) call error("surface_scatter", "mu0 should be in the range [0:1]")
+    if (mu0 < 0._dp) then
+       mu0 = 0._dp
+       call warn("surface_scatter","mu0 < 0. (due to floating-point accuracy) - resetting mu0 to 0.")
+    else if(mu0 > 1._dp) then
+       mu0 = 1._dp
+       call warn("surface_scatter","mu0 > 1. (due to floating-point accuracy) - resetting mu0 to 1.")
+    end if
 
     ! Sample random outgoing angles
     call sample_var2d_pdf2d(mu0, nu, srf%prop%brdf, psi, mu)
