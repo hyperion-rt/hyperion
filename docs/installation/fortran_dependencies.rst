@@ -1,4 +1,4 @@
-.. _MPI: http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads
+.. _MPI: http://www.mpich.org/downloads/
 .. _HDF5 downloads: http://www.hdfgroup.org/ftp/HDF5/current/src/
 
 
@@ -21,7 +21,7 @@ The packages required for the Fortran code are:
 
 * `HDF5 <http://www.hdfgroup.org/HDF5/>`_ 1.8.5 or later with the Fortran bindings
 
-* An MPI installation (e.g. `MPICH2 <http://www.mcs.anl.gov/research/projects/mpich2/>`_ or `OpenMPI <http://www.open-mpi.org/>`_) with the Fortran bindings
+* An MPI installation (e.g. `MPICH2 <http://www.mpich.org/>`_ or `OpenMPI <http://www.open-mpi.org/>`_) with the Fortran bindings
 
 Note that often, default installations of HDF5 and MPI packages do not include support for Fortran - this has to be explicitly enabled as described below.
 
