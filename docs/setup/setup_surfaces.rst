@@ -48,11 +48,9 @@ defined by a 3-d cartesian position and a radius::
 Surface Properties
 ------------------
 
-The main quantity that needs to be specified is the bidirectional reflectance
-distribution function (BRDF; `Wikipedia
-<http://en.wikipedia.org/wiki/Bidirectional_reflectance_distribution_function>`_).
-We use the notation from the book *Theory of Reflectance and Emittance
-Spectroscopy* by Hapke (2012):
+The main quantity that needs to be specified is the probability distribution
+for scattering in a given direction. We use the notation from the book *Theory
+of Reflectance and Emittance Spectroscopy* by Hapke (2012):
 
 .. image:: images/brdf.png
    :width: 400px
@@ -66,10 +64,10 @@ BRDF in terms of i and e, it is convenient to express it as a function of
 :math:`\mu_0 = \cos{i}` and :math:`\mu = \cos{e}` (where the notations are
 also consistent with Hapke 2012).
 
-The BRDF gives the probability of scattering as a function of :math:`\mu_0`,
-:math:`\mu`, and :math:`\psi`. In addition, since we are interested in
-multi-wavelength radiative transfer, we want to express the BRDF as a function
-of frequency :math:`\nu`.
+The probability distribution should give the probability of scattering as a
+function of :math:`\mu_0`, :math:`\mu`, and :math:`\psi`. In addition, since we
+are interested in multi-wavelength radiative transfer, we want to express this
+probability as a function of frequency :math:`\nu`.
 
 To specify these properties in Hyperion, you will need to first create an
 instance of the
@@ -79,7 +77,7 @@ instance of the
     properties = SurfaceScatteringProperties()
     
 then set the ``nu``, ``mu0``, ``mu``, and ``psi`` attributes to lists or
-arrays which give the values at which you define the BRDF e.g.::
+arrays which give the values at which you define the PDF e.g.::
 
     properties.nu = np.logspace(5., 17., 10)
     properties.mu0 = np.linspace(0., 1., 5)
@@ -89,17 +87,31 @@ arrays which give the values at which you define the BRDF e.g.::
 The `nu` values should be given in Hz, the ``mu0`` and ``mu`` values should be
 given as values between 0 and 1, and ``psi`` should be given in radians.
 
-Once these attributes are set, you should set the BRDF by passing a
+Once these attributes are set, you should set the PDF by passing a
 4-dimensional Numpy array with dimensions ``(n_nu, n_mu0, n_mu, n_psi)`` to the
-``brdf`` attribute::
+``pdf`` attribute::
 
-    properties.brdf = np.array(...)
+    properties.pdf = np.array(...)
 
 Finally, you should set the albedo of the surface via the ``albedo``
 attribute. This should be set to a list of a Numpy array with the same length
 as ``nu``. If the albedo is less than 1 at any frequency, then when
 scattering, a fraction of photons given by ``1 - albedo`` are terminated
 rather than scattered.
+
+In the Hapke (2012) formalism, one can express this probability as a bidirectional reflectance
+distribution function (BRDF; `Wikipedia
+<http://en.wikipedia.org/wiki/Bidirectional_reflectance_distribution_function>`_). This differs from the probability described above by a factor of ``mu``.
+Thus, the PDF for a Lambert surface should be proportional to ``mu``, whereas
+the BRDF for the same surface would be a constant. For users that are familiar
+with the BRDF formalism, the following method can be used::
+
+    properties.set_brdf(np.array(...))
+
+where the dimensions of the BRDF should be the same as described above for the
+``pdf`` attribute. Calling the ``set_brdf`` has the effect of setting the
+``pdf`` appropriately. In future, ``set_brdf`` will also allow the albedo to be
+set.
 
 It is possible to write the surface scattering properties to an HDF5 file, as
 for dust, e.g.::

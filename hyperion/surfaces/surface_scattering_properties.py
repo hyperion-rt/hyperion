@@ -18,7 +18,7 @@ class SurfaceScatteringProperties(FreezableClass):
         self.mu0 = None
         self.mu = None
         self.psi = None
-        self.brdf = None
+        self.pdf = None
 
         self._freeze()
 
@@ -142,17 +142,46 @@ class SurfaceScatteringProperties(FreezableClass):
             self._psi = value
 
     @property
-    def brdf(self):
+    def pdf(self):
         """
-        The bidirectional reflectance distribution function.
-        """
-        return self._brdf
+        The two-dimensional probability distribution function for scattering.
 
-    @brdf.setter
-    def brdf(self, value):
+        This is defined such that a Lambert surface would be defined as being
+        proportional to mu.
+        """
+        return self._pdf
+
+    @pdf.setter
+    def pdf(self, value):
         if value is None:
-            self._brdf = None
+            self._pdf = None
         else:
+            if self.nu is None:
+                raise Exception("nu has to be defined first")
+            if self.mu0 is None:
+                raise Exception("mu0 has to be defined first")
+            if self.mu is None:
+                raise Exception("mu has to be defined first")
+            if self.psi is None:
+                raise Exception("psi has to be defined first")
+            if not is_numpy_array(value) or value.ndim != 4:
+                raise ValueError("pdf should be a 4-d Numpy array")
+            expected_shape = (len(self.nu), len(self.mu0), len(self.mu), len(self.psi))
+            if value.shape != expected_shape:
+                raise ValueError("pdf has an incorrect shape: {0:s} but expected {1:s}".format(value.shape, expected_shape))
+            self._pdf = value
+
+    def set_brdf(self, value):
+        """
+        Specify the bidirectional reflectance distribution function.
+
+        This is a convenience method that sets the ``pdf`` attribute (and will
+        later set the albedo) using the BRDF as defined in Hapke, "Theory of
+        Reflectance and Emittance Spectroscopy", Cambridge Press, 2012. The
+        difference with ``pdf`` is a factor of mu: Lambert scattering is
+        described by PDF ~ mu, but BRDF ~ constant.
+        """
+        if value is not None:
             if self.nu is None:
                 raise Exception("nu has to be defined first")
             if self.mu0 is None:
@@ -166,7 +195,7 @@ class SurfaceScatteringProperties(FreezableClass):
             expected_shape = (len(self.nu), len(self.mu0), len(self.mu), len(self.psi))
             if value.shape != expected_shape:
                 raise ValueError("brdf has an incorrect shape: {0:s} but expected {1:s}".format(value.shape, expected_shape))
-            self._brdf = value
+            self.pdf = value * self.mu[np.newaxis, np.newaxis, :, np.newaxis]
 
     def all_set(self):
         return self.nu is not None and \
@@ -174,7 +203,7 @@ class SurfaceScatteringProperties(FreezableClass):
                self.mu0 is not None and \
                self.mu is not None and \
                self.psi is not None and \
-               self.brdf is not None
+               self.pdf is not None
 
     def read(self, filename):
         """
@@ -194,7 +223,7 @@ class SurfaceScatteringProperties(FreezableClass):
         self.mu = ts['emergent_e_angles']['mu']
         self.psi = ts['emergent_psi_angles']['psi']
         f = h5py.File(filename, 'r')
-        self.brdf = np.array(f['brdf'])
+        self.pdf = np.array(f['pdf'])
         f.close()
 
     def write(self, filename_or_handle, compression=True):
@@ -248,7 +277,7 @@ class SurfaceScatteringProperties(FreezableClass):
         ts.write(handle, type='hdf5')
 
         # Add the brdf as a dataset
-        handle.create_dataset("brdf", data=self.brdf, compression=compression)
+        handle.create_dataset("pdf", data=self.pdf, compression=compression)
 
         # If filename was specified, close the file
         if isinstance(filename_or_handle, basestring):

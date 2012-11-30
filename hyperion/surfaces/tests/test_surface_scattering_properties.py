@@ -223,7 +223,80 @@ def test_range_psi_invalid2():
     assert exc.value.args[0] == 'psi should be in the range [0:2pi]'
 
 
-# BRDF
+# PDF
+
+def test_set_pdf():
+    p = SurfaceScatteringProperties()
+    p.nu = [0.1, 0.5, 0.8]
+    p.mu0 = [0., 1.]
+    p.mu = [0., 0.33, 0.66, 1.0]
+    p.psi = [0., 1., 2., 3., 4.]
+    p.pdf = np.ones((3, 2, 4, 5))
+
+
+def test_set_pdf_nonu():
+    p = SurfaceScatteringProperties()
+    p.mu0 = [0., 1.]
+    p.mu = [0., 0.33, 0.66, 1.0]
+    p.psi = [0., 1., 2., 3., 4.]
+    with pytest.raises(Exception) as exc:
+        p.pdf = np.zeros((3, 2, 4, 5))
+    assert exc.value.args[0] == 'nu has to be defined first'
+
+
+def test_set_pdf_nomu0():
+    p = SurfaceScatteringProperties()
+    p.nu = [0.1, 0.5, 0.8]
+    p.mu = [0., 0.33, 0.66, 1.0]
+    p.psi = [0., 1., 2., 3., 4.]
+    with pytest.raises(Exception) as exc:
+        p.pdf = np.zeros((3, 2, 4, 5))
+    assert exc.value.args[0] == 'mu0 has to be defined first'
+
+
+def test_set_pdf_nomu():
+    p = SurfaceScatteringProperties()
+    p.nu = [0.1, 0.5, 0.8]
+    p.mu0 = [0., 1.]
+    p.psi = [0., 1., 2., 3., 4.]
+    with pytest.raises(Exception) as exc:
+        p.pdf = np.zeros((3, 2, 4, 5))
+    assert exc.value.args[0] == 'mu has to be defined first'
+
+
+def test_set_pdf_nopsi():
+    p = SurfaceScatteringProperties()
+    p.nu = [0.1, 0.5, 0.8]
+    p.mu0 = [0., 1.]
+    p.mu = [0., 0.33, 0.66, 1.0]
+    with pytest.raises(Exception) as exc:
+        p.pdf = np.zeros((3, 2, 4, 5))
+    assert exc.value.args[0] == 'psi has to be defined first'
+
+
+@pytest.mark.parametrize('value', ['hello', np.zeros((2,)), np.zeros((4, 2)),
+                         np.zeros((3, 2, 3)), [[[[1.]]]]])
+def test_set_pdf_invalid_type(value):
+    p = SurfaceScatteringProperties()
+    p.nu = [0.1, 0.5, 0.8]
+    p.mu0 = [0., 1.]
+    p.mu = [0., 0.33, 0.66, 1.0]
+    p.psi = [0., 1., 2., 3., 4.]
+    with pytest.raises(ValueError) as exc:
+        p.pdf = value
+    assert exc.value.args[0] == 'pdf should be a 4-d Numpy array'
+
+
+def test_set_pdf_invalid_shape():
+    p = SurfaceScatteringProperties()
+    p.nu = [0.1, 0.5, 0.8]
+    p.mu0 = [0., 1.]
+    p.mu = [0., 0.33, 0.66, 1.0]
+    p.psi = [0., 1., 2., 3., 4.]
+    with pytest.raises(ValueError) as exc:
+        p.pdf = np.zeros((2, 4, 3, 3))
+    assert exc.value.args[0] == 'pdf has an incorrect shape: (2, 4, 3, 3) but expected (3, 2, 4, 5)'
+
 
 def test_set_brdf():
     p = SurfaceScatteringProperties()
@@ -231,71 +304,8 @@ def test_set_brdf():
     p.mu0 = [0., 1.]
     p.mu = [0., 0.33, 0.66, 1.0]
     p.psi = [0., 1., 2., 3., 4.]
-    p.brdf = np.zeros((3, 2, 4, 5))
-
-
-def test_set_brdf_nonu():
-    p = SurfaceScatteringProperties()
-    p.mu0 = [0., 1.]
-    p.mu = [0., 0.33, 0.66, 1.0]
-    p.psi = [0., 1., 2., 3., 4.]
-    with pytest.raises(Exception) as exc:
-        p.brdf = np.zeros((3, 2, 4, 5))
-    assert exc.value.args[0] == 'nu has to be defined first'
-
-
-def test_set_brdf_nomu0():
-    p = SurfaceScatteringProperties()
-    p.nu = [0.1, 0.5, 0.8]
-    p.mu = [0., 0.33, 0.66, 1.0]
-    p.psi = [0., 1., 2., 3., 4.]
-    with pytest.raises(Exception) as exc:
-        p.brdf = np.zeros((3, 2, 4, 5))
-    assert exc.value.args[0] == 'mu0 has to be defined first'
-
-
-def test_set_brdf_nomu():
-    p = SurfaceScatteringProperties()
-    p.nu = [0.1, 0.5, 0.8]
-    p.mu0 = [0., 1.]
-    p.psi = [0., 1., 2., 3., 4.]
-    with pytest.raises(Exception) as exc:
-        p.brdf = np.zeros((3, 2, 4, 5))
-    assert exc.value.args[0] == 'mu has to be defined first'
-
-
-def test_set_brdf_nopsi():
-    p = SurfaceScatteringProperties()
-    p.nu = [0.1, 0.5, 0.8]
-    p.mu0 = [0., 1.]
-    p.mu = [0., 0.33, 0.66, 1.0]
-    with pytest.raises(Exception) as exc:
-        p.brdf = np.zeros((3, 2, 4, 5))
-    assert exc.value.args[0] == 'psi has to be defined first'
-
-
-@pytest.mark.parametrize('value', ['hello', np.zeros((2,)), np.zeros((4, 2)),
-                         np.zeros((3, 2, 3)), [[[[1.]]]]])
-def test_set_brdf_invalid_type(value):
-    p = SurfaceScatteringProperties()
-    p.nu = [0.1, 0.5, 0.8]
-    p.mu0 = [0., 1.]
-    p.mu = [0., 0.33, 0.66, 1.0]
-    p.psi = [0., 1., 2., 3., 4.]
-    with pytest.raises(ValueError) as exc:
-        p.brdf = value
-    assert exc.value.args[0] == 'brdf should be a 4-d Numpy array'
-
-
-def test_set_brdf_invalid_shape():
-    p = SurfaceScatteringProperties()
-    p.nu = [0.1, 0.5, 0.8]
-    p.mu0 = [0., 1.]
-    p.mu = [0., 0.33, 0.66, 1.0]
-    p.psi = [0., 1., 2., 3., 4.]
-    with pytest.raises(ValueError) as exc:
-        p.brdf = np.zeros((2, 4, 3, 3))
-    assert exc.value.args[0] == 'brdf has an incorrect shape: (2, 4, 3, 3) but expected (3, 2, 4, 5)'
+    p.set_brdf(np.ones((3, 2, 4, 5)))
+    assert np.all(p.pdf == np.ones((3, 2, 4, 5)) * self.mu[np.newaxis,np.newaxis,:,np.newaxis])
 
 
 def test_io_roundtrip(tmpdir):
@@ -306,7 +316,7 @@ def test_io_roundtrip(tmpdir):
     p1.mu = [0., 0.33, 0.66, 1.0]
     p1.psi = [0., 1., 2., 3., 4.]
     p1.albedo = [0.2, 0.3, 0.4]
-    p1.brdf = np.arange(120).reshape(3, 2, 4, 5)
+    p1.pdf = np.arange(120).reshape(3, 2, 4, 5)
 
     filename = str(tmpdir.join('test_round_trip'))
     p1.write(filename)
@@ -317,4 +327,4 @@ def test_io_roundtrip(tmpdir):
     assert np.all(p1.mu == p2.mu)
     assert np.all(p1.psi == p2.psi)
     assert np.all(p1.albedo == p2.albedo)
-    assert np.all(p1.brdf == p2.brdf)
+    assert np.all(p1.pdf == p2.pdf)

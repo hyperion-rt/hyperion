@@ -39,7 +39,7 @@ module type_surface_properties
 
      integer :: n_mu0, n_mu, n_psi
      real(dp),allocatable :: mu0(:), mu(:), psi(:)
-     type(var2d_pdf2d_dp) :: brdf
+     type(var2d_pdf2d_dp) :: pdf
 
   end type surface_properties
 
@@ -64,7 +64,7 @@ contains
     integer(hid_t), intent(in) :: group
     type(surface_properties), intent(out) :: sp
 
-    real(dp), allocatable :: brdf_array(:, :, :, :)
+    real(dp), allocatable :: pdf_array(:, :, :, :)
 
     character(len=100) :: path
 
@@ -103,17 +103,17 @@ contains
 
     ! Radiance PDF
 
-    path = 'brdf'
-    call mp_read_array_auto(group, path, brdf_array)
+    path = 'pdf'
+    call mp_read_array_auto(group, path, pdf_array)
 
-    if(size(brdf_array, 1) /= sp%n_psi) call error("setup_surface_properties", "brdf_array has incorrect dimension 1")
-    if(size(brdf_array, 2) /= sp%n_mu) call error("setup_surface_properties", "brdf_array has incorrect dimension 2")
-    if(size(brdf_array, 3) /= sp%n_mu0) call error("setup_surface_properties", "brdf_array has incorrect dimension 3")
-    if(size(brdf_array, 4) /= sp%n_nu) call error("setup_surface_properties", "brdf_array has incorrect dimension 4")
+    if(size(pdf_array, 1) /= sp%n_psi) call error("setup_surface_properties", "pdf_array has incorrect dimension 1")
+    if(size(pdf_array, 2) /= sp%n_mu) call error("setup_surface_properties", "pdf_array has incorrect dimension 2")
+    if(size(pdf_array, 3) /= sp%n_mu0) call error("setup_surface_properties", "pdf_array has incorrect dimension 3")
+    if(size(pdf_array, 4) /= sp%n_nu) call error("setup_surface_properties", "pdf_array has incorrect dimension 4")
 
-    if(any(is_nan(brdf_array))) call error("setup_surface_properties", "NaN values in brdf_array")
+    if(any(is_nan(pdf_array))) call error("setup_surface_properties", "NaN values in pdf_array")
 
-    sp%brdf = set_var2d_pdf2d(sp%psi, sp%mu, sp%mu0, sp%nu, brdf_array)
+    sp%pdf = set_var2d_pdf2d(sp%psi, sp%mu, sp%mu0, sp%nu, pdf_array)
 
   end subroutine setup_surface_properties
 
