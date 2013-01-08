@@ -2,8 +2,8 @@ from __future__ import print_function, division
 
 import hashlib
 
-import atpy
 import numpy as np
+from astropy.table import Table, Column
 
 from ..util.integrate import integrate_loglog, integrate_linlog_subset
 from ..util.interpolate import interp1d_fast, interp1d_fast_loglog, \
@@ -229,43 +229,43 @@ class OpticalProperties(FreezableClass):
             self.P3 = np.vstack([self.P3, self.P3[-1, :]])
             self.P4 = np.vstack([self.P4, self.P4[-1, :]])
 
-    def to_table_set(self, table_set):
+    def to_hdf5_group(self, group):
 
         if not self.all_set():
             raise Exception("Not all attributes of the optical properties are set")
 
         # Create optical properties table
-        topt = atpy.Table(name='optical_properties')
-        topt.add_column('nu', self.nu)
-        topt.add_column('albedo', self.albedo)
-        topt.add_column('chi', self.chi)
+        topt = Table()
+        topt.add_column(Column('nu', self.nu))
+        topt.add_column(Column('albedo', self.albedo))
+        topt.add_column(Column('chi', self.chi))
 
         self.normalize_scattering_matrix()
 
-        topt.add_column('P1', self.P1)
-        topt.add_column('P2', self.P2)
-        topt.add_column('P3', self.P3)
-        topt.add_column('P4', self.P4)
+        topt.add_column(Column('P1', self.P1))
+        topt.add_column(Column('P2', self.P2))
+        topt.add_column(Column('P3', self.P3))
+        topt.add_column(Column('P4', self.P4))
 
         # Sort by frequency
         topt.sort('nu')
 
         # Create scattering angles table and add to table set
-        tmu = atpy.Table(name='scattering_angles')
-        tmu.add_column('mu', self.mu)
+        tmu = Table()
+        tmu.add_column(Column('mu', self.mu))
 
-        # Add to table set
-        table_set.append(topt)
-        table_set.append(tmu)
+        # Add to group
+        topt.write(group, path='optical_properties')
+        tmu.write(group, path='scattering_angles')
 
-    def from_table_set(self, table_set):
+    def from_hdf5_group(self, group):
 
         # Read in the scattering angles
-        tmu = table_set['scattering_angles']
+        tmu = group['scattering_angles']
         self.mu = tmu['mu']
 
         # Read in the optical properties
-        topt = table_set['optical_properties']
+        topt = group['optical_properties']
 
         self.nu = topt['nu']
         self.albedo = topt['albedo']

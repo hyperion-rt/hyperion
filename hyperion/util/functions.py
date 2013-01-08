@@ -218,9 +218,9 @@ def delete_file(file_name):
 
 
 def is_numpy_array(variable):
-    return type(variable) in [np.ndarray,
-                              np.core.records.recarray,
-                              np.ma.core.MaskedArray]
+    return issubclass(variable.__class__, (np.ndarray,
+                                           np.core.records.recarray,
+                                           np.ma.core.MaskedArray))
 
 
 def monotonically_increasing(array):
@@ -228,3 +228,16 @@ def monotonically_increasing(array):
         if not array[i + 1] > array[i]:
             return False
     return True
+
+
+try:
+    asstr = np.compat.asstr
+except AttributeError:  # For Numpy 1.4.1
+    import sys
+    if sys.version_info[0] >= 3:
+        def asstr(s):
+            if isinstance(s, bytes):
+                return s.decode('latin1')
+            return str(s)
+    else:
+        asstr = str

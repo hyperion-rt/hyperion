@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 
-import atpy
 import numpy as np
+from astropy.table import Table, Column
 
 from ..grid.amr_grid import AMRGridView
 
@@ -80,7 +80,11 @@ class Source(FreezableClass):
     @property
     def spectrum(self):
         '''
-        The spectrum of the source, specified either as an atpy.Table instance with ``'nu'`` and ``'fnu'`` columns, or as a ``(nu, fnu)`` tuple, where the frequency is given in Hz, and the flux is given as F_nu (units are unimportant since the normalization is set by the luminosity).
+        The spectrum of the source, specified either as an astropy.table.Table
+        instance with ``'nu'`` and ``'fnu'`` columns, or as a ``(nu, fnu)``
+        tuple, where the frequency is given in Hz, and the flux is given as
+        F_nu (units are unimportant since the normalization is set by the
+        luminosity).
         '''
         return self._spectrum
 
@@ -92,14 +96,14 @@ class Source(FreezableClass):
             if hasattr(self, '_temperature') and self._temperature is not None:
                 raise Exception("A temperature has already been set, so cannot set a spectrum")
 
-            if isinstance(value, atpy.Table):
+            if isinstance(value, Table):
 
                 if 'nu' not in value.columns:
-                    raise TypeError("spectrum ATpy Table does not contain a"
+                    raise TypeError("spectrum Table does not contain a"
                                     " 'nu' column")
 
                 if 'fnu' not in value.columns:
-                    raise TypeError("spectrum ATpy Table does not contain an"
+                    raise TypeError("spectrum Table does not contain an"
                                     " 'fnu' column")
 
                 nu, fnu = value['nu'], value['fnu']
@@ -134,8 +138,9 @@ class Source(FreezableClass):
             else:
 
                 raise TypeError('spectrum should be specified either as an '
-                                'atpy.Table instance, or a tuple of two 1-D'
-                                'Numpy arrays (nu, fnu) with the same length')
+                                'astropy.table.Table instance, or a tuple '
+                                'of two 1-D Numpy arrays (nu, fnu) with the '
+                                'same length')
 
             # Check if frequency array has duplicate values
             if len(np.unique(nu)) != len(nu):
@@ -188,10 +193,10 @@ class Source(FreezableClass):
 
         if self.spectrum is not None:
             handle.attrs['spectrum'] = np.string_('spectrum'.encode('utf-8'))
-            table = atpy.Table(name='spectrum')
-            table.add_column('nu', self.spectrum['nu'])
-            table.add_column('fnu', self.spectrum['fnu'])
-            table.write(handle, type='hdf5')
+            table = Table()
+            table.add_column(Column('nu', self.spectrum['nu']))
+            table.add_column(Column('fnu', self.spectrum['fnu']))
+            table.write(handle, path='spectrum')
         elif self.temperature is not None:
             handle.attrs['spectrum'] = np.string_('temperature'.encode('utf-8'))
             handle.attrs['temperature'] = self.temperature
@@ -221,9 +226,9 @@ class SpotSource(Source):
         ----------
         luminosity : float
             The luminosity of the source (in ergs/s)
-        spectrum : atpy.Table or tuple
+        spectrum : astropy.table.Table or tuple
             The spectrum of the source, specified either as:
-                * an ATpy table with ``nu`` and ``fnu`` column
+                * an Astropy Table with ``nu`` and ``fnu`` column
                 * a ``(nu, fnu)`` tuple
             ``nu`` should be in Hz, and the units for ``fnu`` are not
             important, since the luminosity determined the absolute scaling``

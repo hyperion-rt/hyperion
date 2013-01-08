@@ -1,11 +1,22 @@
 from __future__ import print_function, division
 
-import atpy
+import random
+import string
+
+import h5py
 import pytest
 import numpy as np
 
 from ..optical_properties import OpticalProperties
 from ..emissivities import Emissivities
+
+
+def random_id(length=32):
+    return ''.join(random.sample(string.ascii_letters + string.digits, length))
+
+
+def virtual_file():
+    return h5py.File(random_id(), driver='core', backing_store=False)
 
 
 def test_init():
@@ -222,10 +233,10 @@ def test_io():
     e.nu = [0.1, 0.2, 0.3]
     e.var = [0.1, 1.]
     e.set_lte(o, n_temp=10, temp_min=1., temp_max=1000.)
-    ts = atpy.TableSet()
-    e.to_table_set(ts)
+    f = virtual_file()
+    e.to_hdf5_group(f)
     e_new = Emissivities()
-    e_new.from_table_set(ts)
+    e_new.from_hdf5_group(f)
     assert e.var_name == e_new.var_name
     assert np.all(e.nu == e_new.nu)
     assert np.all(e.var == e_new.var)

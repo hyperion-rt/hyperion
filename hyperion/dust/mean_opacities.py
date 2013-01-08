@@ -2,8 +2,8 @@ from __future__ import print_function, division
 
 import hashlib
 
-import atpy
 import numpy as np
+from astropy.table import Table, Column
 
 from ..util.integrate import integrate_loglog
 from ..util.interpolate import interp1d_fast_loglog
@@ -102,27 +102,29 @@ class MeanOpacities(FreezableClass):
             temperature[specific_energy > self.var[-1]] = temperatures[-1]
         return temperature
 
-    def to_table_set(self, table_set):
+    def to_hdf5_group(self, group):
 
         if not self.all_set():
             raise Exception("Not all attributes of the mean opacities are set")
 
         # Create mean opacities table
-        tmean = atpy.Table(name='mean_opacities')
-        tmean.add_keyword('var_name', self.var_name)
-        tmean.add_column(self.var_name, self.var)
-        tmean.add_column('chi_planck', self.chi_planck)
-        tmean.add_column('kappa_planck', self.kappa_planck)
-        tmean.add_column('chi_rosseland', self.chi_rosseland)
-        tmean.add_column('kappa_rosseland', self.kappa_rosseland)
+        tmean = Table()
+        tmean.meta['var_name'] = self.var_name
+        tmean.add_column(Column(self.var_name, self.var))
+        tmean.add_column(Column('chi_planck', self.chi_planck))
+        tmean.add_column(Column('kappa_planck', self.kappa_planck))
+        tmean.add_column(Column('chi_rosseland', self.chi_rosseland))
+        tmean.add_column(Column('kappa_rosseland', self.kappa_rosseland))
 
-        # Add to table set
-        table_set.append(tmean)
+        # Add to group
+        tmean.write(group, path='mean_opacities')
 
-    def from_table_set(self, table_set):
+    def from_hdf5_group(self, group):
 
-        tmean = table_set['mean_opacities']
-        self.var_name = tmean.keywords['var_name']
+        from ..util.functions import asstr
+
+        tmean = Table.read(group, path='mean_opacities')
+        self.var_name = asstr(tmean.meta['var_name'])
         self.var = tmean[self.var_name]
         self.chi_planck = tmean['chi_planck']
         self.kappa_planck = tmean['kappa_planck']

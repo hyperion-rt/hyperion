@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import os
 import hashlib
 
-import atpy
+import h5py
 import numpy as np
 
 from ..version import __version__
@@ -199,10 +199,10 @@ class SphericalDust(FreezableClass):
         self.sublimation_mode = mode
         self.sublimation_energy = specific_energy
 
-    def _write_dust_sublimation(self, table_set):
-        table_set.add_keyword('sublimation_mode', self.sublimation_mode)
+    def _write_dust_sublimation(self, group):
+        group.attrs['sublimation_mode'] = np.string_(self.sublimation_mode)
         if self.sublimation_mode in ['slow', 'fast', 'cap']:
-            table_set.add_keyword('sublimation_specific_energy', self.sublimation_energy)
+            group.attrs['sublimation_specific_energy'] = np.string_(self.sublimation_energy)
 
     def write(self, filename, compression=True):
         '''
@@ -223,29 +223,33 @@ class SphericalDust(FreezableClass):
             self.mean_opacities.compute(self.emissivities, self.optical_properties)
 
         # Create dust table set
-        ts = atpy.TableSet()
+        if isinstance(filename, basestring):
+            dt = h5py.File(filename, 'w')
+        else:
+            dt = filename
 
         # Add standard keywords to header
-        ts.add_keyword('version', 1)
-        ts.add_keyword('type', 1)
-        ts.add_keyword('python_version', __version__)
+        dt.attrs['version'] = 1
+        dt.attrs['type'] = 1
+        dt.attrs['python_version'] = np.string_(__version__)
         if self.md5:
-            ts.add_keyword('asciimd5', self.md5)
+            dt.attrs['asciimd5'] = np.string_(self.md5)
 
         # Add optical properties and scattering angle tables
-        self.optical_properties.to_table_set(ts)
+        self.optical_properties.to_hdf5_group(dt)
 
         # Add mean opacities table
-        self.mean_opacities.to_table_set(ts)
+        self.mean_opacities.to_hdf5_group(dt)
 
         # Add emissivities and emissivity variable tables
-        self.emissivities.to_table_set(ts)
+        self.emissivities.to_hdf5_group(dt)
 
         # Dust sublimation parameters
-        self._write_dust_sublimation(ts)
+        self._write_dust_sublimation(dt)
 
-        # Output dust file
-        ts.write(filename, overwrite=True, compression=compression, type='hdf5')
+        # Close dust file
+        if isinstance(dt, h5py.highlevel.File):
+            dt.close()
 
         self.filename = filename
 
@@ -254,7 +258,7 @@ class SphericalDust(FreezableClass):
         Read in from a standard dust file
         '''
 
-        if type(filename) is str:
+        if isinstance(filename, basestring):
 
             # Check file exists
             if not os.path.exists(filename):
@@ -262,27 +266,32 @@ class SphericalDust(FreezableClass):
 
             self.filename = filename
 
-        # Read in dust table set
-        ts = atpy.TableSet(filename, verbose=False, type='hdf5')
+            # Read in dust table set
+            dt = h5py.File(filename, 'r')
+
+        else:
+
+            # Read in dust table set
+            dt = filename
 
         # Check version and type
-        if ts.keywords['version'] != 1:
+        if dt.attrs['version'] != 1:
             raise Exception("Version should be 1")
-        if ts.keywords['type'] != 1:
+        if dt.attrs['type'] != 1:
             raise Exception("Type should be 1")
-        if 'asciimd5' in ts.keywords:
-            self.md5 = ts.keywords['asciimd5']
+        if 'asciimd5' in dt.attrs:
+            self.md5 = dt.attrs['asciimd5']
         else:
             self.md5 = None
 
         # Read in the optical properties
-        self.optical_properties.from_table_set(ts)
+        self.optical_properties.from_hdf5_group(dt)
 
         # Read in the planck and rosseland mean opacities
-        self.mean_opacities.from_table_set(ts)
+        self.mean_opacities.from_hdf5_group(dt)
 
         # Read in emissivities
-        self.emissivities.from_table_set(ts)
+        self.emissivities.from_hdf5_group(dt)
 
 
 class IsotropicDust(SphericalDust):

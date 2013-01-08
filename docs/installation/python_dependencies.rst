@@ -13,7 +13,7 @@ The packages required for the Python code are:
 * `NumPy <http://www.scipy.org/>`_
 * `Matplotlib <http://matplotlib.sourceforge.net/>`_
 * `h5py <http://h5py.alfven.org/>`_
-* `ATpy <http://atpy.github.com>`_
+* `Astropy <http://www.astropy.org>`_
 
 Overview
 ========
@@ -23,7 +23,7 @@ How you install these depends on your operating system, whether you are an exist
     import numpy
     import matplotlib
     import h5py
-    import atpy
+    import astropy
 
 If you see this::
 
@@ -44,20 +44,20 @@ Linux
 =====
 
 Numpy, Matplotlib, and h5py should be available in most major Linux package
-managers. If ATpy is not available, you can easily install it from source. To
-do this, go to the `ATpy homepage <http://atpy.github.com/>`_ and click on *Download latest
-stable version*. Then, expand the tar file and install using::
+managers. If Astropy is not available, you can easily install it from source.
+To do this, go to the `Astropy homepage <http://www.astropy.org>`_ and download the latest stable version. Then, expand the tar file and install
+using::
 
-    tar xvzf ATpy-x.x.x.tar.gz
-    cd ATpy-x.x.x
+    tar xvzf astropy-x.x.tar.gz
+    cd astropy-x.x
     python setup.py install
 
-Finally, check that ATpy imports cleanly::
+Finally, check that Astropy imports cleanly::
 
    ~> python
    Python 2.7.2 (default, Aug 19 2011, 20:41:43) [GCC] on linux2
    Type "help", "copyright", "credits" or "license" for more information.
-    >>> import atpy
+    >>> import astropy
     >>>
 
 MacOS X
@@ -69,7 +69,7 @@ MacPorts
 If you are installing Python for the first time, we **strongly** recommend the use of MacPorts to install a full Python distribution. If you would like to do this, follow `these <http://astrofrog.github.com/macports-python/>`_ instructions to get set up. Once you have your Python distribution installed, make sure all the dependencies for Hyperion are installed::
 
     sudo port selfupdate
-    sudo port install py27-numpy py27-matplotlib py27-h5py py27-atpy
+    sudo port install py27-numpy py27-matplotlib py27-h5py py27-astropy
 
 If this works, you are all set, and you can move on to the actual :ref:`hyperion_install` installation instructions.
 
@@ -145,10 +145,12 @@ Now, go back to your home directory, and check that ``h5py`` imports cleanly::
 ATpy
 ^^^^
 
-Finally, if needed, install ATpy by going to the `ATpy homepage`_ and clicking on *Download latest stable version*. Then, expand the tar file and install using::
+Finally, if needed, install Astropy by going to the `Astropy homepage`_ and
+downloading the latest stable version. Then, expand the tar file and install
+using::
 
-    tar xvzf ATpy-x.x.x.tar.gz
-    cd ATpy-x.x.x
+    tar xvzf astropy-x.x.tar.gz
+    cd astropy-x.x
     python setup.py install
 
 Finally, check that ATpy imports cleanly::
@@ -157,5 +159,5 @@ Finally, check that ATpy imports cleanly::
     Python 2.7.2 (default, Jan 31 2012, 22:38:06)
     [GCC 4.2.1 (Apple Inc. build 5646)] on darwin
     Type "help", "copyright", "credits" or "license" for more information.
-    >>> import atpy
+    >>> import astropy
     >>>

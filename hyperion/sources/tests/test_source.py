@@ -4,9 +4,9 @@ import string
 import random
 
 import h5py
-import atpy
 import pytest
 import numpy as np
+from astropy.table import Table, Column
 
 from .. import Source, PointSource, SpotSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource
 from ...grid import CartesianGrid, \
@@ -88,21 +88,21 @@ def test_temperature_invalid4(source_type):
 
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
-def test_spectrum_atpy(source_type):
-    t = atpy.Table()
-    t.add_column('nu', [1, 2, 3])
-    t.add_column('fnu', [1, 2, 3])
+def test_spectrum_astropy(source_type):
+    t = Table()
+    t.add_column(Column('nu', [1, 2, 3]))
+    t.add_column(Column('fnu', [1, 2, 3]))
     s = source_type()
     s.spectrum = t
 
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
-def test_spectrum_atpy_invalid(source_type):
-    t = atpy.Table()  # table is empty, so invalid
+def test_spectrum_astropy_invalid(source_type):
+    t = Table()  # table is empty, so invalid
     s = source_type()
     with pytest.raises(TypeError) as exc:
         s.spectrum = t
-    assert exc.value.args[0] == 'spectrum ATpy Table does not contain a \'nu\' column'
+    assert exc.value.args[0] == 'spectrum Table does not contain a \'nu\' column'
 
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)

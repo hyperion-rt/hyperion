@@ -2,8 +2,8 @@ from __future__ import print_function, division
 
 import hashlib
 
-import atpy
 import numpy as np
+from astropy.table import Table, Column
 
 from ..util.integrate import integrate_loglog
 from ..util.interpolate import interp1d_fast_loglog
@@ -75,49 +75,52 @@ class Emissivities(FreezableClass):
         self.var = var
         self.jnu = jnu
 
-    def to_table_set(self, table_set):
+    def to_hdf5_group(self, group):
 
         if not self.all_set():
             raise Exception("Not all attributes of the emissivities are set")
 
         # Write out the emissivity variable type
         if self.var_name == 'specific_energy':
-            table_set.add_keyword('emissvar', 'E')
+            group.attrs['emissvar'] = np.string_('E')
         else:
             raise Exception("Unknown emissivity variable: %s" % self.var_name)
 
         # Create emissivity variable table
-        temissvar = atpy.Table(name='emissivity_variable')
-        temissvar.add_column(self.var_name, self.var)
+        temissvar = Table()
+        temissvar.add_column(Column(self.var_name, self.var))
 
         # Create emissivities table
-        temiss = atpy.Table(name='emissivities')
-        temiss.add_column('nu', self.nu)
-        temiss.add_column('jnu', self.jnu)
-        table_set.add_keyword('lte', bool2str(self.is_lte))
+        temiss = Table()
+        temiss.add_column(Column('nu', self.nu))
+        temiss.add_column(Column('jnu', self.jnu))
 
-        # Add to table set
-        table_set.append(temiss)
-        table_set.append(temissvar)
+        group.attrs['lte'] = bool2str(self.is_lte)
 
-    def from_table_set(self, table_set):
+        # Add to group
+        temissvar.write(group, path='emissivity_variable')
+        temiss.write(group, path='emissivities')
+
+    def from_hdf5_group(self, group):
+
+        from ..util.functions import asstr
 
         # Find the emissivity variable type
-        if table_set.keywords['emissvar'] == 'E':
+        if asstr(group.attrs['emissvar']) == 'E':
             self.var_name = 'specific_energy'
         else:
             raise Exception("Unknown emissivity variable: %s" %
-                            table_set.keywords['emissvar'])
+                            group.attrs['emissvar'])
 
         # Read in emissivity variable
-        temissvar = table_set['emissivity_variable']
+        temissvar = Table.read(group, path='emissivity_variable')
         self.var = temissvar[self.var_name]
 
         # Read emissivities
-        temiss = table_set['emissivities']
+        temiss = Table.read(group, path='emissivities')
         self.nu = temiss['nu']
         self.jnu = temiss['jnu']
-        self.is_lte = table_set.keywords['lte'] == 'yes'
+        self.is_lte = group.attrs['lte'] == 'yes'
 
     def all_set(self):
         return self.var_name is not None and \
