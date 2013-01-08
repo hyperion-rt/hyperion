@@ -3,8 +3,7 @@ Writing out files
 =================
 
 .. _Numpy: http://numpy.scipy.org/
-.. _PyWCS: https://trac6.assembla.com/astrolib
-.. _PyFITS: http://www.stsci.edu/resources/software_hardware/pyfits
+.. _Astropy: http://www.astropy.org
 
 The output files from the radiative transfer code are in the HDF5 file format,
 and can therefore be accessed directly from most programming/scripting
@@ -133,9 +132,9 @@ results to a FITS file, and add WCS information. The first step is to extract
 the images from the radiative transfer code. This step is described in detail
 in :ref:`post-processing`. Once a 2D image or 3D wavelength cube have been
 extracted, we can write them out to a FITS file using
-`PyFITS`_::
+`Astropy`_::
 
-    import pyfits
+    from astropy.io import fits
 
     from hyperion.model import ModelOutput
     from hyperion.util.constants import pc
@@ -150,20 +149,20 @@ extracted, we can write them out to a FITS file using
     # The image extracted above is a 3D array. We can write it out to FITS.
     # We need to swap some of the directions around so as to be able to use
     # the ds9 slider to change the wavelength of the image.
-    pyfits.writeto('image_cube.fits', nufnu.swapaxes(0, 2).swapaxes(1, 2), \
+    fits.writeto('image_cube.fits', nufnu.swapaxes(0, 2).swapaxes(1, 2), \
                    clobber=True)
 
     # We can also just output one of the wavelengths
-    pyfits.writeto('image_slice.fits', nufnu[:, :, 0], clobber=True)
+    fits.writeto('image_slice.fits', nufnu[:, :, 0], clobber=True)
 
 Writing out images (with WCS)
 =============================
 
 Adding World Coordinate System (WCS) information is easy using
-`PyWCS`_::
+`Astropy`_::
 
-    import pywcs
-    import pyfits
+    from astropy.io import fits
+    from astropy.wcs import WCS
 
     from hyperion.model import ModelOutput
     from hyperion.util.constants import pc
@@ -172,7 +171,7 @@ Adding World Coordinate System (WCS) information is easy using
     wav, nufnu = m.get_image(group=1, inclination=0, distance=300 * pc)
 
     # Initialize WCS information
-    wcs = pywcs.WCS(naxis=2)
+    wcs = WCS(naxis=2)
 
     # Use the center of the image as projection center
     wcs.wcs.crpix = [nufnu.shape[2] / 2. + 0.5,
@@ -191,5 +190,5 @@ Adding World Coordinate System (WCS) information is easy using
     header = wcs.to_header()
 
     # Write out to a file including the new header
-    pyfits.writeto('image_slice_wcs.fits', nufnu[:, :, 0], header,
-                   clobber=True)
+    fits.writeto('image_slice_wcs.fits', nufnu[:, :, 0], header,
+                 clobber=True)
