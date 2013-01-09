@@ -440,10 +440,9 @@ class ModelOutput(FreezableClass):
         else:
             raise ValueError("Unknown Stokes parameter: %s" % stokes)
 
-        if uncertainties:
-            return wav, flux, unc
-        else:
-            return wav, flux
+        from .sed import SED
+        return SED(nu=nu, flux=flux, unc=unc if uncertainties else None, units=units)
+
 
     @on_the_fly_hdf5
     def get_image(self, stokes='I', group=0, technique='peeled',
@@ -648,6 +647,69 @@ class ModelOutput(FreezableClass):
         if inside_observer and distance is not None:
             raise ValueError("Cannot specify distance for inside observers")
 
+        # Find pixel dimensions of image
+        ny, nx = flux.shape[-3:-1]
+
+        # Find physical and angular extent, and pixel area in steradians
+        if inside_observer:
+
+            # Physical extent cannot be set
+            x_min = x_max = y_min = y_max = None
+
+            # Find extent of the image
+            lon_min = g['images'].attrs['xmin']
+            lon_max = g['images'].attrs['xmax']
+            lat_min = g['images'].attrs['ymin']
+            lat_max = g['images'].attrs['ymax']
+
+            # Need to construct a mesh since every pixel might have a
+            # different size
+            lon = np.linspace(np.radians(lon_min), np.radians(lon_max), nx + 1)
+            lat = np.cos(np.linspace(np.radians(90. - lat_min), np.radians(90. - lat_max), ny + 1))
+            dlon = lon[1:] - lon[:-1]
+            dlat = lat[:-1] - lat[1:]
+            DLON, DLAT = np.meshgrid(dlon, dlat)
+
+            # Find pixel area in steradians
+            pix_area_sr = DLON * DLAT
+
+        else:
+
+            # Find physical extent of the image
+            x_min = g['images'].attrs['xmin']
+            x_max = g['images'].attrs['xmax']
+            y_min = g['images'].attrs['ymin']
+            y_max = g['images'].attrs['ymax']
+
+            if distance is not None:
+
+                # Find angular extent
+                lon_min_rad = np.arctan(x_min / distance)
+                lon_max_rad = np.arctan(x_max / distance)
+                lat_min_rad = np.arctan(y_min / distance)
+                lat_max_rad = np.arctan(y_max / distance)
+
+                # Find pixel size in arcseconds
+                pix_dx = abs(lon_max_rad - lon_min_rad) / float(nx)
+                pix_dy = abs(lat_max_rad - lat_min_rad) / float(nx)
+
+                # Find pixel area in steradians
+                pix_area_sr = pix_dx * pix_dy
+
+                # Find angular extent in degrees
+                lon_min = np.degrees(lon_min_rad)
+                lon_max = np.degrees(lon_max_rad)
+                lat_min = np.degrees(lat_min_rad)
+                lat_max = np.degrees(lat_max_rad)
+
+            else:
+
+                # Angular extent cannot be set
+                lon_min = lon_max = lat_min = lat_max = None
+
+                # Pixel area in steradians cannot be set
+                pix_area_sr = None
+
         # Optionally scale by distance
         if distance is not None or inside_observer:
 
@@ -661,39 +723,10 @@ class ModelOutput(FreezableClass):
             elif units == 'mJy':
                 scale = 1.e26 / nu
             elif units == 'MJy/sr':
-
-                # Find spatial extent of the image
-                xmin = g['images'].attrs['xmin']
-                xmax = g['images'].attrs['xmax']
-                ymin = g['images'].attrs['ymin']
-                ymax = g['images'].attrs['ymax']
-
-                # Find pixel dimensions of image
-                ny, nx = flux.shape[-3:-1]
-
-                # Find pixel resolution in radians/pixel
                 if inside_observer:
-
-                    # Need to construct a mesh since every pixel might have a different size
-                    x = np.linspace(np.radians(xmin), np.radians(xmax), nx + 1)
-                    y = np.cos(np.linspace(np.radians(90. - ymin), np.radians(90. - ymax), ny + 1))
-                    dx = x[1:] - x[:-1]
-                    dy = y[:-1] - y[1:]
-                    DX, DY = np.meshgrid(dx, dy)
-                    pix_area = DX * DY
-
-                    scale = 1.e17 / nu[np.newaxis, np.newaxis, :] / pix_area[:, :, np.newaxis]
-
+                    scale = 1.e17 / nu[np.newaxis, np.newaxis, :] / pix_area_sr[:, :, np.newaxis]
                 else:
-
-                    pix_dx = abs(np.arctan((xmax - xmin) / float(nx) / distance))
-                    pix_dy = abs(np.arctan((ymax - ymin) / float(ny) / distance))
-
-                    # Find pixel area in steradians
-                    pix_area = pix_dx * pix_dy
-
-                    scale = 1.e17 / nu / pix_area
-
+                    scale = 1.e17 / nu / pix_area_sr
             else:
                 raise Exception("Unknown units: %s" % units)
 
@@ -708,7 +741,8 @@ class ModelOutput(FreezableClass):
 
             scale = np.repeat(1., len(nu))
 
-        # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
+        # If in 32-bit mode, need to convert to 64-bit because of
+        # scaling/polarization to be safe
         if flux.dtype == np.float32:
             flux = flux.astype(np.float64)
         if uncertainties and unc.dtype == np.float32:
@@ -787,10 +821,28 @@ class ModelOutput(FreezableClass):
         else:
             raise ValueError("Unknown Stokes parameter: %s" % stokes)
 
-        if uncertainties:
-            return wav, flux, unc
-        else:
-            return wav, flux
+        from .image import Image
+        image = Image(nu=nu, flux=flux, unc=unc if uncertainties else None, units=units)
+
+        # Add physical extent
+        image.x_min = x_min
+        image.x_max = x_min
+        image.y_min = x_min
+        image.y_max = x_min
+
+        # Add angular extent
+        image.lon_min = lon_min
+        image.lon_max = lon_min
+        image.lat_min = lat_min
+        image.lat_max = lat_min
+
+        # Add pixel area in steradians
+        image.pix_area_sr = pix_area_sr
+
+        # Add distance
+        image.distance = distance
+
+        return image
 
     @on_the_fly_hdf5
     def get_available_components(self, iteration=-1):
