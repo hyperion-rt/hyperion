@@ -393,6 +393,7 @@ class TestInsideImage(object):
 
         i = m.add_peeled_images(sed=False, image=True)
         i.set_inside_observer((0., 0., 0.))
+        i.set_viewing_angles([1., 2., 3.], [1., 2., 3.])
         i.set_image_limits(5., -6., -7., 8.)
         i.set_image_size(30, 40)
         i.set_wavelength_range(3, 0.2, 50.)
@@ -452,7 +453,7 @@ class TestInsideImage(object):
 
         assert image.nu.shape == (3,)
         assert image.wav.shape == (3,)
-        assert image.flux.shape == (1, 40, 30, 3)
+        assert image.flux.shape == (3, 40, 30, 3)
 
     def test_image_distance(self):
 
