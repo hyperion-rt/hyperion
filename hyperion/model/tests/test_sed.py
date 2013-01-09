@@ -246,11 +246,11 @@ class TestSED(object):
         sed = m.add_peeled_images(sed=True, image=False)
         sed.set_viewing_angles([1., 2.], [1., 2.])
         sed.set_wavelength_range(5, 0.1, 100.)
-        sed.set_aperture_range(4,2.,5.)
+        sed.set_aperture_range(4, 2., 5.)
 
         m.set_n_initial_iterations(0)
 
-        m.set_n_photons(imaging=1)
+        m.set_n_photons(imaging=10000)
 
         m.write(random_filename())
 
@@ -301,6 +301,9 @@ class TestSED(object):
 
         ref = self.m.get_sed(group=0, units='ergs/cm^2/s', distance=100., inclination=1)
 
+        # Make sure the flux is non-zero
+        assert np.sum(ref.flux) > 0
+
         # Check conversion to monochromatic flux
         mono = self.m.get_sed(group=0, units='ergs/cm^2/s/Hz', distance=100., inclination=1)
         assert_array_almost_equal_nulp((ref.flux / ref.nu), mono.flux, 10)
@@ -328,15 +331,20 @@ class TestInsideSED(object):
         s.luminosity = 1.
         s.temperature = 6000.
 
+        s = m.add_external_spherical_source()
+        s.radius = 1.
+        s.luminosity = 1.
+        s.temperature = 6000.
+
         sed = m.add_peeled_images(sed=True, image=False)
         sed.set_inside_observer((0., 0., 0.))
         sed.set_viewing_angles([1., 2., 3.], [1., 2., 3.])
         sed.set_wavelength_range(3, 0.2, 50.)
-        sed.set_aperture_range(4,2.,5.)
+        sed.set_aperture_range(4, 2., 50.)
 
         m.set_n_initial_iterations(0)
 
-        m.set_n_photons(imaging=1)
+        m.set_n_photons(imaging=10000)
 
         m.write(random_filename())
 
@@ -355,7 +363,7 @@ class TestInsideSED(object):
         sed = self.m.get_sed(group=0, units='ergs/cm^2/s')
 
         assert sed.ap_min == 2.
-        assert sed.ap_max == 5.
+        assert sed.ap_max == 50.
 
         assert sed.distance is None
 
@@ -378,7 +386,10 @@ class TestInsideSED(object):
         # Assume that the initial scaling in ergs/cm^2/s is correct, so then
         # we just need to check the relative scaling.
 
-        ref = self.m.get_sed(group=0, units='ergs/cm^2/s')
+        ref = self.m.get_sed(group=0, units='ergs/cm^2/s', inclination=0)
+
+        # Make sure the flux is non-zero
+        assert np.sum(ref.flux) > 0
 
         # Check conversion to monochromatic flux
         mono = self.m.get_sed(group=0, units='ergs/cm^2/s/Hz', inclination=0)
