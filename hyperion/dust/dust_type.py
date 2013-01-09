@@ -258,6 +258,8 @@ class SphericalDust(FreezableClass):
         Read in from a standard dust file
         '''
 
+        from ..util.functions import asstr
+
         if isinstance(filename, basestring):
 
             # Check file exists
@@ -280,7 +282,7 @@ class SphericalDust(FreezableClass):
         if dt.attrs['type'] != 1:
             raise Exception("Type should be 1")
         if 'asciimd5' in dt.attrs:
-            self.md5 = dt.attrs['asciimd5']
+            self.md5 = asstr(dt.attrs['asciimd5'])
         else:
             self.md5 = None
 
