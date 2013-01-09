@@ -9,6 +9,7 @@ from ..image import Image
 from ...util.functions import random_filename
 from .test_helpers import get_test_dust
 
+
 class TestImageSimpleModel(object):
 
     def setup_class(self):
@@ -483,4 +484,4 @@ class TestInsideImage(object):
         # Check conversion to MJy/sr. For the far-field, all pixels have the
         # same area, so this is simple.
         MJy_per_sr = self.m.get_image(group=0, units='MJy/sr', inclination=0)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), MJy_per_sr.flux * 1.e-17 * MJy_per_sr.pix_area_sr[:,:,np.newaxis], 10)
+        assert_array_almost_equal_nulp((ref.flux / ref.nu), MJy_per_sr.flux * 1.e-17 * MJy_per_sr.pix_area_sr[:, :, np.newaxis], 10)
