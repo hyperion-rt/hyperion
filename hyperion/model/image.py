@@ -43,6 +43,8 @@ class Image(FreezableClass):
 
         self.pix_area_sr = None
 
+        self.inside_observer = False
+
         self._freeze()
 
     @property
@@ -143,7 +145,7 @@ class Image(FreezableClass):
         """
         return self._x_max
 
-    @x_min.setter
+    @x_max.setter
     def x_max(self, value):
         if value is None or (np.isscalar(value) and np.isreal(value)):
             self._x_max = value
@@ -171,7 +173,7 @@ class Image(FreezableClass):
         """
         return self._y_max
 
-    @y_min.setter
+    @y_max.setter
     def y_max(self, value):
         if value is None or (np.isscalar(value) and np.isreal(value)):
             self._y_max = value
@@ -199,7 +201,7 @@ class Image(FreezableClass):
         """
         return self._lon_max
 
-    @lon_min.setter
+    @lon_max.setter
     def lon_max(self, value):
         if value is None or (np.isscalar(value) and np.isreal(value)):
             self._lon_max = value
@@ -227,7 +229,7 @@ class Image(FreezableClass):
         """
         return self._lat_max
 
-    @lat_min.setter
+    @lat_max.setter
     def lat_max(self, value):
         if value is None or (np.isscalar(value) and np.isreal(value)):
             self._lat_max = value
@@ -241,7 +243,7 @@ class Image(FreezableClass):
         """
         return self._distance
 
-    @lat_min.setter
+    @distance.setter
     def distance(self, value):
         if value is None or (np.isscalar(value) and np.isreal(value)):
             self._distance = value
@@ -255,9 +257,23 @@ class Image(FreezableClass):
         """
         return self._pix_area_sr
 
-    @lat_min.setter
+    @pix_area_sr.setter
     def pix_area_sr(self, value):
         if value is None or (np.isscalar(value) and np.isreal(value)) or (is_numpy_array(value) and value.ndim == 2):
-            self._lat_max = value
+            self._pix_area_sr = value
         else:
             raise ValueError("pix_area_sr should be a real scalar value or a 2-d array")
+
+    @property
+    def inside_observer(self):
+        """
+        Whether the image was from an inside observer.
+        """
+        return self._inside_observer
+
+    @inside_observer.setter
+    def inside_observer(self, value):
+        if value is None or type(value) is bool:
+            self._inside_observer = value
+        else:
+            raise ValueError("inside_observer should be a boolean")

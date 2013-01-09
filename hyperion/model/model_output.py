@@ -691,7 +691,7 @@ class ModelOutput(FreezableClass):
 
                 # Find pixel size in arcseconds
                 pix_dx = abs(lon_max_rad - lon_min_rad) / float(nx)
-                pix_dy = abs(lat_max_rad - lat_min_rad) / float(nx)
+                pix_dy = abs(lat_max_rad - lat_min_rad) / float(ny)
 
                 # Find pixel area in steradians
                 pix_area_sr = pix_dx * pix_dy
@@ -826,21 +826,24 @@ class ModelOutput(FreezableClass):
 
         # Add physical extent
         image.x_min = x_min
-        image.x_max = x_min
-        image.y_min = x_min
-        image.y_max = x_min
+        image.x_max = x_max
+        image.y_min = y_min
+        image.y_max = y_max
 
         # Add angular extent
         image.lon_min = lon_min
-        image.lon_max = lon_min
+        image.lon_max = lon_max
         image.lat_min = lat_min
-        image.lat_max = lat_min
+        image.lat_max = lat_max
 
         # Add pixel area in steradians
         image.pix_area_sr = pix_area_sr
 
         # Add distance
         image.distance = distance
+
+        # Save whether the image was from an inside observer
+        image.inside_observer = inside_observer
 
         return image
 

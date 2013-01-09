@@ -2,11 +2,12 @@ from __future__ import print_function, division
 
 import pytest
 import numpy as np
+from numpy.testing import assert_array_almost_equal_nulp
 
 from .. import Model
+from ..image import Image
 from ...util.functions import random_filename
 from .test_helpers import get_test_dust
-
 
 class TestImageSimpleModel(object):
 
@@ -258,3 +259,96 @@ def test_regression_depth_bug():
     assert image1.sum() == 0.
     assert image2.sum() > 0.
     assert image3.sum() == image2.sum()
+
+
+class TestFarFieldImage(object):
+
+    def setup_class(self):
+
+        m = Model()
+
+        m.set_cartesian_grid([-1., 1.],
+                             [-1., 1.],
+                             [-1., 1.])
+
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 6000.
+
+        # Set up first image set
+        i = m.add_peeled_images(sed=False, image=True)
+        i.set_viewing_angles([1., 2.], [1., 2.])
+        i.set_image_limits(-1., 2., -3., 4.)
+        i.set_image_size(10, 20)
+        i.set_wavelength_range(5, 0.1, 100.)
+
+        m.set_n_initial_iterations(0)
+
+        m.set_n_photons(imaging=1)
+
+        m.write(random_filename())
+
+        self.m = m.run()
+
+    def test_get_image_object(self):
+        image = self.m.get_image(group=0)
+        assert isinstance(image, Image)
+
+    def test_image_attributes_no_distance(self):
+
+        image = self.m.get_image(group=0, units='ergs/s')
+
+        assert image.x_min == -1.
+        assert image.x_max == +2.
+        assert image.y_min == -3.
+        assert image.y_max == +4.
+
+        assert image.lon_min is None
+        assert image.lon_max is None
+        assert image.lat_min is None
+        assert image.lat_max is None
+
+        assert image.pix_area_sr is None
+
+        assert image.distance is None
+
+        assert not image.inside_observer
+
+        assert image.units == 'ergs/s'
+
+        assert image.nu.shape == (5,)
+        assert image.wav.shape == (5,)
+        assert image.flux.shape == (2, 20, 10, 5)
+
+    def test_image_attributes_distance(self):
+
+        image = self.m.get_image(group=0, units='ergs/cm^2/s', distance=100.)
+
+        assert image.x_min == -1.
+        assert image.x_max == +2.
+        assert image.y_min == -3.
+        assert image.y_max == +4.
+
+        lon_min = np.degrees(np.arctan(-1. / 100.))
+        lon_max = np.degrees(np.arctan(+2. / 100.))
+        lat_min = np.degrees(np.arctan(-3. / 100.))
+        lat_max = np.degrees(np.arctan(+4. / 100.))
+
+        assert_array_almost_equal_nulp(image.lon_min, lon_min, 5)
+        assert_array_almost_equal_nulp(image.lon_max, lon_max, 5)
+        assert_array_almost_equal_nulp(image.lat_min, lat_min, 5)
+        assert_array_almost_equal_nulp(image.lat_max, lat_max, 5)
+
+        pix_area_sr = np.radians(lon_max - lon_min) * np.radians(lat_max - lat_min) / 200
+
+        assert_array_almost_equal_nulp(image.pix_area_sr, pix_area_sr, 5)
+
+        assert image.distance == 100.
+
+        assert not image.inside_observer
+
+        assert image.units == 'ergs/cm^2/s'
+
+        assert image.nu.shape == (5,)
+        assert image.wav.shape == (5,)
+        assert image.flux.shape == (2, 20, 10, 5)
