@@ -223,13 +223,6 @@ class ModelOutput(FreezableClass):
             array. This is only returned if uncertainties were requested.
         '''
 
-        # Set default units
-        if units is None:
-            if distance is None:
-                units = 'ergs/s'
-            else:
-                units = 'ergs/cm^2/s'
-
         # Check argument types
         if type(stokes) is not str:
             raise ValueError("stokes argument should be a string")
@@ -323,6 +316,13 @@ class ModelOutput(FreezableClass):
         if inside_observer and distance is not None:
             raise ValueError("Cannot specify distance for inside observers")
 
+        # Set default units
+        if units is None:
+            if distance is None and not inside_observer:
+                units = 'ergs/s'
+            else:
+                units = 'ergs/cm^2/s'
+
         # Optionally scale by distance
         if distance is not None or inside_observer:
 
@@ -336,7 +336,7 @@ class ModelOutput(FreezableClass):
             elif units == 'mJy':
                 scale = 1.e26 / nu
             else:
-                raise Exception("Unknown units: %s" % units)
+                raise ValueError("Unknown units: %s" % units)
 
             # Scale by distance
             if distance:
@@ -547,13 +547,6 @@ class ModelOutput(FreezableClass):
             array. This is only returned if uncertainties were requested.
         '''
 
-        # Set default units
-        if units is None:
-            if distance is None:
-                units = 'ergs/s'
-            else:
-                units = 'ergs/cm^2/s'
-
         # Check argument types
         if type(stokes) is not str:
             raise ValueError("stokes argument should be a string")
@@ -647,6 +640,13 @@ class ModelOutput(FreezableClass):
         if inside_observer and distance is not None:
             raise ValueError("Cannot specify distance for inside observers")
 
+        # Set default units
+        if units is None:
+            if distance is None and not inside_observer:
+                units = 'ergs/s'
+            else:
+                units = 'ergs/cm^2/s'
+
         # Find pixel dimensions of image
         ny, nx = flux.shape[-3:-1]
 
@@ -728,7 +728,7 @@ class ModelOutput(FreezableClass):
                 else:
                     scale = 1.e17 / nu / pix_area_sr
             else:
-                raise Exception("Unknown units: %s" % units)
+                raise ValueError("Unknown units: %s" % units)
 
             # Scale by distance
             if distance:
