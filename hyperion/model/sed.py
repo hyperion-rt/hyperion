@@ -23,10 +23,19 @@ class SED(FreezableClass):
     """
 
     def __init__(self, nu, flux=None, unc=None, units=None):
+
         self.nu = nu
         self.flux = flux
         self.unc = unc
         self.units = units
+
+        self.ap_min = None
+        self.ap_max = None
+
+        self.distance = None
+
+        self.inside_observer = False
+
         self._freeze()
 
     @property
@@ -105,3 +114,59 @@ class SED(FreezableClass):
             return (x for x in [self.wav, self.flux])
         else:
             return (x for x in [self.wav, self.flux, self.unc])
+
+    @property
+    def ap_min(self):
+        """
+        Lower extent of the image in the x direction in degrees.
+        """
+        return self._ap_min
+
+    @ap_min.setter
+    def ap_min(self, value):
+        if value is None or (np.isscalar(value) and np.isreal(value)):
+            self._ap_min = value
+        else:
+            raise ValueError("ap_min should be a real scalar value")
+
+    @property
+    def ap_max(self):
+        """
+        Upper extent of the image in the x direction in degrees.
+        """
+        return self._ap_max
+
+    @ap_max.setter
+    def ap_max(self, value):
+        if value is None or (np.isscalar(value) and np.isreal(value)):
+            self._ap_max = value
+        else:
+            raise ValueError("ap_max should be a real scalar value")
+
+    @property
+    def distance(self):
+        """
+        Distance assumed for the image.
+        """
+        return self._distance
+
+    @distance.setter
+    def distance(self, value):
+        if value is None or (np.isscalar(value) and np.isreal(value)):
+            self._distance = value
+        else:
+            raise ValueError("distance should be a real scalar value")
+
+    @property
+    def inside_observer(self):
+        """
+        Whether the image was from an inside observer.
+        """
+        return self._inside_observer
+
+    @inside_observer.setter
+    def inside_observer(self, value):
+        if value is None or type(value) is bool:
+            self._inside_observer = value
+        else:
+            raise ValueError("inside_observer should be a boolean")

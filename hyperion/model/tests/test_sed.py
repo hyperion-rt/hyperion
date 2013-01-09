@@ -3,7 +3,10 @@ from __future__ import print_function, division
 import pytest
 import numpy as np
 
+from numpy.testing import assert_array_almost_equal_nulp
+
 from .. import Model
+from ..sed import SED
 from ...util.functions import random_filename
 from .test_helpers import get_test_dust
 
@@ -224,3 +227,167 @@ class TestSimpleModelInside(object):
         with pytest.raises(ValueError) as e:
             wav, nufnu = self.m.get_sed(distance=1.)
         assert e.value.args[0] == 'Cannot specify distance for inside observers'
+
+
+class TestSED(object):
+
+    def setup_class(self):
+
+        m = Model()
+
+        m.set_cartesian_grid([-1., 1.],
+                             [-1., 1.],
+                             [-1., 1.])
+
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 6000.
+
+        sed = m.add_peeled_images(sed=True, image=False)
+        sed.set_viewing_angles([1., 2.], [1., 2.])
+        sed.set_wavelength_range(5, 0.1, 100.)
+        sed.set_aperture_range(4,2.,5.)
+
+        m.set_n_initial_iterations(0)
+
+        m.set_n_photons(imaging=1)
+
+        m.write(random_filename())
+
+        self.m = m.run()
+
+    def test_get_sed_object(self):
+        sed = self.m.get_sed(group=0)
+        assert isinstance(sed, SED)
+
+    def test_sed_attributes_no_distance(self):
+
+        sed = self.m.get_sed(group=0, units='ergs/s')
+
+        assert sed.ap_min == 2.
+        assert sed.ap_max == 5.
+
+        assert sed.distance is None
+
+        assert not sed.inside_observer
+
+        assert sed.units == 'ergs/s'
+
+        assert sed.nu.shape == (5,)
+        assert sed.wav.shape == (5,)
+        assert sed.flux.shape == (2, 4, 5)
+
+    def test_sed_attributes_distance(self):
+
+        sed = self.m.get_sed(group=0, units='ergs/cm^2/s', distance=100.)
+
+        assert sed.ap_min == 2.
+        assert sed.ap_max == 5.
+
+        assert sed.distance == 100.
+
+        assert not sed.inside_observer
+
+        assert sed.units == 'ergs/cm^2/s'
+
+        assert sed.nu.shape == (5,)
+        assert sed.wav.shape == (5,)
+        assert sed.flux.shape == (2, 4, 5)
+
+    def test_unit_conversion(self):
+
+        # Assume that the initial scaling in ergs/cm^2/s is correct, so then
+        # we just need to check the relative scaling.
+
+        ref = self.m.get_sed(group=0, units='ergs/cm^2/s', distance=100., inclination=1)
+
+        # Check conversion to monochromatic flux
+        mono = self.m.get_sed(group=0, units='ergs/cm^2/s/Hz', distance=100., inclination=1)
+        assert_array_almost_equal_nulp((ref.flux / ref.nu), mono.flux, 10)
+
+        # Check conversion to Jy
+        Jy = self.m.get_sed(group=0, units='Jy', distance=100., inclination=1)
+        assert_array_almost_equal_nulp((ref.flux / ref.nu), Jy.flux * 1.e-23, 10)
+
+        # Check conversion to mJy
+        mJy = self.m.get_sed(group=0, units='mJy', distance=100., inclination=1)
+        assert_array_almost_equal_nulp((ref.flux / ref.nu), mJy.flux * 1.e-26, 10)
+
+
+class TestInsideSED(object):
+
+    def setup_class(self):
+
+        m = Model()
+
+        m.set_cartesian_grid([-1., 1.],
+                             [-1., 1.],
+                             [-1., 1.])
+
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 6000.
+
+        sed = m.add_peeled_images(sed=True, image=False)
+        sed.set_inside_observer((0., 0., 0.))
+        sed.set_viewing_angles([1., 2., 3.], [1., 2., 3.])
+        sed.set_wavelength_range(3, 0.2, 50.)
+        sed.set_aperture_range(4,2.,5.)
+
+        m.set_n_initial_iterations(0)
+
+        m.set_n_photons(imaging=1)
+
+        m.write(random_filename())
+
+        self.m = m.run()
+
+    def test_get_sed_object(self):
+        sed = self.m.get_sed(group=0)
+        assert isinstance(sed, SED)
+
+    def test_sed_attributes_no_distance(self):
+
+        with pytest.raises(ValueError) as exc:
+            sed = self.m.get_sed(group=0, units='ergs/s')
+        assert exc.value.args[0] == "Unknown units: ergs/s"
+
+        sed = self.m.get_sed(group=0, units='ergs/cm^2/s')
+
+        assert sed.ap_min == 2.
+        assert sed.ap_max == 5.
+
+        assert sed.distance is None
+
+        assert sed.inside_observer
+
+        assert sed.units == 'ergs/cm^2/s'
+
+        assert sed.nu.shape == (3,)
+        assert sed.wav.shape == (3,)
+        assert sed.flux.shape == (3, 4, 3)
+
+    def test_sed_distance(self):
+
+        with pytest.raises(ValueError) as exc:
+            sed = self.m.get_sed(group=0, units='ergs/cm^2/s', distance=100.)
+        assert exc.value.args[0] == "Cannot specify distance for inside observers"
+
+    def test_unit_conversion(self):
+
+        # Assume that the initial scaling in ergs/cm^2/s is correct, so then
+        # we just need to check the relative scaling.
+
+        ref = self.m.get_sed(group=0, units='ergs/cm^2/s')
+
+        # Check conversion to monochromatic flux
+        mono = self.m.get_sed(group=0, units='ergs/cm^2/s/Hz', inclination=0)
+        assert_array_almost_equal_nulp((ref.flux / ref.nu), mono.flux, 10)
+
+        # Check conversion to Jy
+        Jy = self.m.get_sed(group=0, units='Jy', inclination=0)
+        assert_array_almost_equal_nulp((ref.flux / ref.nu), Jy.flux * 1.e-23, 10)
+
+        # Check conversion to mJy
+        mJy = self.m.get_sed(group=0, units='mJy', inclination=0)
+        assert_array_almost_equal_nulp((ref.flux / ref.nu), mJy.flux * 1.e-26, 10)

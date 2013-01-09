@@ -441,8 +441,19 @@ class ModelOutput(FreezableClass):
             raise ValueError("Unknown Stokes parameter: %s" % stokes)
 
         from .sed import SED
-        return SED(nu=nu, flux=flux, unc=unc if uncertainties else None, units=units)
+        sed = SED(nu=nu, flux=flux, unc=unc if uncertainties else None, units=units)
 
+        # Add aperture information
+        sed.ap_min = g['seds'].attrs['apmin']
+        sed.ap_max = g['seds'].attrs['apmax']
+
+        # Add distance
+        sed.distance = distance
+
+        # Save whether the SED was from an inside observer
+        sed.inside_observer = inside_observer
+
+        return sed
 
     @on_the_fly_hdf5
     def get_image(self, stokes='I', group=0, technique='peeled',
