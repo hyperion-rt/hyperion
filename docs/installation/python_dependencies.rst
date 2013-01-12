@@ -153,8 +153,8 @@ Now, go back to your home directory, and check that ``h5py`` imports cleanly::
     >>> import h5py
     >>>
 
-ATpy
-^^^^
+Astropy
+^^^^^^^
 
 Finally, if needed, install Astropy by going to the `Astropy homepage`_ and
 downloading the latest stable version. Then, expand the tar file and install
@@ -164,7 +164,7 @@ using::
     cd astropy-x.x
     python setup.py install
 
-Finally, check that ATpy imports cleanly::
+Finally, check that Astropy imports cleanly::
 
     $ python
     Python 2.7.2 (default, Jan 31 2012, 22:38:06)
