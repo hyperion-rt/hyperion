@@ -18,7 +18,10 @@ The packages required for the Python code are:
 Overview
 ========
 
-How you install these depends on your operating system, whether you are an existing Python user, and whether you use package managers. To find out whether any of these are already installed, start up a  Python prompt by typing ``python`` on the command line, then try the following commands::
+How you install these depends on your operating system, whether you are an
+existing Python user, and whether you use package managers. To find out
+whether any of these are already installed, start up a Python prompt by typing
+``python`` on the command line, then try the following commands::
 
     import numpy
     import matplotlib
@@ -45,7 +48,8 @@ Linux
 
 Numpy, Matplotlib, and h5py should be available in most major Linux package
 managers. If Astropy is not available, you can easily install it from source.
-To do this, go to the `Astropy homepage <http://www.astropy.org>`_ and download the latest stable version. Then, expand the tar file and install
+To do this, go to the `Astropy homepage <http://www.astropy.org>`_ and
+download the latest stable version. Then, expand the tar file and install
 using::
 
     tar xvzf astropy-x.x.tar.gz
@@ -66,12 +70,17 @@ MacOS X
 MacPorts
 --------
 
-If you are installing Python for the first time, we **strongly** recommend the use of MacPorts to install a full Python distribution. If you would like to do this, follow `these <http://astrofrog.github.com/macports-python/>`_ instructions to get set up. Once you have your Python distribution installed, make sure all the dependencies for Hyperion are installed::
+If you are installing Python for the first time, we **strongly** recommend the
+use of MacPorts to install a full Python distribution. If you would like to do
+this, follow `these <http://astrofrog.github.com/macports-python/>`_
+instructions to get set up. Once you have your Python distribution installed,
+make sure all the dependencies for Hyperion are installed::
 
     sudo port selfupdate
     sudo port install py27-numpy py27-matplotlib py27-h5py py27-astropy
 
-If this works, you are all set, and you can move on to the actual :ref:`hyperion_install` installation instructions.
+If this works, you are all set, and you can move on to the actual
+:ref:`hyperion_install` installation instructions.
 
 System/python.org Python
 ------------------------
@@ -114,8 +123,9 @@ create a clean installation without the fortran bindings, or else h5py will
 not install properly. Make sure that you perform the following installation in
 a different directory from before, to avoid overwriting any files.
 
-To install the plain HDF5 library download the source code from the latest `HDF5 downloads
-<http://www.hdfgroup.org/ftp/HDF5/current/src/>`_ (choose the hdf5-x.x.x.tar.gz file), then expand the source code::
+To install the plain HDF5 library download the source code from the latest
+`HDF5 downloads <http://www.hdfgroup.org/ftp/HDF5/current/src/>`_ (choose the
+hdf5-x.x.x.tar.gz file), then expand the source code::
 
     tar xvzf hdf5-x.x.x.tar.gz
     cd hdf5-x.x.x
@@ -126,7 +136,8 @@ and carry out the installation::
     make
     sudo make install
 
-Now, download the latest ``h5py-x.x.x.tar.gz`` package from the `h5py website <http://code.google.com/p/h5py/>`_, and do::
+Now, download the latest ``h5py-x.x.x.tar.gz`` package from the
+`h5py website <http://code.google.com/p/h5py/>`_, and do::
 
     tar xvzf h5py-x.x.x.tar.gz
     cd h5py-x.x.x
