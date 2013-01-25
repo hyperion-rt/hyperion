@@ -547,3 +547,9 @@ class AlphaDisk(FreezableClass):
         logger.info("Luminosity sum [theoretical] : %.3e" % self.lvisc)
 
         return luminosity
+
+    def scale_height_at(self, r):
+        '''
+        Return the scaleheight of the disk at radius `r`
+        '''
+        return self.h_0 * (r / self.r_0) ** self.beta

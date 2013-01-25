@@ -543,7 +543,7 @@ class AnalyticalYSOModel(Model):
             # Z WALLS
             zmin = np.inf
             for disk in self.disks:
-                zmin = min(zmin, disk.h_0 * (rmin / disk.r_0) ** disk.beta)
+                zmin = min(zmin, disk.scale_height_at(rmin))
 
             if not zmax:
                 zmax = rmax

@@ -294,13 +294,23 @@ def test_rmin_zero(grid_type):
         assert exc.value.args[0] == "R_min is 0, so cannot set up the grid cell walls automatically. Use set_spherical_polar_grid() instead to specify the cell wall positions."
 
 
-def test_complete():
+def test_complete_spherical():
 
     m = AnalyticalYSOModel()
 
     m.star.radius = 1.
     m.star.temperature = 1000.
     m.star.luminosity = 1.
+
+    d = m.add_alpha_disk()
+    d.rmin = 0.1
+    d.rmax = 10.
+    d.r_0 = 10.
+    d.h_0 = 1.
+    d.p = -1
+    d.beta = 1.25
+    d.mdot = 1.
+    d.dust = get_test_dust()
 
     d = m.add_flared_disk()
     d.rmin = 0.1
@@ -347,6 +357,40 @@ def test_complete():
     a.dust = get_test_dust()
 
     m.set_spherical_polar_grid_auto(399, 199, 1)
+
+    m.set_n_photons(initial=0, imaging=0)
+
+    m.write(random_filename())
+
+
+def test_complete_cylindrical():
+
+    m = AnalyticalYSOModel()
+
+    m.star.radius = 1.
+    m.star.temperature = 1000.
+    m.star.luminosity = 1.
+
+    d = m.add_alpha_disk()
+    d.rmin = 0.1
+    d.rmax = 10.
+    d.r_0 = 10.
+    d.h_0 = 1.
+    d.p = -1
+    d.beta = 1.25
+    d.mdot = 1.
+    d.dust = get_test_dust()
+
+    d = m.add_flared_disk()
+    d.rmin = 0.1
+    d.rmax = 10.
+    d.r_0 = 10.
+    d.h_0 = 1.
+    d.p = -1
+    d.beta = 1.25
+    d.dust = get_test_dust()
+
+    m.set_cylindrical_polar_grid_auto(399, 199, 1)
 
     m.set_n_photons(initial=0, imaging=0)
 
