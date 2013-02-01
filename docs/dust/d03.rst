@@ -20,7 +20,11 @@ and may differ slightly from those given by `Bruce Draine`_ (we had to
 recompute them in order to obtain the full scattering properties which were
 otherwise not available).
 
-The dust files are available in the ``hyperion-dust`` directory as ``dust_files/d03_3.1_6.0_A.hdf5``, ``dust_files/d03_4.0_4.0_A.hdf5``, and ``dust_files/d03_5.5_3.0_A.hdf5`` (once you have run ``python setup.py``), where the first number indicates the Rv, and the second indicates b_c.
+The dust files are available in the ``hyperion-dust`` directory as
+``dust_files/d03_3.1_6.0_A.hdf5``, ``dust_files/d03_4.0_4.0_A.hdf5``, and
+``dust_files/d03_5.5_3.0_A.hdf5`` (once you have run
+``python setup.py build_dust``), where the first number indicates the Rv, and
+the second indicates b_c.
 
 Milky-Way dust, Rv=3.1, b_c=6.0 (``dust_files/d03_3.1_6.0_A.hdf5``)
 -------------------------------------------------------------------

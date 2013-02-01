@@ -21,9 +21,14 @@ clear in the release announcement for Hyperion.
 
     The choice of which dust model to use is entirely yours, and you should
     make sure that the dust model that you pick is appropriate for the
-    scientific problem you are trying to solve.
+    scientific problem you are trying to solve. In addition, as for the
+    radiative transfer code itself, we cannot guarantee that the dust files are
+    bug-free - you should sign up to the `mailing list
+    <https://groups.google.com/forum/?fromgroups#!forum/hyperion-announce>`_ to
+    ensure that you are informed as soon as bugs are identified and fixed.
 
-The available dust files are:
+
+The available dust files at this time are:
 
 .. toctree::
    :maxdepth: 1
@@ -31,8 +36,6 @@ The available dust files are:
    kmh_hg
    kmh
    d03
-
-* More coming soon!
 
 If you develop dust models and would like your dust models to feature as one of the available ones on this page, please let us know!
 
