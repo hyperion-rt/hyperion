@@ -1,6 +1,37 @@
 Version History
 ===============
 
+0.9.2 (unreleased)
+------------------
+
+New Features
+^^^^^^^^^^^^
+
+- :meth:`~hyperion.model.ModelOutput.get_sed` and
+  :meth:`~hyperion.model.ModelOutput.get_image` now return SED and
+  Image objects that contain meta-data in addition to the data itself. For
+  example, images contain information about the field of view (in
+  physical/angular units, where appropriate), and information about the units
+  is also included. The old syntax of ``wav, nufnu = m.get_sed(...)`` will
+  still work, but the meta-data will not be accessible in those cases.
+
+- New library of dust models, accessible in :doc:`dust/dust`
+
+Improvements
+^^^^^^^^^^^^
+
+- PyFITS, PyWCS, and ATpy are no longer required for Hyperion. Instead, the
+  `Astropy <http://www.astropy.org>`_ package is now required as a dependency.
+
+- Updated download link for MPICH2
+
+Bug fixes
+^^^^^^^^^
+
+- Fix compatibility with Numpy 1.8.0.dev
+
+- Fix coverage testing for Python 3
+
 0.9.1 (2012-10-26)
 ------------------
 
