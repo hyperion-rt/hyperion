@@ -39,3 +39,9 @@ The available dust files at this time are:
 
 If you develop dust models and would like your dust models to feature as one of the available ones on this page, please let us know!
 
+For advanced users, we provide code and documentation to compute your own dust models:
+
+.. toctree::
+   :maxdepth: 1
+
+   bhmie

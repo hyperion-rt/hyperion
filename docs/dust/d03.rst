@@ -15,7 +15,7 @@ The Rv=3.1, 4.0, and 5.5 models are those with b_c=60ppm,
 mentioned in `Draine (2003)`_ is not important here, since we give the dust
 properties per unit dust mass.
 
-The dust properties presented here were recomputed with the :doc:`bhmie` code,
+The dust properties presented here were recomputed with the code described in :doc:`bhmie`,
 and may differ slightly from those given by `Bruce Draine`_ (we had to
 recompute them in order to obtain the full scattering properties which were
 otherwise not available).
