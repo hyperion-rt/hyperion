@@ -5,8 +5,8 @@ While you are encouraged to prepare your own dust properties file based on the
 most appropriate dust model for your problem (see :doc:`../setup/setup_dust`),
 we provide a library of dust models that you can select from. Since dust files
 tend to be large, the final files are not directly made available - instead,
-you should download `this <link>`_ file, then expand it, and run the
-``setup.py`` script as shown to produce the final dust files::
+you should download `this`_ file, then expand it, and run the ``setup.py``
+script as shown to produce the final dust files::
 
     tar xvzf hyperion-dust-0.1.0.tar.gz
     cd hyperion-dust-0.1.0
@@ -47,3 +47,5 @@ models:
    :maxdepth: 1
 
    bhmie
+
+.. _this: http://pypi.python.org/packages/source/h/hyperion-dust/hyperion-dust-0.1.0.tar.gz
