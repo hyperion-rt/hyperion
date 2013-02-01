@@ -11,7 +11,7 @@ Galaxy.
           **gas+dust**, assuming a gas-to-dust ratio of 141.84. This means that
           when using Hyperion, the total gas+dust densities should be specified.
 
-This version of the dust file is take directly from HOCHUNK, the radiative
+This version of the dust file is take directly from `HOCHUNK`_, the radiative
 transfer code developed by B. Whitney et al. This is the dust you should use if
 you want to reproduce results from that code, and it approximates the
 scattering with a Henyey-Greenstein function. However, if you are interested in
@@ -33,3 +33,5 @@ The following plot gives an overview of the dust properties (as described in
     :align: center
 
 .. _Kim, Martin, and Hendry (1994): http://dx.doi.org/10.1086/173714
+
+.. _HOCHUNK: http://gemelli.colorado.edu/~bwhitney/codes/codes.html

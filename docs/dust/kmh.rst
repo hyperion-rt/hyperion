@@ -13,7 +13,7 @@ Galaxy.
 
 This version of the dust file was re-computed using the code described in
 :doc:`bhmie`, and includes the full numerical scattering matrix. This is
-different from the version used in HOCHUNK, the radiative transfer code
+different from the version used in `HOCHUNK`_, the radiative transfer code
 developed by B. Whitney et al., since that dust approximated the scattering
 with a Henyey-Greenstein function. If you are interested in using that dust
 instead, see :doc:`kmh_hg`.
@@ -33,3 +33,5 @@ The following plot gives an overview of the dust properties (as described in
     :align: center
 
 .. _Kim, Martin, and Hendry (1994): http://dx.doi.org/10.1086/173714
+
+.. _HOCHUNK: http://gemelli.colorado.edu/~bwhitney/codes/codes.html
