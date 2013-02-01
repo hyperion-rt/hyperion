@@ -1,2 +1,2 @@
 numpy
-git+http://github.com/astropy/astropy.git#egg=astropy
+-i http://stsdas.stsci.edu/download/packages/index astropy==0.2b2
