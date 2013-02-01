@@ -1,2 +1,2 @@
 numpy
--i http://stsdas.stsci.edu/download/packages/index astropy==0.2b2
+http://stsdas.stsci.edu/download/packages/astropy-0.2b2.tar.gz
