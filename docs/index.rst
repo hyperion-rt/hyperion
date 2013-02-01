@@ -60,6 +60,7 @@ Documentation
    running/running.rst
    postprocessing/postprocessing.rst
    tutorials/index.rst
+   dust/dust.rst
 
 Advanced
 --------
