@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import sys
 
 import h5py
@@ -21,7 +23,7 @@ else:
     images = False
 
 if not physics and not images:
-    print "Need to specify at least one of --images or --physics"
+    print("Need to specify at least one of --images or --physics")
     sys.exit(0)
 
 for filename in arguments:
@@ -29,7 +31,7 @@ for filename in arguments:
     try:
         f = h5py.File(filename, 'r')
     except IOError:
-        print "Reading %s failed" % filename
+        print("Reading %s failed" % filename)
         continue
 
     if images:
@@ -53,7 +55,7 @@ for filename in arguments:
                     fits.writeto(filename.replace('.rtout', '_binned_images.fits'),
                                  image, clobber=True)
         else:
-            print "No images in %s" % filename
+            print("No images in %s" % filename)
 
     if physics:
         for group_name in f:
@@ -66,4 +68,4 @@ for filename in arguments:
     try:
         f.close()
     except:
-        print "Error closing %s" % filename
+        print("Error closing %s" % filename)
