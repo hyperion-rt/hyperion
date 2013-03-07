@@ -109,7 +109,7 @@ class MeanOpacities(FreezableClass):
 
         # Create mean opacities table
         tmean = Table()
-        tmean.meta['var_name'] = self.var_name
+        tmean.meta['var_name'] = np.string_(self.var_name)
         tmean.add_column(Column(self.var_name, self.var))
         tmean.add_column(Column('chi_planck', self.chi_planck))
         tmean.add_column(Column('kappa_planck', self.kappa_planck))
