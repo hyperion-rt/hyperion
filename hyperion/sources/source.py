@@ -194,8 +194,8 @@ class Source(FreezableClass):
         if self.spectrum is not None:
             handle.attrs['spectrum'] = np.string_('spectrum'.encode('utf-8'))
             table = Table()
-            table.add_column(Column('nu', self.spectrum['nu']))
-            table.add_column(Column('fnu', self.spectrum['fnu']))
+            table.add_column(Column(data=self.spectrum['nu'], name='nu'))
+            table.add_column(Column(data=self.spectrum['fnu'], name='fnu'))
             table.write(handle, path='spectrum')
         elif self.temperature is not None:
             handle.attrs['spectrum'] = np.string_('temperature'.encode('utf-8'))

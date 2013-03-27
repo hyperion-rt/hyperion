@@ -236,23 +236,23 @@ class OpticalProperties(FreezableClass):
 
         # Create optical properties table
         topt = Table()
-        topt.add_column(Column('nu', self.nu))
-        topt.add_column(Column('albedo', self.albedo))
-        topt.add_column(Column('chi', self.chi))
+        topt.add_column(Column(data=self.nu, name='nu'))
+        topt.add_column(Column(data=self.albedo, name='albedo'))
+        topt.add_column(Column(data=self.chi, name='chi'))
 
         self.normalize_scattering_matrix()
 
-        topt.add_column(Column('P1', self.P1))
-        topt.add_column(Column('P2', self.P2))
-        topt.add_column(Column('P3', self.P3))
-        topt.add_column(Column('P4', self.P4))
+        topt.add_column(Column(data=self.P1, name='P1'))
+        topt.add_column(Column(data=self.P2, name='P2'))
+        topt.add_column(Column(data=self.P3, name='P3'))
+        topt.add_column(Column(data=self.P4, name='P4'))
 
         # Sort by frequency
         topt.sort('nu')
 
         # Create scattering angles table and add to table set
         tmu = Table()
-        tmu.add_column(Column('mu', self.mu))
+        tmu.add_column(Column(data=self.mu, name='mu'))
 
         # Add to group
         topt.write(group, path='optical_properties')

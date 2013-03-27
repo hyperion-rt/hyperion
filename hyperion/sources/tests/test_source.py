@@ -90,8 +90,8 @@ def test_temperature_invalid4(source_type):
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
 def test_spectrum_astropy(source_type):
     t = Table()
-    t.add_column(Column('nu', [1, 2, 3]))
-    t.add_column(Column('fnu', [1, 2, 3]))
+    t.add_column(Column(data=[1, 2, 3], name='nu'))
+    t.add_column(Column(data=[1, 2, 3], name='fnu'))
     s = source_type()
     s.spectrum = t
 

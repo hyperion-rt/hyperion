@@ -88,12 +88,12 @@ class Emissivities(FreezableClass):
 
         # Create emissivity variable table
         temissvar = Table()
-        temissvar.add_column(Column(self.var_name, self.var))
+        temissvar.add_column(Column(data=self.var, name=self.var_name))
 
         # Create emissivities table
         temiss = Table()
-        temiss.add_column(Column('nu', self.nu))
-        temiss.add_column(Column('jnu', self.jnu))
+        temiss.add_column(Column(data=self.nu, name='nu'))
+        temiss.add_column(Column(data=self.jnu, name='jnu'))
 
         group.attrs['lte'] = bool2str(self.is_lte)
 
