@@ -1,6 +1,6 @@
 import numpy as np
 
-import pytest
+from astropy.tests.helper import pytest
 from numpy.testing import assert_array_almost_equal_nulp
 
 from .test_helpers import get_test_model_noimaging, random_filename, get_test_dust

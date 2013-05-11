@@ -1,4 +1,4 @@
-import pytest
+from astropy.tests.helper import pytest
 from ..conf_files import RunConf
 
 

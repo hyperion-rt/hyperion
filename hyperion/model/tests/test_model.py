@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import os
 
 import numpy as np
-import pytest
+from astropy.tests.helper import pytest
 
 from .. import Model
 from .test_helpers import random_filename, get_test_dust, get_realistic_test_dust

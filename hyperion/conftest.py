@@ -1,5 +1,5 @@
 import os
-import pytest
+from astropy.tests.helper import pytest
 
 
 def pytest_addoption(parser):

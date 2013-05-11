@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import h5py
 import numpy as np
-import pytest
+from astropy.tests.helper import pytest
 
 from ...util.functions import random_id
 from .. import CartesianGrid, \

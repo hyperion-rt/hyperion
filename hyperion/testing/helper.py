@@ -68,7 +68,7 @@ class TestRunner(object):
 
             try:
 
-                import pytest_cov
+                from astropy.tests.helper import pytest_cov
 
             except ImportError:
 
@@ -99,7 +99,7 @@ class TestRunner(object):
         all_args = shlex.split(all_args,
                                posix=not sys.platform.startswith('win'))
 
-        import pytest
+        from astropy.tests.helper import pytest
 
         try:
             return pytest.main(args=all_args, plugins=plugins)

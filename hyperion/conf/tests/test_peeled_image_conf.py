@@ -2,7 +2,7 @@ import random
 import string
 
 import h5py
-import pytest
+from astropy.tests.helper import pytest
 import numpy as np
 
 from ..conf_files import PeeledImageConf

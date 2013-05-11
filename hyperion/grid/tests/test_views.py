@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 import numpy as np
-import pytest
+from astropy.tests.helper import pytest
 
 from hyperion.grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid, AMRGrid, OctreeGrid
 

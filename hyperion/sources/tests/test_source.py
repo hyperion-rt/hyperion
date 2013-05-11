@@ -4,7 +4,7 @@ import string
 import random
 
 import h5py
-import pytest
+from astropy.tests.helper import pytest
 import numpy as np
 from astropy.table import Table, Column
 

@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 import struct
 
-import pytest
+from astropy.tests.helper import pytest
 import numpy as np
 
 from numpy.testing import assert_array_almost_equal_nulp

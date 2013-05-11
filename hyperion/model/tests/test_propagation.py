@@ -4,7 +4,7 @@
 # special alignemnts.
 
 import h5py
-import pytest
+from astropy.tests.helper import pytest
 import numpy as np
 from .. import Model
 from .test_helpers import random_filename, get_test_dust

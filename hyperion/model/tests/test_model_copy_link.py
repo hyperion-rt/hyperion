@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 
 import h5py
-import pytest
+from astropy.tests.helper import pytest
 import numpy as np
 
 from ...util.functions import random_filename

@@ -1,7 +1,7 @@
 import os
 import tempfile
 
-import pytest
+from astropy.tests.helper import pytest
 
 from .. import SphericalDust
 from ...util.functions import random_id
