@@ -39,6 +39,8 @@ def integrate_subset(x, y, xmin, xmax):
         ymin = y[0]
     else:
         i1 = np.searchsorted(x, xmin)
+        if xmin == x[i1]:
+            i1 += 1
         ymin = interp1d_fast(x[i1 - 1:i1 + 1], y[i1 - 1:i1 + 1], xmin)
 
     if xmax == x[-1]:
@@ -83,6 +85,8 @@ def integrate_loglin_subset(x, y, xmin, xmax):
         ymin = y[0]
     else:
         i1 = np.searchsorted(x, xmin)
+        if xmin == x[i1]:
+            i1 += 1
         ymin = interp1d_fast_loglin(x[i1 - 1:i1 + 1], y[i1 - 1:i1 + 1], xmin)
 
     if xmax == x[-1]:
@@ -127,6 +131,8 @@ def integrate_linlog_subset(x, y, xmin, xmax):
         ymin = y[0]
     else:
         i1 = np.searchsorted(x, xmin)
+        if xmin == x[i1]:
+            i1 += 1
         ymin = interp1d_fast_linlog(x[i1 - 1:i1 + 1], y[i1 - 1:i1 + 1], xmin)
 
     if xmax == x[-1]:
@@ -170,6 +176,8 @@ def integrate_loglog_subset(x, y, xmin, xmax):
         ymin = y[0]
     else:
         i1 = np.searchsorted(x, xmin)
+        if xmin == x[i1]:
+            i1 += 1
         ymin = interp1d_fast_loglog(x[i1 - 1:i1 + 1], y[i1 - 1:i1 + 1], xmin)
 
     if xmax == x[-1]:
