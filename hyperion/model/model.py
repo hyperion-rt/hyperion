@@ -248,8 +248,8 @@ class Model(FreezableClass, RunConf):
         Parameters
         ----------
         filename : str
-            The file to read the sources from. This should be the output
-            file of a radiation transfer run.
+            The file to read the sources from. This should be the input or
+            output file of a radiation transfer run.
         '''
 
         logger.info("Retrieving sources from %s" % filename)
@@ -258,7 +258,10 @@ class Model(FreezableClass, RunConf):
         f = h5py.File(filename, 'r')
 
         # Get a pointer to the group with the sources
-        g_sources = f['/Input/Sources/']
+        if 'Sources' in f:
+            g_sources = f['/Sources/']
+        else:
+            g_sources = f['/Input/Sources/']
 
         # Loop over sources
         for source in g_sources:
