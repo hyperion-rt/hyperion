@@ -981,9 +981,9 @@ class PeeledImageConf(ImageConf):
         self.viewing_angles = list(zip(theta, phi))
         self.n_view = len(self.viewing_angles)
 
-    def _read_viwing_angles(self, group):
+    def _read_viewing_angles(self, group):
         angles = group['angles']
-        self.viewing_angles = (angles['theta'], angles['phi'])
+        self.viewing_angles = list(zip(angles['theta'], angles['phi']))
 
     def _write_viewing_angles(self, group):
         group.attrs['n_view'] = len(self.viewing_angles)
@@ -1029,7 +1029,7 @@ class PeeledImageConf(ImageConf):
         '''
         self.ignore_optical_depth = ignore_optical_depth
 
-    def _read_ignore_optional_depth(self, group):
+    def _read_ignore_optical_depth(self, group):
         self.ignore_optical_depth = str2bool(group.attrs['ignore_optical_depth'])
 
     def _write_ignore_optical_depth(self, group):
@@ -1092,7 +1092,7 @@ class PeeledImageConf(ImageConf):
 
     def _read_viewing_info(self, group):
 
-        if group.attrs['inside_observer']:
+        if str2bool(group.attrs['inside_observer']):
             self._read_inside_observer(group)
         else:
             self._read_peeloff_origin(group)

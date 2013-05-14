@@ -77,4 +77,49 @@ def test_io_binned_image_conf():
     assert i2.n_theta == i1.n_theta
     assert i2.n_phi == i1.n_phi
 
+
+def test_io_peeled_image_conf():
+    i1 = PeeledImageConf()
+    i1.set_image_size(33, 42)
+    i1.set_image_limits(3.2, 4.4, 5.2, 9.9)
+    i1.set_aperture_range(6, 1.2, 8.8)
+    i1.set_wavelength_range(9, 2.2, 7.4)
+    i1.set_viewing_angles([1.,2.,3], [4.,5.,6.])
+    i1.set_peeloff_origin([2.2, 3.3, 7.6])
+    i1.set_ignore_optical_depth(True)
+    i1.set_depth(-1.7, 6.2)
+    v = virtual_file()
+    i1.write(v)
+    i2 = PeeledImageConf.read(v)
+    for i in range(len(i2.viewing_angles)):
+        assert i2.viewing_angles[i][0] == i1.viewing_angles[i][0]
+        assert i2.viewing_angles[i][1] == i1.viewing_angles[i][1]
+    assert_equal(i2.peeloff_origin, i1.peeloff_origin)
+    assert i2.ignore_optical_depth == i1.ignore_optical_depth
+    assert i2.d_min == i1.d_min
+    assert i2.d_max == i1.d_max
+
+
+def test_io_peeled_image_conf_inside():
+    i1 = PeeledImageConf()
+    i1.set_image_size(33, 42)
+    i1.set_image_limits(3.2, -4.4, 5.2, 9.9)
+    i1.set_aperture_range(6, 1.2, 8.8)
+    i1.set_wavelength_range(9, 2.2, 7.4)
+    i1.set_viewing_angles([1.,2.,3], [4.,5.,6.])
+    i1.set_inside_observer([7.,8.,9.])
+    i1.set_ignore_optical_depth(True)
+    i1.set_depth(1.7, 6.2)
+    v = virtual_file()
+    i1.write(v)
+    i2 = PeeledImageConf.read(v)
+    for i in range(len(i2.viewing_angles)):
+        print(i2.viewing_angles[i][0])
+        assert i2.viewing_angles[i][0] == i1.viewing_angles[i][0]
+        assert i2.viewing_angles[i][1] == i1.viewing_angles[i][1]
+    assert_equal(i2.inside_observer, i1.inside_observer)
+    assert i2.ignore_optical_depth == i1.ignore_optical_depth
+    assert i2.d_min == i1.d_min
+    assert i2.d_max == i1.d_max
+
 # TODO: implement tests for RunConf and ImageConf (and subclasses)
