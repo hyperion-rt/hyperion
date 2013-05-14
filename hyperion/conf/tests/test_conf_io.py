@@ -122,4 +122,4 @@ def test_io_peeled_image_conf_inside():
     assert i2.d_min == i1.d_min
     assert i2.d_max == i1.d_max
 
-# TODO: implement tests for RunConf and ImageConf (and subclasses)
+# TODO: implement tests for RunConf
