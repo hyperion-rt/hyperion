@@ -1,0 +1,171 @@
+from __future__ import print_function, division
+
+import string
+import random
+
+import h5py
+import numpy as np
+from numpy.testing import assert_equal
+from astropy.tests.helper import pytest
+
+from .. import Source, PointSource, SpotSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource
+from ...grid import CartesianGrid
+
+
+def random_id(length=32):
+    return ''.join(random.sample(string.ascii_letters + string.digits, length))
+
+
+def virtual_file():
+    return h5py.File(random_id(), driver='core', backing_store=False)
+
+
+def test_io_source_temperature():
+    s1 = Source()
+    s1.luminosity = 1.
+    s1.temperature = 5000.
+    v = virtual_file()
+    s1.write(v)
+    s2 = Source.read(v)
+    assert s2.luminosity == s1.luminosity
+    assert s2.temperature == s1.temperature
+    assert s2.spectrum is None
+
+
+def test_io_source_spectrum():
+    s1 = Source()
+    s1.luminosity = 1.
+    s1.spectrum = ([1., 2., 3.], [4., 5., 6.])
+    v = virtual_file()
+    s1.write(v)
+    s2 = Source.read(v)
+    assert s2.luminosity == s1.luminosity
+    assert s2.temperature is None
+    assert_equal(s2.spectrum['nu'], s1.spectrum['nu'])
+    assert_equal(s2.spectrum['fnu'], s1.spectrum['fnu'])
+
+
+def test_io_source_lte():
+    s1 = Source()
+    s1.luminosity = 1.
+    v = virtual_file()
+    s1.write(v)
+    s2 = Source.read(v)
+    assert s2.luminosity == s1.luminosity
+    assert s2.temperature is None
+    assert s2.spectrum is None
+
+
+def test_io_spot_source():
+    s1 = SpotSource()
+    s1.luminosity = 1.
+    s1.temperature = 5000.
+    s1.longitude = 12.
+    s1.latitude = 34.
+    s1.radius = 5.
+    v = virtual_file()
+    s1.write(v, 'test')
+    s2 = SpotSource.read(v['test'])
+    assert s2.luminosity == s1.luminosity
+    assert s2.temperature == s1.temperature
+    assert s2.spectrum is None
+    assert s2.longitude == s1.longitude
+    assert s2.latitude == s1.latitude
+    assert s2.radius == s1.radius
+
+
+def test_io_point_source():
+    s1 = PointSource()
+    s1.luminosity = 1.
+    s1.temperature = 5000.
+    s1.position = [1., 2., 3.]
+    v = virtual_file()
+    s1.write(v, 'test')
+    s2 = PointSource.read(v['test'])
+    assert s2.luminosity == s1.luminosity
+    assert s2.temperature == s1.temperature
+    assert s2.spectrum is None
+    assert_equal(s2.position, s1.position)
+
+
+@pytest.mark.parametrize('limb', [True, False])
+def test_io_spherical_source(limb):
+    s1 = SphericalSource()
+    s1.luminosity = 1.
+    s1.temperature = 5000.
+    s1.position = [1., 2., 3.]
+    s1.radius = 4.
+    s1.limb = limb
+    v = virtual_file()
+    s1.write(v, 'test')
+    s2 = SphericalSource.read(v['test'])
+    assert s2.luminosity == s1.luminosity
+    assert s2.temperature == s1.temperature
+    assert s2.spectrum is None
+    assert_equal(s2.position, s1.position)
+    assert s2.radius == s1.radius
+    assert s2.limb is s1.limb
+
+
+def test_io_external_spherical_source():
+    s1 = ExternalSphericalSource()
+    s1.luminosity = 1.
+    s1.temperature = 5000.
+    s1.position = [1., 2., 3.]
+    s1.radius = 4.
+    v = virtual_file()
+    s1.write(v, 'test')
+    s2 = ExternalSphericalSource.read(v['test'])
+    assert s2.luminosity == s1.luminosity
+    assert s2.temperature == s1.temperature
+    assert s2.spectrum is None
+    assert_equal(s2.position, s1.position)
+    assert s2.radius == s1.radius
+
+
+def test_io_external_box_source():
+    s1 = ExternalBoxSource()
+    s1.luminosity = 1.
+    s1.temperature = 5000.
+    s1.bounds = [(1., 2.), (3., 4.), (5., 6.)]
+    v = virtual_file()
+    s1.write(v, 'test')
+    s2 = ExternalBoxSource.read(v['test'])
+    assert s2.luminosity == s1.luminosity
+    assert s2.temperature == s1.temperature
+    assert s2.spectrum is None
+    assert_equal(s2.bounds, s1.bounds)
+
+
+def test_io_map_source():
+
+    # Set up coordinate grid
+    g = CartesianGrid([-1., 0., 1.], [-1., 1.], [-1., -0.2, 0.2, 1.])
+
+    s1 = MapSource()
+    s1.luminosity = 1.
+    s1.map = np.ones((3, 1, 2))
+    v = virtual_file()
+    s1.write(v, 'test', g)
+
+    s2 = MapSource.read(v['test'])
+    assert s2.luminosity == s1.luminosity
+    assert_equal(s2.map, s1.map)
+
+
+def test_plane_parallel_source():
+    s1 = PlaneParallelSource()
+    s1.luminosity = 1.
+    s1.temperature = 5000.
+    s1.position = [1., 2., 3.]
+    s1.radius = 4.
+    s1.direction = (5., 6.)
+    v = virtual_file()
+    s1.write(v, 'test')
+    s2 = PlaneParallelSource.read(v['test'])
+    assert s2.luminosity == s1.luminosity
+    assert s2.temperature == s1.temperature
+    assert s2.spectrum is None
+    assert_equal(s2.position, s1.position)
+    assert s2.radius == s1.radius
+    assert_equal(s2.direction, s1.direction)

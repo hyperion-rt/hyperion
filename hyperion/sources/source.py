@@ -6,7 +6,7 @@ from astropy.table import Table, Column
 from ..grid.amr_grid import AMRGridView
 
 from ..util.functions import B_nu, random_id, FreezableClass, \
-                             is_numpy_array, bool2str, monotonically_increasing
+                             is_numpy_array, bool2str, str2bool, monotonically_increasing
 from ..util.integrate import integrate_loglog
 from ..util.validator import validate_scalar
 from astropy import log as logger
@@ -192,12 +192,15 @@ class Source(FreezableClass):
 
         self.peeloff = str2bool(handle.attrs['peeloff'])
 
-        if handle.attrs['spectrum'] == 'spectrum':
-            self.spectrum = Table.read(handle['spectrum'])
-        elif handle.attrs['spectrum'] == 'temperature':
+        if handle.attrs['spectrum'] == b'spectrum':
+            self.spectrum = Table(np.array(handle['spectrum']))
+        elif handle.attrs['spectrum'] == b'temperature':
             self.temperature = handle.attrs['temperature']
-        else:
+        elif handle.attrs['spectrum'] == b'lte':
             pass
+        else:
+            print(handle.attrs['spectrum'])
+            raise ValueError('Unexpected value for `spectrum`: %s' % handle.attrs['spectrum'])
 
         return self
 
@@ -282,9 +285,9 @@ class SpotSource(Source):
 
         self = super(SpotSource, cls).read(handle)
 
-        self.longitude = g.attrs['longitude']
-        self.latitude = g.attrs['latitude']
-        self.radius = g.attrs['radius']
+        self.longitude = handle.attrs['longitude']
+        self.latitude = handle.attrs['latitude']
+        self.radius = handle.attrs['radius']
 
         return self
 
@@ -363,7 +366,7 @@ class PointSource(Source):
     @classmethod
     def read(cls, handle):
         self = super(PointSource, cls).read(handle)
-        self.position = (g.attrs['x'], g.attrs['y'], g.attrs['z'])
+        self.position = (handle.attrs['x'], handle.attrs['y'], handle.attrs['z'])
         return self
 
     def write(self, handle, name):
@@ -464,9 +467,9 @@ class SphericalSource(Source):
     @classmethod
     def read(cls, handle):
         self = super(SphericalSource, cls).read(handle)
-        self.position = (g.attrs['x'], g.attrs['y'], g.attrs['z'])
-        self.radius = g.attrs['r'
-        self.limb = str2bool(g.attrs['r'])
+        self.position = (handle.attrs['x'], handle.attrs['y'], handle.attrs['z'])
+        self.radius = handle.attrs['r']
+        self.limb = str2bool(handle.attrs['limb'])
         return self
 
     def write(self, handle, name):
@@ -569,8 +572,8 @@ class ExternalSphericalSource(Source):
     @classmethod
     def read(cls, handle):
         self = super(ExternalSphericalSource, cls).read(handle)
-        self.position = (g.attrs['x'], g.attrs['y'], g.attrs['z'])
-        self.radius = g.attrs['r'
+        self.position = (handle.attrs['x'], handle.attrs['y'], handle.attrs['z'])
+        self.radius = handle.attrs['r']
         return self
 
     def write(self, handle, name):
@@ -644,9 +647,9 @@ class ExternalBoxSource(Source):
     @classmethod
     def read(cls, handle):
         self = super(ExternalBoxSource, cls).read(handle)
-        self.bounds = [(g.attrs['xmin'], g.attrs['xmax']),
-                       (g.attrs['ymin'], g.attrs['ymax']),
-                       (g.attrs['zmin'], g.attrs['zmax'])]
+        self.bounds = [(handle.attrs['xmin'], handle.attrs['xmax']),
+                       (handle.attrs['ymin'], handle.attrs['ymax']),
+                       (handle.attrs['zmin'], handle.attrs['zmax'])]
         return self
 
     def write(self, handle, name):
@@ -713,7 +716,8 @@ class MapSource(Source):
     @classmethod
     def read(cls, handle):
         self = super(MapSource, cls).read(handle)
-        self.map = np.array(g['Luminosity map'])
+        print(handle.items())
+        self.map = np.array(handle['Luminosity map'])
         return self
 
     def write(self, handle, name, grid, compression=True, map_dtype=float):
@@ -829,9 +833,9 @@ class PlaneParallelSource(Source):
     @classmethod
     def read(cls, handle):
         self = super(PlaneParallelSource, cls).read(handle)
-        self.position = (g.attrs['x'], g.attrs['y'], g.attrs['z'])
-        self.radius = g.attrs['r']
-        self.direction = (g.attrs['theta'], g.attrs['phi'])
+        self.position = (handle.attrs['x'], handle.attrs['y'], handle.attrs['z'])
+        self.radius = handle.attrs['r']
+        self.direction = (handle.attrs['theta'], handle.attrs['phi'])
         return self
 
     def write(self, handle, name):
