@@ -17,6 +17,14 @@ class OutputConf(FreezableClass):
         self.output_n_photons = 'none'
         self._freeze()
 
+    @classmethod
+    def read(cls, group):
+        self = cls()
+        self.output_density = group.attrs['output_density'].decode('utf-8')
+        self.output_density_diff = group.attrs['output_density_diff'].decode('utf-8')
+        self.output_specific_energy = group.attrs['output_specific_energy'].decode('utf-8')
+        self.output_n_photons = group.attrs['output_n_photons'].decode('utf-8')
+
     def write(self, group):
         group.attrs['output_density'] = np.string_(self.output_density.encode('utf-8'))
         group.attrs['output_density_diff'] = np.string_(self.output_density_diff.encode('utf-8'))
@@ -71,6 +79,9 @@ class RunConf(object):
             raise ValueError("frequency should be between 0 and 1")
         self._frequency = frequency
 
+    def _read_propagation_check_frequency(self, group):
+        self._frequency = group.attrs['propagation_check_frequency']
+
     def _write_propagation_check_frequency(self, group):
         group.attrs['propagation_check_frequency'] = self._frequency
 
@@ -88,6 +99,9 @@ class RunConf(object):
             raise ValueError("seed should be a negative integer")
         self._seed = seed
 
+    def _read_seed(self, group):
+        self._seed = group.attrs['seed']
+
     def _write_seed(self, group):
         group.attrs['seed'] = self._seed
 
@@ -102,6 +116,9 @@ class RunConf(object):
             The number of initial iterations
         '''
         self.n_iter = n_iter
+
+    def _read_n_initial_iterations(self, group):
+        self.n_iter = group.attrs['n_initial_iter']
 
     def _write_n_initial_iterations(self, group):
         group.attrs['n_initial_iter'] = self.n_iter
@@ -187,6 +204,23 @@ class RunConf(object):
 
         self.n_photons['stats'] = stats
 
+    def _read_n_photons(self, group):
+
+        if self.n_iter != 0:
+            self.n_photons['initial'] = group.attrs['n_initial_photons']
+
+        if self._monochromatic:
+            self.n_photons['last_sources'] = group.attrs['n_last_photons_sources']
+            self.n_photons['last_dust'] = group.attrs['n_last_photons_dust']
+        else:
+            self.n_photons['last'] = group.attrs['n_last_photons']
+
+        if self.raytracing:
+            self.n_photons['raytracing_sources'] = group.attrs['n_ray_photons_sources']
+            self.n_photons['raytracing_dust'] = group.attrs['n_ray_photons_dust']
+
+        self.n_photons['stats'] = group.attrs['n_stats']
+
     def _write_n_photons(self, group):
 
         if self.n_photons == {}:
@@ -255,6 +289,9 @@ class RunConf(object):
         '''
         self.raytracing = raytracing
 
+    def _read_raytracing(self, group):
+        self.raytracing = str2bool(group.attrs['raytracing'])
+
     def _write_raytracing(self, group):
         group.attrs['raytracing'] = bool2str(self.raytracing)
 
@@ -272,6 +309,9 @@ class RunConf(object):
         '''
         self.n_inter_max = inter_max
 
+    def _read_max_interactions(self, group):
+        self.n_inter_max = group.attrs['n_inter_max']
+
     def _write_max_interactions(self, group):
         group.attrs['n_inter_max'] = self.n_inter_max
 
@@ -286,6 +326,9 @@ class RunConf(object):
             Maximum number of reabsorptions for a single photon.
         '''
         self.n_reabs_max = reabs_max
+
+    def _read_max_reabsorptions(self, group):
+        self.n_reabs_max = group.attrs['n_reabs_max']
 
     def _write_max_reabsorptions(self, group):
         group.attrs['n_reabs_max'] = self.n_reabs_max
@@ -309,6 +352,9 @@ class RunConf(object):
         Min et al. 2009, Astronomy and Astrophysics, 497, 155
         '''
         self.pda = pda
+
+    def _read_pda(self, group):
+        self.pda = str2bool(group.attrs['pda'])
 
     def _write_pda(self, group):
         group.attrs['pda'] = bool2str(self.pda)
@@ -343,9 +389,15 @@ class RunConf(object):
         self.mrw_gamma = gamma
         self.n_inter_mrw_max = inter_max
 
+    def _read_mrw(self, group):
+        self.mrw = str2bool(group.attrs['mrw'])
+        if self.mrw:
+            self.mrw_gamma = group.attrs['mrw_gamma']
+            self.n_inter_mrw_max = group.attrs['n_inter_mrw_max']
+
     def _write_mrw(self, group):
         group.attrs['mrw'] = bool2str(self.mrw)
-        if(self.mrw):
+        if self.mrw:
             group.attrs['mrw_gamma'] = self.mrw_gamma
             group.attrs['n_inter_mrw_max'] = self.n_inter_mrw_max
 
@@ -379,9 +431,16 @@ class RunConf(object):
         self.convergence_absolute = absolute
         self.convergence_relative = relative
 
+    def _read_convergence(self, group):
+        self.check_convergence = str2bool(group.attrs['check_convergence'])
+        if self.check_convergence:
+            self.convergence_percentile = group.attrs['convergence_percentile']
+            self.convergence_absolute = group.attrs['convergence_absolute']
+            self.convergence_relative = group.attrs['convergence_relative']
+
     def _write_convergence(self, group):
         group.attrs['check_convergence'] = bool2str(self.check_convergence)
-        if(self.check_convergence):
+        if self.check_convergence:
             group.attrs['convergence_percentile'] = self.convergence_percentile
             group.attrs['convergence_absolute'] = self.convergence_absolute
             group.attrs['convergence_relative'] = self.convergence_relative
@@ -396,6 +455,9 @@ class RunConf(object):
             Whether to kill absorbed photons
         '''
         self.kill_on_absorb = kill_on_absorb
+
+    def _read_kill_on_absorb(self, group):
+        self.kill_on_absorb = str2bool(group.attrs['kill_on_absorb'])
 
     def _write_kill_on_absorb(self, group):
         group.attrs['kill_on_absorb'] = bool2str(self.kill_on_absorb)
@@ -416,6 +478,9 @@ class RunConf(object):
         Wood & Reynolds, 1999, The Astrophysical Journal, 525, 799
         '''
         self.forced_first_scattering = forced_first_scattering
+
+    def _read_forced_first_scattering(self, group):
+        self.forced_first_scattering = str2bool(group.attrs['forced_first_scattering'])
 
     def _write_forced_first_scattering(self, group):
         group.attrs['forced_first_scattering'] = bool2str(self.forced_first_scattering)
@@ -442,6 +507,9 @@ class RunConf(object):
 
         self.enforce_energy_range = enforce
 
+    def _read_enforce_energy_range(self, group):
+        self.enforce_energy_range = str2bool(group.attrs['enforce_energy_range'])
+
     def _write_enforce_energy_range(self, group):
         group.attrs['enforce_energy_range'] = bool2str(self.enforce_energy_range)
 
@@ -457,6 +525,9 @@ class RunConf(object):
         '''
         self.copy_input = copy
 
+    def _read_copy_input(self, group):
+        self.copy_input = str2bool(group.attrs['copy_input'])
+
     def _write_copy_input(self, group):
         group.attrs['copy_input'] = bool2str(self.copy_input)
 
@@ -471,6 +542,9 @@ class RunConf(object):
             (for 32-bit) or 8 (for 64-bit).
         '''
         self.physics_io_bytes = io_bytes
+
+    def _read_output_bytes(self, group):
+        self.physics_io_bytes = group.attrs['physics_io_bytes']
 
     def _write_output_bytes(self, group):
         group.attrs['physics_io_bytes'] = self.physics_io_bytes
@@ -489,8 +563,40 @@ class RunConf(object):
         '''
         self.sample_sources_evenly = sample_sources_evenly
 
+    def _read_sample_sources_evenly(self, group):
+        self.sample_sources_evenly = str2bool(group.attrs['sample_sources_evenly'])
+
     def _write_sample_sources_evenly(self, group):
         group.attrs['sample_sources_evenly'] = bool2str(self.sample_sources_evenly)
+
+    @classmethod
+    def read_run_conf(cls, group):
+        '''
+        Read the configuation in from an HDF5 group
+
+        Parameters
+        ----------
+        group : h5py.highlevel.File or h5py.highlevel.Group
+            The HDF5 group to read the configuration from
+        '''
+        self = cls()
+        self._read_propagation_check_frequency(group)
+        self._read_seed(group)
+        self._read_n_initial_iterations(group)
+        self._read_n_photons(group)
+        self._read_raytracing(group)
+        self._read_max_interactions(group)
+        self._read_max_reabsorptions(group)
+        self._read_pda(group)
+        self._read_mrw(group)
+        self._read_convergence(group)
+        self._read_kill_on_absorb(group)
+        self._read_forced_first_scattering(group)
+        self._read_output_bytes(group)
+        self._read_sample_sources_evenly(group)
+        self._read_enforce_energy_range(group)
+        self._read_copy_input(group)
+        return self
 
     def write_run_conf(self, group):
         '''
