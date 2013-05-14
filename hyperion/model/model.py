@@ -11,7 +11,7 @@ import numpy as np
 from ..version import __version__
 from ..util.functions import delete_file
 from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid
-from ..sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource
+from ..sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource, read_source
 from ..conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from ..util.constants import c
 from ..util.functions import FreezableClass, link_or_copy, is_numpy_array, bool2str
@@ -237,6 +237,32 @@ class Model(FreezableClass, RunConf):
         if use_dust:
             logger.info("Using dust properties from %s" % filename)
             self.dust = h5py.ExternalLink(file_path, '/Input/Dust')
+
+        # Close the file
+        f.close()
+
+    def use_sources(self, filename):
+        '''
+        Use sources from an existing output file
+
+        Parameters
+        ----------
+        filename : str
+            The file to read the sources from. This should be the output
+            file of a radiation transfer run.
+        '''
+
+        logger.info("Retrieving sources from %s" % filename)
+
+        # Open existing file
+        f = h5py.File(filename, 'r')
+
+        # Get a pointer to the group with the sources
+        g_sources = f['/Input/Sources/']
+
+        # Loop over sources
+        for source in g_sources:
+            self.add_source(read_source(g_sources[source]))
 
         # Close the file
         f.close()
