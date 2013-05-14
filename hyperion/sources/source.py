@@ -183,6 +183,24 @@ class Source(FreezableClass):
         norm = integrate_loglog(nu, fnu)
         return nu, fnu / norm * self.luminosity
 
+    @classmethod
+    def read(cls, handle):
+
+        self = cls()
+
+        self.luminosity = handle.attrs['luminosity']
+
+        self.peeloff = str2bool(handle.attrs['peeloff'])
+
+        if handle.attrs['spectrum'] == 'spectrum':
+            self.spectrum = Table.read(handle['spectrum'])
+        elif handle.attrs['spectrum'] == 'temperature':
+            self.temperature = handle.attrs['temperature']
+        else:
+            pass
+
+        return self
+
     def write(self, handle):
 
         self._check_all_set()
@@ -259,6 +277,17 @@ class SpotSource(Source):
         if self.has_lte_spectrum():
             raise ValueError("Spot source cannot have LTE spectrum")
 
+    @classmethod
+    def read(cls, handle):
+
+        self = super(SpotSource, cls).read(handle)
+
+        self.longitude = g.attrs['longitude']
+        self.latitude = g.attrs['latitude']
+        self.radius = g.attrs['radius']
+
+        return self
+
     def write(self, handle, name):
         self._check_all_set()
         g = handle.create_group(name)
@@ -330,6 +359,12 @@ class PointSource(Source):
             raise ValueError("position is not set")
         if self.has_lte_spectrum():
             raise ValueError("Point source cannot have LTE spectrum")
+
+    @classmethod
+    def read(cls, handle):
+        self = super(PointSource, cls).read(handle)
+        self.position = (g.attrs['x'], g.attrs['y'], g.attrs['z'])
+        return self
 
     def write(self, handle, name):
         self._check_all_set()
@@ -425,6 +460,14 @@ class SphericalSource(Source):
             raise ValueError("limb is not set")
         if self.has_lte_spectrum():
             raise ValueError("Spherical source cannot have LTE spectrum")
+
+    @classmethod
+    def read(cls, handle):
+        self = super(SphericalSource, cls).read(handle)
+        self.position = (g.attrs['x'], g.attrs['y'], g.attrs['z'])
+        self.radius = g.attrs['r'
+        self.limb = str2bool(g.attrs['r'])
+        return self
 
     def write(self, handle, name):
 
@@ -523,6 +566,13 @@ class ExternalSphericalSource(Source):
         if self.has_lte_spectrum():
             raise ValueError("External spherical source cannot have LTE spectrum")
 
+    @classmethod
+    def read(cls, handle):
+        self = super(ExternalSphericalSource, cls).read(handle)
+        self.position = (g.attrs['x'], g.attrs['y'], g.attrs['z'])
+        self.radius = g.attrs['r'
+        return self
+
     def write(self, handle, name):
 
         self._check_all_set()
@@ -591,6 +641,14 @@ class ExternalBoxSource(Source):
         if self.has_lte_spectrum():
             raise ValueError("External spherical source cannot have LTE spectrum")
 
+    @classmethod
+    def read(cls, handle):
+        self = super(ExternalBoxSource, cls).read(handle)
+        self.bounds = [(g.attrs['xmin'], g.attrs['xmax']),
+                       (g.attrs['ymin'], g.attrs['ymax']),
+                       (g.attrs['zmin'], g.attrs['zmax'])]
+        return self
+
     def write(self, handle, name):
 
         self._check_all_set()
@@ -651,6 +709,12 @@ class MapSource(Source):
             raise ValueError("map is not set")
         if is_numpy_array(self.map) and np.all(self.map == 0.):
             raise ValueError("map is zero everywhere")
+
+    @classmethod
+    def read(cls, handle):
+        self = super(MapSource, cls).read(handle)
+        self.map = np.array(g['Luminosity map'])
+        return self
 
     def write(self, handle, name, grid, compression=True, map_dtype=float):
 
@@ -761,6 +825,14 @@ class PlaneParallelSource(Source):
             raise ValueError("direction is not set")
         if self.has_lte_spectrum():
             raise ValueError("Point source cannot have LTE spectrum")
+
+    @classmethod
+    def read(cls, handle):
+        self = super(PlaneParallelSource, cls).read(handle)
+        self.position = (g.attrs['x'], g.attrs['y'], g.attrs['z'])
+        self.radius = g.attrs['r']
+        self.direction = (g.attrs['theta'], g.attrs['phi'])
+        return self
 
     def write(self, handle, name):
         self._check_all_set()
