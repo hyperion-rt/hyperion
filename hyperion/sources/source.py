@@ -6,10 +6,30 @@ from astropy.table import Table, Column
 from ..grid.amr_grid import AMRGridView
 
 from ..util.functions import B_nu, random_id, FreezableClass, \
-                             is_numpy_array, bool2str, str2bool, monotonically_increasing
+    is_numpy_array, bool2str, str2bool, monotonically_increasing
 from ..util.integrate import integrate_loglog
 from ..util.validator import validate_scalar
 from astropy import log as logger
+
+
+def read_source(handle):
+    source_type = handle.attrs['type'].encode('ascii')
+    if source_type == 'spot':
+        return SpotSource.read(handle)
+    elif source_type == 'point':
+        return PointSource.read(handle)
+    elif source_type == 'sphere':
+        return SphericalSource.read(handle)
+    elif source_type == 'extern_sph':
+        return ExternalSphericalSource.read(handle)
+    elif source_type == 'extern_box':
+        return ExternalBoxSource.read(handle)
+    elif source_type == 'map':
+        return MapSource.read(handle)
+    elif source_type == 'plane_parallel':
+        return PlaneParallelSource.read(handle)
+    else:
+        raise ValueError("Unexpected source type: {0}".format(source_type))
 
 
 class Source(FreezableClass):
@@ -283,6 +303,9 @@ class SpotSource(Source):
     @classmethod
     def read(cls, handle):
 
+        if not handle.attrs['type'] == b'spot':
+            raise ValueError("Source is not a SpotSource")
+
         self = super(SpotSource, cls).read(handle)
 
         self.longitude = handle.attrs['longitude']
@@ -365,6 +388,8 @@ class PointSource(Source):
 
     @classmethod
     def read(cls, handle):
+        if not handle.attrs['type'] == b'point':
+            raise ValueError("Source is not a PointSource")
         self = super(PointSource, cls).read(handle)
         self.position = (handle.attrs['x'], handle.attrs['y'], handle.attrs['z'])
         return self
@@ -466,10 +491,18 @@ class SphericalSource(Source):
 
     @classmethod
     def read(cls, handle):
+        if not handle.attrs['type'] == b'sphere':
+            raise ValueError("Source is not a SphericalSource")
         self = super(SphericalSource, cls).read(handle)
         self.position = (handle.attrs['x'], handle.attrs['y'], handle.attrs['z'])
         self.radius = handle.attrs['r']
         self.limb = str2bool(handle.attrs['limb'])
+
+        # Read in spots
+        for group in handle:
+            if 'Spot' in group:
+                self._spots.append(SpotSource.read(handle[group]))
+
         return self
 
     def write(self, handle, name):
@@ -495,7 +528,9 @@ class SphericalSource(Source):
         All arguments are passed to :class:`~hyperion.sources.SpotSource`,
         so see that class for more details
         '''
-        self._spots.append(SpotSource(*args, **kwargs))
+        spot = SpotSource(*args, **kwargs)
+        self._spots.append(spot)
+        return spot
 
 
 class ExternalSphericalSource(Source):
@@ -571,6 +606,8 @@ class ExternalSphericalSource(Source):
 
     @classmethod
     def read(cls, handle):
+        if not handle.attrs['type'] == b'extern_sph':
+            raise ValueError("Source is not a ExternalSphericalSource")
         self = super(ExternalSphericalSource, cls).read(handle)
         self.position = (handle.attrs['x'], handle.attrs['y'], handle.attrs['z'])
         self.radius = handle.attrs['r']
@@ -646,6 +683,8 @@ class ExternalBoxSource(Source):
 
     @classmethod
     def read(cls, handle):
+        if not handle.attrs['type'] == b'extern_box':
+            raise ValueError("Source is not a ExternalBoxSource")
         self = super(ExternalBoxSource, cls).read(handle)
         self.bounds = [(handle.attrs['xmin'], handle.attrs['xmax']),
                        (handle.attrs['ymin'], handle.attrs['ymax']),
@@ -715,6 +754,8 @@ class MapSource(Source):
 
     @classmethod
     def read(cls, handle):
+        if not handle.attrs['type'] == b'map':
+            raise ValueError("Source is not a MapSource")
         self = super(MapSource, cls).read(handle)
         print(handle.items())
         self.map = np.array(handle['Luminosity map'])
@@ -727,8 +768,8 @@ class MapSource(Source):
         g = handle.create_group(name)
         g.attrs['type'] = np.string_('map'.encode('utf-8'))
         grid.write_single_array(g, "Luminosity map", self.map,
-                                  compression=compression,
-                                  physics_dtype=map_dtype)
+                                compression=compression,
+                                physics_dtype=map_dtype)
         Source.write(self, g)
 
 
@@ -832,6 +873,8 @@ class PlaneParallelSource(Source):
 
     @classmethod
     def read(cls, handle):
+        if not handle.attrs['type'] == b'plane_parallel':
+            raise ValueError("Source is not a PlaneParallelSource")
         self = super(PlaneParallelSource, cls).read(handle)
         self.position = (handle.attrs['x'], handle.attrs['y'], handle.attrs['z'])
         self.radius = handle.attrs['r']
