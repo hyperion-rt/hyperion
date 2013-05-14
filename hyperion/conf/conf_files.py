@@ -24,6 +24,7 @@ class OutputConf(FreezableClass):
         self.output_density_diff = group.attrs['output_density_diff'].decode('utf-8')
         self.output_specific_energy = group.attrs['output_specific_energy'].decode('utf-8')
         self.output_n_photons = group.attrs['output_n_photons'].decode('utf-8')
+        return self
 
     def write(self, group):
         group.attrs['output_density'] = np.string_(self.output_density.encode('utf-8'))
