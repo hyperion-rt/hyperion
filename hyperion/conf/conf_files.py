@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from ..util.functions import FreezableClass, bool2str, is_numpy_array
+from ..util.functions import FreezableClass, bool2str, str2bool, is_numpy_array
 
 
 class OutputConf(FreezableClass):
@@ -554,6 +554,9 @@ class ImageConf(FreezableClass):
         '''
         self.io_bytes = io_bytes
 
+    def _read_output_bytes(self, group):
+        self.io_bytes = group.attrs['io_bytes']
+
     def _write_output_bytes(self, group):
         group.attrs['io_bytes'] = self.io_bytes
 
@@ -572,6 +575,10 @@ class ImageConf(FreezableClass):
             raise Exception("n_y should be an integer")
         self.n_x = n_x
         self.n_y = n_y
+
+    def _read_image_size(self, group):
+        self.n_x = group.attrs['n_x']
+        self.n_y = group.attrs['n_y']
 
     def _write_image_size(self, group):
         if not hasattr(self, 'n_x'):
@@ -594,6 +601,12 @@ class ImageConf(FreezableClass):
         self.xmax = xmax
         self.ymin = ymin
         self.ymax = ymax
+
+    def _read_image_limits(self, group):
+        self.xmin = group.attrs['x_min']
+        self.xmax = group.attrs['x_max']
+        self.ymin = group.attrs['y_min']
+        self.ymax = group.attrs['y_max']
 
     def _write_image_limits(self, group):
         if not hasattr(self, 'xmin'):
@@ -620,6 +633,11 @@ class ImageConf(FreezableClass):
         self.ap_min = ap_min
         self.ap_max = ap_max
 
+    def _read_aperture_range(self, group):
+        self.n_ap = group.attrs['n_ap']
+        self.ap_min = group.attrs['ap_min']
+        self.ap_max = group.attrs['ap_max']
+
     def _write_aperture_range(self, group):
         group.attrs['n_ap'] = self.n_ap
         group.attrs['ap_min'] = self.ap_min
@@ -642,7 +660,19 @@ class ImageConf(FreezableClass):
         self.wav_min = wav_min
         self.wav_max = wav_max
 
+    def _read_wavelength_range(self, group):
+
+        self.n_wav = group.attrs['n_wav']
+
+        if 'inu_min' in group.attrs:
+            self.wav_min = group.attrs['inu_min']
+            self.wav_max = group.attrs['inu_max']
+        else:
+            self.wav_min = group.attrs['wav_min']
+            self.wav_max = group.attrs['wav_max']
+
     def _write_wavelength_range(self, group):
+
         if not hasattr(self, 'n_wav'):
             raise Exception("Wavelength range has not been set")
         group.attrs['n_wav'] = self.n_wav
@@ -691,6 +721,9 @@ class ImageConf(FreezableClass):
 
         self.track_origin = track_origin
 
+    def _read_track_origin(self, group):
+        self.track_origin = group.attrs['track_origin'].encode('ascii')
+
     def _write_track_origin(self, group):
         group.attrs['track_origin'] = np.string_(self.track_origin.encode('utf-8'))
 
@@ -705,15 +738,41 @@ class ImageConf(FreezableClass):
         '''
         self.uncertainties = uncertainties
 
+    def _read_uncertainties(self, group):
+        self.uncertainties = str2bool(group.attrs['uncertainties'])
+
     def _write_uncertainties(self, group):
         group.attrs['uncertainties'] = bool2str(self.uncertainties)
+
+    @classmethod
+    def read(cls, group):
+        self = cls()
+        self._read_viewing_info(group)
+        self._read_main_info(group)
+        return self
 
     def write(self, group):
         self._write_viewing_info(group)
         self._write_main_info(group)
 
+    def _read_viewing_info(self, group):
+        pass
+
     def _write_viewing_info(self, group):
         pass
+
+    def _read_main_info(self, group):
+        self.sed = str2bool(group.attrs['compute_sed'])
+        self.image = str2bool(group.attrs['compute_image'])
+        if self.sed:
+            self._read_aperture_range(group)
+        if self.image:
+            self._read_image_size(group)
+            self._read_image_limits(group)
+        self._read_wavelength_range(group)
+        self._read_output_bytes(group)
+        self._read_track_origin(group)
+        self._read_uncertainties(group)
 
     def _write_main_info(self, group):
         group.attrs['compute_sed'] = bool2str(self.sed)
@@ -749,9 +808,16 @@ class BinnedImageConf(ImageConf):
         self.n_theta = n_theta
         self.n_phi = n_phi
 
+    def _read_viewing_bins(self, group):
+        self.n_theta = group.attrs['n_theta']
+        self.n_phi = group.attrs['n_phi']
+
     def _write_viewing_bins(self, group):
         group.attrs['n_theta'] = self.n_theta
         group.attrs['n_phi'] = self.n_phi
+
+    def _read_viewing_info(self, group):
+        self._read_viewing_bins(group)
 
     def _write_viewing_info(self, group):
         self._write_viewing_bins(group)
@@ -808,6 +874,10 @@ class PeeledImageConf(ImageConf):
         self.viewing_angles = list(zip(theta, phi))
         self.n_view = len(self.viewing_angles)
 
+    def _read_viwing_angles(self, group):
+        angles = group['angles']
+        self.viewing_angles = (angles['theta'], angles['phi'])
+
     def _write_viewing_angles(self, group):
         group.attrs['n_view'] = len(self.viewing_angles)
         group.create_dataset('angles', data=np.array(self.viewing_angles, dtype=[('theta', float), ('phi', float)]))
@@ -828,6 +898,11 @@ class PeeledImageConf(ImageConf):
                 raise ValueError("position should be a 1-D sequence with 3 elements")
         self.inside_observer = position
 
+    def _read_inside_observer(self, group):
+        self.inside_observer = (group.attrs['observer_x'],
+                                group.attrs['observer_y'],
+                                group.attrs['observer_z'])
+
     def _write_inside_observer(self, group):
         group.attrs['observer_x'] = self.inside_observer[0]
         group.attrs['observer_y'] = self.inside_observer[1]
@@ -847,6 +922,9 @@ class PeeledImageConf(ImageConf):
         '''
         self.ignore_optical_depth = ignore_optical_depth
 
+    def _read_ignore_optional_depth(self, group):
+        self.ignore_optical_depth = str2bool(group.attrs['ignore_optical_depth'])
+
     def _write_ignore_optical_depth(self, group):
         group.attrs['ignore_optical_depth'] = bool2str(self.ignore_optical_depth)
 
@@ -865,6 +943,11 @@ class PeeledImageConf(ImageConf):
             if not is_numpy_array(position) or position.ndim != 1 or len(position) != 3:
                 raise ValueError("position should be a 1-D sequence with 3 elements")
         self.peeloff_origin = position
+
+    def _read_peeloff_origin(self, group):
+        self.peeloff_origin = (group.attrs['peeloff_x'],
+                               group.attrs['peeloff_y'],
+                               group.attrs['peeloff_z'])
 
     def _write_peeloff_origin(self, group):
         group.attrs['peeloff_x'] = self.peeloff_origin[0]
@@ -892,9 +975,26 @@ class PeeledImageConf(ImageConf):
         self.d_min = d_min
         self.d_max = d_max
 
+    def _read_depth(self, group):
+        self.d_min = group.attrs['d_min']
+        self.d_max = group.attrs['d_max']
+
     def _write_depth(self, group):
         group.attrs['d_min'] = self.d_min
         group.attrs['d_max'] = self.d_max
+
+    def _read_viewing_info(self, group):
+
+        if group.attrs['inside_observer']:
+            self._read_inside_observer(group)
+        else:
+            self._read_peeloff_origin(group)
+
+        self._read_ignore_optical_depth(group)
+
+        self._read_viewing_angles(group)
+
+        self._read_depth(group)
 
     def _write_viewing_info(self, group):
 
