@@ -17,6 +17,9 @@ New Features
 
 - New library of dust models, accessible in :doc:`dust/dust`
 
+- New method ``Model.use_sources`` that can read in sources from an existing
+  model file.
+
 Improvements
 ^^^^^^^^^^^^
 
