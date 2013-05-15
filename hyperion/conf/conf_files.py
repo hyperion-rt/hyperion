@@ -35,6 +35,9 @@ class OutputConf(FreezableClass):
 
 class RunConf(object):
 
+    def __init__(self):
+        self.init_run_conf()
+
     def init_run_conf(self):
         '''
         Initialize default run configuration
@@ -571,7 +574,7 @@ class RunConf(object):
         group.attrs['sample_sources_evenly'] = bool2str(self.sample_sources_evenly)
 
     @classmethod
-    def read_run_conf(cls, group):
+    def read(cls, group):
         '''
         Read the configuation in from an HDF5 group
 
@@ -584,8 +587,8 @@ class RunConf(object):
         self._read_propagation_check_frequency(group)
         self._read_seed(group)
         self._read_n_initial_iterations(group)
-        self._read_n_photons(group)
         self._read_raytracing(group)
+        self._read_n_photons(group)
         self._read_max_interactions(group)
         self._read_max_reabsorptions(group)
         self._read_pda(group)
@@ -598,6 +601,9 @@ class RunConf(object):
         self._read_enforce_energy_range(group)
         self._read_copy_input(group)
         return self
+
+    def write(self, group):
+        self.write_run_conf(group)
 
     def write_run_conf(self, group):
         '''
