@@ -61,7 +61,7 @@ class Model(FreezableClass, RunConf):
 
         self.filename = None
 
-        self.init_run_conf()
+        super(Model, self).__init__()
 
         self._freeze()
 
