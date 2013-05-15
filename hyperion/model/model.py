@@ -14,7 +14,7 @@ from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, Octr
 from ..sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource, read_source
 from ..conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from ..util.constants import c
-from ..util.functions import FreezableClass, link_or_copy, is_numpy_array, bool2str
+from ..util.functions import FreezableClass, link_or_copy, is_numpy_array, bool2str, str2bool
 from ..dust import SphericalDust
 from astropy import log as logger
 from ..util.validator import validate_scalar
@@ -117,6 +117,11 @@ class Model(FreezableClass, RunConf):
                 images.set_wavelength_range(len(frequencies), 1, len(frequencies))
         if self.binned_output is not None:
             raise Exception("Binned images cannot be computed in monochromatic mode")
+
+    def _read_monochromatic(self, group):
+        self._monochromatic = str2bool(group.attrs['monochromatic'])
+        if self._monochromatic:
+            self._frequencies = np.array(group['frequencies']['nu'])
 
     def _write_monochromatic(self, group, compression=True, dtype=np.float64):
         group.attrs['monochromatic'] = bool2str(self._monochromatic)
