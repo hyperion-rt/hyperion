@@ -131,8 +131,9 @@ def test_io_run_conf_propagation_check_frequency(value):
     r1.set_propagation_check_frequency(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2._frequency == r1._frequency
 
 
@@ -142,8 +143,9 @@ def test_io_run_conf_seed(value):
     r1.set_seed(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2._seed == r1._seed
 
 
@@ -153,8 +155,9 @@ def test_io_run_conf_n_initial_iterations(value):
     r1.set_n_initial_iterations(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2.n_iter == r1.n_iter
 
 
@@ -167,8 +170,9 @@ def test_io_run_conf_raytracing(value):
     else:
         r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2.raytracing == r1.raytracing
 
 
@@ -176,8 +180,9 @@ def test_io_run_conf_n_photons_plain():
     r1 = RunConf()
     r1.set_n_photons(initial=1, imaging=2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     for key in r1.n_photons:
         assert r2.n_photons[key] == r1.n_photons[key]
 
@@ -188,21 +193,23 @@ def test_io_run_conf_n_photons_raytracing():
     r1.set_n_photons(initial=1, imaging=2, raytracing_sources=3,
                      raytracing_dust=4)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     for key in r1.n_photons:
         print(key)
         assert r2.n_photons[key] == r1.n_photons[key]
 
 
-@pytest.mark.xfail()  # deal with monochromatic when reading in
 def test_io_run_conf_n_photons_monochromatic():
     r1 = RunConf()
     r1._monochromatic = True
     r1.set_n_photons(initial=1, imaging_sources=3, imaging_dust=4)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2._monochromatic = True
+    r2.read_run_conf(v)
     for key in r1.n_photons:
         assert r2.n_photons[key] == r1.n_photons[key]
 
@@ -213,8 +220,9 @@ def test_io_run_conf_max_interactions(value):
     r1.set_max_interactions(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2.n_inter_max == r1.n_inter_max
 
 
@@ -224,8 +232,9 @@ def test_io_run_conf_max_reabsorptions(value):
     r1.set_max_reabsorptions(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2.n_reabs_max == r1.n_reabs_max
 
 
@@ -235,8 +244,9 @@ def test_io_run_conf_pda(value):
     r1.set_pda(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2.pda == r1.pda
 
 
@@ -246,8 +256,9 @@ def test_io_run_conf_mrw(value):
     r1.set_mrw(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2.mrw == r1.mrw
 
 
@@ -260,8 +271,9 @@ def test_io_run_conf_convergence(value):
         r1.set_convergence(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2.check_convergence == r1.check_convergence
     assert r2.convergence_percentile == r1.convergence_percentile
     assert r2.convergence_absolute == r1.convergence_absolute
@@ -274,8 +286,9 @@ def test_io_run_conf_kill_on_absorb(value):
     r1.set_kill_on_absorb(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2.kill_on_absorb == r1.kill_on_absorb
 
 
@@ -285,8 +298,9 @@ def test_io_run_conf_forced_first_scattering(value):
     r1.set_forced_first_scattering(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2.forced_first_scattering == r1.forced_first_scattering
 
 
@@ -296,8 +310,9 @@ def test_io_run_conf_output_bytes(value):
     r1.set_output_bytes(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2.physics_io_bytes == r1.physics_io_bytes
 
 
@@ -307,8 +322,9 @@ def test_io_run_conf_sample_sources_evenly(value):
     r1.set_sample_sources_evenly(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2.sample_sources_evenly == r1.sample_sources_evenly
 
 
@@ -318,8 +334,9 @@ def test_io_run_conf_enforce_energy_range(value):
     r1.set_enforce_energy_range(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2.enforce_energy_range == r1.enforce_energy_range
 
 
@@ -329,6 +346,7 @@ def test_io_run_conf_copy_input(value):
     r1.set_copy_input(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
-    r1.write(v)
-    r2 = RunConf.read(v)
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
     assert r2.copy_input == r1.copy_input

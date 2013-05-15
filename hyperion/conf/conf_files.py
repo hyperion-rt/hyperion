@@ -36,9 +36,6 @@ class OutputConf(FreezableClass):
 class RunConf(object):
 
     def __init__(self):
-        self.init_run_conf()
-
-    def init_run_conf(self):
         '''
         Initialize default run configuration
         '''
@@ -59,6 +56,7 @@ class RunConf(object):
         self.set_enforce_energy_range(True)
         self.set_copy_input(True)
         self._monochromatic = False
+        super(RunConf, self).__init__()
 
     def set_propagation_check_frequency(self, frequency):
         '''
@@ -573,8 +571,7 @@ class RunConf(object):
     def _write_sample_sources_evenly(self, group):
         group.attrs['sample_sources_evenly'] = bool2str(self.sample_sources_evenly)
 
-    @classmethod
-    def read(cls, group):
+    def read_run_conf(self, group):  # not a class method because inherited
         '''
         Read the configuation in from an HDF5 group
 
@@ -583,7 +580,6 @@ class RunConf(object):
         group : h5py.highlevel.File or h5py.highlevel.Group
             The HDF5 group to read the configuration from
         '''
-        self = cls()
         self._read_propagation_check_frequency(group)
         self._read_seed(group)
         self._read_n_initial_iterations(group)
@@ -600,10 +596,6 @@ class RunConf(object):
         self._read_sample_sources_evenly(group)
         self._read_enforce_energy_range(group)
         self._read_copy_input(group)
-        return self
-
-    def write(self, group):
-        self.write_run_conf(group)
 
     def write_run_conf(self, group):
         '''
