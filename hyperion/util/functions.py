@@ -69,6 +69,9 @@ class FreezableClass(object):
     _final = False
     _attributes = []
 
+    def __init__(self):
+        super(FreezableClass, self).__init__()
+
     def _freeze(self):
         object.__setattr__(self, '_frozen', True)
 
