@@ -275,6 +275,89 @@ class Model(FreezableClass, RunConf):
         # Close the file
         f.close()
 
+    def use_run_config(self, filename):
+        '''
+        Use runtime configuration from an existing output or input file
+
+        Parameters
+        ----------
+        filename : str
+            The file to read the parameters from. This can be either the input
+            or output file from a radiation transfer run.
+        '''
+
+        logger.info("Retrieving runtime configuration from %s" % filename)
+
+        # Open existing file
+        f = h5py.File(filename, 'r')
+
+        # Get a pointer to the group with the sources
+        if 'Input' in f:
+            g_par = f['/Input/']
+        else:
+            g_par = f
+
+        # Read in monochromatic information
+        self._read_monochromatic(g_par)
+
+        # Read in runtime configuration
+        self.read_run_conf(g_par)
+
+    def use_image_config(self, filename):
+        '''
+        Use image configuration from an existing output or input file
+
+        Parameters
+        ----------
+        filename : str
+            The file to read the parameters from. This can be either the input
+            or output file from a radiation transfer run.
+        '''
+
+        logger.info("Retrieving image configuration from %s" % filename)
+
+        # Open existing file
+        f = h5py.File(filename, 'r')
+
+        # Get a pointer to the group with the sources
+        if 'Output' in f:
+            g_image = f['/Output/']
+        else:
+            g_image = f['/Input/Output/']
+
+        # Read in binned images
+        if 'n_theta' in g_image['Binned']:
+            self.binned_output = BinnedImageConf.read(g_image['Binned'])
+
+        # Read in peeled images
+        for peeled in g_image['Peeled']:
+            self.peeled_output.append(PeeledImageConf.read(g_image['Peeled'][peeled]))
+
+    def use_output_config(self, filename):
+        '''
+        Use output configuration from an existing output or input file
+
+        Parameters
+        ----------
+        filename : str
+            The file to read the parameters from. This can be either the input
+            or output file from a radiation transfer run.
+        '''
+
+        logger.info("Retrieving output configuration from %s" % filename)
+
+        # Open existing file
+        f = h5py.File(filename, 'r')
+
+        # Get a pointer to the group with the sources
+        if 'Output' in f:
+            g_output = f['/Output/']
+        else:
+            g_output = f['/Input/Output/']
+
+        # Read in output configuration
+        self.conf.output.read(g_output)
+
     def write(self, filename=None, compression=True, copy=True,
               absolute_paths=False, wall_dtype=float,
               physics_dtype=float, overwrite=True):
