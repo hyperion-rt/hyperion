@@ -34,6 +34,10 @@ class Star(FreezableClass):
         self.limb = False
         self._freeze()
 
+    @classmethod
+    def read(self, filename):
+        raise Exception("Can only call ``read`` for Model, not AnalyticalYSOModel")
+
     def add_spot(self, *args, **kwargs):
         self.sources['star'].add_spot(SpotSource(*args, **kwargs))
 
