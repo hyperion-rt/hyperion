@@ -454,7 +454,7 @@ class Model(FreezableClass, RunConf):
         # (it is the output directory that does not exist)
         if not os.path.dirname(filename) == "":
             if not os.path.exists(os.path.dirname(filename)):
-                raise IOError("Directory %s does not exist" % \
+                raise IOError("Directory %s does not exist" %
                               os.path.dirname(filename))
 
         # Create output file
