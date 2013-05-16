@@ -150,7 +150,7 @@ start_dir = os.path.abspath('.')
 
 prefix = os.path.abspath(prefix)
 
-ZLIB_URL = 'http://zlib.net/zlib-1.2.7.tar.gz'
+ZLIB_URL = "http://downloads.sourceforge.net/project/libpng/zlib/1.2.7/zlib-1.2.7.tar.gz"
 ZLIB_SHA1 = '4aa358a95d1e5774603e6fa149c926a80df43559'
 
 HDF5_URL = 'http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.9/src/hdf5-1.8.9.tar.gz'
