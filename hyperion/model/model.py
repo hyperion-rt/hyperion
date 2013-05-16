@@ -128,6 +128,17 @@ class Model(FreezableClass, RunConf):
         if self._monochromatic:
             group.create_dataset('frequencies', data=np.array(list(zip(self._frequencies)), dtype=[('nu', dtype)]), compression=compression)
 
+    @classmethod
+    def read(cls, filename):
+        self = cls()
+        self.use_geometry(filename)
+        self.use_quantities(filename, quantities=['density'])
+        self.use_sources(filename)
+        self.use_run_config(filename)
+        self.use_image_config(filename)
+        self.use_output_config(filename)
+        return self
+
     def use_geometry(self, filename):
         '''
         Use the grid from an existing output or input file
