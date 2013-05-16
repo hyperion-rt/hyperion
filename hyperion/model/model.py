@@ -179,7 +179,7 @@ class Model(FreezableClass, RunConf):
         f.close()
 
     def use_quantities(self, filename, quantities=['density', 'specific_energy'],
-                       use_minimum_specific_energy=True, use_dust=True):
+                       use_minimum_specific_energy=True, use_dust=True, copy=True):
         '''
         Use physical quantities from an existing output file
 
@@ -199,49 +199,95 @@ class Model(FreezableClass, RunConf):
             file specified
         use_dust : bool
             Whether to also use the dust properties from the file specified
+        copy : bool
+            Whether to read in a copy of the data. If set to False, then the
+            physical quantities will only be links to the specified HDF5 file,
+            and can therefore not be modified.
         '''
 
         # Open existing file
         f = h5py.File(filename, 'r')
-
-        # Find last iteration
-        max_iteration = find_last_iteration(f)
-
-        if max_iteration == 0:
-            raise ValueError("No iterations found in file: %s" % filename)
-
-        logger.info("Retrieving quantities from iteration %i of %s" % (max_iteration, filename))
 
         # Find path to file for link. For now, use absolute links.
         # In Model.write() we can always replace the links with
         # relative links if desired.
         file_path = os.path.abspath(filename)
 
-        # Loop over quantities
-        for quantity in ['density', 'specific_energy']:
+        logger.info("Retrieving quantities from %s" % filename)
 
-            if quantity in quantities:
+        quantities_path = {}
 
-                # Set the path to the quantity
-                if quantity in ['density']:
-                    array_path = '/Input/Grid/Quantities/%s' % quantity
+        if 'Input' in f:
+
+            # Find last iteration
+            max_iteration = find_last_iteration(f)
+
+            if max_iteration == 0:
+                logger.warn("No iterations found in file - only the input quantities will be used")
+                last_iteration = None
+            else:
+                logger.info("Retrieving quantities from iteration %i" % max_iteration)
+                last_iteration = 'iteration_{0:05d}'.format(max_iteration)
+
+            if 'density' in quantities:
+                if last_iteration is None or 'density' not in f[last_iteration]:
+                    quantities_path['density'] = '/Input/Grid/Quantities'
                 else:
-                    array_path = '/iteration_%05i/specific_energy' % max_iteration
+                    quantities_path['density'] = last_iteration
 
-                logger.info("Using %s from %s" % (quantity, filename))
+            if 'specific_energy' in quantities:
+                if last_iteration is None:
+                    if 'specific_energy' in f['/Input/Grid/Quantities']:
+                        quantities_path['specific_energy'] = '/Input/Grid/Quantities'
+                else:
+                    quantities_path['specific_energy'] = last_iteration
 
-                # Add quantity to grid
-                self.grid[quantity] = h5py.ExternalLink(file_path, array_path)
+            # Minimum specific energy
+            if use_minimum_specific_energy:
+                minimum_specific_energy_path = '/Input/Grid/Quantities'
 
-        # Minimum specific energy
-        if use_minimum_specific_energy:
-            logger.info("Using minimum_specific_energy from %s" % filename)
-            self.set_minimum_specific_energy([float(x) for x in f['/Input/Grid/Quantities'].attrs['minimum_specific_energy']])
+            if use_dust:
+                dust_path = '/Input/Dust'
 
-        # Dust properties
-        if use_dust:
-            logger.info("Using dust properties from %s" % filename)
-            self.dust = h5py.ExternalLink(file_path, '/Input/Dust')
+        else:
+
+            if 'density' in quantities:
+                quantities_path['density'] = '/Grid/Quantities'
+
+            if 'specific_energy' in quantities:
+                if 'specific_energy' in f['/Grid/Quantities']:
+                    quantities_path['specific_energy'] = '/Grid/Quantities'
+
+            # Minimum specific energy
+            if use_minimum_specific_energy:
+                minimum_specific_energy_path = '/Grid/Quantities'
+
+            if use_dust:
+                dust_path = '/Dust'
+
+        # Now extract the quantities
+        for quantity in quantities_path:
+
+            logger.info("Using {quantity} from {path} in {filename}".format(quantity=quantity, path=quantities_path[quantity], filename=filename))
+
+            # Add quantity to grid
+            if copy:
+                self.grid.read_quantities(f[quantities_path[quantity]], quantities=[quantity])
+            else:
+                self.grid[quantity] = h5py.ExternalLink(file_path, quantities_path[quantity] + '/' + quantity)
+
+            # Minimum specific energy
+            if use_minimum_specific_energy:
+                logger.info("Using minimum_specific_energy from {filename}".format(filename=filename))
+                self.set_minimum_specific_energy([float(x) for x in f[minimum_specific_energy_path].attrs['minimum_specific_energy']])
+
+            # Dust properties
+            if use_dust:
+                logger.info("Using dust properties from {filename}".format(filename=filename))
+                if copy:
+                    self.dust = [SphericalDust(f[dust_path][name]) for name in f[dust_path]]
+                else:
+                    self.dust = h5py.ExternalLink(file_path, dust_path)
 
         # Close the file
         f.close()
