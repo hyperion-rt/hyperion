@@ -276,18 +276,18 @@ class Model(FreezableClass, RunConf):
             else:
                 self.grid[quantity] = h5py.ExternalLink(file_path, quantities_path[quantity] + '/' + quantity)
 
-            # Minimum specific energy
-            if use_minimum_specific_energy:
-                logger.info("Using minimum_specific_energy from {filename}".format(filename=filename))
-                self.set_minimum_specific_energy([float(x) for x in f[minimum_specific_energy_path].attrs['minimum_specific_energy']])
+        # Minimum specific energy
+        if use_minimum_specific_energy:
+            logger.info("Using minimum_specific_energy from {filename}".format(filename=filename))
+            self.set_minimum_specific_energy([float(x) for x in f[minimum_specific_energy_path].attrs['minimum_specific_energy']])
 
-            # Dust properties
-            if use_dust:
-                logger.info("Using dust properties from {filename}".format(filename=filename))
-                if copy:
-                    self.dust = [SphericalDust(f[dust_path][name]) for name in f[dust_path]]
-                else:
-                    self.dust = h5py.ExternalLink(file_path, dust_path)
+        # Dust properties
+        if use_dust:
+            logger.info("Using dust properties from {filename}".format(filename=filename))
+            if copy:
+                self.dust = [SphericalDust(f[dust_path][name]) for name in f[dust_path]]
+            else:
+                self.dust = h5py.ExternalLink(file_path, dust_path)
 
         # Close the file
         f.close()
