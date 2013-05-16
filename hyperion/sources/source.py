@@ -13,7 +13,7 @@ from astropy import log as logger
 
 
 def read_source(handle):
-    source_type = handle.attrs['type'].encode('ascii')
+    source_type = handle.attrs['type'].decode('ascii')
     if source_type == 'spot':
         return SpotSource.read(handle)
     elif source_type == 'point':
