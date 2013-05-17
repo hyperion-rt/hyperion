@@ -238,4 +238,7 @@ Density and Specific Energy
 Densities (and optionally specific energies) should be specified in the same
 manner as the regular grids, but should be specified as a 1-d Numpy array with
 the same length as the ``refined`` list, where each density value corresponds
-to the equivalent cell in the refined list.
+to the equivalent cell in the ``refined`` list. Density values for cells with
+``refined`` set to ``True`` will be ignored, and can be set to zero.
+
+
