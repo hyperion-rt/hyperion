@@ -130,10 +130,12 @@ class Model(FreezableClass, RunConf):
 
     @classmethod
     def read(cls, filename):
+        # TODO: docstring
         self = cls()
         self.use_geometry(filename)
-        self.use_quantities(filename, quantities=['density'])
+        self.use_quantities(filename, quantities=['density'])  # TODO: reconsider the fact only the density is used
         self.use_sources(filename)
+        # TODO: read in monochromatic parameters
         self.use_run_config(filename)
         self.use_image_config(filename)
         self.use_output_config(filename)
