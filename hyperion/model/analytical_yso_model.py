@@ -876,6 +876,7 @@ def hseq_profile(w, z, temperature, mstar):
     integrand = z / temperature / (w ** 2 + z ** 2) ** 1.5
 
     # Compute the integral for all cells
+    # TODO - inefficient to compute integral from scratch - optimize
     i = np.array([integrate_subset(z, integrand, 0., zmax) for zmax in z])
     i[z < 0] = -i[z < 0]
 
