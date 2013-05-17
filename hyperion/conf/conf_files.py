@@ -827,7 +827,7 @@ class ImageConf(FreezableClass):
         self.track_origin = track_origin
 
     def _read_track_origin(self, group):
-        self.track_origin = group.attrs['track_origin'].encode('ascii')
+        self.track_origin = group.attrs['track_origin'].decode('ascii')
 
     def _write_track_origin(self, group):
         group.attrs['track_origin'] = np.string_(self.track_origin.encode('utf-8'))
