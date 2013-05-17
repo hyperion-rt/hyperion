@@ -850,9 +850,7 @@ class AnalyticalYSOModel(Model):
                     overwrite=overwrite)
 
 
-# TODO - HSEQ only works if density is gas density - fix that
-
-def hseq_profile(w, z, temperature, mstar):
+def hseq_profile(w, z, temperature, mstar, mu=2.279):
     """
     Compute the new (normalized) density profile
     corresponding to a given temperature profile
@@ -881,7 +879,6 @@ def hseq_profile(w, z, temperature, mstar):
     i[z < 0] = -i[z < 0]
 
     # Compute the factor for the integrand
-    mu = 2.33  # TODO: set as parameter?
     factor = G * mstar * mu * m_h / k
 
     # Compute the profile
@@ -891,6 +888,19 @@ def hseq_profile(w, z, temperature, mstar):
     density = density / integrate(z, density)
 
     return density
+
+
+# The mean molecular weight of H2 + He is given by:
+#
+# mu = 4 * (X + 1) / (X + 2)
+#
+# where X is the mass fraction of Helium to Hydrogren. Assuming
+#
+# X = 0.32476319350473615
+#
+# gives:
+#
+# mu = 2.279
 
 
 def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False,
@@ -909,6 +919,12 @@ def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False,
     - The model should be defined on a cylindrical polar grid
     - The stellar mass should be set
     - The model should include at least one disk
+
+    The dust properties for the model can be specified as dust or dust+gas
+    densities as this does not have an impact on this calculation - however,
+    the hydrostatic equilibrium is computed assuming an H2 + He mix of gas
+    (i.e. mu=2.279). Note that this calculation also ignores the effects of
+    self-gravity in the disk, which might be important for more massive disks.
 
     Parameters
     ----------
@@ -953,7 +969,7 @@ def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False,
 
     previous = prefix + '_00000.rtout'
 
-    for iteration in range(1, n_iter+1):
+    for iteration in range(1, n_iter + 1):
 
         # Read in output
         mo = ModelOutput(previous)
