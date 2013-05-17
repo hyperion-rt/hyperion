@@ -185,7 +185,7 @@ contains
 
     integer :: direction, wall
     type(grid_cell) :: curr, next
-    real(dp) :: dtau_ross_curr, dtau_ross_next
+    real(dp) :: dtau_ross_curr, dtau_ross_next, dtau_sum
 
     integer :: ic
     real(dp) :: coefficient
@@ -214,7 +214,13 @@ contains
           dtau_ross_curr = dtau_rosseland(curr, direction)
           dtau_ross_next = dtau_rosseland(next, direction)
 
-          coefficient = 1. / (dtau_ross_curr + dtau_ross_next) / cell_width(curr, direction)
+          dtau_sum = dtau_ross_curr + dtau_ross_next
+
+          ! If the optical depth is too small, we have to reset it to avoid
+          ! issues.
+          if(dtau_sum < 1e-100_dp) dtau_sum = 1e-100_dp
+
+          coefficient = 1. / dtau_sum / cell_width(curr, direction)
           coefficient = coefficient * geometrical_factor(wall, curr)
 
           a(id_curr, id_curr) = a(id_curr, id_curr) - coefficient
