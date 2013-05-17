@@ -176,7 +176,7 @@ class CartesianGrid(FreezableClass):
                 n_dust_q, shape_q = single_grid_dims(self.quantities[quantity])
                 if n_dust is None:
                     n_dust = n_dust_q
-                else:
+                elif n_dust_q is not None:
                     if n_dust != n_dust_q:
                         raise ValueError("Not all dust lists in the grid have the same size")
             return n_dust

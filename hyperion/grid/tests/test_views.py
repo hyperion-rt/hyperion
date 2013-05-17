@@ -238,3 +238,17 @@ class TestView(object):
             assert np.all(g.quantities['density'][0] == self.density[grid_type] * 2.)
         elif grid_type in ['amr']:
             assert np.all(g.levels[0].grids[0].quantities['density'] == self.density[grid_type].levels[0].grids[0].quantities['density'] * 2)
+
+    @pytest.mark.parametrize(('grid_type'), ALL_GRID_TYPES)
+    def test_dustless_array(self, grid_type):
+        """
+        Regression test to ensure that calling n_dust in the presence of
+        arrays that are not dust-dependent does not raise an exception.
+        """
+        g1 = self.grid[grid_type]
+        g1['density1'] = []
+        g1['density1'].append(self.density[grid_type])
+        g2 = self.grid[grid_type]
+        g2['density1'] = g1['density1']
+        g2['density2'] = g1['density1'][0]
+        assert g2.n_dust == 1
