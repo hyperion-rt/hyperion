@@ -939,7 +939,7 @@ def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False, n_processes=mult
         n_disks = len(model.disks)
 
     # Write out initial model
-    model.write(prefix + '_00000.rtin', overwrite=overwrite)
+    model.write(prefix + '_00000.rtin', overwrite=overwrite, merge_if_possible=False)
 
     # Run the initial model
     mo = model.run(prefix + '_00000.rtout', overwrite=overwrite,
@@ -988,7 +988,7 @@ def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False, n_processes=mult
         m.grid['density'] = density
 
         # Write and run
-        m.write('{0:s}_{1:05d}.rtin'.format(prefix, iteration), overwrite=overwrite)
+        m.write('{0:s}_{1:05d}.rtin'.format(prefix, iteration), overwrite=overwrite, merge_if_possible=False)
         m.run('{0:s}_{1:05d}.rtout'.format(prefix, iteration),
               overwrite=overwrite, mpi=mpi, n_processes=n_processes)
 
