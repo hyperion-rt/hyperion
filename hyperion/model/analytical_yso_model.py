@@ -939,15 +939,15 @@ def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False, n_processes=mult
         n_disks = len(model.disks)
 
     # Write out initial model
-    model.write(prefix + '_initial.rtin', overwrite=overwrite)
+    model.write(prefix + '_00000.rtin', overwrite=overwrite)
 
     # Run the initial model
-    mo = model.run(prefix + '_initial.rtout', overwrite=overwrite,
+    mo = model.run(prefix + '_00000.rtout', overwrite=overwrite,
                    mpi=mpi, n_processes=n_processes)
 
-    previous = prefix + '_initial.rtout'
+    previous = prefix + '_00000.rtout'
 
-    for iteration in range(n_iter):
+    for iteration in range(1, n_iter+1):
 
         # Read in output
         mo = ModelOutput(previous)
