@@ -20,9 +20,12 @@ Once the model has been read in, it is possible to modify any of the
 parameters, add more density grids, sources, and change the parameters.
 
 It is also possible to read in a model from an output file. In this case, what
-is read in are the initial parameters/settings for the model, with the
-exception of the density and specific energy. If the density and/or specific
-energy are output in the last iteration, these are used instead.
+is read in are the initial parameters/settings/quantities for the model. If
+you would like to use the final specific energy (and optionally density if
+available), you can call ``read`` with the ``only_initial=`` argument set to
+``False``:
+
+    m = Model.read('some_model.rtout', only_initial=False)
 
 If, instead of reading in the whole model, you want to re-use only certain
 aspects of a previous model, see the following sections.
@@ -113,6 +116,11 @@ wish, by using the ``quantities`` argument, e.g.::
 or::
 
     m2.use_quantities('model_1.rtout', quantities=['specific_energy'])
+
+In the case where quantities are being read from an output file, you can also
+explicitly request that only the *input* quantities be read in::
+
+    m2.use_quantities('model_1.rtout', only_initial=True)
 
 You can disable using the dust from the previous model (in case you want to
 change it)::

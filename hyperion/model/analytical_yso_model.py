@@ -893,9 +893,14 @@ def hseq_profile(w, z, temperature, mstar):
     return density
 
 
-def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False, n_processes=multiprocessing.cpu_count(), overwrite=False):
+def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False,
+                           n_processes=multiprocessing.cpu_count(),
+                           overwrite=False):
     """
     Run a model with vertical hydrostatic equilibrium.
+
+    .. note:: this is an experimental function that is currently in
+              development. Please use with care!
 
     The hydrostatic equilibrium condition is only applied to the disk
     components. The following requirements must be met:
@@ -989,7 +994,7 @@ def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False, n_processes=mult
         m.grid['density'] = density
 
         # Write and run
-        m.write('{0:s}_{1:05d}.rtin'.format(prefix, iteration), overwrite=overwrite, merge_if_possible=False)
+        m.write('{0:s}_{1:05d}.rtin'.format(prefix, iteration), overwrite=overwrite)
         m.run('{0:s}_{1:05d}.rtout'.format(prefix, iteration),
               overwrite=overwrite, mpi=mpi, n_processes=n_processes)
 

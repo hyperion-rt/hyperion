@@ -129,11 +129,33 @@ class Model(FreezableClass, RunConf):
             group.create_dataset('frequencies', data=np.array(list(zip(self._frequencies)), dtype=[('nu', dtype)]), compression=compression)
 
     @classmethod
-    def read(cls, filename):
-        # TODO: docstring
+    def read(cls, filename, only_initial=True):
+        """
+        Read in a previous model file
+
+        This can be used to read in a previous input file, or the input in an
+        output file (which is possible because the input to a model is stored
+        or linked in an output file).
+
+        If you are interested in re-using the final specific energy (and
+        final density, if present) of a previously run model, you can use::
+
+            >>> m = Model.read('previous_model.rtout', only_initial=False)
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file to read the input data from
+        only_initial : bool, optional
+            Whether to use only the initial quantities, or whether the final
+            specific energy (and optionally density) from the previous model
+            can be used. By default, only the input density (and specific
+            energy, if present) are read in.
+        """
+
         self = cls()
         self.use_geometry(filename)
-        self.use_quantities(filename, quantities=['density'])  # TODO: reconsider the fact only the density is used
+        self.use_quantities(filename, only_initial=only_initial)
         self.use_sources(filename)
         # TODO: read in monochromatic parameters
         self.use_run_config(filename)
@@ -192,7 +214,8 @@ class Model(FreezableClass, RunConf):
         f.close()
 
     def use_quantities(self, filename, quantities=['density', 'specific_energy'],
-                       use_minimum_specific_energy=True, use_dust=True, copy=True):
+                       use_minimum_specific_energy=True, use_dust=True, copy=True,
+                       only_initial=False):
         '''
         Use physical quantities from an existing output file
 
@@ -216,6 +239,11 @@ class Model(FreezableClass, RunConf):
             Whether to read in a copy of the data. If set to False, then the
             physical quantities will only be links to the specified HDF5 file,
             and can therefore not be modified.
+        only_initial : bool, optional
+            Whether to use only the initial quantities, or whether the final
+            specific energy (and optionally density) from the previous model
+            can be used. By default, only the input density (and specific
+            energy, if present) are read in.
         '''
 
         # Open existing file
@@ -235,7 +263,9 @@ class Model(FreezableClass, RunConf):
             # Find last iteration
             max_iteration = find_last_iteration(f)
 
-            if max_iteration == 0:
+            if only_initial:
+                logger.info("Reading input quantities")
+            elif max_iteration == 0:
                 logger.warn("No iterations found in file - only the input quantities will be used")
                 last_iteration = None
             else:
@@ -243,13 +273,13 @@ class Model(FreezableClass, RunConf):
                 last_iteration = 'iteration_{0:05d}'.format(max_iteration)
 
             if 'density' in quantities:
-                if last_iteration is None or 'density' not in f[last_iteration]:
+                if only_initial or last_iteration is None or 'density' not in f[last_iteration]:
                     quantities_path['density'] = '/Input/Grid/Quantities'
                 else:
                     quantities_path['density'] = last_iteration
 
             if 'specific_energy' in quantities:
-                if last_iteration is None:
+                if only_initial or last_iteration is None:
                     if 'specific_energy' in f['/Input/Grid/Quantities']:
                         quantities_path['specific_energy'] = '/Input/Grid/Quantities'
                 else:
