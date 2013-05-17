@@ -339,8 +339,8 @@ class AnalyticalYSOModel(Model):
     def print_midplane_tau(self, wavelength):
         for i, disk in enumerate(self.disks):
             if disk.mass > 0.:
-                tau = disk.midplane_cumulative_density(np.array([disk.rmax])) \
-                    * disk.dust.interp_chi_wav(wavelength)
+                tau = (disk.midplane_cumulative_density(np.array([disk.rmax]))
+                       * disk.dust.interp_chi_wav(wavelength))
                 print("Disk %i: %.5e" % (i + 1, tau))
 
     def get_midplane_tau(self, r):
@@ -356,23 +356,23 @@ class AnalyticalYSOModel(Model):
             if disk.mass > 0.:
                 if disk.dust is None:
                     raise Exception("Disk %i dust not set" % i)
-                nu_min, nu_max = disk.dust.optical_properties.nu[0], \
-                                 disk.dust.optical_properties.nu[-1]
+                nu_min = disk.dust.optical_properties.nu[0]
+                nu_max = disk.dust.optical_properties.nu[-1]
                 nu, fnu = self.star.total_spectrum(bnu_range=[nu_min, nu_max])
                 if np.any(fnu > 0.):
-                    tau_midplane += disk.midplane_cumulative_density(r) \
-                                  * disk.dust.optical_properties.chi_planck_spectrum(nu, fnu)
+                    tau_midplane += (disk.midplane_cumulative_density(r)
+                                     * disk.dust.optical_properties.chi_planck_spectrum(nu, fnu))
 
         for i, envelope in enumerate(self.envelopes):
             if envelope.exists():
                 if envelope.dust is None:
                     raise Exception("envelope %i dust not set" % i)
-                nu_min, nu_max = envelope.dust.optical_properties.nu[0], \
-                                 envelope.dust.optical_properties.nu[-1]
+                nu_min = envelope.dust.optical_properties.nu[0]
+                nu_max = envelope.dust.optical_properties.nu[-1]
                 nu, fnu = self.star.total_spectrum(bnu_range=[nu_min, nu_max])
                 if np.any(fnu > 0.):
-                    tau_midplane += envelope.midplane_cumulative_density(r) \
-                                  * envelope.dust.optical_properties.chi_planck_spectrum(nu, fnu)
+                    tau_midplane += (envelope.midplane_cumulative_density(r)
+                                     * envelope.dust.optical_properties.chi_planck_spectrum(nu, fnu))
 
         return tau_midplane
 
@@ -396,15 +396,15 @@ class AnalyticalYSOModel(Model):
         if len(self.disks) == 0 and len(self.envelopes) == 0:
             rmin = self.star.radius
         else:
-            rmin_values = [disk.rmin for disk in self.disks] \
-                        + [envelope.rmin for envelope in self.envelopes]
+            rmin_values = ([disk.rmin for disk in self.disks]
+                           + [envelope.rmin for envelope in self.envelopes])
             if self.ambient is not None:
                 rmin_values += [self.ambient.rmin]
             rmin = _min_none(*rmin_values)
 
         rmax_values = [self.star.radius]
-        rmax_values += [disk.rmax for disk in self.disks] \
-                     + [envelope.rmax for envelope in self.envelopes]
+        rmax_values += ([disk.rmax for disk in self.disks]
+                        + [envelope.rmax for envelope in self.envelopes])
         if self.ambient is not None:
             rmax_values += [self.ambient.rmax]
         rmax = _max_none(*rmax_values)
@@ -469,16 +469,16 @@ class AnalyticalYSOModel(Model):
         if len(self.disks) == 0 and len(self.envelopes) == 0:
             rmin = self.star.radius
         else:
-            rmin_values = [disk.rmin for disk in self.disks] \
-                        + [envelope.rmin for envelope in self.envelopes]
+            rmin_values = ([disk.rmin for disk in self.disks]
+                           + [envelope.rmin for envelope in self.envelopes])
             if self.ambient is not None:
                 rmin_values += [self.ambient.rmin]
             rmin = _min_none(*rmin_values)
 
         if not rmax:
             rmax_values = [2. * self.star.radius]
-            rmax_values += [disk.rmax for disk in self.disks] \
-                         + [envelope.rmax for envelope in self.envelopes]
+            rmax_values += ([disk.rmax for disk in self.disks]
+                            + [envelope.rmax for envelope in self.envelopes])
             if self.ambient is not None:
                 rmax_values += [self.ambient.rmax]
             rmax = _max_none(*rmax_values)
@@ -873,7 +873,7 @@ def hseq_profile(w, z, temperature, mstar):
     from ..util.integrate import integrate, integrate_subset
 
     # Compute the integrand
-    integrand = z / temperature / (w**2 + z**2)**1.5
+    integrand = z / temperature / (w ** 2 + z ** 2) ** 1.5
 
     # Compute the integral for all cells
     i = np.array([integrate_subset(z, integrand, 0., zmax) for zmax in z])
@@ -927,7 +927,7 @@ def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False, n_processes=mult
     if not isinstance(model, AnalyticalYSOModel):
         raise TypeError("Can only run hydrostatic equilibrium for AnalyticalYSOModel instances")
 
-    if not isinstance(model, CylindricalPolarGrid):
+    if not isinstance(model.grid, CylindricalPolarGrid):
         raise TypeError("Can only run hydrostatic equilibrium for models with cylindrical polar grids")
 
     if model.star.mass is None:
@@ -972,14 +972,14 @@ def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False, n_processes=mult
 
             # Vertically extrapolate temperatures
             for i in range(len(g.w)):
-                for j in range(len(g.phi)):
-                    reset = temperature[idisk][j, :, i] < 1.
-                    temperature[idisk][j, reset, i] = np.max(temperature[idisk][j, :, i])  # shouldn't be max, but will do for now
+                for j in range(len(g.p)):
+                    reset = temperature[idisk].array[j, :, i] < 1.
+                    temperature[idisk].array[j, reset, i] = np.max(temperature[idisk].array[j, :, i])  # shouldn't be max, but will do for now
 
             # Compute new density
             for i in range(len(g.w)):
-                for j in range(len(g.phi)):
-                    density[idisk][j, :, i] = hseq_profile(g.w[i], g.z, temperature[idisk][j, :, i], model.star.mass) * integrate(g.z, density[idisk][j, :, i])
+                for j in range(len(g.p)):
+                    density[idisk].array[j, :, i] = hseq_profile(g.w[i], g.z, temperature[idisk].array[j, :, i], model.star.mass) * integrate(g.z, density[idisk].array[j, :, i])
 
         # Instantiate new model based on previous
         m = Model.read(previous)
@@ -991,3 +991,5 @@ def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False, n_processes=mult
         m.write('{0:s}_{1:05d}.rtin'.format(prefix, iteration), overwrite=overwrite)
         m.run('{0:s}_{1:05d}.rtout'.format(prefix, iteration),
               overwrite=overwrite, mpi=mpi, n_processes=n_processes)
+
+        previous = '{0:s}_{1:05d}.rtout'.format(prefix, iteration)
