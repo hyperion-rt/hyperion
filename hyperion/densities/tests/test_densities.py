@@ -20,13 +20,13 @@ class Star(object):
 # Flared Disk
 
 
-@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0'])
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'rho_0', 'r_0'])
 def test_flared_disk_positive(parameter):
     d = FlaredDisk()
     d.__setattr__(parameter, 1.)
 
 
-@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0'])
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'rho_0', 'r_0'])
 def test_flared_disk_negative(parameter):
     d = FlaredDisk()
     if parameter in ['p', 'beta']:
@@ -37,7 +37,7 @@ def test_flared_disk_negative(parameter):
         assert exc.value.args[0] == parameter + ' should be positive'
 
 
-@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0'])
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'rho_0', 'r_0'])
 def test_flared_disk_optthin(parameter):
     d = FlaredDisk()
     if parameter in ['rmin', 'rmax']:
@@ -48,7 +48,7 @@ def test_flared_disk_optthin(parameter):
         assert exc.value.args[0] == parameter + ' should be a scalar value'
 
 
-@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0'])
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'rho_0', 'r_0'])
 def test_flared_disk_invalid1(parameter):
     d = FlaredDisk()
     with pytest.raises(ValueError) as exc:
@@ -59,7 +59,7 @@ def test_flared_disk_invalid1(parameter):
         assert exc.value.args[0] == parameter + ' should be a numerical value'
 
 
-@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0'])
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'rho_0', 'r_0'])
 def test_flared_disk_invalid2(parameter):
     d = FlaredDisk()
     with pytest.raises(ValueError) as exc:
@@ -69,16 +69,65 @@ def test_flared_disk_invalid2(parameter):
     else:
         assert exc.value.args[0] == parameter + ' should be a scalar value'
 
+
+def test_flared_disk_mass_swap1():
+    e = FlaredDisk()
+    e.mass = 1.
+    assert e._rho_0 is None and e._mass is not None
+    e.rho_0 = 1.
+    assert e._rho_0 is not None and e._mass is None
+    e.mass = 1.
+    assert e._rho_0 is None and e._mass is not None
+
+
+def test_flared_disk_mass_swap2():
+    e = FlaredDisk()
+    e.rmin = 1.
+    e.rmax = 10.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.mass = 0.
+    assert e.rho_0 == 0.
+
+
+def test_flared_disk_mass_swap3():
+    e = FlaredDisk()
+    e.rmin = 1.
+    e.rmax = 10.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.rho_0 = 0.
+    assert e.mass == 0.
+
+
+def test_flared_disk_mass_swap_invertible():
+    e = FlaredDisk()
+    e.rmin = 1.
+    e.rmax = 10.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.mass = 4.792849
+    rho_0 = e.rho_0
+    e.mass = 0.
+    e.rho_0 = rho_0
+    assert e.mass == 4.792849
+
 # Alpha Disk
 
 
-@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0', 'mdot', 'lvisc'])
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'rho_0', 'r_0', 'mdot', 'lvisc'])
 def test_alpha_disk_positive(parameter):
     d = AlphaDisk()
     d.__setattr__(parameter, 1.)
 
 
-@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0', 'mdot', 'lvisc'])
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'rho_0', 'r_0', 'mdot', 'lvisc'])
 def test_alpha_disk_negative(parameter):
     d = AlphaDisk()
     if parameter in ['p', 'beta']:
@@ -89,7 +138,7 @@ def test_alpha_disk_negative(parameter):
         assert exc.value.args[0] == parameter + ' should be positive'
 
 
-@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0', 'mdot', 'lvisc'])
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'rho_0', 'r_0', 'mdot', 'lvisc'])
 def test_alpha_disk_optthin(parameter):
     d = AlphaDisk()
     if parameter in ['rmin', 'rmax']:
@@ -100,7 +149,7 @@ def test_alpha_disk_optthin(parameter):
         assert exc.value.args[0] == parameter + ' should be a scalar value'
 
 
-@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0', 'mdot', 'lvisc'])
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'rho_0', 'r_0', 'mdot', 'lvisc'])
 def test_alpha_disk_invalid1(parameter):
     d = AlphaDisk()
     with pytest.raises(ValueError) as exc:
@@ -111,7 +160,7 @@ def test_alpha_disk_invalid1(parameter):
         assert exc.value.args[0] == parameter + ' should be a numerical value'
 
 
-@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'r_0', 'mdot', 'lvisc'])
+@pytest.mark.parametrize(('parameter'), ['mass', 'rmin', 'rmax', 'p', 'beta', 'h_0', 'rho_0', 'r_0', 'mdot', 'lvisc'])
 def test_alpha_disk_invalid2(parameter):
     d = AlphaDisk()
     with pytest.raises(ValueError) as exc:
@@ -121,6 +170,66 @@ def test_alpha_disk_invalid2(parameter):
     else:
         assert exc.value.args[0] == parameter + ' should be a scalar value'
 
+
+def test_alpha_disk_mass_swap1():
+    e = AlphaDisk()
+    e.mass = 1.
+    assert e._rho_0 is None and e._mass is not None
+    e.rho_0 = 1.
+    assert e._rho_0 is not None and e._mass is None
+    e.mass = 1.
+    assert e._rho_0 is None and e._mass is not None
+
+
+def test_alpha_disk_mass_swap2():
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 1.
+    e.star.radius = 1.
+    e.rmin = 1.
+    e.rmax = 10.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.mass = 0.
+    e.lvisc = 0.
+    assert e.rho_0 == 0.
+
+
+def test_alpha_disk_mass_swap3():
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 1.
+    e.star.radius = 1.
+    e.rmin = 1.
+    e.rmax = 10.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.rho_0 = 0.
+    e.lvisc = 0.
+    assert e.mass == 0.
+
+
+def test_alpha_disk_mass_swap_invertible():
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 1.
+    e.star.radius = 1.
+    e.rmin = 1.
+    e.rmax = 10.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.lvisc = 0.
+    e.mass = 4.792849
+    rho_0 = e.rho_0
+    e.mass = 0.
+    e.rho_0 = rho_0
+    assert e.mass == 4.792849
 
 def test_alpha_disk_swap1():
     e = AlphaDisk()

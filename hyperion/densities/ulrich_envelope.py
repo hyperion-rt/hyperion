@@ -145,9 +145,9 @@ class UlrichEnvelope(Envelope):
         # Envelope Infall
         if mdot is not None and rho_0 is not None:
             raise Exception("Cannot specify both mdot and rho_0")
-
-        self.mdot = mdot
-        self.rho_0 = rho_0
+        else:
+            self.mdot = mdot
+            self.rho_0 = rho_0
 
         # Central star
         self.star = star

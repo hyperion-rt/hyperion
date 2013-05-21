@@ -298,11 +298,13 @@ def test_complete_spherical():
 
     m = AnalyticalYSOModel()
 
-    m.star.radius = 1.
+    m.star.radius = 0.01
     m.star.temperature = 1000.
     m.star.luminosity = 1.
+    m.star.mass = 1.
 
     d = m.add_alpha_disk()
+    d.mass = 0.001
     d.rmin = 0.1
     d.rmax = 10.
     d.r_0 = 10.
@@ -313,6 +315,7 @@ def test_complete_spherical():
     d.dust = get_test_dust()
 
     d = m.add_flared_disk()
+    d.mass = 0.001
     d.rmin = 0.1
     d.rmax = 10.
     d.r_0 = 10.
@@ -367,11 +370,13 @@ def test_complete_cylindrical():
 
     m = AnalyticalYSOModel()
 
-    m.star.radius = 1.
+    m.star.radius = 0.01
     m.star.temperature = 1000.
     m.star.luminosity = 1.
+    m.star.mass = 1.
 
     d = m.add_alpha_disk()
+    d.mass = 0.001
     d.rmin = 0.1
     d.rmax = 10.
     d.r_0 = 10.
@@ -382,6 +387,7 @@ def test_complete_cylindrical():
     d.dust = get_test_dust()
 
     d = m.add_flared_disk()
+    d.mass = 0.001
     d.rmin = 0.1
     d.rmax = 10.
     d.r_0 = 10.
