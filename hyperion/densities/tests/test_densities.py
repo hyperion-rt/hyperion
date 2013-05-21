@@ -231,6 +231,7 @@ def test_alpha_disk_mass_swap_invertible():
     e.rho_0 = rho_0
     assert e.mass == 4.792849
 
+
 def test_alpha_disk_swap1():
     e = AlphaDisk()
     e.mdot = 1.
