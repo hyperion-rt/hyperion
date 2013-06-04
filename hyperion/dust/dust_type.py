@@ -11,7 +11,7 @@ from ..version import __version__
 from ..util.constants import c
 from ..util.functions import FreezableClass
 from ..util.interpolate import interp1d_fast_loglog
-from ..util.logger import logger
+from astropy import log as logger
 
 from .optical_properties import OpticalProperties
 from .emissivities import Emissivities

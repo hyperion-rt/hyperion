@@ -7,7 +7,7 @@ from ..util.functions import FreezableClass
 from ..util.convenience import OptThinRadius
 from ..util.integrate import integrate_powerlaw
 from ..dust import SphericalDust
-from ..util.logger import logger
+from astropy import log as logger
 from ..util.validator import validate_scalar
 
 

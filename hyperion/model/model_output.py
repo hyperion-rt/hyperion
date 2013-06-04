@@ -9,7 +9,7 @@ import numpy as np
 from ..util.constants import c, pi
 from ..util.functions import FreezableClass
 from ..dust import SphericalDust
-from ..util.logger import logger
+from astropy import log as logger
 from ..util.decorator import decorator
 from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid
 

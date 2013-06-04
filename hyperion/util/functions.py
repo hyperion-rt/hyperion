@@ -11,7 +11,7 @@ import h5py
 import numpy as np
 
 from .constants import h, c, k
-from .logger import logger
+from astropy import log as logger
 
 TMPDIR = tempfile.mkdtemp()
 

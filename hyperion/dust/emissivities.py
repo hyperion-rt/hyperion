@@ -10,7 +10,7 @@ from ..util.interpolate import interp1d_fast_loglog
 from ..util.functions import B_nu, FreezableClass, nu_common, \
                                     planck_nu_range, bool2str, is_numpy_array, monotonically_increasing
 from ..util.constants import sigma
-from ..util.logger import logger
+from astropy import log as logger
 
 
 class Emissivities(FreezableClass):

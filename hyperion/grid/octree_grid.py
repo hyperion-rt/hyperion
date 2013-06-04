@@ -8,7 +8,7 @@ import h5py
 import numpy as np
 
 from ..util.functions import FreezableClass, is_numpy_array, link_or_copy
-from ..util.logger import logger
+from astropy import log as logger
 from .grid_helpers import single_grid_dims
 
 

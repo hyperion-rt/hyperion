@@ -10,7 +10,7 @@ import numpy as np
 
 from ..util.meshgrid import meshgrid_nd
 from ..util.functions import FreezableClass, link_or_copy
-from ..util.logger import logger
+from astropy import log as logger
 from .grid_helpers import single_grid_dims
 
 

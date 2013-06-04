@@ -11,7 +11,7 @@ from ..util.interpolate import interp1d_fast, interp1d_fast_loglog, \
 from ..util.functions import extrap1d_log10, B_nu, FreezableClass, \
                                     nu_common, planck_nu_range, is_numpy_array, monotonically_increasing
 from ..util.constants import c, sigma
-from ..util.logger import logger
+from astropy import log as logger
 
 
 class OpticalProperties(FreezableClass):

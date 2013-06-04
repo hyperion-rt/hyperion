@@ -11,7 +11,7 @@ from ..util.constants import pi, sigma, c, G
 from ..sources import SphericalSource, SpotSource
 from ..util.functions import FreezableClass
 from ..util.convenience import OptThinRadius
-from ..util.logger import logger
+from astropy import log as logger
 
 
 def _min_none(*args):

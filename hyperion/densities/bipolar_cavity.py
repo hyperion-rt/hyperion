@@ -6,7 +6,7 @@ from ..util.functions import FreezableClass
 from ..dust import SphericalDust
 from ..densities.envelope import Envelope
 from ..util.validator import validate_scalar
-from ..util.logger import logger
+from astropy import log as logger
 
 
 class BipolarCavity(FreezableClass):

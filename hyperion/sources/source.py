@@ -9,7 +9,7 @@ from ..util.functions import B_nu, random_id, FreezableClass, \
                              is_numpy_array, bool2str, monotonically_increasing
 from ..util.integrate import integrate_loglog
 from ..util.validator import validate_scalar
-from ..util.logger import logger
+from astropy import log as logger
 
 
 class Source(FreezableClass):

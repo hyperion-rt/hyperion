@@ -16,7 +16,7 @@ from ..conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from ..util.constants import c
 from ..util.functions import FreezableClass, link_or_copy, is_numpy_array, bool2str
 from ..dust import SphericalDust
-from ..util.logger import logger
+from astropy import log as logger
 from ..util.validator import validate_scalar
 
 from .helpers import find_last_iteration

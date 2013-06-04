@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from ..util.logger import logger
+from astropy import log as logger
 from ..grid.amr_grid import Grid, Level, AMRGrid
 
 

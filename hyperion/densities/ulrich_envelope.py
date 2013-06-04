@@ -7,7 +7,7 @@ from ..densities.envelope import Envelope
 from ..densities.bipolar_cavity import BipolarCavity
 from ..util.convenience import OptThinRadius
 from ..dust import SphericalDust
-from ..util.logger import logger
+from astropy import log as logger
 from ..util.validator import validate_scalar
 from ..grid import SphericalPolarGrid
 
