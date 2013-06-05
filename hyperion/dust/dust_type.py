@@ -270,11 +270,13 @@ class SphericalDust(FreezableClass):
 
             # Read in dust table set
             dt = h5py.File(filename, 'r')
+            close = True
 
         else:
 
             # Read in dust table set
             dt = filename
+            close = False
 
         # Check version and type
         if dt.attrs['version'] != 1:
@@ -294,6 +296,10 @@ class SphericalDust(FreezableClass):
 
         # Read in emissivities
         self.emissivities.from_hdf5_group(dt)
+
+        # Close file object if needed
+        if close:
+            dt.close()
 
 
 class IsotropicDust(SphericalDust):
