@@ -807,7 +807,7 @@ class AnalyticalYSOModel(Model):
                 # Find the density of the ambient medium
                 density_amb = ambient.density(self.grid)
 
-                if self.grid.n_dust > 0:
+                if self.grid.n_dust is not None and self.grid.n_dust > 0:
 
                     # Find total density in other components
                     shape = list(self.grid.shape)
