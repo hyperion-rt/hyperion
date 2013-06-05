@@ -53,6 +53,12 @@ class Star(FreezableClass):
                 self.sources[source].__setattr__(attribute, value)
         FreezableClass.__setattr__(self, attribute, value)
 
+    def __getattr__(self, attribute):
+        if attribute in ['luminosity', 'temperature', 'spectrum', 'radius', 'limb']:
+            return getattr(self.sources['star'], attribute)
+        else:
+            return FreezableClass.__getattr__(self, attribute)
+
     def total_luminosity(self):
         "Return the total luminosity of the star, including accretion"
         ltot = 0.

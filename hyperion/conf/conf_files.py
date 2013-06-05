@@ -162,6 +162,9 @@ class RunConf(object):
         if self.n_iter == 0:
             if initial is not None:
                 raise Exception("[n_photons] initial should not be set since no initial interations are being computed")
+            else:
+                if 'initial' in self.n_photons:
+                    del self.n_photons['initial']
         else:
             if initial is None:
                 raise Exception("[n_photons] initial should be set since the initial iterations are being computed")
@@ -229,10 +232,10 @@ class RunConf(object):
             raise Exception("Photon numbers not set")
 
         if self.n_iter == 0:
-            if 'initial' in self.n_photons:
+            if 'initial' in self.n_photons and self.n_photons['initial'] is not None:
                 raise Exception("[n_photons] initial should not be set since no initial interations are being computed")
         else:
-            if 'initial' in self.n_photons:
+            if 'initial' in self.n_photons and self.n_photons['initial'] is not None:
                 group.attrs['n_initial_photons'] = self.n_photons['initial']
             else:
                 raise Exception("[n_photons] initial should be set since the initial iterations are being computed")
