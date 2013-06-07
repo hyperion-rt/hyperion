@@ -202,7 +202,7 @@ class SphericalDust(FreezableClass):
     def _write_dust_sublimation(self, group):
         group.attrs['sublimation_mode'] = np.string_(self.sublimation_mode)
         if self.sublimation_mode in ['slow', 'fast', 'cap']:
-            group.attrs['sublimation_specific_energy'] = np.string_(self.sublimation_energy)
+            group.attrs['sublimation_specific_energy'] = self.sublimation_energy
 
     def write(self, filename, compression=True):
         '''
