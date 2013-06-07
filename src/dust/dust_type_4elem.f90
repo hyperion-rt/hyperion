@@ -188,14 +188,11 @@ contains
     allocate(d%P4_cdf(size(d%P4,1), size(d%P4,2)))
 
     ! Find cumulative scattering matrix elements
-    ! TODO: can be optimized by doing a running integral
     do j=1,d%n_nu
-       do i=1,d%n_mu
-          d%P1_cdf(i,j) = integral(d%mu, d%P1(:,j), d%mu(1), d%mu(i))
-          d%P2_cdf(i,j) = integral(d%mu, d%P2(:,j), d%mu(1), d%mu(i))
-          d%P3_cdf(i,j) = integral(d%mu, d%P3(:,j), d%mu(1), d%mu(i))
-          d%P4_cdf(i,j) = integral(d%mu, d%P4(:,j), d%mu(1), d%mu(i))
-       end do
+       d%P1_cdf(:,j) = cumulative_integral(d%mu, d%P1(:,j))
+       d%P2_cdf(:,j) = cumulative_integral(d%mu, d%P2(:,j))
+       d%P3_cdf(:,j) = cumulative_integral(d%mu, d%P3(:,j))
+       d%P4_cdf(:,j) = cumulative_integral(d%mu, d%P4(:,j))
        if(.not.all(d%P1_cdf(:,j)==0.)) d%P1_cdf(:,j) = d%P1_cdf(:,j) / d%P1_cdf(d%n_mu, j)
        if(.not.all(d%P2_cdf(:,j)==0.)) d%P2_cdf(:,j) = d%P2_cdf(:,j) / d%P2_cdf(d%n_mu, j)
        if(.not.all(d%P3_cdf(:,j)==0.)) d%P3_cdf(:,j) = d%P3_cdf(:,j) / d%P3_cdf(d%n_mu, j)
