@@ -410,7 +410,8 @@ class AnalyticalYSOModel(Model):
 
         return rmin, rmax
 
-    def set_cylindrical_polar_grid_auto(self, n_w, n_z, n_phi, wmax=None, zmax=None):
+    def set_cylindrical_polar_grid_auto(self, n_w, n_z, n_phi,
+                                        wmax=None, zmax=None):
         '''
         Set the grid to be cylindrical polar with automated resolution.
 
@@ -428,9 +429,12 @@ class AnalyticalYSOModel(Model):
             not specified, this is set to the maximum cylindrical radius of
             the dust geometry.
         '''
-        self.grid = {'grid_type': 'cylindrical', 'n1': n_w, 'n2': n_z, 'n3': n_phi, 'rmax': wmax, 'zmax': zmax}
+        self.grid = {'grid_type': 'cylindrical',
+                     'n1': n_w, 'n2': n_z, 'n3': n_phi,
+                     'rmax': wmax, 'zmax': zmax}
 
-    def set_spherical_polar_grid_auto(self, n_r, n_theta, n_phi, rmax=None):
+    def set_spherical_polar_grid_auto(self, n_r, n_theta, n_phi,
+                                      rmax=None):
         '''
         Set the grid to be spherical polar with automated resolution.
 
@@ -447,12 +451,16 @@ class AnalyticalYSOModel(Model):
             than the disk radius, otherwise the disk will be truncated with
             a spherical edge.
         '''
-        self.grid = {'grid_type': 'spherical', 'n1': n_r, 'n2': n_theta, 'n3': n_phi, 'rmax': rmax}
+        self.grid = {'grid_type': 'spherical',
+                     'n1': n_r, 'n2': n_theta, 'n3': n_phi,
+                     'rmax': rmax}
 
-    def _set_polar_grid_auto(self, n1=None, n2=None, n3=None, grid_type=None, zmax=None, rmax=None):
+    def _set_polar_grid_auto(self, n1=None, n2=None, n3=None, grid_type=None,
+                             zmax=None, rmax=None):
 
         if self.star.radius is None:
-            raise Exception("The central source radius need to be defined before the grid can be set up")
+            raise Exception("The central source radius need to be defined "
+                            "before the grid can be set up")
 
         if grid_type is 'spherical':
             n_r, n_theta, n_phi = n1, n2, n3
@@ -576,7 +584,8 @@ class AnalyticalYSOModel(Model):
 
     # ACCRETION
 
-    def setup_magnetospheric_accretion(self, mdot, rtrunc, fspot, xwav_min=0.001, xwav_max=0.01):
+    def setup_magnetospheric_accretion(self, mdot, rtrunc, fspot,
+                                       xwav_min=0.001, xwav_max=0.01):
         '''
         Set up the model for magnetospheric accretion
 
@@ -616,7 +625,8 @@ class AnalyticalYSOModel(Model):
         tshock = teff * (1 + fluxratio) ** 0.25  # Kelvin
 
         # Set the hot spot source
-        self.star.sources['uv'] = SphericalSource(name='uv', radius=self.star.radius)
+        self.star.sources['uv'] = SphericalSource(name='uv',
+                                                  radius=self.star.radius)
         self.star.sources['uv'].luminosity = lshock / 2. + lstar * fspot
         self.star.sources['uv'].temperature = tshock
 
@@ -626,7 +636,8 @@ class AnalyticalYSOModel(Model):
         fnu = np.repeat(1., nu.shape)
 
         # Set the X-ray source
-        self.star.sources['xray'] = SphericalSource(name='xray', radius=self.star.radius)
+        self.star.sources['xray'] = SphericalSource(name='xray',
+                                                    radius=self.star.radius)
         self.star.sources['xray'].luminosity = lshock / 2.
         self.star.sources['xray'].spectrum = (nu, fnu)
 
@@ -694,11 +705,14 @@ class AnalyticalYSOModel(Model):
         for i, envelope in enumerate(self.envelopes):
 
             if envelope.rmin >= envelope.rmax:
-                logger.warn("Envelope rmin >= rmax, ignoring density contribution")
+                logger.warn("Envelope rmin >= rmax, "
+                            "ignoring density contribution")
             elif isinstance(envelope, UlrichEnvelope) and envelope.rho_0 == 0.:
-                logger.warn("Ulrich envelope has zero density everywhere, ignoring density contribution")
+                logger.warn("Ulrich envelope has zero density everywhere, "
+                            "ignoring density contribution")
             elif isinstance(envelope, PowerLawEnvelope) and envelope.mass == 0.:
-                logger.warn("Power-law envelope has zero density everywhere, ignoring density contribution")
+                logger.warn("Power-law envelope has zero density everywhere, "
+                            "ignoring density contribution")
             else:
 
                 if not envelope.dust:
@@ -708,13 +722,16 @@ class AnalyticalYSOModel(Model):
 
                 if envelope.cavity is not None:
                     if envelope.cavity.theta_0 == 0.:
-                        logger.warn("Cavity opening angle is zero, ignoring density contribution")
+                        logger.warn("Cavity opening angle is zero, "
+                                    "ignoring density contribution")
                     elif envelope.cavity.rho_0 == 0.:
-                        logger.warn("Cavity density is zero, ignoring density contribution")
+                        logger.warn("Cavity density is zero, "
+                                    "ignoring density contribution")
                     else:
                         if not envelope.cavity.dust:
                             raise Exception("Cavity dust not set")
-                        m.add_density_grid(envelope.cavity.density(m.grid), envelope.cavity.dust,
+                        m.add_density_grid(envelope.cavity.density(m.grid),
+                                           envelope.cavity.dust,
                                            merge_if_possible=merge_if_possible)
 
         # AMBIENT MEDIUM
@@ -722,7 +739,8 @@ class AnalyticalYSOModel(Model):
         if self.ambient is not None:
 
             if self.ambient.density == 0.:
-                logger.warn("Ambient medium has zero density, ignoring density contribution")
+                logger.warn("Ambient medium has zero density, "
+                            "ignoring density contribution")
             else:
 
                 ambient = self.ambient
@@ -768,11 +786,14 @@ class AnalyticalYSOModel(Model):
 
             if isinstance(disk, AlphaDisk):
                 if disk.rmin >= disk.rmax:
-                    logger.warn("Disk rmin >= rmax, ignoring accretion luminosity")
+                    logger.warn("Disk rmin >= rmax, "
+                                "ignoring accretion luminosity")
                 elif disk.mass == 0.:
-                    logger.warn("Disk mass is zero, ignoring accretion luminosity")
+                    logger.warn("Disk mass is zero, "
+                                "ignoring accretion luminosity")
                 elif disk.lvisc == 0.:
-                    logger.warn("Disk viscous luminosity is zero, ignoring accretion luminosity")
+                    logger.warn("Disk viscous luminosity is zero, "
+                                "ignoring accretion luminosity")
                 else:
                     m.add_map_source(luminosity=disk.lvisc, map=disk.accretion_luminosity(m.grid), name='accdisk%i' % i)
 
