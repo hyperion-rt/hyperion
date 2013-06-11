@@ -18,6 +18,14 @@ TMPDIR = tempfile.mkdtemp()
 MAX_FLOAT = np.log(np.finfo('d').max)
 
 
+def random_id(length=32):
+    return ''.join(random.sample(string.ascii_letters + string.digits, length))
+
+
+def virtual_file():
+    return h5py.File(random_id(), driver='core', backing_store=False)
+
+
 def str2bool(value):
     return value.lower()[0:1].decode('ascii') == 'y'
 
@@ -189,10 +197,6 @@ def filename2hdf5(filename):
         raise Exception("Unknown extension: %s" % ext)
 
 
-def random_id(length=32):
-    return ''.join(random.sample(string.ascii_letters + string.digits, length))
-
-
 def random_filename():
     return os.path.join(TMPDIR, random_id())
 
@@ -240,7 +244,6 @@ def monotonically_increasing(array):
 try:
     asstr = np.compat.asstr
 except AttributeError:  # For Numpy 1.4.1
-    import sys
     if sys.version_info[0] >= 3:
         def asstr(s):
             if isinstance(s, bytes):

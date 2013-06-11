@@ -10,20 +10,9 @@ from ..densities import FlaredDisk, AlphaDisk, PowerLawEnvelope, UlrichEnvelope,
 from ..util.interpolate import interp1d_fast_loglog
 from ..util.constants import pi, sigma, c, G
 from ..sources import SphericalSource, SpotSource
-from ..util.functions import FreezableClass
+from ..util.functions import FreezableClass, virtual_file
 from ..grid import SphericalPolarGrid, CylindricalPolarGrid
 from astropy import log as logger
-
-
-def random_id(length=32):
-    import random
-    import string
-    return ''.join(random.sample(string.ascii_letters + string.digits, length))
-
-
-def virtual_file():
-    import h5py
-    return h5py.File(random_id(), driver='core', backing_store=False)
 
 
 def _min_none(*args):

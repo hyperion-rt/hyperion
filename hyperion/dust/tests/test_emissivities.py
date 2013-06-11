@@ -1,22 +1,11 @@
 from __future__ import print_function, division
 
-import random
-import string
-
-import h5py
 from astropy.tests.helper import pytest
 import numpy as np
 
 from ..optical_properties import OpticalProperties
 from ..emissivities import Emissivities
-
-
-def random_id(length=32):
-    return ''.join(random.sample(string.ascii_letters + string.digits, length))
-
-
-def virtual_file():
-    return h5py.File(random_id(), driver='core', backing_store=False)
+from ...util.functions import virtual_file
 
 
 def test_init():

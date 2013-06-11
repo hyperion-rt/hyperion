@@ -1,9 +1,5 @@
 from __future__ import print_function, division
 
-import string
-import random
-
-import h5py
 import numpy as np
 from numpy.testing import assert_equal
 from astropy.tests.helper import pytest
@@ -12,14 +8,7 @@ from .. import (Source, PointSource, SpotSource, SphericalSource,
                 ExternalSphericalSource, ExternalBoxSource, MapSource,
                 PlaneParallelSource, read_source)
 from ...grid import CartesianGrid
-
-
-def random_id(length=32):
-    return ''.join(random.sample(string.ascii_letters + string.digits, length))
-
-
-def virtual_file():
-    return h5py.File(random_id(), driver='core', backing_store=False)
+from ...util.functions import virtual_file
 
 
 def test_io_source_temperature():

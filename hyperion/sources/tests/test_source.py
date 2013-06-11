@@ -1,9 +1,5 @@
 from __future__ import print_function, division
 
-import string
-import random
-
-import h5py
 from astropy.tests.helper import pytest
 import numpy as np
 from astropy.table import Table, Column
@@ -14,16 +10,10 @@ from ...grid import CartesianGrid, \
                     SphericalPolarGrid, \
                     AMRGrid, \
                     OctreeGrid
+from ...util.functions import virtual_file
 
 ALL_SOURCES = [Source, PointSource, SpotSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource]
 
-
-def random_id(length=32):
-    return ''.join(random.sample(string.ascii_letters + string.digits, length))
-
-
-def virtual_file():
-    return h5py.File(random_id(), driver='core', backing_store=False)
 
 # LUMINOSITY
 

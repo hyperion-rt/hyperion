@@ -23,7 +23,6 @@ class BipolarCavity(FreezableClass):
     instantiated, the parameters for the density structure can be set via
     attributes::
 
-        >>> from hyperion.util.constants import msun, au, pc
         >>> cavity = BipolarCavity()
         >>> cavity.theta_0 = 10.
         >>> cavity.power = 0.

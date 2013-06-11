@@ -1,21 +1,10 @@
 from __future__ import print_function, division
 
-import string
-import random
-
-import h5py
 from numpy.testing import assert_equal
 from astropy.tests.helper import pytest
 
 from .. import Model
-
-
-def random_id(length=32):
-    return ''.join(random.sample(string.ascii_letters + string.digits, length))
-
-
-def virtual_file():
-    return h5py.File(random_id(), driver='core', backing_store=False)
+from ...util.functions import virtual_file
 
 
 @pytest.mark.parametrize(('value'), [True, False])
