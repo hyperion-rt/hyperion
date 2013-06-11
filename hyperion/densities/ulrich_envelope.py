@@ -163,7 +163,10 @@ class UlrichEnvelope(Envelope):
     @property
     def rmin(self):
         '''inner radius (cm)'''
-        return self._rmin
+        if isinstance(self._rmin, OptThinRadius):
+            return self._rmin.evaluate(self.star, self.dust)
+        else:
+            return self._rmin
 
     @rmin.setter
     def rmin(self, value):
@@ -185,7 +188,10 @@ class UlrichEnvelope(Envelope):
     @property
     def rmax(self):
         '''outer radius (cm)'''
-        return self._rmax
+        if isinstance(self._rmax, OptThinRadius):
+            return self._rmax.evaluate(self.star, self.dust)
+        else:
+            return self._rmax
 
     @rmax.setter
     def rmax(self, value):
@@ -418,15 +424,15 @@ class UlrichEnvelope(Envelope):
         if gamma_0 < 1.:
 
             rho[:] = self.rho_0 * self.rc \
-                     * (np.log((np.sqrt(gamma_1) + 1) / (1. - np.sqrt(gamma_1))) \
-                     - np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0))))
+                * (np.log((np.sqrt(gamma_1) + 1) / (1. - np.sqrt(gamma_1)))
+                   - np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0))))
 
             rho[gamma_1 >= 1.] = np.inf
 
         elif gamma_0 > 1:
 
             rho[:] = self.rho_0 * self.rc \
-                   * (np.log((np.sqrt(2. * gamma_1 - 1.) - 1.) / (np.sqrt(2. * gamma_1 - 1.) + 1.)) \
+                * (np.log((np.sqrt(2. * gamma_1 - 1.) - 1.) / (np.sqrt(2. * gamma_1 - 1.) + 1.))
                    - np.log((np.sqrt(2. * gamma_0 - 1.) - 1.) / (np.sqrt(2. * gamma_0 - 1.) + 1.)))
 
         else:

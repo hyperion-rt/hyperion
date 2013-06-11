@@ -118,7 +118,7 @@ class BipolarCavity(FreezableClass):
 
     @cap_to_envelope_density.setter
     def cap_to_envelope_density(self, value):
-        if type(value) != bool:
+        if not isinstance(value, bool):
             raise ValueError("cap_to_envelope_density should be a boolean")
         self._cap_to_envelope_density = value
 

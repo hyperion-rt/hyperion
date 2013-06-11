@@ -11,8 +11,19 @@ from ..util.interpolate import interp1d_fast_loglog
 from ..util.constants import pi, sigma, c, G
 from ..sources import SphericalSource, SpotSource
 from ..util.functions import FreezableClass
-from ..util.convenience import OptThinRadius
+from ..grid import SphericalPolarGrid, CylindricalPolarGrid
 from astropy import log as logger
+
+
+def random_id(length=32):
+    import random
+    import string
+    return ''.join(random.sample(string.ascii_letters + string.digits, length))
+
+
+def virtual_file():
+    import h5py
+    return h5py.File(random_id(), driver='core', backing_store=False)
 
 
 def _min_none(*args):
@@ -108,11 +119,6 @@ class Star(FreezableClass):
 
         return nu_common, fnu_total
 
-    def _finalize(self):
-        for source in self.sources:
-            self.sources[source]._finalize()
-        FreezableClass._finalize(self)
-
 
 class AnalyticalYSOModel(Model):
 
@@ -130,17 +136,11 @@ class AnalyticalYSOModel(Model):
     def add_density_grid(self, *args, **kwargs):
         raise NotImplementedError("add_density_grid cannot be used for AnalyticalYSOModel")
 
-    def use_quantities(self, filename, quantities=['density', 'specific_energy'],
-                       use_minimum_specific_energy=True, use_dust=True):
+    def use_quantities(self, *args, **kwargs):
+        raise NotImplementedError("use_quantities cannot be used for AnalyticalYSOModel")
 
-        if 'density' in quantities:
-            raise NotImplementedError("Cannot use previous density in AnalyticalYSOModel. If you want to use just the previous specific_energy, specify quantities=['specific_energy'].")
-
-        Model.use_quantities(self, filename, quantities=quantities,
-                             use_minimum_specific_energy=use_minimum_specific_energy,
-                             use_dust=use_dust)
-
-    use_quantities.__doc__ = Model.use_quantities.__doc__
+    def use_geometry(self, *args, **kwargs):
+        raise NotImplementedError("use_geometry cannot be used for AnalyticalYSOModel")
 
     # DENSITY COMPONENTS
 
@@ -181,6 +181,7 @@ class AnalyticalYSOModel(Model):
         if self.ambient is not None:
             raise Exception("Ambient medium already present")
         ambient = AmbientMedium()
+        ambient.star = self.star
         self.ambient = ambient
         return ambient
 
@@ -210,6 +211,7 @@ class AnalyticalYSOModel(Model):
         to see which parameters can be set.
         '''
         disk = FlaredDisk()
+        disk.star = self.star
         self.disks.append(disk)
         return disk
 
@@ -267,6 +269,7 @@ class AnalyticalYSOModel(Model):
 
         for i, size in enumerate(sizes):
             disk = deepcopy(reference_disk)
+            disk.star = self.star
             disk.h_0 *= (size / reference_size) ** (-eta)
             disk.dust = dust_files[i]
             self.disks.append(disk)
@@ -329,6 +332,7 @@ class AnalyticalYSOModel(Model):
         to see which parameters can be set.
         '''
         envelope = PowerLawEnvelope()
+        envelope.star = self.star
         self.envelopes.append(envelope)
         return envelope
 
@@ -435,7 +439,7 @@ class AnalyticalYSOModel(Model):
             not specified, this is set to the maximum cylindrical radius of
             the dust geometry.
         '''
-        self._set_polar_grid_auto(n_w, n_z, n_phi, 'cylindrical', rmax=wmax, zmax=zmax)
+        self.grid = {'grid_type': 'cylindrical', 'n1': n_w, 'n2': n_z, 'n3': n_phi, 'rmax': wmax, 'zmax': zmax}
 
     def set_spherical_polar_grid_auto(self, n_r, n_theta, n_phi, rmax=None):
         '''
@@ -454,12 +458,9 @@ class AnalyticalYSOModel(Model):
             than the disk radius, otherwise the disk will be truncated with
             a spherical edge.
         '''
-        self._set_polar_grid_auto(n_r, n_theta, n_phi, 'spherical', rmax=rmax)
+        self.grid = {'grid_type': 'spherical', 'n1': n_r, 'n2': n_theta, 'n3': n_phi, 'rmax': rmax}
 
-    def _set_polar_grid_auto(self, n1, n2, n3, grid_type, zmax=None, rmax=None):
-
-        self.star._finalize()
-        self.evaluate_optically_thin_radii()
+    def _set_polar_grid_auto(self, n1=None, n2=None, n3=None, grid_type=None, zmax=None, rmax=None):
 
         if self.star.radius is None:
             raise Exception("The central source radius need to be defined before the grid can be set up")
@@ -487,6 +488,7 @@ class AnalyticalYSOModel(Model):
                             + [envelope.rmax for envelope in self.envelopes])
             if self.ambient is not None:
                 rmax_values += [self.ambient.rmax]
+            print(rmax_values)
             rmax = _max_none(*rmax_values)
 
         if rmax < rmin:
@@ -579,9 +581,9 @@ class AnalyticalYSOModel(Model):
         p_wall = np.linspace(0., 2. * pi, n_phi + 1)
 
         if grid_type is 'spherical':
-            self.set_spherical_polar_grid(r_wall, t_wall, p_wall)
+            return SphericalPolarGrid(r_wall, t_wall, p_wall)
         else:
-            self.set_cylindrical_polar_grid(r_wall, z_wall, p_wall)
+            return CylindricalPolarGrid(r_wall, z_wall, p_wall)
 
     # ACCRETION
 
@@ -608,16 +610,6 @@ class AnalyticalYSOModel(Model):
         in the disk, add an :class:`~hyperion.densities.AlphaDisk` to the
         model using :meth:`~hyperion.model.AnalyticalYSOModel.add_alpha_disk`
         and set the accretion rate or luminosity accordingly.
-
-        This method should be called once the stellar parameters have been
-        otherwise initialized, and the disk parameters have to be set. This
-        method cannot be called once the grid has been set, since this routine
-        potentially changes the luminosity of the central source, potentially
-        changing the dust sublimation radius.
-
-        Calling this method causes the stellar parameters to be finalized,
-        i.e. once this method has been called, none of the attributes of
-        Model.star can be further modified.
         '''
 
         # For convenience
@@ -652,66 +644,150 @@ class AnalyticalYSOModel(Model):
         # Reduce the total luminosity from the original source
         self.star.sources['star'].luminosity *= 1 - fspot
 
-        # Ensure that stellar parameters can no longer be changed
-        self.star._finalize()
-
-    # RESOLVERS
-
-    def evaluate_optically_thin_radii(self):
-        '''
-        Replace instances of OptThinRadius by the numerical value.
-
-        This method will freeze any radius specified by OptThinRadius to the
-        value assuming the present dust and stellar properties, and will also
-        freeze the attributes (including dust properties) for the component
-        classes and for the central source.
-        '''
-
-        # Freeze the source properties
-        self.star._finalize()
-
-        if not self.star.isfinal():
-            raise Exception("Stellar parameters need to be finalized before resolving radiation-dependent radii")
-        for i, disk in enumerate(self.disks):
-            if isinstance(disk.rmin, OptThinRadius):
-                if disk.dust is None:
-                    raise Exception("Disk %i dust not set" % (i + 1))
-                disk.rmin = disk.rmin.evaluate(self.star, disk.dust)
-            if isinstance(disk.rmax, OptThinRadius):
-                if disk.dust is None:
-                    raise Exception("Disk %i dust not set" % (i + 1))
-                disk.rmax = disk.rmax.evaluate(self.star, disk.dust)
-        for i, envelope in enumerate(self.envelopes):
-            if isinstance(envelope.rmin, OptThinRadius):
-                if envelope.dust is None:
-                    raise Exception("Envelope %i dust not set" % (i + 1))
-                envelope.rmin = envelope.rmin.evaluate(self.star, envelope.dust)
-            if isinstance(envelope.rmax, OptThinRadius):
-                if envelope.dust is None:
-                    raise Exception("Envelope %i dust not set" % (i + 1))
-                envelope.rmax = envelope.rmax.evaluate(self.star, envelope.dust)
-        if self.ambient is not None:
-            if isinstance(self.ambient.rmin, OptThinRadius):
-                if self.ambient.dust is None:
-                    raise Exception("Ambient medium dust not set")
-                self.ambient.rmin = self.ambient.rmin.evaluate(self.star, self.ambient.dust)
-            if isinstance(self.ambient.rmax, OptThinRadius):
-                if self.ambient.dust is None:
-                    raise Exception("Ambient medium dust not set")
-                self.ambient.rmax = self.ambient.rmax.evaluate(self.star, self.ambient.dust)
-
-        # Freeze the component classes
-
-        for disk in self.disks:
-            FreezableClass._finalize(disk)
-
-        for envelope in self.envelopes:
-            FreezableClass._finalize(envelope)
-
-        if self.ambient is not None:
-            FreezableClass._finalize(self.ambient)
-
     # OUTPUT
+
+    def to_model(self, merge_if_possible=True):
+        '''
+        Returns a Model instance of the current model
+
+        The AnalyticalYSOModel class is dynamic in the sense that one can
+        change the parameters relating to the density structure at any time.
+        This method computes the Model instance corresponding to the current
+        density structure and computes the optimal grid.
+
+        Parameters
+        ----------
+        merge_if_possible : bool
+            Whether to merge density arrays that have the same dust type
+        '''
+
+        if self.grid is None:
+            raise Exception("The coordinate grid needs to be defined")
+
+        # Initialize new Model instance
+        m = Model()
+
+        # Set up grid
+        m.grid = self._set_polar_grid_auto(**self.grid)
+
+        # Copy over settings
+        m.name = self.name
+        m.conf = deepcopy(self.conf)
+        m.sources = deepcopy(self.sources)
+        m.binned_output = deepcopy(self.binned_output)
+        m.peeled_output = deepcopy(self.peeled_output)
+
+        m._minimum_temperature = deepcopy(self._minimum_temperature)
+        m._minimum_specific_energy = deepcopy(self._minimum_specific_energy)
+
+        m._monochromatic = self._monochromatic
+        m._frequencies = self._frequencies
+
+        # Easiest way to copy over all settings
+        g = virtual_file()
+        self.write_run_conf(g)
+        m.read_run_conf(g)
+        g.close()
+
+        for i, disk in enumerate(self.disks):
+
+            if disk.rmin >= disk.rmax:
+                logger.warn("Disk rmin >= rmax, ignoring density contribution")
+            elif disk.mass == 0.:
+                logger.warn("Disk mass is zero, ignoring density contribution")
+            else:
+
+                if not disk.dust:
+                    raise Exception("Disk %i dust not set" % (i + 1))
+                m.add_density_grid(disk.density(m.grid), disk.dust,
+                                   merge_if_possible=merge_if_possible)
+
+        for i, envelope in enumerate(self.envelopes):
+
+            if envelope.rmin >= envelope.rmax:
+                logger.warn("Envelope rmin >= rmax, ignoring density contribution")
+            elif isinstance(envelope, UlrichEnvelope) and envelope.rho_0 == 0.:
+                logger.warn("Ulrich envelope has zero density everywhere, ignoring density contribution")
+            elif isinstance(envelope, PowerLawEnvelope) and envelope.mass == 0.:
+                logger.warn("Power-law envelope has zero density everywhere, ignoring density contribution")
+            else:
+
+                if not envelope.dust:
+                    raise Exception("Envelope dust not set")
+                m.add_density_grid(envelope.density(m.grid), envelope.dust,
+                                   merge_if_possible=merge_if_possible)
+
+                if envelope.cavity is not None:
+                    if envelope.cavity.theta_0 == 0.:
+                        logger.warn("Cavity opening angle is zero, ignoring density contribution")
+                    elif envelope.cavity.rho_0 == 0.:
+                        logger.warn("Cavity density is zero, ignoring density contribution")
+                    else:
+                        if not envelope.cavity.dust:
+                            raise Exception("Cavity dust not set")
+                        m.add_density_grid(envelope.cavity.density(m.grid), envelope.cavity.dust,
+                                           merge_if_possible=merge_if_possible)
+
+        # AMBIENT MEDIUM
+
+        if self.ambient is not None:
+
+            if self.ambient.density == 0.:
+                logger.warn("Ambient medium has zero density, ignoring density contribution")
+            else:
+
+                ambient = self.ambient
+
+                if not ambient.dust:
+                    raise Exception("Ambient medium dust not set")
+
+                # Find the density of the ambient medium
+                density_amb = ambient.density(m.grid)
+
+                if m.grid.n_dust is not None and m.grid.n_dust > 0:
+
+                    # Find total density in other components
+                    shape = list(m.grid.shape)
+                    shape.insert(0, m.grid.n_dust)
+                    density_sum = np.sum(np.vstack(m.grid['density'].quantities['density']).reshape(*shape), axis=0)
+
+                    density_amb -= density_sum
+                    density_amb[density_amb < 0.] = 0.
+
+                m.add_density_grid(density_amb, ambient.dust,
+                                   merge_if_possible=merge_if_possible)
+
+        # SOURCES
+
+        # Star
+
+        if self.star.sources['star'].luminosity > 0:
+            if self.star.sources['star'] not in self.sources:
+                m.add_source(self.star.sources['star'])
+
+        # Accretion
+
+        if 'uv' in self.star.sources and self.star.sources['uv'].luminosity > 0.:
+            if self.star.sources['uv'] not in self.sources:
+                m.add_source(self.star.sources['uv'])
+
+        if 'xray' in self.star.sources and self.star.sources['xray'].luminosity > 0.:
+            if self.star.sources['xray'] not in self.sources:
+                m.add_source(self.star.sources['xray'])
+
+        for i, disk in enumerate(self.disks):
+
+            if isinstance(disk, AlphaDisk):
+                if disk.rmin >= disk.rmax:
+                    logger.warn("Disk rmin >= rmax, ignoring accretion luminosity")
+                elif disk.mass == 0.:
+                    logger.warn("Disk mass is zero, ignoring accretion luminosity")
+                elif disk.lvisc == 0.:
+                    logger.warn("Disk viscous luminosity is zero, ignoring accretion luminosity")
+                else:
+                    m.add_map_source(luminosity=disk.lvisc, map=disk.accretion_luminosity(m.grid), name='accdisk%i' % i)
+
+        return m
 
     def write(self, filename=None, compression=True, copy=True,
               absolute_paths=False, wall_dtype=float,
@@ -743,117 +819,14 @@ class AnalyticalYSOModel(Model):
             Whether to merge density arrays that have the same dust type
         '''
 
-        if self.grid is None:
-            raise Exception("The coordinate grid needs to be defined before calling AnalyticalModelYSO.write(...)")
+        self.filename = filename
 
-        if 'density' in self.grid:
-            raise Exception("Density grid has already been set")
+        m = self.to_model(merge_if_possible=merge_if_possible)
 
-        # Ensure that there are no longer any un-evaluated optically thin radii
-        self.evaluate_optically_thin_radii()
-
-        for i, disk in enumerate(self.disks):
-
-            if disk.rmin >= disk.rmax:
-                logger.warn("Disk rmin >= rmax, ignoring density contribution")
-            elif disk.mass == 0.:
-                logger.warn("Disk mass is zero, ignoring density contribution")
-            else:
-
-                if not disk.dust:
-                    raise Exception("Disk %i dust not set" % (i + 1))
-                Model.add_density_grid(self, disk.density(self.grid), disk.dust,
-                                       merge_if_possible=merge_if_possible)
-
-        for i, envelope in enumerate(self.envelopes):
-
-            if envelope.rmin >= envelope.rmax:
-                logger.warn("Envelope rmin >= rmax, ignoring density contribution")
-            elif isinstance(envelope, UlrichEnvelope) and envelope.rho_0 == 0.:
-                logger.warn("Ulrich envelope has zero density everywhere, ignoring density contribution")
-            elif isinstance(envelope, PowerLawEnvelope) and envelope.mass == 0.:
-                logger.warn("Power-law envelope has zero density everywhere, ignoring density contribution")
-            else:
-
-                if not envelope.dust:
-                    raise Exception("Envelope dust not set")
-                Model.add_density_grid(self, envelope.density(self.grid), envelope.dust,
-                                       merge_if_possible=merge_if_possible)
-
-                if envelope.cavity is not None:
-                    if envelope.cavity.theta_0 == 0.:
-                        logger.warn("Cavity opening angle is zero, ignoring density contribution")
-                    elif envelope.cavity.rho_0 == 0.:
-                        logger.warn("Cavity density is zero, ignoring density contribution")
-                    else:
-                        if not envelope.cavity.dust:
-                            raise Exception("Cavity dust not set")
-                        Model.add_density_grid(self, envelope.cavity.density(self.grid), envelope.cavity.dust,
-                                               merge_if_possible=merge_if_possible)
-
-        # AMBIENT MEDIUM
-
-        if self.ambient is not None:
-
-            if self.ambient.density == 0.:
-                logger.warn("Ambient medium has zero density, ignoring density contribution")
-            else:
-
-                ambient = self.ambient
-
-                if not ambient.dust:
-                    raise Exception("Ambient medium dust not set")
-
-                # Find the density of the ambient medium
-                density_amb = ambient.density(self.grid)
-
-                if self.grid.n_dust is not None and self.grid.n_dust > 0:
-
-                    # Find total density in other components
-                    shape = list(self.grid.shape)
-                    shape.insert(0, self.grid.n_dust)
-                    density_sum = np.sum(np.vstack(self.grid['density'].quantities['density']).reshape(*shape), axis=0)
-
-                    density_amb -= density_sum
-                    density_amb[density_amb < 0.] = 0.
-
-                Model.add_density_grid(self, density_amb, ambient.dust,
-                                       merge_if_possible=merge_if_possible)
-
-        # SOURCES
-
-        # Star
-
-        if self.star.sources['star'].luminosity > 0:
-            if self.star.sources['star'] not in self.sources:
-                self.add_source(self.star.sources['star'])
-
-        # Accretion
-
-        if 'uv' in self.star.sources and self.star.sources['uv'].luminosity > 0.:
-            if self.star.sources['uv'] not in self.sources:
-                self.add_source(self.star.sources['uv'])
-
-        if 'xray' in self.star.sources and self.star.sources['xray'].luminosity > 0.:
-            if self.star.sources['xray'] not in self.sources:
-                self.add_source(self.star.sources['xray'])
-
-        for i, disk in enumerate(self.disks):
-
-            if isinstance(disk, AlphaDisk):
-                if disk.rmin >= disk.rmax:
-                    logger.warn("Disk rmin >= rmax, ignoring accretion luminosity")
-                elif disk.mass == 0.:
-                    logger.warn("Disk mass is zero, ignoring accretion luminosity")
-                elif disk.lvisc == 0.:
-                    logger.warn("Disk viscous luminosity is zero, ignoring accretion luminosity")
-                else:
-                    self.add_map_source(luminosity=disk.lvisc, map=disk.accretion_luminosity(self.grid), name='accdisk%i' % i)
-
-        Model.write(self, filename=filename, compression=compression,
-                    copy=copy, absolute_paths=absolute_paths,
-                    wall_dtype=wall_dtype, physics_dtype=physics_dtype,
-                    overwrite=overwrite)
+        m.write(filename=filename, compression=compression,
+                copy=copy, absolute_paths=absolute_paths,
+                wall_dtype=wall_dtype, physics_dtype=physics_dtype,
+                overwrite=overwrite)
 
 
 def hseq_profile(w, z, temperature, mstar, mu=2.279):

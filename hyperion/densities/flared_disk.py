@@ -31,7 +31,7 @@ class FlaredDisk(FreezableClass):
 
     def __init__(self, mass=None, rho_0=None, rmin=None, rmax=None, p=-1,
                  beta=-1.25, h_0=None, r_0=None, cylindrical_inner_rim=True,
-                 cylindrical_outer_rim=True, dust=None):
+                 cylindrical_outer_rim=True, star=None, dust=None):
 
         # Start off by initializing mass and rho_0
         self.mass = None
@@ -54,6 +54,9 @@ class FlaredDisk(FreezableClass):
             self.mass = mass
         elif rho_0 is not None:
             self.rho_0 = rho_0
+
+        # Central star
+        self.star = star
 
         # Dust
         self.dust = dust
@@ -127,7 +130,10 @@ class FlaredDisk(FreezableClass):
     @property
     def rmin(self):
         '''inner radius (cm)'''
-        return self._rmin
+        if isinstance(self._rmin, OptThinRadius):
+            return self._rmin.evaluate(self.star, self.dust)
+        else:
+            return self._rmin
 
     @rmin.setter
     def rmin(self, value):
@@ -138,7 +144,10 @@ class FlaredDisk(FreezableClass):
     @property
     def rmax(self):
         '''outer radius (cm)'''
-        return self._rmax
+        if isinstance(self._rmax, OptThinRadius):
+            return self._rmax.evaluate(self.star, self.dust)
+        else:
+            return self._rmax
 
     @rmax.setter
     def rmax(self, value):
@@ -200,7 +209,7 @@ class FlaredDisk(FreezableClass):
 
     @cylindrical_inner_rim.setter
     def cylindrical_inner_rim(self, value):
-        if type(value) != bool:
+        if not isinstance(value, bool):
             raise ValueError("cylindrical_inner_rim should be a boolean")
         self._cylindrical_inner_rim = value
 
@@ -214,7 +223,7 @@ class FlaredDisk(FreezableClass):
 
     @cylindrical_outer_rim.setter
     def cylindrical_outer_rim(self, value):
-        if type(value) != bool:
+        if not isinstance(value, bool):
             raise ValueError("cylindrical_outer_rim should be a boolean")
         self._cylindrical_outer_rim = value
 

@@ -160,7 +160,10 @@ class AlphaDisk(FreezableClass):
     @property
     def rmin(self):
         '''inner radius (cm)'''
-        return self._rmin
+        if isinstance(self._rmin, OptThinRadius):
+            return self._rmin.evaluate(self.star, self.dust)
+        else:
+            return self._rmin
 
     @rmin.setter
     def rmin(self, value):
@@ -171,7 +174,10 @@ class AlphaDisk(FreezableClass):
     @property
     def rmax(self):
         '''outer radius (cm)'''
-        return self._rmax
+        if isinstance(self._rmax, OptThinRadius):
+            return self._rmax.evaluate(self.star, self.dust)
+        else:
+            return self._rmax
 
     @rmax.setter
     def rmax(self, value):
@@ -233,7 +239,7 @@ class AlphaDisk(FreezableClass):
 
     @cylindrical_inner_rim.setter
     def cylindrical_inner_rim(self, value):
-        if type(value) != bool:
+        if not isinstance(value, bool):
             raise ValueError("cylindrical_inner_rim should be a boolean")
         self._cylindrical_inner_rim = value
 
@@ -247,7 +253,7 @@ class AlphaDisk(FreezableClass):
 
     @cylindrical_outer_rim.setter
     def cylindrical_outer_rim(self, value):
-        if type(value) != bool:
+        if not isinstance(value, bool):
             raise ValueError("cylindrical_outer_rim should be a boolean")
         self._cylindrical_outer_rim = value
 

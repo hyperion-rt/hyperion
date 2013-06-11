@@ -53,7 +53,10 @@ class AmbientMedium(FreezableClass):
     @property
     def rmin(self):
         '''inner radius (cm)'''
-        return self._rmin
+        if isinstance(self._rmin, OptThinRadius):
+            return self._rmin.evaluate(self.star, self.dust)
+        else:
+            return self._rmin
 
     @rmin.setter
     def rmin(self, value):
@@ -64,7 +67,10 @@ class AmbientMedium(FreezableClass):
     @property
     def rmax(self):
         '''outer radius (cm)'''
-        return self._rmax
+        if isinstance(self._rmax, OptThinRadius):
+            return self._rmax.evaluate(self.star, self.dust)
+        else:
+            return self._rmax
 
     @rmax.setter
     def rmax(self, value):
