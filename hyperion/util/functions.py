@@ -18,6 +18,10 @@ TMPDIR = tempfile.mkdtemp()
 MAX_FLOAT = np.log(np.finfo('d').max)
 
 
+def str2bool(value):
+    return value.lower()[0:1].decode('ascii') == 'y'
+
+
 def bool2str(value):
     return np.string_('yes'.encode('utf-8')) if value else np.string_('no'.encode('utf-8'))
 
@@ -64,6 +68,9 @@ class FreezableClass(object):
     _frozen = False
     _final = False
     _attributes = []
+
+    def __init__(self):
+        super(FreezableClass, self).__init__()
 
     def _freeze(self):
         object.__setattr__(self, '_frozen', True)

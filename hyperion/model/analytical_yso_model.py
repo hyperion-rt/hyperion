@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 from copy import deepcopy
+import multiprocessing
 
 import numpy as np
 
@@ -34,6 +35,10 @@ class Star(FreezableClass):
         self.limb = False
         self._freeze()
 
+    @classmethod
+    def read(self, filename):
+        raise Exception("Can only call ``read`` for Model, not AnalyticalYSOModel")
+
     def add_spot(self, *args, **kwargs):
         self.sources['star'].add_spot(SpotSource(*args, **kwargs))
 
@@ -47,6 +52,12 @@ class Star(FreezableClass):
             for source in self.sources:
                 self.sources[source].__setattr__(attribute, value)
         FreezableClass.__setattr__(self, attribute, value)
+
+    def __getattr__(self, attribute):
+        if attribute in ['luminosity', 'temperature', 'spectrum', 'radius', 'limb']:
+            return getattr(self.sources['star'], attribute)
+        else:
+            return FreezableClass.__getattr__(self, attribute)
 
     def total_luminosity(self):
         "Return the total luminosity of the star, including accretion"
@@ -334,8 +345,8 @@ class AnalyticalYSOModel(Model):
     def print_midplane_tau(self, wavelength):
         for i, disk in enumerate(self.disks):
             if disk.mass > 0.:
-                tau = disk.midplane_cumulative_density(np.array([disk.rmax])) \
-                    * disk.dust.interp_chi_wav(wavelength)
+                tau = (disk.midplane_cumulative_density(np.array([disk.rmax]))
+                       * disk.dust.interp_chi_wav(wavelength))
                 print("Disk %i: %.5e" % (i + 1, tau))
 
     def get_midplane_tau(self, r):
@@ -351,23 +362,23 @@ class AnalyticalYSOModel(Model):
             if disk.mass > 0.:
                 if disk.dust is None:
                     raise Exception("Disk %i dust not set" % i)
-                nu_min, nu_max = disk.dust.optical_properties.nu[0], \
-                                 disk.dust.optical_properties.nu[-1]
+                nu_min = disk.dust.optical_properties.nu[0]
+                nu_max = disk.dust.optical_properties.nu[-1]
                 nu, fnu = self.star.total_spectrum(bnu_range=[nu_min, nu_max])
                 if np.any(fnu > 0.):
-                    tau_midplane += disk.midplane_cumulative_density(r) \
-                                  * disk.dust.optical_properties.chi_planck_spectrum(nu, fnu)
+                    tau_midplane += (disk.midplane_cumulative_density(r)
+                                     * disk.dust.optical_properties.chi_planck_spectrum(nu, fnu))
 
         for i, envelope in enumerate(self.envelopes):
             if envelope.exists():
                 if envelope.dust is None:
                     raise Exception("envelope %i dust not set" % i)
-                nu_min, nu_max = envelope.dust.optical_properties.nu[0], \
-                                 envelope.dust.optical_properties.nu[-1]
+                nu_min = envelope.dust.optical_properties.nu[0]
+                nu_max = envelope.dust.optical_properties.nu[-1]
                 nu, fnu = self.star.total_spectrum(bnu_range=[nu_min, nu_max])
                 if np.any(fnu > 0.):
-                    tau_midplane += envelope.midplane_cumulative_density(r) \
-                                  * envelope.dust.optical_properties.chi_planck_spectrum(nu, fnu)
+                    tau_midplane += (envelope.midplane_cumulative_density(r)
+                                     * envelope.dust.optical_properties.chi_planck_spectrum(nu, fnu))
 
         return tau_midplane
 
@@ -391,15 +402,15 @@ class AnalyticalYSOModel(Model):
         if len(self.disks) == 0 and len(self.envelopes) == 0:
             rmin = self.star.radius
         else:
-            rmin_values = [disk.rmin for disk in self.disks] \
-                        + [envelope.rmin for envelope in self.envelopes]
+            rmin_values = ([disk.rmin for disk in self.disks]
+                           + [envelope.rmin for envelope in self.envelopes])
             if self.ambient is not None:
                 rmin_values += [self.ambient.rmin]
             rmin = _min_none(*rmin_values)
 
         rmax_values = [self.star.radius]
-        rmax_values += [disk.rmax for disk in self.disks] \
-                     + [envelope.rmax for envelope in self.envelopes]
+        rmax_values += ([disk.rmax for disk in self.disks]
+                        + [envelope.rmax for envelope in self.envelopes])
         if self.ambient is not None:
             rmax_values += [self.ambient.rmax]
         rmax = _max_none(*rmax_values)
@@ -464,16 +475,16 @@ class AnalyticalYSOModel(Model):
         if len(self.disks) == 0 and len(self.envelopes) == 0:
             rmin = self.star.radius
         else:
-            rmin_values = [disk.rmin for disk in self.disks] \
-                        + [envelope.rmin for envelope in self.envelopes]
+            rmin_values = ([disk.rmin for disk in self.disks]
+                           + [envelope.rmin for envelope in self.envelopes])
             if self.ambient is not None:
                 rmin_values += [self.ambient.rmin]
             rmin = _min_none(*rmin_values)
 
         if not rmax:
             rmax_values = [2. * self.star.radius]
-            rmax_values += [disk.rmax for disk in self.disks] \
-                         + [envelope.rmax for envelope in self.envelopes]
+            rmax_values += ([disk.rmax for disk in self.disks]
+                            + [envelope.rmax for envelope in self.envelopes])
             if self.ambient is not None:
                 rmax_values += [self.ambient.rmax]
             rmax = _max_none(*rmax_values)
@@ -752,7 +763,7 @@ class AnalyticalYSOModel(Model):
                 if not disk.dust:
                     raise Exception("Disk %i dust not set" % (i + 1))
                 Model.add_density_grid(self, disk.density(self.grid), disk.dust,
-                                      merge_if_possible=merge_if_possible)
+                                       merge_if_possible=merge_if_possible)
 
         for i, envelope in enumerate(self.envelopes):
 
@@ -796,7 +807,7 @@ class AnalyticalYSOModel(Model):
                 # Find the density of the ambient medium
                 density_amb = ambient.density(self.grid)
 
-                if self.grid.n_dust > 0:
+                if self.grid.n_dust is not None and self.grid.n_dust > 0:
 
                     # Find total density in other components
                     shape = list(self.grid.shape)
@@ -843,3 +854,170 @@ class AnalyticalYSOModel(Model):
                     copy=copy, absolute_paths=absolute_paths,
                     wall_dtype=wall_dtype, physics_dtype=physics_dtype,
                     overwrite=overwrite)
+
+
+def hseq_profile(w, z, temperature, mstar, mu=2.279):
+    """
+    Compute the new (normalized) density profile
+    corresponding to a given temperature profile
+
+    Parameters
+    ----------
+    w : float
+        The cylindrical radius at which to compute the profile (in cm)
+    z : np.ndarray
+        The z coordinates of the cells at radius w (in cm)
+    temperature : np.ndarray
+        The temperatures in the cells (in K)
+    mstar : float
+        The mass of the star (in g)
+    """
+
+    from hyperion.util.constants import G, m_h, k
+    from ..util.integrate import integrate, integrate_subset
+
+    # Compute the integrand
+    integrand = z / temperature / (w ** 2 + z ** 2) ** 1.5
+
+    # Compute the integral for all cells
+    # TODO - inefficient to compute integral from scratch - optimize
+    i = np.array([integrate_subset(z, integrand, 0., zmax) for zmax in z])
+    i[z < 0] = -i[z < 0]
+
+    # Compute the factor for the integrand
+    factor = G * mstar * mu * m_h / k
+
+    # Compute the profile
+    density = np.exp(-i * factor) / temperature
+
+    # Normalize the density profile
+    density = density / integrate(z, density)
+
+    return density
+
+
+# The mean molecular weight of H2 + He is given by:
+#
+# mu = 4 * (X + 1) / (X + 2)
+#
+# where X is the mass fraction of Helium to Hydrogren. Assuming
+#
+# X = 0.32476319350473615
+#
+# gives:
+#
+# mu = 2.279
+
+
+def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False,
+                           n_processes=multiprocessing.cpu_count(),
+                           overwrite=False):
+    """
+    Run a model with vertical hydrostatic equilibrium.
+
+    .. note:: this is an experimental function that is currently in
+              development. Please use with care!
+
+    The hydrostatic equilibrium condition is only applied to the disk
+    components. The following requirements must be met:
+
+    - The model should be an AnalyticalYSOModel
+    - The model should be defined on a cylindrical polar grid
+    - The stellar mass should be set
+    - The model should include at least one disk
+
+    The dust properties for the model can be specified as dust or dust+gas
+    densities as this does not have an impact on this calculation - however,
+    the hydrostatic equilibrium is computed assuming an H2 + He mix of gas
+    (i.e. mu=2.279). Note that this calculation also ignores the effects of
+    self-gravity in the disk, which might be important for more massive disks.
+
+    Parameters
+    ----------
+    prefix : str
+        The prefix for the output
+    model : `~hyperion.model.analytical_yso_model.AnalyticalYSOModel`
+        The model to run
+    n_iter : int, optional
+        The number of iterations to run the model for
+    mpi : bool, optional
+        Whether to run the model in parallel
+    n_processes : int, optional
+        The number of processes to use if ``mpi`` is ``True``
+    overwrite : bool, optional
+        Whether to overwrite previous files
+    """
+
+    from ..grid import CylindricalPolarGrid
+    from .model_output import ModelOutput
+    from ..util.integrate import integrate
+
+    if not isinstance(model, AnalyticalYSOModel):
+        raise TypeError("Can only run hydrostatic equilibrium for AnalyticalYSOModel instances")
+
+    if not isinstance(model.grid, CylindricalPolarGrid):
+        raise TypeError("Can only run hydrostatic equilibrium for models with cylindrical polar grids")
+
+    if model.star.mass is None:
+        raise ValueError("Stellar mass needs to be defined for calculation of hydrostatic equilibrium")
+
+    if len(model.disks) == 0:
+        raise ValueError("Can only run hydrostatic equilibrium for models with disks")
+    else:
+        n_disks = len(model.disks)
+
+    # Write out initial model
+    model.write(prefix + '_00000.rtin', overwrite=overwrite, merge_if_possible=False)
+
+    # Run the initial model
+    mo = model.run(prefix + '_00000.rtout', overwrite=overwrite,
+                   mpi=mpi, n_processes=n_processes)
+
+    previous = prefix + '_00000.rtout'
+
+    for iteration in range(1, n_iter + 1):
+
+        # Read in output
+        mo = ModelOutput(previous)
+
+        # Extract the quantities
+        g = mo.get_quantities()
+
+        # Get wall positions
+        rw, zw = g.w_wall, g.z_wall
+
+        # Make a 2-d grid of wall positions
+        R, Z = np.meshgrid(rw, zw)
+
+        # Extract density and temperature
+        density = g['density']
+        temperature = g['temperature']
+
+        # TODO: need to find a better way than just assuming the first n
+        # density grids are disks
+
+        for idisk in range(n_disks):
+
+            # Vertically extrapolate temperatures
+            for i in range(len(g.w)):
+                for j in range(len(g.p)):
+                    reset = temperature[idisk].array[j, :, i] < 1.
+                    temperature[idisk].array[j, reset, i] = np.max(temperature[idisk].array[j, :, i])  # shouldn't be max, but will do for now
+
+            # Compute new density
+            for i in range(len(g.w)):
+                for j in range(len(g.p)):
+                    density[idisk].array[j, :, i] = hseq_profile(g.w[i], g.z, temperature[idisk].array[j, :, i], model.star.mass) * integrate(g.z, density[idisk].array[j, :, i])
+
+        # Instantiate new model based on previous
+        m = Model.read(previous)
+
+        # Override the density
+        m.grid['density'] = density
+
+        # Write and run
+        m.write('{0:s}_{1:05d}.rtin'.format(prefix, iteration), overwrite=overwrite)
+        m.run('{0:s}_{1:05d}.rtout'.format(prefix, iteration),
+              overwrite=overwrite, mpi=mpi, n_processes=n_processes)
+
+        previous = '{0:s}_{1:05d}.rtout'.format(prefix, iteration)

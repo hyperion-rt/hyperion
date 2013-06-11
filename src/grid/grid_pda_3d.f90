@@ -36,14 +36,27 @@ contains
     implicit none
     integer,intent(in) :: ic
     integer :: id
-    real(dp) :: s_prev, s
+    real(dp) :: s_prev, s, smin, smax
     do id=1,n_dust
+
        s = specific_energy(ic, id)
-       do
-          s_prev = s
-          s = e_mean(ic) * kappa_planck(id, s)
-          if(difference_ratio(s, s_prev) - 1._dp < 1.e-5_dp) exit
-       end do
+
+       smin = d(id)%specific_energy(1)
+       smax = d(id)%specific_energy(d(id)%n_e)
+
+       if(e_mean(ic) < smin / kappa_planck(id, smin)) then
+          call warn("update_specific_energy", "specific energy in PDA below minimum allowed by dust type - resetting")
+          s = smin
+       else if (e_mean(ic) > smax / kappa_planck(id, smax)) then
+          call warn("update_specific_energy", "specific energy in PDA above maximum allowed by dust type - resetting")
+          s = smax
+       else
+          do
+             s_prev = s
+             s = e_mean(ic) * kappa_planck(id, s)
+             if(difference_ratio(s, s_prev) - 1._dp < 1.e-5_dp) exit
+          end do
+       end if
        specific_energy(ic, id) = s
     end do
   end subroutine update_specific_energy
@@ -81,7 +94,7 @@ contains
     allocate(specific_energy_prev(geo%n_cells, n_dust))
     allocate(do_pda(geo%n_cells))
 
-    do_pda = n_photons < max(30,ceiling(threshold_pda*mean_n_photons)) .and. sum(density, dim=2) > 0.
+    do_pda = n_photons < max(30,ceiling(threshold_pda*mean_n_photons)) .and. sum(density, dim=2) > 0._dp
 
     call check_allowed_pda(do_pda)
 
@@ -172,7 +185,7 @@ contains
 
     integer :: direction, wall
     type(grid_cell) :: curr, next
-    real(dp) :: dtau_ross_curr, dtau_ross_next
+    real(dp) :: dtau_ross_curr, dtau_ross_next, dtau_sum
 
     integer :: ic
     real(dp) :: coefficient
@@ -201,7 +214,13 @@ contains
           dtau_ross_curr = dtau_rosseland(curr, direction)
           dtau_ross_next = dtau_rosseland(next, direction)
 
-          coefficient = 1. / (dtau_ross_curr + dtau_ross_next) / cell_width(curr, direction)
+          dtau_sum = dtau_ross_curr + dtau_ross_next
+
+          ! If the optical depth is too small, we have to reset it to avoid
+          ! issues.
+          if(dtau_sum < 1e-100_dp) dtau_sum = 1e-100_dp
+
+          coefficient = 1. / dtau_sum / cell_width(curr, direction)
           coefficient = coefficient * geometrical_factor(wall, curr)
 
           a(id_curr, id_curr) = a(id_curr, id_curr) - coefficient

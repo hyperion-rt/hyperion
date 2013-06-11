@@ -11,10 +11,10 @@ import numpy as np
 from ..version import __version__
 from ..util.functions import delete_file
 from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid
-from ..sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource
+from ..sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource, read_source
 from ..conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from ..util.constants import c
-from ..util.functions import FreezableClass, link_or_copy, is_numpy_array, bool2str
+from ..util.functions import FreezableClass, link_or_copy, is_numpy_array, bool2str, str2bool
 from ..dust import SphericalDust
 from astropy import log as logger
 from ..util.validator import validate_scalar
@@ -61,7 +61,7 @@ class Model(FreezableClass, RunConf):
 
         self.filename = None
 
-        self.init_run_conf()
+        super(Model, self).__init__()
 
         self._freeze()
 
@@ -118,10 +118,50 @@ class Model(FreezableClass, RunConf):
         if self.binned_output is not None:
             raise Exception("Binned images cannot be computed in monochromatic mode")
 
+    def _read_monochromatic(self, group):
+        self._monochromatic = str2bool(group.attrs['monochromatic'])
+        if self._monochromatic:
+            self._frequencies = np.array(group['frequencies']['nu'])
+
     def _write_monochromatic(self, group, compression=True, dtype=np.float64):
         group.attrs['monochromatic'] = bool2str(self._monochromatic)
         if self._monochromatic:
             group.create_dataset('frequencies', data=np.array(list(zip(self._frequencies)), dtype=[('nu', dtype)]), compression=compression)
+
+    @classmethod
+    def read(cls, filename, only_initial=True):
+        """
+        Read in a previous model file
+
+        This can be used to read in a previous input file, or the input in an
+        output file (which is possible because the input to a model is stored
+        or linked in an output file).
+
+        If you are interested in re-using the final specific energy (and
+        final density, if present) of a previously run model, you can use::
+
+            >>> m = Model.read('previous_model.rtout', only_initial=False)
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file to read the input data from
+        only_initial : bool, optional
+            Whether to use only the initial quantities, or whether the final
+            specific energy (and optionally density) from the previous model
+            can be used. By default, only the input density (and specific
+            energy, if present) are read in.
+        """
+
+        self = cls()
+        self.use_geometry(filename)
+        self.use_quantities(filename, only_initial=only_initial)
+        self.use_sources(filename)
+        # TODO: read in monochromatic parameters
+        self.use_run_config(filename)
+        self.use_image_config(filename)
+        self.use_output_config(filename)
+        return self
 
     def use_geometry(self, filename):
         '''
@@ -174,7 +214,8 @@ class Model(FreezableClass, RunConf):
         f.close()
 
     def use_quantities(self, filename, quantities=['density', 'specific_energy'],
-                       use_minimum_specific_energy=True, use_dust=True):
+                       use_minimum_specific_energy=True, use_dust=True, copy=True,
+                       only_initial=False):
         '''
         Use physical quantities from an existing output file
 
@@ -194,52 +235,217 @@ class Model(FreezableClass, RunConf):
             file specified
         use_dust : bool
             Whether to also use the dust properties from the file specified
+        copy : bool
+            Whether to read in a copy of the data. If set to False, then the
+            physical quantities will only be links to the specified HDF5 file,
+            and can therefore not be modified.
+        only_initial : bool, optional
+            Whether to use only the initial quantities, or whether the final
+            specific energy (and optionally density) from the previous model
+            can be used. By default, only the input density (and specific
+            energy, if present) are read in.
         '''
 
         # Open existing file
         f = h5py.File(filename, 'r')
-
-        # Find last iteration
-        max_iteration = find_last_iteration(f)
-
-        if max_iteration == 0:
-            raise ValueError("No iterations found in file: %s" % filename)
-
-        logger.info("Retrieving quantities from iteration %i of %s" % (max_iteration, filename))
 
         # Find path to file for link. For now, use absolute links.
         # In Model.write() we can always replace the links with
         # relative links if desired.
         file_path = os.path.abspath(filename)
 
-        # Loop over quantities
-        for quantity in ['density', 'specific_energy']:
+        logger.info("Retrieving quantities from %s" % filename)
 
-            if quantity in quantities:
+        quantities_path = {}
 
-                # Set the path to the quantity
-                if quantity in ['density']:
-                    array_path = '/Input/Grid/Quantities/%s' % quantity
+        if 'Input' in f:
+
+            # Find last iteration
+            max_iteration = find_last_iteration(f)
+
+            if only_initial:
+                logger.info("Reading input quantities")
+            elif max_iteration == 0:
+                logger.warn("No iterations found in file - only the input quantities will be used")
+                last_iteration = None
+            else:
+                logger.info("Retrieving quantities from iteration %i" % max_iteration)
+                last_iteration = 'iteration_{0:05d}'.format(max_iteration)
+
+            if 'density' in quantities:
+                if only_initial or last_iteration is None or 'density' not in f[last_iteration]:
+                    quantities_path['density'] = '/Input/Grid/Quantities'
                 else:
-                    array_path = '/iteration_%05i/specific_energy' % max_iteration
+                    quantities_path['density'] = last_iteration
 
-                logger.info("Using %s from %s" % (quantity, filename))
+            if 'specific_energy' in quantities:
+                if only_initial or last_iteration is None:
+                    if 'specific_energy' in f['/Input/Grid/Quantities']:
+                        quantities_path['specific_energy'] = '/Input/Grid/Quantities'
+                else:
+                    quantities_path['specific_energy'] = last_iteration
 
-                # Add quantity to grid
-                self.grid[quantity] = h5py.ExternalLink(file_path, array_path)
+            # Minimum specific energy
+            if use_minimum_specific_energy:
+                minimum_specific_energy_path = '/Input/Grid/Quantities'
+
+            if use_dust:
+                dust_path = '/Input/Dust'
+
+        else:
+
+            if 'density' in quantities:
+                quantities_path['density'] = '/Grid/Quantities'
+
+            if 'specific_energy' in quantities:
+                if 'specific_energy' in f['/Grid/Quantities']:
+                    quantities_path['specific_energy'] = '/Grid/Quantities'
+
+            # Minimum specific energy
+            if use_minimum_specific_energy:
+                minimum_specific_energy_path = '/Grid/Quantities'
+
+            if use_dust:
+                dust_path = '/Dust'
+
+        # Now extract the quantities
+        for quantity in quantities_path:
+
+            logger.info("Using {quantity} from {path} in {filename}".format(quantity=quantity, path=quantities_path[quantity], filename=filename))
+
+            # Add quantity to grid
+            if copy:
+                self.grid.read_quantities(f[quantities_path[quantity]], quantities=[quantity])
+            else:
+                self.grid[quantity] = h5py.ExternalLink(file_path, quantities_path[quantity] + '/' + quantity)
 
         # Minimum specific energy
         if use_minimum_specific_energy:
-            logger.info("Using minimum_specific_energy from %s" % filename)
-            self.set_minimum_specific_energy([float(x) for x in f['/Input/Grid/Quantities'].attrs['minimum_specific_energy']])
+            logger.info("Using minimum_specific_energy from {filename}".format(filename=filename))
+            self.set_minimum_specific_energy([float(x) for x in f[minimum_specific_energy_path].attrs['minimum_specific_energy']])
 
         # Dust properties
         if use_dust:
-            logger.info("Using dust properties from %s" % filename)
-            self.dust = h5py.ExternalLink(file_path, '/Input/Dust')
+            logger.info("Using dust properties from {filename}".format(filename=filename))
+            if copy:
+                self.dust = [SphericalDust(f[dust_path][name]) for name in f[dust_path]]
+            else:
+                self.dust = h5py.ExternalLink(file_path, dust_path)
 
         # Close the file
         f.close()
+
+    def use_sources(self, filename):
+        '''
+        Use sources from an existing output file
+
+        Parameters
+        ----------
+        filename : str
+            The file to read the sources from. This should be the input or
+            output file of a radiation transfer run.
+        '''
+
+        logger.info("Retrieving sources from %s" % filename)
+
+        # Open existing file
+        f = h5py.File(filename, 'r')
+
+        # Get a pointer to the group with the sources
+        if 'Sources' in f:
+            g_sources = f['/Sources/']
+        else:
+            g_sources = f['/Input/Sources/']
+
+        # Loop over sources
+        for source in g_sources:
+            self.add_source(read_source(g_sources[source]))
+
+        # Close the file
+        f.close()
+
+    def use_run_config(self, filename):
+        '''
+        Use runtime configuration from an existing output or input file
+
+        Parameters
+        ----------
+        filename : str
+            The file to read the parameters from. This can be either the input
+            or output file from a radiation transfer run.
+        '''
+
+        logger.info("Retrieving runtime configuration from %s" % filename)
+
+        # Open existing file
+        f = h5py.File(filename, 'r')
+
+        # Get a pointer to the group with the sources
+        if 'Input' in f:
+            g_par = f['/Input/']
+        else:
+            g_par = f
+
+        # Read in monochromatic information
+        self._read_monochromatic(g_par)
+
+        # Read in runtime configuration
+        self.read_run_conf(g_par)
+
+    def use_image_config(self, filename):
+        '''
+        Use image configuration from an existing output or input file
+
+        Parameters
+        ----------
+        filename : str
+            The file to read the parameters from. This can be either the input
+            or output file from a radiation transfer run.
+        '''
+
+        logger.info("Retrieving image configuration from %s" % filename)
+
+        # Open existing file
+        f = h5py.File(filename, 'r')
+
+        # Get a pointer to the group with the sources
+        if 'Output' in f:
+            g_image = f['/Output/']
+        else:
+            g_image = f['/Input/Output/']
+
+        # Read in binned images
+        if 'n_theta' in g_image['Binned']:
+            self.binned_output = BinnedImageConf.read(g_image['Binned'])
+
+        # Read in peeled images
+        for peeled in g_image['Peeled']:
+            self.peeled_output.append(PeeledImageConf.read(g_image['Peeled'][peeled]))
+
+    def use_output_config(self, filename):
+        '''
+        Use output configuration from an existing output or input file
+
+        Parameters
+        ----------
+        filename : str
+            The file to read the parameters from. This can be either the input
+            or output file from a radiation transfer run.
+        '''
+
+        logger.info("Retrieving output configuration from %s" % filename)
+
+        # Open existing file
+        f = h5py.File(filename, 'r')
+
+        # Get a pointer to the group with the sources
+        if 'Output' in f:
+            g_output = f['/Output/']
+        else:
+            g_output = f['/Input/Output/']
+
+        # Read in output configuration
+        self.conf.output.read(g_output)
 
     def write(self, filename=None, compression=True, copy=True,
               absolute_paths=False, wall_dtype=float,
@@ -291,7 +497,7 @@ class Model(FreezableClass, RunConf):
         # (it is the output directory that does not exist)
         if not os.path.dirname(filename) == "":
             if not os.path.exists(os.path.dirname(filename)):
-                raise IOError("Directory %s does not exist" % \
+                raise IOError("Directory %s does not exist" %
                               os.path.dirname(filename))
 
         # Create output file

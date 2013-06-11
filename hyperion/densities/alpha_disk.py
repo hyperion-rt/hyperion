@@ -46,13 +46,16 @@ class AlphaDisk(FreezableClass):
     .. math:: L_{\rm acc} = \frac{G\,M_\star\,M_{\rm acc}}{2} \left[3\left(\frac{1}{R_{\rm min}} - \frac{1}{R_{\rm max}}\right) - 2\left(\sqrt{\frac{R_\star}{R_{\rm min}^3}} - \sqrt{\frac{R_\star}{R_{\rm max}^3}}\right)\right]
     '''
 
-    def __init__(self, mass=0., rmin=None, rmax=None, p=-1,
+    def __init__(self, mass=None, rho_0=None, rmin=None, rmax=None, p=-1,
                  beta=-1.25, h_0=None, r_0=None, cylindrical_inner_rim=True,
                  cylindrical_outer_rim=True, mdot=None, lvisc=None, star=None,
                  dust=None):
 
+        # Start off by initializing mass and rho_0
+        self.mass = None
+        self.rho_0 = None
+
         # Basic disk parameters
-        self.mass = mass
         self.rmin = rmin
         self.rmax = rmax
         self.p = p
@@ -61,6 +64,14 @@ class AlphaDisk(FreezableClass):
         self.r_0 = r_0
         self.cylindrical_inner_rim = cylindrical_inner_rim
         self.cylindrical_outer_rim = cylindrical_outer_rim
+
+        # Disk mass
+        if mass is not None and rho_0 is not None:
+            raise Exception("Cannot specify both mass and rho_0")
+        elif mass is not None:
+            self.mass = mass
+        elif rho_0 is not None:
+            self.rho_0 = rho_0
 
         # Disk Accretion
         if mdot is not None and lvisc is not None:
@@ -78,14 +89,73 @@ class AlphaDisk(FreezableClass):
 
     @property
     def mass(self):
-        '''total mass (g)'''
-        return self._mass
+        """
+        Total disk mass (g)
+        """
+        if self._mass is not None:
+            return self._mass
+        elif self._rho_0 is None:
+            return None
+        else:
+
+            self._check_all_set()
+
+            if self.rmax <= self.rmin:
+                return 0.
+
+            int1 = integrate_powerlaw(self.rmin, self.rmax, 1.0 + self.p)
+            int1 *= self.r_0 ** -self.p
+
+            int2 = integrate_powerlaw(self.rmin, self.rmax, 0.5 + self.p)
+            int2 *= self.star.radius ** 0.5 * self.r_0 ** -self.p
+
+            integral = (2. * pi) ** 1.5 * self.h_0 * (int1 - int2)
+
+            return self._rho_0 * integral
 
     @mass.setter
     def mass(self, value):
         if value is not None:
             validate_scalar('mass', value, domain='positive')
+            if self._rho_0 is not None:
+                logger.warn("Overriding value of rho_0 with value derived from mass")
+                self._rho_0 = None
         self._mass = value
+
+    @property
+    def rho_0(self):
+        """
+        Scale-factor for the disk density (g/cm^3)
+        """
+        if self._rho_0 is not None:
+            return self._rho_0
+        elif self._mass is None:
+            return None
+        else:
+
+            self._check_all_set()
+
+            if self.rmax <= self.rmin:
+                return 0.
+
+            int1 = integrate_powerlaw(self.rmin, self.rmax, 1.0 + self.p)
+            int1 *= self.r_0 ** -self.p
+
+            int2 = integrate_powerlaw(self.rmin, self.rmax, 0.5 + self.p)
+            int2 *= self.star.radius ** 0.5 * self.r_0 ** -self.p
+
+            integral = (2. * pi) ** 1.5 * self.h_0 * (int1 - int2)
+
+            return self._mass / integral
+
+    @rho_0.setter
+    def rho_0(self, value):
+        if value is not None:
+            validate_scalar('rho_0', value, domain='positive')
+            if self._mass is not None:
+                logger.warn("Overriding value of mass with value derived from rho_0")
+                self._mass = None
+        self._rho_0 = value
 
     @property
     def rmin(self):
@@ -280,8 +350,9 @@ class AlphaDisk(FreezableClass):
 
     def _check_all_set(self):
 
-        if self.mass is None:
-            raise Exception("mass is not set")
+        if self._mass is None and self._rho_0 is None:
+            raise Exception("either mass or rho_0 should be set")
+
         if self.rmin is None:
             raise Exception("rmin is not set")
         if self.rmax is None:
@@ -305,27 +376,6 @@ class AlphaDisk(FreezableClass):
 
         if self._lvisc is None and self._mdot is None:
             raise Exception("either lvisc or mdot should be set")
-
-    def rho_0(self):
-        '''
-        Returns the density factor rho0
-        '''
-
-        self._check_all_set()
-
-        if self.rmax <= self.rmin:
-            logger.warn("Ignoring disk, since rmax < rmin")
-            return 0.
-
-        int1 = integrate_powerlaw(self.rmin, self.rmax, 1.0 + self.p)
-        int1 *= self.r_0 ** -self.p
-
-        int2 = integrate_powerlaw(self.rmin, self.rmax, 0.5 + self.p)
-        int2 *= self.star.radius ** 0.5 * self.r_0 ** -self.p
-
-        integral = (2. * pi) ** 1.5 * self.h_0 * (int1 - int2)
-
-        return self.mass / integral
 
     def density(self, grid):
         '''
@@ -376,7 +426,7 @@ class AlphaDisk(FreezableClass):
             rho[grid.gr > self.rmax] = 0.
 
         # Find density factor
-        rho *= self.rho_0()
+        rho *= self.rho_0
 
         norm = self.mass / np.sum(rho * grid.volumes)
 
@@ -421,7 +471,7 @@ class AlphaDisk(FreezableClass):
         int2 = integrate_powerlaw(self.rmin, r.clip(self.rmin, self.rmax), -0.5 + self.p - self.beta)
         int2 *= self.star.radius ** 0.5 * self.r_0 ** (self.beta - self.p)
 
-        return self.rho_0() * (int1 - int2)
+        return self.rho_0 * (int1 - int2)
 
     def _vertical_profile(self, r, theta):
 
@@ -445,7 +495,7 @@ class AlphaDisk(FreezableClass):
         # Geometrical factor
         rho *= (1. - np.sqrt(self.star.radius / w))
 
-        rho *= self.rho_0()
+        rho *= self.rho_0
 
         # What about normalization
 
