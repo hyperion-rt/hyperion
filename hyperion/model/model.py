@@ -19,7 +19,6 @@ from ..dust import SphericalDust
 from astropy import log as logger
 from ..util.validator import validate_scalar
 
-from .helpers import find_last_iteration
 from .model_output import ModelOutput
 
 
@@ -245,6 +244,8 @@ class Model(FreezableClass, RunConf):
             can be used. By default, only the input density (and specific
             energy, if present) are read in.
         '''
+
+        from .helpers import find_last_iteration
 
         # Open existing file
         f = h5py.File(filename, 'r')

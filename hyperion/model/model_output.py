@@ -13,8 +13,6 @@ from astropy import log as logger
 from ..util.decorator import decorator
 from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid
 
-from .helpers import find_last_iteration
-
 STOKESD = {}
 STOKESD['I'] = 0
 STOKESD['Q'] = 1
@@ -870,6 +868,8 @@ class ModelOutput(FreezableClass):
             The iteration to retrieve the grid for. The default is to return the components for the last iteration
         '''
 
+        from .helpers import find_last_iteration
+
         # If iteration is last one, find iteration number
         if iteration == -1:
             iteration = find_last_iteration(self.file)
@@ -896,6 +896,9 @@ class ModelOutput(FreezableClass):
         grid : Grid instance
             An object containing information about the geometry and quantities
         '''
+
+        from .helpers import find_last_iteration
+
 
         if self.file['Input'].file != self.file.file:
             # Workaround for h5py bug - can't access link directly,
@@ -1003,6 +1006,8 @@ class ModelOutput(FreezableClass):
 
         At the moment, this method only works on regular grids, not AMR or Oct-tree grids
         '''
+
+        from .helpers import find_last_iteration
 
         warnings.warn("get_physical_grid is deprecated, use get_quantities instead", DeprecationWarning)
 
