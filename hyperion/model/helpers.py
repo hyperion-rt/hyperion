@@ -24,6 +24,7 @@ def tau_to_radius(model, tau, wav):
 
     Parameters
     ----------
+    model : `~hyperion.model.Model` instance
     tau : float
         The optical depth for which to find the surface
     wav : float
@@ -46,30 +47,27 @@ def tau_to_radius(model, tau, wav):
     if not isinstance(model.grid, SphericalPolarGrid):
         raise TypeError("This method can only be called for spherical polar grids")
 
-    # Finalize the model so that the density grids get set
-    m = model.to_model()
-
     # Initialize cumulative optical depth array
-    tau_all = np.zeros(m.grid.shape)
+    tau_all = np.zeros(model.grid.shape)
 
     # Loop over envelopes and add cumulative column density
-    for i, item in enumerate(m.grid['density']):
+    for i, item in enumerate(model.grid['density']):
 
         # Find density
         rho = item.array
 
         # Find optical depth in all cells in radial direction
-        dtau = m.grid.widths[0, :, :, :] * rho * m.dust[i].optical_properties.interp_chi_wav(wav)
+        dtau = model.grid.widths[0, :, :, :] * rho * model.dust[i].optical_properties.interp_chi_wav(wav)
 
         # Find cumulative sum starting from the ouside
         tau_all += np.cumsum(dtau[:, :, ::-1], axis=2)
 
-    r = np.zeros(m.grid.shape[:2])
-    for ip in range(m.grid.shape[0]):
-        for it in range(m.grid.shape[1]):
+    r = np.zeros(model.grid.shape[:2])
+    for ip in range(model.grid.shape[0]):
+        for it in range(model.grid.shape[1]):
             tau_col = np.hstack([0., tau_all[ip, it, :]])
             if tau < np.max(tau_col):
-                r[ip, it] = interp1d_fast(tau_col, m.grid.r_wall[::-1], tau)
+                r[ip, it] = interp1d_fast(tau_col, model.grid.r_wall[::-1], tau)
                 # print(tau_col, r[ip, it])
             else:
                 r[ip, it] = 0.
