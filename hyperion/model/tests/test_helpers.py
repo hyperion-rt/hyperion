@@ -12,14 +12,11 @@ from .. import Model
 from ...util.functions import random_id
 
 
-def random_filename():
-    return os.path.join(tempfile.mkdtemp(), random_id())
-
-
 def get_test_dust():
     dust = IsotropicDust([3.e9, 3.e16], [0.5, 0.5], [1., 1.])
     dust.set_lte_emissivities(n_temp=10, temp_min=0.1, temp_max=1600.)
     return dust
+
 
 def get_realistic_test_dust():
 
@@ -31,6 +28,7 @@ def get_realistic_test_dust():
     dust.set_lte_emissivities(n_temp=40, temp_min=0.1, temp_max=100000.)
 
     return dust
+
 
 def get_test_model_noimaging():
 

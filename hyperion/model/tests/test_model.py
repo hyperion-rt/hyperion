@@ -1,24 +1,26 @@
 from __future__ import print_function, division
 
 import os
+import tempfile
+import shutil
 
 import numpy as np
 from astropy.tests.helper import pytest
 
 from .. import Model
-from .test_helpers import random_filename, get_test_dust, get_realistic_test_dust
+from .test_helpers import random_id, get_test_dust, get_realistic_test_dust
 from ...grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid, AMRGrid, OctreeGrid
 from ...dust import IsotropicDust
 
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
 
-def test_basic():
+def test_basic(tmpdir):
 
     m = Model()
     m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
     m.set_n_photons(initial=100, imaging=100)
-    m.write(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
 
 
 def test_noname_nofilename():
@@ -102,18 +104,18 @@ class TestAllGridTypes(object):
         assert exc.value.args[0] == "Cannot add specific energy as it was not added for previous density arrays"
 
     @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
-    def test_mismatch_density_energy_2(self, grid_type):
+    def test_mismatch_density_energy_2(self, tmpdir, grid_type):
         m = Model()
         m.set_grid(self.grid[grid_type])
         m.add_density_grid(self.density[grid_type], self.dust, specific_energy=self.density[grid_type])
         m.add_density_grid(self.density[grid_type], self.dust)
         m.set_n_photons(initial=100, imaging=100)
         with pytest.raises(Exception) as exc:
-            m.write(random_filename())
+            m.write(tmpdir.join(random_id()).strpath)
         assert exc.value.args[0] == "Not all dust lists in the grid have the same size"
 
     @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
-    def test_merge_density(self, grid_type):
+    def test_merge_density(self, tmpdir, grid_type):
         m = Model()
         s = m.add_point_source()
         s.luminosity = 1.
@@ -122,8 +124,8 @@ class TestAllGridTypes(object):
         m.add_density_grid(self.density[grid_type], self.dust)
         m.add_density_grid(self.density[grid_type], self.dust, merge_if_possible=True)
         m.set_n_photons(initial=100, imaging=100)
-        m.write(random_filename())
-        m.run(random_filename())
+        m.write(tmpdir.join(random_id()).strpath)
+        m.run(tmpdir.join(random_id()).strpath)
 
 
 class TestMerge(object):
@@ -157,15 +159,17 @@ class TestMerge(object):
         self.density['amr'] = self.grid['amr']['density']
         self.density['oct'] = np.ones(len(refined))
 
-        self.dust1_filename = random_filename()
+        self.tmpdir = tempfile.mkdtemp()
+
+        self.dust1_filename = os.path.join(self.tmpdir, random_id())
         self.dust1 = get_test_dust()
         self.dust1.write(self.dust1_filename)
 
-        self.dust2_filename = random_filename()
+        self.dust2_filename = os.path.join(self.tmpdir, random_id())
         self.dust2 = get_test_dust()
         self.dust2.write(self.dust2_filename)
 
-        self.dust3_filename = random_filename()
+        self.dust3_filename = os.path.join(self.tmpdir, random_id())
         self.dust3 = IsotropicDust([3.e9, 3.e16], [0.5, 0.5], [1., 0.5])
         self.dust3.emissivities.set_lte(self.dust3.optical_properties, n_temp=10, temp_min=0.1, temp_max=1600.)
         self.dust3.write(self.dust3_filename)
@@ -173,6 +177,9 @@ class TestMerge(object):
         # The following dust file does not have emissivities and mean
         # opacities since it has never been written to a file
         self.dust4 = get_test_dust()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
 
     @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
     def test_merge_no(self, grid_type):
@@ -238,7 +245,7 @@ class TestMerge(object):
         assert m.grid.n_dust == 2
 
 
-def test_dust_mix():
+def test_dust_mix(tmpdir):
     # This is a regression test for a bug which caused the code to crash if
     # isotropic dust and non-isotropic dust were used together.
 
@@ -258,5 +265,5 @@ def test_dust_mix():
 
     m.set_n_photons(initial=100000, imaging=0)
 
-    m.write(random_filename())
-    m.run(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
+    m.run(tmpdir.join(random_id()).strpath)

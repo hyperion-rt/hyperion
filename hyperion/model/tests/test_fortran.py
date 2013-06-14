@@ -6,10 +6,10 @@ from ...util.functions import B_nu
 
 from .. import Model
 
-from .test_helpers import random_filename, get_test_dust
+from .test_helpers import random_id, get_test_dust
 
 
-def test_point_source_outside_grid():
+def test_point_source_outside_grid(tmpdir):
 
     dust = get_test_dust()
 
@@ -21,16 +21,16 @@ def test_point_source_outside_grid():
     s.position = (-1.5, 0., 0.)
     s.temperature = 5000.
     s.luminosity = 1.
-    m.write(random_filename())
-    log_file = random_filename()
+    m.write(tmpdir.join(random_id()).strpath)
+    log_file = tmpdir.join(random_id()).strpath
     with pytest.raises(SystemExit) as exc:
-        m.run(random_filename(), logfile=log_file)
+        m.run(tmpdir.join(random_id()).strpath, logfile=log_file)
     assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
                                 'complete'
     assert 'photon was not emitted inside a cell' in open(log_file).read()
 
 
-def test_unsorted_spectrum():
+def test_unsorted_spectrum(tmpdir):
 
     dust = get_test_dust()
 
@@ -40,16 +40,16 @@ def test_unsorted_spectrum():
     s = m.add_point_source()
     s._spectrum = {'nu': [3.e20, 2.e10, 1], 'fnu': [1, 2, 3]}
     s.luminosity = 1.
-    m.write(random_filename())
-    log_file = random_filename()
+    m.write(tmpdir.join(random_id()).strpath)
+    log_file = tmpdir.join(random_id()).strpath
     with pytest.raises(SystemExit) as exc:
-        m.run(random_filename(), logfile=log_file)
+        m.run(tmpdir.join(random_id()).strpath, logfile=log_file)
     assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
                                 'complete'
     assert 'spectrum frequency should be monotonically increasing' in open(log_file).read()
 
 
-def test_spectrum_dust_nooverlap():
+def test_spectrum_dust_nooverlap(tmpdir):
 
     # Set up dust with a narrow frequency range
     nu = np.logspace(8., 10., 100)
@@ -72,10 +72,10 @@ def test_spectrum_dust_nooverlap():
 
     m.set_n_photons(initial=1000, imaging=0)
 
-    m.write(random_filename())
-    log_file = random_filename()
+    m.write(tmpdir.join(random_id()).strpath)
+    log_file = tmpdir.join(random_id()).strpath
     with pytest.raises(SystemExit) as exc:
-        m.run(random_filename(), logfile=log_file)
+        m.run(tmpdir.join(random_id()).strpath, logfile=log_file)
     assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
                                 'complete'
     assert 'photon frequency' in open(log_file).read()

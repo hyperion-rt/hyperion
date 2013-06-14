@@ -3,13 +3,13 @@ from __future__ import print_function, division
 from astropy.tests.helper import pytest
 import numpy as np
 
-from ...util.functions import random_filename
+from ...util.functions import random_id
 from .test_helpers import get_test_model_noimaging, get_test_dust
 
 
 @pytest.mark.parametrize(('output'), ['density', 'density_diff',
                                       'n_photons', 'specific_energy'])
-def test_output_grids_exist(output):
+def test_output_grids_exist(tmpdir, output):
 
     # Get a dust object
     dust = get_test_dust()
@@ -21,10 +21,10 @@ def test_output_grids_exist(output):
     model.conf.output.output_density_diff = 'last' if output == 'density_diff' else 'none'
     model.conf.output.output_n_photons = 'last' if output == 'n_photons' else 'none'
     model.conf.output.output_specific_energy = 'last' if output == 'specific_energy' else 'none'
-    model.write(random_filename())
+    model.write(tmpdir.join(random_id()).strpath)
 
     # Run the model
-    model_out = model.run(random_filename())
+    model_out = model.run(tmpdir.join(random_id()).strpath)
 
     # Check that component is available in output
     assert output in model_out.get_available_components()
@@ -36,7 +36,7 @@ def test_output_grids_exist(output):
         model_out.get_physical_grid('temperature')
 
 
-def test_output_grids_density():
+def test_output_grids_density(tmpdir):
 
     # Get a dust object
     dust = get_test_dust()
@@ -51,10 +51,10 @@ def test_output_grids_density():
     model.conf.output.output_density_diff = 'none'
     model.conf.output.output_n_photons = 'none'
     model.conf.output.output_specific_energy = 'none'
-    model.write(random_filename())
+    model.write(tmpdir.join(random_id()).strpath)
 
     # Run the model
-    model_out = model.run(random_filename())
+    model_out = model.run(tmpdir.join(random_id()).strpath)
 
     # Extract density
     density_out = model_out.get_physical_grid('density', dust_id=0)

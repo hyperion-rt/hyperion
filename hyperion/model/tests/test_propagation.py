@@ -7,7 +7,7 @@ import h5py
 from astropy.tests.helper import pytest
 import numpy as np
 from .. import Model
-from .test_helpers import random_filename, get_test_dust
+from .test_helpers import random_id, get_test_dust
 
 
 def any_photons_killed(handle):
@@ -33,7 +33,7 @@ class TestCartesianBase(object):
         self.m.set_cartesian_grid(self.x, self.y, self.z)
         self.m.add_density_grid(np.ones(self.m.grid.shape) * 1.e-40, dust)
 
-    def test_ptsource_origin(self):
+    def test_ptsource_origin(self, tmpdir):
         '''A point source exactly at the origin'''
 
         s = self.m.add_point_source()
@@ -44,13 +44,13 @@ class TestCartesianBase(object):
         self.m.set_n_initial_iterations(1)
         self.m.set_n_photons(initial=100000, imaging=0)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
 
-    def test_ptsource_vertices(self):
+    def test_ptsource_vertices(self, tmpdir):
         '''Point sources exactly on the vertices'''
 
         for ix in range(1, len(self.x) - 1):
@@ -67,22 +67,22 @@ class TestCartesianBase(object):
         self.m.set_n_initial_iterations(1)
         self.m.set_n_photons(initial=100000, imaging=0)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
 
     @pytest.mark.xfail()
-    def test_ptsource_edge(self):
+    def test_ptsource_edge(self, tmpdir):
         '''Point sources exactly on the edge of the grid'''
 
         for ix in range(len(self.x)):
             for iy in range(len(self.y)):
                 for iz in range(len(self.z)):
                     if ix == 0 or ix == len(self.x) - 1 or \
-                       iy == 0 or iy == len(self.y) - 1 or \
-                       iz == 0 or iz == len(self.z) - 1:
+                        iy == 0 or iy == len(self.y) - 1 or \
+                            iz == 0 or iz == len(self.z) - 1:
                         s = self.m.add_point_source()
                         x = self.x[ix]
                         y = self.y[iy]
@@ -94,13 +94,13 @@ class TestCartesianBase(object):
         self.m.set_n_initial_iterations(1)
         self.m.set_n_photons(initial=100000, imaging=0)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
 
-    def test_ptsource_origin_peeloff_aligned(self):
+    def test_ptsource_origin_peeloff_aligned(self, tmpdir):
         '''Peeloff for source at origin'''
 
         theta = np.linspace(0., 180., 37)
@@ -125,8 +125,8 @@ class TestCartesianBase(object):
         self.m.set_n_initial_iterations(0)
         self.m.set_n_photons(imaging=100)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
@@ -160,7 +160,7 @@ class TestSphericalBase(object):
         self.m.set_spherical_polar_grid(self.r, self.t, self.p)
         self.m.add_density_grid(np.ones(self.m.grid.shape) * 1.e-40, dust)
 
-    def test_ptsource_origin(self):
+    def test_ptsource_origin(self, tmpdir):
         '''A point source exactly at the origin'''
 
         s = self.m.add_point_source()
@@ -171,13 +171,13 @@ class TestSphericalBase(object):
         self.m.set_n_initial_iterations(1)
         self.m.set_n_photons(initial=100000, imaging=0)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
 
-    def test_ptsource_vertices(self):
+    def test_ptsource_vertices(self, tmpdir):
         '''Point sources exactly on the vertices'''
 
         for ir in range(len(self.r) - 1):
@@ -202,14 +202,14 @@ class TestSphericalBase(object):
         self.m.set_n_initial_iterations(1)
         self.m.set_n_photons(initial=100000, imaging=0)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
 
     @pytest.mark.xfail()
-    def test_ptsource_edge(self):
+    def test_ptsource_edge(self, tmpdir):
         '''Point sources exactly on the vertices'''
 
         ir = -1
@@ -234,8 +234,8 @@ class TestSphericalBase(object):
         self.m.set_n_initial_iterations(1)
         self.m.set_n_photons(initial=100000, imaging=0)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
@@ -243,7 +243,7 @@ class TestSphericalBase(object):
     # The following test is known to fail - that is, if sources are very
     # close to, but not on w=0, then photons are killed.
     @pytest.mark.xfail()
-    def test_ptsource_vertices_noclip(self):
+    def test_ptsource_vertices_noclip(self, tmpdir):
         '''Point sources on vertices, but without clipping'''
 
         for ir in range(len(self.r) - 1):
@@ -265,13 +265,13 @@ class TestSphericalBase(object):
         self.m.set_n_initial_iterations(1)
         self.m.set_n_photons(initial=100000, imaging=0)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
 
-    def test_ptsource_origin_peeloff(self):
+    def test_ptsource_origin_peeloff(self, tmpdir):
         '''Peeloff for source at origin'''
 
         theta = np.linspace(0., 180., 37)
@@ -296,13 +296,13 @@ class TestSphericalBase(object):
         self.m.set_n_initial_iterations(0)
         self.m.set_n_photons(imaging=100)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
 
-    def test_ptsource_origin_peeloff_aligned(self):
+    def test_ptsource_origin_peeloff_aligned(self, tmpdir):
         '''Peeloff for source at origin'''
 
         theta = self.t
@@ -327,8 +327,8 @@ class TestSphericalBase(object):
         self.m.set_n_initial_iterations(0)
         self.m.set_n_photons(imaging=100)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
@@ -362,7 +362,7 @@ class TestCylindricalBase(object):
         self.m.set_cylindrical_polar_grid(self.w, self.z, self.p)
         self.m.add_density_grid(np.ones(self.m.grid.shape) * 1.e-40, dust)
 
-    def test_ptsource_origin(self):
+    def test_ptsource_origin(self, tmpdir):
         '''A point source exactly at the origin'''
 
         s = self.m.add_point_source()
@@ -373,13 +373,13 @@ class TestCylindricalBase(object):
         self.m.set_n_initial_iterations(1)
         self.m.set_n_photons(initial=100000, imaging=0)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
 
-    def test_ptsource_vertices(self):
+    def test_ptsource_vertices(self, tmpdir):
         '''Point sources exactly on the vertices'''
 
         for iw in range(len(self.w) - 1):
@@ -404,14 +404,14 @@ class TestCylindricalBase(object):
         self.m.set_n_initial_iterations(1)
         self.m.set_n_photons(initial=100000, imaging=0)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
 
     @pytest.mark.xfail()
-    def test_ptsource_edge(self):
+    def test_ptsource_edge(self, tmpdir):
         '''Point sources exactly on the vertices'''
 
         iw = -1
@@ -431,13 +431,13 @@ class TestCylindricalBase(object):
         self.m.set_n_initial_iterations(1)
         self.m.set_n_photons(initial=100000, imaging=0)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
 
-    def test_ptsource_vertices_noclip(self):
+    def test_ptsource_vertices_noclip(self, tmpdir):
         '''Point sources on vertices, but without clipping'''
 
         for iw in range(len(self.w) - 1):
@@ -459,13 +459,13 @@ class TestCylindricalBase(object):
         self.m.set_n_initial_iterations(1)
         self.m.set_n_photons(initial=100000, imaging=0)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
 
-    def test_ptsource_origin_peeloff(self):
+    def test_ptsource_origin_peeloff(self, tmpdir):
         '''Peeloff for source at origin'''
 
         theta = np.linspace(0., 180., 37)
@@ -490,13 +490,13 @@ class TestCylindricalBase(object):
         self.m.set_n_initial_iterations(0)
         self.m.set_n_photons(imaging=100)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)
 
-    def test_ptsource_origin_peeloff_aligned(self):
+    def test_ptsource_origin_peeloff_aligned(self, tmpdir):
         '''Peeloff for source at origin'''
 
         theta = np.linspace(0., 180., 37)
@@ -521,8 +521,8 @@ class TestCylindricalBase(object):
         self.m.set_n_initial_iterations(0)
         self.m.set_n_photons(imaging=100)
 
-        self.m.write(random_filename())
-        file_out = random_filename()
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
         self.m.run(file_out)
         f = h5py.File(file_out)
         assert not any_photons_killed(f)

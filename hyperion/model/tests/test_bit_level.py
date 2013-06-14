@@ -12,7 +12,7 @@ import itertools
 from astropy.tests.helper import pytest
 import numpy as np
 
-from .test_helpers import random_filename, assert_identical_results
+from .test_helpers import random_id, assert_identical_results
 from .. import Model, AnalyticalYSOModel
 from ...util.constants import pc, lsun, c, au, msun, pi, sigma, rsun
 from ...grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid, AMRGrid, OctreeGrid
@@ -130,7 +130,7 @@ class TestBasic(object):
     @bit_level
     @generate_reference
     @pytest.mark.parametrize(('grid_type', 'sample_sources_evenly', 'multiple_densities'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
-    def test_specific_energy(self, grid_type, sample_sources_evenly, multiple_densities, generate=False):
+    def test_specific_energy(self, tmpdir, grid_type, sample_sources_evenly, multiple_densities, generate=False):
 
         np.random.seed(12345)
 
@@ -154,8 +154,8 @@ class TestBasic(object):
         m.conf.output.output_specific_energy = 'all'
 
         m.set_copy_input(False)
-        m.write(random_filename(), copy=False, absolute_paths=True)
-        output_file = random_filename()
+        m.write(tmpdir.join(random_id()).strpath, copy=False, absolute_paths=True)
+        output_file = tmpdir.join(random_id()).strpath
         m.run(output_file)
 
         if generate:
@@ -169,7 +169,7 @@ class TestBasic(object):
     @bit_level
     @generate_reference
     @pytest.mark.parametrize(('grid_type', 'raytracing', 'sample_sources_evenly'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
-    def test_peeloff(self, grid_type, raytracing, sample_sources_evenly, generate=False):
+    def test_peeloff(self, tmpdir, grid_type, raytracing, sample_sources_evenly, generate=False):
 
         np.random.seed(12345)
 
@@ -215,8 +215,8 @@ class TestBasic(object):
         i_p.set_track_origin('detailed')
 
         m.set_copy_input(False)
-        m.write(random_filename(), copy=False, absolute_paths=True)
-        output_file = random_filename()
+        m.write(tmpdir.join(random_id()).strpath, copy=False, absolute_paths=True)
+        output_file = tmpdir.join(random_id()).strpath
         m.run(output_file)
 
         if generate:
@@ -318,16 +318,20 @@ class TestPascucciBenchmark(object):
         albedo = data['csca'] / data['cext']
 
         # Set up dust object
-        self.dust_file = random_filename()
+        self.tmpdir = tempfile.mkdtemp()
+        self.dust_file = os.path.join(self.tmpdir, random_id())
         dust = IsotropicDust(nu[::-1], albedo[::-1], chi[::-1])
         dust.optical_properties.extrapolate_wav(1.e-3, 1.e5)
         dust.set_lte_emissivities(n_temp=100, temp_min=0.1, temp_max=1600.)
         dust.write(self.dust_file)
 
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
+
     @bit_level
     @generate_reference
     @pytest.mark.parametrize(('tau'), [0.1, 1, 10, 100])
-    def test_pascucci(self, tau, generate=False):
+    def test_pascucci(self, tmpdir, tau, generate=False):
 
         m = AnalyticalYSOModel()
 
@@ -400,11 +404,11 @@ class TestPascucciBenchmark(object):
         m.set_monochromatic(True, wavelengths=wavelengths)
 
         m.set_n_photons(initial=1000, imaging_sources=1000, imaging_dust=1000,
-                    raytracing_sources=1000, raytracing_dust=1000)
+                        raytracing_sources=1000, raytracing_dust=1000)
 
         m.set_copy_input(False)
-        m.write(random_filename(), copy=False, absolute_paths=True)
-        output_file = random_filename()
+        m.write(tmpdir.join(random_id()).strpath, copy=False, absolute_paths=True)
+        output_file = tmpdir.join(random_id()).strpath
         m.run(output_file)
 
         if generate:
@@ -431,7 +435,7 @@ class TestPinteBenchmark(object):
     @bit_level
     @generate_reference
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
-    def test_pinte_seds(self, tau, generate=False):
+    def test_pinte_seds(self, tmpdir, tau, generate=False):
 
         m = AnalyticalYSOModel()
 
@@ -518,8 +522,8 @@ class TestPinteBenchmark(object):
         m.set_max_interactions(10000000)
 
         m.set_copy_input(False)
-        m.write(random_filename(), copy=False, absolute_paths=True)
-        output_file = random_filename()
+        m.write(tmpdir.join(random_id()).strpath, copy=False, absolute_paths=True)
+        output_file = tmpdir.join(random_id()).strpath
         m.run(output_file)
 
         if generate:
@@ -533,7 +537,7 @@ class TestPinteBenchmark(object):
     @bit_level
     @generate_reference
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
-    def test_pinte_images(self, tau, generate=False):
+    def test_pinte_images(self, tmpdir, tau, generate=False):
 
         m = AnalyticalYSOModel()
 
@@ -588,8 +592,8 @@ class TestPinteBenchmark(object):
         image = m.add_peeled_images()
         image.set_viewing_angles(theta, phi)
         image.set_image_size(51, 51)
-        image.set_image_limits(-450.*au, 450.*au, -450.*au, 450.*au)
-        image.set_aperture_range(1, 450.*au, 450.*au)
+        image.set_image_limits(-450. * au, 450. * au, -450. * au, 450. * au)
+        image.set_aperture_range(1, 450. * au, 450. * au)
         image.set_wavelength_range(1, 0.9, 1.1)
 
         m.set_raytracing(True)
@@ -609,8 +613,8 @@ class TestPinteBenchmark(object):
         m.set_max_interactions(10000000)
 
         m.set_copy_input(False)
-        m.write(random_filename(), copy=False, absolute_paths=True)
-        output_file = random_filename()
+        m.write(tmpdir.join(random_id()).strpath, copy=False, absolute_paths=True)
+        output_file = tmpdir.join(random_id()).strpath
         m.run(output_file)
 
         if generate:
@@ -624,7 +628,7 @@ class TestPinteBenchmark(object):
     @bit_level
     @generate_reference
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
-    def test_pinte_specific_energy(self, tau, generate=False):
+    def test_pinte_specific_energy(self, tmpdir, tau, generate=False):
 
         m = AnalyticalYSOModel()
 
@@ -676,8 +680,8 @@ class TestPinteBenchmark(object):
         m.set_max_interactions(10000000)
 
         m.set_copy_input(False)
-        m.write(random_filename(), copy=False, absolute_paths=True)
-        output_file = random_filename()
+        m.write(tmpdir.join(random_id()).strpath, copy=False, absolute_paths=True)
+        output_file = tmpdir.join(random_id()).strpath
         m.run(output_file)
 
         if generate:

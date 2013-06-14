@@ -1,5 +1,9 @@
 from __future__ import print_function, division
 
+import os
+import shutil
+import tempfile
+
 from astropy.tests.helper import pytest
 import numpy as np
 
@@ -7,7 +11,7 @@ from numpy.testing import assert_array_almost_equal_nulp
 
 from .. import Model
 from ..sed import SED
-from ...util.functions import random_filename
+from ...util.functions import random_id
 from .test_helpers import get_test_dust
 
 
@@ -34,9 +38,13 @@ class TestSEDSimpleModel(object):
 
         m.set_n_photons(imaging=1)
 
-        m.write(random_filename())
+        self.tmpdir = tempfile.mkdtemp()
+        m.write(os.path.join(self.tmpdir, random_id()))
 
         self.m = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
 
     def test_sed_group(self):
         wav, nufnu = self.m.get_sed(group=0)
@@ -156,9 +164,13 @@ class TestSEDSimpleModelTrackingDetailed(object):
 
         m.set_n_photons(imaging=1)
 
-        m.write(random_filename())
+        self.tmpdir = tempfile.mkdtemp()
+        m.write(os.path.join(self.tmpdir, random_id()))
 
         self.m = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
 
     def test_sed_source_all(self):
         wav, nufnu = self.m.get_sed(source_id='all', component='source_emit')
@@ -219,9 +231,13 @@ class TestSimpleModelInside(object):
 
         m.set_n_photons(imaging=1)
 
-        m.write(random_filename())
+        self.tmpdir = tempfile.mkdtemp()
+        m.write(os.path.join(self.tmpdir, random_id()))
 
         self.m = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
 
     def test_distance_fail(self):
         with pytest.raises(ValueError) as e:
@@ -252,9 +268,13 @@ class TestSED(object):
 
         m.set_n_photons(imaging=10000)
 
-        m.write(random_filename())
+        self.tmpdir = tempfile.mkdtemp()
+        m.write(os.path.join(self.tmpdir, random_id()))
 
         self.m = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
 
     def test_get_sed_object(self):
         sed = self.m.get_sed(group=0)
@@ -346,9 +366,13 @@ class TestInsideSED(object):
 
         m.set_n_photons(imaging=10000)
 
-        m.write(random_filename())
+        self.tmpdir = tempfile.mkdtemp()
+        m.write(os.path.join(self.tmpdir, random_id()))
 
         self.m = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
 
     def test_get_sed_object(self):
         sed = self.m.get_sed(group=0)

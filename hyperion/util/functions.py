@@ -13,8 +13,6 @@ import numpy as np
 from .constants import h, c, k
 from astropy import log as logger
 
-TMPDIR = tempfile.mkdtemp()
-
 MAX_FLOAT = np.log(np.finfo('d').max)
 
 
@@ -195,10 +193,6 @@ def filename2hdf5(filename):
         return filename.replace(ext, '.hdf5')
     else:
         raise Exception("Unknown extension: %s" % ext)
-
-
-def random_filename():
-    return os.path.join(TMPDIR, random_id())
 
 
 def create_dir(dir_name):

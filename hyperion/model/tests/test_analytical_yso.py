@@ -5,7 +5,7 @@ import numpy as np
 
 from .. import AnalyticalYSOModel
 from ...util.constants import msun, rsun, lsun, tsun, au, yr
-from ...util.functions import random_filename
+from ...util.functions import random_id
 from .test_helpers import get_test_dust
 from ...util.convenience import OptThinRadius
 
@@ -33,7 +33,7 @@ def basic_analytical_model():
     return m
 
 
-def test_analytical_yso_full():
+def test_analytical_yso_full(tmpdir):
 
     m = basic_analytical_model()
 
@@ -41,14 +41,14 @@ def test_analytical_yso_full():
 
     m.set_n_photons(initial=100, imaging=100)
 
-    m.write(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
 
 
-def test_analytical_yso_nogrid_invalid():
+def test_analytical_yso_nogrid_invalid(tmpdir):
 
     m = AnalyticalYSOModel()
     with pytest.raises(Exception) as e:
-        m.write(random_filename())
+        m.write(tmpdir.join(random_id()).strpath)
     assert e.value.args[0] == 'The coordinate grid needs to be defined'
 
 
@@ -61,7 +61,7 @@ def test_analytical_yso_nostar_invalid():
     assert e.value.args[0] == 'The central source radius need to be defined before the grid can be set up'
 
 
-def test_analytical_yso_optthinradius():
+def test_analytical_yso_optthinradius(tmpdir):
 
     dust = get_test_dust()
 
@@ -79,10 +79,10 @@ def test_analytical_yso_optthinradius():
 
     m.set_n_photons(initial=100, imaging=100)
 
-    m.write(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
 
 
-def test_analytical_yso_optthinradius_check_not_frozen():
+def test_analytical_yso_optthinradius_check_not_frozen(tmpdir):
     """
     This test used to ensure that stellar parameters could no longer be
     changed after the grid was set, but now that the rmin/rmax properties of
@@ -109,7 +109,7 @@ def test_analytical_yso_optthinradius_check_not_frozen():
 
     m.set_n_photons(initial=100, imaging=100)
 
-    m.write(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
 
 
 def test_analytical_yso_optthinradius_check_dynamic_evaluation():
@@ -137,14 +137,14 @@ def test_analytical_yso_add_density():
     assert exc.value.args[0] == 'add_density_grid cannot be used for AnalyticalYSOModel'
 
 
-def test_analytical_yso_use_quantities_invalid():
+def test_analytical_yso_use_quantities_invalid(tmpdir):
 
-    output_file = random_filename()
+    output_file = tmpdir.join(random_id()).strpath
 
     m = basic_analytical_model()
     m.set_spherical_polar_grid_auto(10, 10, 10)
     m.set_n_photons(initial=100, imaging=100)
-    m.write(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
     m.run(output_file)
 
     m2 = basic_analytical_model()
@@ -155,14 +155,14 @@ def test_analytical_yso_use_quantities_invalid():
     assert exc.value.args[0] == "use_quantities cannot be used for AnalyticalYSOModel"
 
 
-def test_analytical_yso_use_geometry_invalid():
+def test_analytical_yso_use_geometry_invalid(tmpdir):
 
-    output_file = random_filename()
+    output_file = tmpdir.join(random_id()).strpath
 
     m = basic_analytical_model()
     m.set_spherical_polar_grid_auto(10, 10, 10)
     m.set_n_photons(initial=100, imaging=100)
-    m.write(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
     m.run(output_file)
 
     m2 = basic_analytical_model()
@@ -171,7 +171,7 @@ def test_analytical_yso_use_geometry_invalid():
     assert exc.value.args[0] == "use_geometry cannot be used for AnalyticalYSOModel"
 
 
-def test_ambient_medium():
+def test_ambient_medium(tmpdir):
 
     dust = get_test_dust()
 
@@ -201,7 +201,7 @@ def test_ambient_medium():
 
     m.set_n_photons(initial=0, imaging=0)
 
-    m.write(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
 
 
 @pytest.mark.parametrize(('grid_type'), ['cylindrical', 'spherical'])
@@ -239,7 +239,7 @@ def test_rmin_zero(grid_type):
         assert exc.value.args[0] == "R_min is 0, so cannot set up the grid cell walls automatically. Use set_spherical_polar_grid() instead to specify the cell wall positions."
 
 
-def test_complete_spherical():
+def test_complete_spherical(tmpdir):
 
     m = AnalyticalYSOModel()
 
@@ -308,10 +308,10 @@ def test_complete_spherical():
 
     m.set_n_photons(initial=0, imaging=0)
 
-    m.write(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
 
 
-def test_complete_cylindrical():
+def test_complete_cylindrical(tmpdir):
 
     m = AnalyticalYSOModel()
 
@@ -345,10 +345,10 @@ def test_complete_cylindrical():
 
     m.set_n_photons(initial=0, imaging=0)
 
-    m.write(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
 
 
-def test_complete_spherical_optthin():
+def test_complete_spherical_optthin(tmpdir):
 
     m = AnalyticalYSOModel()
 
@@ -417,10 +417,10 @@ def test_complete_spherical_optthin():
 
     m.set_n_photons(initial=0, imaging=0)
 
-    m.write(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
 
 
-def test_complete_cylindrical_optthin():
+def test_complete_cylindrical_optthin(tmpdir):
 
     m = AnalyticalYSOModel()
 
@@ -454,4 +454,4 @@ def test_complete_cylindrical_optthin():
 
     m.set_n_photons(initial=0, imaging=0)
 
-    m.write(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)

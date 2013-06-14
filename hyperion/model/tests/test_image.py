@@ -1,12 +1,16 @@
 from __future__ import print_function, division
 
+import os
+import shutil
+import tempfile
+
 from astropy.tests.helper import pytest
 import numpy as np
 from numpy.testing import assert_array_almost_equal_nulp
 
 from .. import Model
 from ..image import Image
-from ...util.functions import random_filename
+from ...util.functions import random_id
 from .test_helpers import get_test_dust
 
 
@@ -34,9 +38,13 @@ class TestImageSimpleModel(object):
 
         m.set_n_photons(imaging=1)
 
-        m.write(random_filename())
+        self.tmpdir = tempfile.mkdtemp()
+        m.write(os.path.join(self.tmpdir, random_id()))
 
         self.m = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
 
     def test_image_group(self):
         wav, nufnu = self.m.get_image(group=0)
@@ -131,9 +139,13 @@ class TestSEDSimpleModelTrackingDetailed(object):
 
         m.set_n_photons(imaging=1)
 
-        m.write(random_filename())
+        self.tmpdir = tempfile.mkdtemp()
+        m.write(os.path.join(self.tmpdir, random_id()))
 
         self.m = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
 
     def test_image_source_all(self):
         wav, nufnu = self.m.get_image(source_id='all', component='source_emit')
@@ -195,9 +207,13 @@ class TestSimpleModelInside(object):
 
         m.set_n_photons(imaging=1)
 
-        m.write(random_filename())
+        self.tmpdir = tempfile.mkdtemp()
+        m.write(os.path.join(self.tmpdir, random_id()))
 
         self.m = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
 
     def test_distance_fail(self):
         with pytest.raises(ValueError) as e:
@@ -205,7 +221,7 @@ class TestSimpleModelInside(object):
         assert e.value.args[0] == 'Cannot specify distance for inside observers'
 
 
-def test_regression_depth_bug():
+def test_regression_depth_bug(tmpdir):
     """
     This is a regression test for issue #21 reported by T. Bowers. If multiple
     images are requested with different depths, then if a photon did not fall
@@ -249,9 +265,9 @@ def test_regression_depth_bug():
 
     m.set_n_photons(imaging=1)
 
-    m.write(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
 
-    mo = m.run(random_filename())
+    mo = m.run(tmpdir.join(random_id()).strpath)
 
     wav, image1 = mo.get_image(group=0)
     wav, image2 = mo.get_image(group=1)
@@ -286,9 +302,13 @@ class TestImage(object):
 
         m.set_n_photons(imaging=10000)
 
-        m.write(random_filename())
+        self.tmpdir = tempfile.mkdtemp()
+        m.write(os.path.join(self.tmpdir, random_id()))
 
         self.m = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
 
     def test_get_image_object(self):
         image = self.m.get_image(group=0)
@@ -411,9 +431,13 @@ class TestInsideImage(object):
 
         m.set_n_photons(imaging=10000)
 
-        m.write(random_filename())
+        self.tmpdir = tempfile.mkdtemp()
+        m.write(os.path.join(self.tmpdir, random_id()))
 
         self.m = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
 
     def test_get_image_object(self):
         image = self.m.get_image(group=0)

@@ -2,12 +2,12 @@ from astropy.tests.helper import pytest
 import numpy as np
 
 from .. import Model
-from .test_helpers import random_filename, get_test_dust
+from .test_helpers import random_id, get_test_dust
 from ...grid import AMRGrid
 
 
 @pytest.mark.parametrize(('direction'), ['x', 'y', 'z'])
-def test_amr_differing_widths(direction):
+def test_amr_differing_widths(tmpdir, direction):
 
     # Widths of grids in same level are not the same
 
@@ -35,10 +35,10 @@ def test_amr_differing_widths(direction):
     m.set_grid(amr)
     m.add_density_grid(amr['density'], dust)
     m.set_n_photons(initial=1, imaging=0)
-    m.write(random_filename())
-    log_file = random_filename()
+    m.write(tmpdir.join(random_id()).strpath)
+    log_file = tmpdir.join(random_id()).strpath
     with pytest.raises(SystemExit) as exc:
-        m.run(random_filename(), logfile=log_file)
+        m.run(tmpdir.join(random_id()).strpath, logfile=log_file)
 
     assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
                                 'complete'
@@ -46,7 +46,7 @@ def test_amr_differing_widths(direction):
 
 
 @pytest.mark.parametrize(('direction'), ['x', 'y', 'z'])
-def test_amr_misaligned_grids_same_level(direction):
+def test_amr_misaligned_grids_same_level(tmpdir, direction):
 
     # Widths of grids in same level are not the same
 
@@ -75,10 +75,10 @@ def test_amr_misaligned_grids_same_level(direction):
     m.set_grid(amr)
     m.add_density_grid(amr['density'], dust)
     m.set_n_photons(initial=1, imaging=0)
-    m.write(random_filename())
-    log_file = random_filename()
+    m.write(tmpdir.join(random_id()).strpath)
+    log_file = tmpdir.join(random_id()).strpath
     with pytest.raises(SystemExit) as exc:
-        m.run(random_filename(), logfile=log_file)
+        m.run(tmpdir.join(random_id()).strpath, logfile=log_file)
 
     assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
                                 'complete'
@@ -86,7 +86,7 @@ def test_amr_misaligned_grids_same_level(direction):
 
 
 @pytest.mark.parametrize(('direction'), ['x', 'y', 'z'])
-def test_amr_non_integer_refinement(direction):
+def test_amr_non_integer_refinement(tmpdir, direction):
 
     # Widths of grids in same level are not the same
 
@@ -116,10 +116,10 @@ def test_amr_non_integer_refinement(direction):
     m.set_grid(amr)
     m.add_density_grid(amr['density'], dust)
     m.set_n_photons(initial=1, imaging=0)
-    m.write(random_filename())
-    log_file = random_filename()
+    m.write(tmpdir.join(random_id()).strpath)
+    log_file = tmpdir.join(random_id()).strpath
     with pytest.raises(SystemExit) as exc:
-        m.run(random_filename(), logfile=log_file)
+        m.run(tmpdir.join(random_id()).strpath, logfile=log_file)
 
     assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
                                 'complete'
@@ -127,7 +127,7 @@ def test_amr_non_integer_refinement(direction):
 
 
 @pytest.mark.parametrize(('direction'), ['x', 'y', 'z'])
-def test_amr_not_aligned_across_levels(direction):
+def test_amr_not_aligned_across_levels(tmpdir, direction):
 
     # Widths of grids in same level are not the same
 
@@ -152,16 +152,16 @@ def test_amr_not_aligned_across_levels(direction):
     grid2.quantities['density'] = np.ones(grid2.shape) * 1.e-10
 
     setattr(grid2, direction + 'min', -6.)
-    setattr(grid2, direction + 'max',  4.)
+    setattr(grid2, direction + 'max', 4.)
 
     m = Model()
     m.set_grid(amr)
     m.add_density_grid(amr['density'], dust)
     m.set_n_photons(initial=1, imaging=0)
-    m.write(random_filename())
-    log_file = random_filename()
+    m.write(tmpdir.join(random_id()).strpath)
+    log_file = tmpdir.join(random_id()).strpath
     with pytest.raises(SystemExit) as exc:
-        m.run(random_filename(), logfile=log_file)
+        m.run(tmpdir.join(random_id()).strpath, logfile=log_file)
 
     assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
                                 'complete'

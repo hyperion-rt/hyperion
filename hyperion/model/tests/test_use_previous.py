@@ -7,21 +7,21 @@ import numpy as np
 
 from .. import Model
 from ...grid.amr_grid import AMRGrid, Level, Grid
-from ...util.functions import random_filename
+from ...util.functions import random_id
 from .test_helpers import get_test_dust
 
 
 @pytest.mark.parametrize(('grid_type', 'copy'), list(product(['car', 'sph', 'cyl', 'amr', 'oct'], [(True, True), (False, True), (False, False)])))
-def test_use_quantities(grid_type, copy):
+def test_use_quantities(tmpdir, grid_type, copy):
 
-    input_file_1 = random_filename()
-    output_file_1 = random_filename()
-    input_file_2 = random_filename()
-    output_file_2 = random_filename()
+    input_file_1 = tmpdir.join(random_id()).strpath
+    output_file_1 = tmpdir.join(random_id()).strpath
+    input_file_2 = tmpdir.join(random_id()).strpath
+    output_file_2 = tmpdir.join(random_id()).strpath
 
     # Get a dust object
     dust = get_test_dust()
-    dust_file = random_filename()
+    dust_file = tmpdir.join(random_id()).strpath
     dust.write(dust_file)
 
     # Set up the initial model

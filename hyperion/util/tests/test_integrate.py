@@ -46,6 +46,7 @@ def test_loglog_subset_special1(xmin, xmax):
     y = 1. / x
     assert almost_equal(integrate_loglog_subset(x, y, xmin, xmax), np.log(xmax) - np.log(xmin))
 
+
 @pytest.mark.parametrize(('xmin', 'xmax'), cases)
 def test_loglog_subset_special2(xmin, xmax):
     # Special case for loglog is close to y = x^-1
@@ -53,12 +54,14 @@ def test_loglog_subset_special2(xmin, xmax):
     y = x ** -1.1
     assert_array_almost_equal_nulp(integrate_loglog_subset(x, y, xmin, xmax), -10. * (xmax ** -0.1 - xmin ** -0.1), 50)
 
+
 @pytest.mark.parametrize(('xmin', 'xmax'), cases)
 def test_loglog_subset_special3(xmin, xmax):
     # Contains a zero value
     x = np.array([0., 2., 3., 4., 5.])
     y = 4. * x ** 3.
     assert almost_equal(integrate_loglog_subset(x, y, xmin, xmax), (max(xmax, 2.) ** 4 - max(xmin, 2.) ** 4))
+
 
 @pytest.mark.parametrize(('xmin', 'xmax'), cases)
 def test_loglin_subset(xmin, xmax):

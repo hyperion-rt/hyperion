@@ -2,7 +2,7 @@ from astropy.tests.helper import pytest
 import numpy as np
 
 from ..model import Model
-from .test_helpers import get_realistic_test_dust, random_filename
+from .test_helpers import get_realistic_test_dust, random_id
 
 # The following tests ensure that the correct temperatures are returned
 # for the MRW, for single and for multiple dust populations.
@@ -30,7 +30,7 @@ T_REF = [24.75280,
 
 
 @pytest.mark.parametrize(('density_ref', 'temperature_ref'), zip(D_REF, T_REF))
-def test_single_temperature(density_ref, temperature_ref):
+def test_single_temperature(tmpdir, density_ref, temperature_ref):
 
     dust = get_realistic_test_dust()
 
@@ -53,17 +53,17 @@ def test_single_temperature(density_ref, temperature_ref):
 
     m.set_max_interactions(1000000000)
 
-    m.write(random_filename())
-    mo = m.run(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
+    mo = m.run(tmpdir.join(random_id()).strpath)
 
     grid = mo.get_quantities()
-    temperature = grid['temperature'][0].array[0,0,0]
+    temperature = grid['temperature'][0].array[0, 0, 0]
 
     assert temperature_ref / temperature < 1.1 and temperature / temperature_ref < 1.1
 
 
 @pytest.mark.parametrize(('density_ref', 'temperature_ref'), zip(D_REF, T_REF))
-def test_multi_temperature(density_ref, temperature_ref):
+def test_multi_temperature(tmpdir, density_ref, temperature_ref):
 
     dust = get_realistic_test_dust()
 
@@ -89,11 +89,11 @@ def test_multi_temperature(density_ref, temperature_ref):
 
     m.set_max_interactions(1000000000)
 
-    m.write(random_filename())
-    mo = m.run(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
+    mo = m.run(tmpdir.join(random_id()).strpath)
 
     grid = mo.get_quantities()
 
     for i in range(4):
-        temperature = grid['temperature'][i].array[0,0,0]
+        temperature = grid['temperature'][i].array[0, 0, 0]
         assert temperature_ref / temperature < 1.1 and temperature / temperature_ref < 1.1

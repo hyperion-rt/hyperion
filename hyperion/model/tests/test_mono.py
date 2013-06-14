@@ -1,10 +1,10 @@
 import numpy as np
 
 from ..model import Model
-from .test_helpers import random_filename, get_test_dust
+from .test_helpers import random_id, get_test_dust
 
 
-def test_mono_zero_prob():
+def test_mono_zero_prob(tmpdir):
 
     # Check that when total probability is zero in a given dust type for a given wavelength, the code doesn't crash
 
@@ -28,11 +28,11 @@ def test_mono_zero_prob():
 
     m.set_n_photons(imaging_sources=0, imaging_dust=100)
 
-    m.write(random_filename())
-    m.run(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
+    m.run(tmpdir.join(random_id()).strpath)
 
 
-def test_check_weighting():
+def test_check_weighting(tmpdir):
     '''
     This is a regression test for a bug that caused incorrect weighting of the
     monochromatic fluxes in the presence of multiple dust populations with one
@@ -59,8 +59,8 @@ def test_check_weighting():
 
     m.set_n_photons(imaging_sources=0, imaging_dust=10000)
 
-    m.write(random_filename())
-    mo1 = m.run(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
+    mo1 = m.run(tmpdir.join(random_id()).strpath)
 
     # Same model but without second dust population. Since the model is
     # optically thin, the SEDs for the first dust population should agree.
@@ -79,8 +79,8 @@ def test_check_weighting():
 
     m.set_n_photons(imaging_sources=0, imaging_dust=10000)
 
-    m.write(random_filename())
-    mo2 = m.run(random_filename())
+    m.write(tmpdir.join(random_id()).strpath)
+    mo2 = m.run(tmpdir.join(random_id()).strpath)
 
     _, nufnu1 = mo1.get_sed(inclination=-1, aperture=-1, component='dust_emit', dust_id=0)
     _, nufnu2 = mo2.get_sed(inclination=-1, aperture=-1, component='dust_emit', dust_id=0)
