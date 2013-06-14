@@ -96,6 +96,9 @@ class TestRunner(object):
                     ' --cov-report html --cov hyperion'
                     ' --cov-config {0}'.format(tmp.name))
 
+        tmpdir = tempfile.mkdtemp()
+        all_args += ' --basetemp={0}'.format(tmpdir)
+
         all_args = shlex.split(all_args,
                                posix=not sys.platform.startswith('win'))
 
@@ -104,6 +107,7 @@ class TestRunner(object):
         try:
             return pytest.main(args=all_args, plugins=plugins)
         finally:
+            shutil.rmtree(tmpdir)
             if coverage:
                 if not tmp.closed:
                     tmp.close()
