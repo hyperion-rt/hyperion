@@ -318,6 +318,7 @@ class TestPascucciBenchmark(object):
         albedo = data['csca'] / data['cext']
 
         # Set up dust object
+        import tempfile
         self.tmpdir = tempfile.mkdtemp()
         self.dust_file = os.path.join(self.tmpdir, random_id())
         dust = IsotropicDust(nu[::-1], albedo[::-1], chi[::-1])
