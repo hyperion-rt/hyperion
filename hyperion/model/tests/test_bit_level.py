@@ -115,7 +115,7 @@ def function_name():
     args, _, _, values = inspect.getargvalues(caller)
     name = [caller.f_code.co_name]
     for arg in args:
-        if arg not in ['self', 'generate']:
+        if arg not in ['self', 'generate', 'tmpdir']:
             name += ["{0}={1}".format(arg, values[arg])]
     name = '.'.join(name)
     return name
