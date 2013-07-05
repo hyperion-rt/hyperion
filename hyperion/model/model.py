@@ -792,6 +792,7 @@ class Model(FreezableClass, RunConf):
 
     def add_peeled_images(self, **kwargs):
         self.peeled_output.append(PeeledImageConf(**kwargs))
+        self.peeled_output[-1]._monochromatic = True
         return self.peeled_output[-1]
 
     def add_binned_images(self, **kwargs):
