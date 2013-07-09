@@ -25,19 +25,14 @@ contains
     if(allocated(specific_energy_sum)) specific_energy_sum = 0._dp
   end subroutine grid_reset_energy
 
-  subroutine output_grid(handle, iter, n_iter)
+  subroutine output_grid(group, iter, n_iter)
 
     implicit none
 
-    integer(hid_t),intent(in) :: handle
+    integer(hid_t),intent(in) :: group
     integer,intent(in) :: iter, n_iter
-    character(len=100) :: group_name
-    integer(hid_t) :: group
 
     if(main_process()) write(*,'(" [output_grid] outputting grid arrays for iteration")')
-
-    write(group_name, '("iteration_",I5.5)') iter
-    group = mp_create_group(handle, group_name)
 
     ! NUMBER OF PHOTONS IN EACH CELL
 

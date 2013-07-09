@@ -11,9 +11,11 @@ from .test_helpers import random_id, get_test_dust
 
 
 def any_photons_killed(handle):
-    return handle.attrs['killed_photons_geo_initial'] != 0 or \
-           handle.attrs['killed_photons_int_initial'] != 0 or \
-           handle.attrs['killed_photons_geo_final'] != 0 or \
+    for group in handle:
+        if 'killed_photons_geo' in handle[group].attrs:
+            if handle[group].attrs['killed_photons_geo'] != 0 or handle[group].attrs['killed_photons_int'] != 0:
+                return True
+    return handle.attrs['killed_photons_geo_final'] != 0 or \
            handle.attrs['killed_photons_int_final'] != 0 or \
            handle.attrs['killed_photons_geo_raytracing'] != 0 or \
            handle.attrs['killed_photons_int_raytracing'] != 0

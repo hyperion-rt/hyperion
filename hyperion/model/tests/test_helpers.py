@@ -49,6 +49,16 @@ def assert_identical_results(file1, file2):
     # List of attributes to exclude from checking (time-dependent)
     EXCLUDE_ATTR = ['date_started', 'date_ended', 'cpu_time', 'python_version', 'fortran_version']
 
+    # TODO
+    # For now, also exclude 'killed' attributes because they have been moved
+    # to a different group, but not worth re-generating all the reference
+    # models just for this. However, update this next time the reference
+    # models are re-generated.
+    EXCLUDE_ATTR += ['killed_photons_geo_initial',
+                     'killed_photons_int_initial',
+                     'killed_photons_geo',
+                     'killed_photons_int']
+
     # Open both files
     f1 = h5py.File(file1, 'r')
     f2 = h5py.File(file2, 'r')
@@ -108,6 +118,13 @@ def assert_identical_results(file1, file2):
         attr1.sort()
         attr2 = f2[item].attrs.keys()
         attr2.sort()
+
+        for e in EXCLUDE_ATTR:
+            if e in attr1:
+                attr1.remove(e)
+            if e in attr2:
+                attr2.remove(e)
+
         assert attr1 == attr2
 
         for a in attr1:

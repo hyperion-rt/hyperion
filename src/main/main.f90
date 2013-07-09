@@ -62,6 +62,8 @@ program main
   logical :: converged, copy_input
   character(len=30) :: datetime
   integer :: seed
+  character(len=100) :: group_name
+  integer(hid_t) :: handle_iter
 
   character(len=5), parameter :: fortran_version = '0.9.1'
 
@@ -148,6 +150,10 @@ program main
   ! Loop over Lucy iterations
   do iter=1,n_initial_iter
 
+     ! Reset killed photon counters to zero
+     killed_photons_geo = 0
+     killed_photons_int = 0
+
      ! Display message
      if(main_process()) write(*,'(" [main] starting Lucy iteration ", I0)') iter
 
@@ -174,19 +180,31 @@ program main
               write(*,*)
            end if
 
-           ! Output files (and signal that this is the last iteration)
-           call output_grid(handle_out, iter, iter)
-
-           ! Exit the energy iteration
-           exit
-
         end if
 
      end if
 
+     ! Create HDF5 group name
+     write(group_name, '("iteration_",I5.5)') iter
+     handle_iter = mp_create_group(handle_out, group_name)
+
      ! Output files. The following needs to be executed on all ranks because
      ! the MPI AMR version needs to sync during mp_path_exists.
-     call output_grid(handle_out, iter, n_initial_iter)
+     if(check_convergence.and.converged) then
+         call output_grid(handle_iter, iter, iter)
+     else
+         call output_grid(handle_iter, iter, n_initial_iter)
+     end if
+
+     ! Sync killed photon counters
+     call mp_sync(killed_photons_geo)
+     call mp_sync(killed_photons_int)
+
+     ! Write out killed photon information
+     call mp_write_keyword(handle_iter, '.', 'killed_photons_geo', killed_photons_geo)
+     call mp_write_keyword(handle_iter, '.', 'killed_photons_int', killed_photons_int)
+
+     if(check_convergence.and.converged) exit
 
   end do
 
@@ -205,14 +223,6 @@ program main
   end if
 
   ! KILLED PHOTON INFORMATION
-
-  ! Sync killed photon counters
-  call mp_sync(killed_photons_geo)
-  call mp_sync(killed_photons_int)
-
-  ! Write out killed photon information
-  call mp_write_keyword(handle_out, '/', 'killed_photons_geo_initial', killed_photons_geo)
-  call mp_write_keyword(handle_out, '/', 'killed_photons_int_initial', killed_photons_int)
 
   ! Reset killed photon counters to zero
   killed_photons_geo = 0
