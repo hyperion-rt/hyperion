@@ -310,3 +310,51 @@ def octree_grid_to_yt_stream(grid, dust_id=0):
     spf.units["unitary"] = 1.0 / ((spf.domain_right_edge - spf.domain_left_edge).max())
 
     return spf
+
+
+def cartesian_grid_to_yt_stream(grid, xmin, xmax, ymin, ymax, zmin, zmax, dust_id=0):
+
+    nz, ny, nx = grid.shape
+
+    grids = [grid.quantities]
+    left_edge = np.array([[xmin, ymin, zmin]], dtype=np.float64)
+    right_edge = np.array([[xmax, ymax, zmax]], dtype=np.float64)
+    dimensions = np.array([[nx, ny, nz]], dtype=np.int32)
+    level_ids = np.array([[0]], dtype=np.int32).reshape((1, 1))
+
+    parent_ids = None
+    particle_count = np.zeros((1, 1), dtype='int32')
+    processor_ids = np.zeros(1)
+
+    # Determine fields
+
+    fields = grid.quantities.keys()
+
+    # Set up StreamHandler
+
+    handler = stream.StreamHandler(
+        left_edge[:],
+        right_edge[:],
+        dimensions[:],
+        level_ids[:],
+        parent_ids,
+        particle_count[:],
+        processor_ids[:],
+        StreamFieldData(fields),
+        HyperionIOHandler(grids, dust_id),
+    )
+
+    handler.name = 'hyperion'
+    handler.domain_left_edge = np.array([xmin, ymin, zmin])
+    handler.domain_right_edge = np.array([xmax, ymax, zmax])
+    handler.refine_by = 2
+    handler.dimensionality = 3
+    handler.domain_dimensions = np.array([nx, ny, nz])
+    handler.simulation_time = 0.0
+    handler.cosmology_simulation = 0
+
+    spf = stream.StreamStaticOutput(handler)
+    spf.units["cm"] = 1.0
+    spf.units["unitary"] = 1.0 / ((spf.domain_right_edge - spf.domain_left_edge).max())
+
+    return spf

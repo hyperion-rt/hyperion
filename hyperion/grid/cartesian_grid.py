@@ -420,6 +420,37 @@ class CartesianGrid(FreezableClass):
             raise KeyError(name + ' already exists')
         function(self.quantities)
 
+    def to_yt(self, dust_id=0):
+        '''
+        Convert cartesian grid to a yt object (requires yt)
+
+        This can only be used for regular cartesian grids
+
+        Parameters
+        ----------
+        dust_id : int, optional
+            The ID of the dust population to extract. If not set, this
+            defaults to 0 (the first dust population).
+        '''
+
+        # Check that cartesian grid is regular
+        dxs = np.diff(self.x_wall)
+        if np.std(dxs) / np.mean(dxs) > 1.e-8:
+            raise ValueError("Grid is significantly non-regular in x direction")
+        dys = np.diff(self.y_wall)
+        if np.std(dys) / np.mean(dys) > 1.e-8:
+            raise ValueError("Grid is significantly non-regular in y direction")
+        dzs = np.diff(self.z_wall)
+        if np.std(dzs) / np.mean(dzs) > 1.e-8:
+            raise ValueError("Grid is significantly non-regular in z direction")
+
+        # Convert to yt object
+        from yt_wrappers import cartesian_grid_to_yt_stream
+        return cartesian_grid_to_yt_stream(self, self.x_wall[0], self.x_wall[-1],
+                                                 self.y_wall[0], self.y_wall[-1],
+                                                 self.z_wall[0], self.z_wall[-1],
+                                                 dust_id=dust_id)
+
 
 class CartesianGridView(CartesianGrid):
 
