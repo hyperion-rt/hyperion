@@ -250,6 +250,7 @@ cyl_mpi:	$(OBJECTS_CYL_MPI)
 		$(FCMPI) $(OBJECTS_CYL_MPI) -o bin/hyperion_cyl_mpi
 
 install:	bin/hyperion_*
+		mkdir -p @prefix@/bin
 		cp bin/hyperion_* @prefix@/bin/
 
 clean:;		rm *.mod src/*.mod src/*/*.mod *.o */*.o bin/* *~ */*~ fort.* ; echo "This file can be deleted." > bin/empty.txt ; echo "This file can be deleted." > src/modules/empty.txt
