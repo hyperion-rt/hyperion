@@ -12,14 +12,26 @@ The code currently allows at most one set of binned images, and any number
 of sets of peeled images. A set is defined by a wavelength range, image
 resolution and extent, and any number of viewing angles.
 
-Common parameters
------------------
+Creating a set of images
+------------------------
 
-The wavelength range (in microns) for the images/SEDs can be specified using::
+To add a set of binned images/SEDs to the model, use::
+
+    image = m.add_binned_images()
+
+and to create a set of peeled images/SEDs to the model, use::
+
+    image = m.add_peeled_images()
+
+Only one set of binned images can be added, but any number of sets of peeled
+image can be added. In general, peeled images are recommended because binned
+images suffer from low signal-to-noise, and angle averaging of images.
+
+The wavelength range (in microns) for the images/SEDs should be specified using::
 
     image.set_wavelength_range(n_wav, wav_min, wav_max)
 
-The image size in pixels and the extent of the images can be specified using::
+The image size in pixels and the extent of the images should be specified using::
 
     image.set_image_size(n_x, n_y)
     image.set_image_limits(xmin, xmax, ymin, ymax)
@@ -29,30 +41,19 @@ be specified using::
 
     image.set_aperture_range(n_ap, ap_min, ap_max)
 
-where the apertures should be given in cm. The default is to have one
-aperture with infinite size, i.e. measuring all the flux.
+where the apertures should be given in cm. If this is not specified, the
+default is to have one aperture with infinite size, i.e. measuring all the
+flux.
 
-Binned images
--------------
-
-To add a set of binned images/SEDs to the model, use::
-
-    image = m.add_binned_images()
-
-The number of bins in the theta and phi direction can be specified using::
+For binned images, the number of bins in the theta and phi direction should be
+specified using::
 
     image.set_viewing_bins(10, 10)
 
-Peeled images
--------------
-
-To add a set of peeled images/SEDs to the model, use::
-
-    image = m.add_peeled_images()
-
-The viewing angles should be specified as lists or arrays of theta and phi
-values, in degrees. For example, the following produces images from pole-on
-to edge-on at constant phi using 20 viewing angles::
+whereas for peeled images, the viewing angles should be specified as lists or
+arrays of theta and phi values, in degrees. For example, the following
+produces images from pole-on to edge-on at constant phi using 20 viewing
+angles::
 
     # Set number of viewing angles
     n_view = 20
@@ -63,8 +64,6 @@ to edge-on at constant phi using 20 viewing angles::
 
     # Set the viewing angles
     image.set_viewing_angles(theta, phi)
-
-A few more advanced parameters are also available, and these are described in :doc:`../advanced/peeloff`.
 
 .. note:: For peeled images, the number of viewing angles directly impacts the
           performance of the code - once the specific energy/temperature has
@@ -81,7 +80,8 @@ Uncertainties can be computed for SEDs/images (doubling the memory/disk space re
 File output
 -----------
 
-Finally, to save space, images can be written out as 32-bit floats instead of 64-bit floats. To write them out as 32-bit floats, use::
+Finally, to save space, images can be written out as 32-bit floats instead of
+64-bit floats. To write them out as 32-bit floats, use::
 
     image.set_output_bytes(4)
 
@@ -122,6 +122,12 @@ SED or image part::
     image = m.add_peeled_images()  # Images and SEDs
     image = m.add_peeled_images(image=False)  # SEDs
     image = m.add_peeled_images(sed=False)  # Images
+
+Advanced
+--------
+
+A few more advanced parameters are available for peeled images, and these are
+described in :doc:`../advanced/peeloff`.
 
 Example
 -------
