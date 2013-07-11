@@ -689,7 +689,7 @@ class ImageConf(FreezableClass):
         self.n_y = group.attrs['n_y']
 
     def _write_image_size(self, group):
-        if not hasattr(self, 'n_x'):
+        if self.n_x is None or self.n_y is None:
             raise Exception("Image size has not been set")
         group.attrs['n_x'] = self.n_x
         group.attrs['n_y'] = self.n_y
@@ -717,7 +717,7 @@ class ImageConf(FreezableClass):
         self.ymax = group.attrs['y_max']
 
     def _write_image_limits(self, group):
-        if not hasattr(self, 'xmin'):
+        if self.xmin is None or self.xmax is None or self.ymin is None or self.ymax is None:
             raise Exception("Image limits have not been set")
         group.attrs['x_min'] = self.xmin
         group.attrs['x_max'] = self.xmax
@@ -781,7 +781,7 @@ class ImageConf(FreezableClass):
 
     def _write_wavelength_range(self, group):
 
-        if not hasattr(self, 'n_wav'):
+        if self.n_wav is None:
             raise Exception("Wavelength range has not been set")
         group.attrs['n_wav'] = self.n_wav
 
