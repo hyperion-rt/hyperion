@@ -77,7 +77,7 @@ by calling the ``add_bipolar_cavities`` method on the envelope object, which
 returns a :class:`~hyperion.densities.BipolarCavity` instance::
 
     cavity = envelope.add_bipolar_cavities()
-    cavity.exponent = 1.5               # Shape exponent z~w^exp
+    cavity.power = 1.5                  # Shape exponent z~w^exp
     cavity.r_0 = 1.e-20                 # Radius to specify rho_0 and theta_0
     cavity.theta_0 = 10                 # Opening angle at r_0 (degrees)
     cavity.rho_0 = 1.e-20               # Density at r_0
