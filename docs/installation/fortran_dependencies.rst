@@ -46,6 +46,9 @@ In addition, you should never include ``sudo`` in any of the commands.
 Automated Installation
 ======================
 
+.. note:: You only need to follow this section if you do **not** have HDF5 or
+          MPI already installed
+
 The easiest way to install these dependencies correctly is to use the
 installation script provided with Hyperion. First, make sure you have
 downloaded the latest tar file from `here <https://github.com/hyperion-rt/hyperion/downloads>`_, then expand it with::
@@ -99,6 +102,9 @@ If the installation succeeds, you can ignore the rest of this document, and move
 
 Manual Installation: MPI
 ========================
+
+.. note:: You only need to follow this section if you do **not** have MPI
+          already installed.
 
 In order to use the parallel version of the radiation transfer code, you will
 need an installation of MPI that supports Fortran. By default, MacOS X ships
@@ -175,6 +181,9 @@ Then, rerun configure and build using::
 
 Manual Installation: HDF5
 =========================
+
+.. note:: You only need to follow this section if you do **not** have HDF5
+          already installed.
 
 Installation
 ------------
