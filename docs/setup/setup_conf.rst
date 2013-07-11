@@ -80,21 +80,29 @@ This algorithm is described in Section 2.6.3 of `Robitaille (2011)`_. If raytrac
 Diffusion
 ---------
 
-If the model density contains regions of very high density where photons
-get trapped or do not enter, one can enable either or both the modified
-random walk (MRW; `Min et al. 2009`_, `Robitaille 2010`_) and the partial
-diffusion approximation (PDA; `Min et al. 2009`_). The MRW requires a
-parameter ``gamma`` which is used to determine when to start using the MRW
-(see Min et al. 2009 for more details). By default, this parameter is set to
-one. The following examples show how to enable the PDA and MRW respectively:
+If the model density contains regions of very high density where photons get
+trapped or do not enter, one can enable the modified random walk (MRW; `Min et
+al. 2009`_, `Robitaille 2010`_) in order to group many photon interactions
+into one. The MRW requires a parameter ``gamma`` which is used to determine
+when to start using the MRW (see `Min et al. 2009`_ for more details). By
+default, this parameter is set to ``1``. The following example shows how to
+enable the modified random walk, and set the gamma parameter to ``2``::
 
-* Enable the partial diffusion approximation::
+    m.set_mrw(True, gamma=2.)
+
+In some cases (such as protoplanetary disks) very optically thick regions do
+not receive any radiation. In cases where the temperature in these regions is
+important, one can use the partial diffusion approximation (PDA; `Min et al.
+2009`_) to solve the diffusion equation over the grid and find the missing
+temperatures::
 
     m.set_pda(True)
 
-* Enable the modified random walk, and set the gamma parameter to 2.::
-
-    m.set_mrw(True, gamma=2.)
+Note however that if more than 10,000 cells have low photon counts and require
+the PDA, this can be **very** slow, so this option is only recommended in
+cases where you know it is absolutely needed. In most cases, if photons cannot
+reach inside certain cells, these cells are unlikely to be contributing a
+significant amount of flux to SEDs or images.
 
 Dust sublimation
 ----------------
