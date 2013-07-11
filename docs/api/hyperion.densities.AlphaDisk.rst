@@ -11,6 +11,7 @@ hyperion.densities.AlphaDisk
    .. autosummary::
 
       ~AlphaDisk.mass
+      ~AlphaDisk.rho_0
       ~AlphaDisk.rmin
       ~AlphaDisk.rmax
       ~AlphaDisk.p
@@ -28,7 +29,6 @@ hyperion.densities.AlphaDisk
 
    .. autosummary::
 
-      ~AlphaDisk.rho_0
       ~AlphaDisk.density
       ~AlphaDisk.midplane_cumulative_density
       ~AlphaDisk.vertical_cumulative_density
@@ -36,7 +36,6 @@ hyperion.densities.AlphaDisk
 
    .. rubric:: Methods (detail)
 
-   .. automethod:: AlphaDisk.rho_0
    .. automethod:: AlphaDisk.density
    .. automethod:: AlphaDisk.midplane_cumulative_density
    .. automethod:: AlphaDisk.vertical_cumulative_density

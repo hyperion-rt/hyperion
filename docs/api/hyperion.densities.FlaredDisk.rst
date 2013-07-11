@@ -11,6 +11,7 @@ hyperion.densities.FlaredDisk
    .. autosummary::
 
       ~FlaredDisk.mass
+      ~FlaredDisk.rho_0
       ~FlaredDisk.rmin
       ~FlaredDisk.rmax
       ~FlaredDisk.p
@@ -25,14 +26,12 @@ hyperion.densities.FlaredDisk
 
    .. autosummary::
 
-      ~FlaredDisk.rho_0
       ~FlaredDisk.density
       ~FlaredDisk.midplane_cumulative_density
       ~FlaredDisk.vertical_cumulative_density
 
    .. rubric:: Methods (detail)
 
-   .. automethod:: FlaredDisk.rho_0
    .. automethod:: FlaredDisk.density
    .. automethod:: FlaredDisk.midplane_cumulative_density
    .. automethod:: FlaredDisk.vertical_cumulative_density
