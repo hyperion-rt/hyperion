@@ -66,3 +66,22 @@ To run in parallel, simply do::
     m.run('model.rtout', mpi=True, n_processes=<n_processes>)
 
 As for the ``hyperion`` command-line wrapper, this may not work with all MPI installations.
+
+Overwriting existing output
+---------------------------
+
+By default, if the output file already exists, a confirmation message is shown::
+
+    WARNING: File exists:  test.rtout
+    The following command will be run:  rm test.rtout
+    Do you wish to continue? (y/n)
+
+However, this is not always desirable (for example when submitting jobs to
+clusters). To overwrite an existing output file, then use the ``-f`` option
+when calling ``hyperion`` or on of the ``hyperion_*`` commands::
+
+    $ hyperion -f input output
+
+of use the ``overwrite=True`` argument when using ``Model.run``::
+
+    m.run('model.rtout', overwrite=True)

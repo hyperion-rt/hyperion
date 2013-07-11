@@ -56,7 +56,7 @@ program main
   implicit none
 
   integer :: iter
-  character(len=1000) :: input_file, output_file
+  character(len=1000) :: command, force_option, input_file, output_file
   integer(hid_t) :: handle_in, handle_out, g_peeled, g_binned, g_input
   real(dp) :: time1, time2, time
   logical :: converged, copy_input
@@ -64,21 +64,43 @@ program main
   integer :: seed
   character(len=100) :: group_name
   integer(hid_t) :: handle_iter
+  logical :: confirm_overwrite, show_usage
+  integer :: n_args
 
   character(len=5), parameter :: fortran_version = '0.9.1'
 
   call mp_set_compression(.true.)
 
+  n_args = command_argument_count()
+
   ! Retrieve command-line arguments
-  call get_command_argument(1, input_file)
-  call get_command_argument(2, output_file)
+  confirm_overwrite = .true.
+  show_usage = .false.
+
+  call get_command_argument(0, command)
+  if(n_args == 2) then
+     call get_command_argument(1, input_file)
+     call get_command_argument(2, output_file)
+  else if(n_args == 3) then
+     call get_command_argument(1, force_option)
+     call get_command_argument(2, input_file)
+     call get_command_argument(3, output_file)
+     if(trim(force_option) == '-f') then
+        confirm_overwrite = .false.
+     else
+        show_usage = .true.
+     end if
+  else
+     show_usage = .true.
+  end if
+
 
   ! Start up multi-processing if needed
   call mp_initialize()
 
   ! Check that both arguments were given
-  if(trim(input_file)=="".or.trim(output_file)=="") then
-     if(main_process()) print *,"Usage: bin/rt input_file output_file"
+  if(show_usage) then
+     if(main_process()) write(*,'("Usage: ", A, " [-f] input_file output_file")') trim(command)
      call mp_stop()
      stop
   end if
@@ -104,7 +126,7 @@ program main
 
   ! Prepare output directory
   if(main_process()) then
-     handle_out = mp_open_new(output_file)
+     handle_out = mp_open_new(output_file, confirm=confirm_overwrite)
      call mp_write_keyword(handle_out, '/', 'date_started', trim(datetime))
      call mp_write_keyword(handle_out, '/', 'fortran_version', fortran_version)
   end if
@@ -191,9 +213,9 @@ program main
      ! Output files. The following needs to be executed on all ranks because
      ! the MPI AMR version needs to sync during mp_path_exists.
      if(check_convergence.and.converged) then
-         call output_grid(handle_iter, iter, iter)
+        call output_grid(handle_iter, iter, iter)
      else
-         call output_grid(handle_iter, iter, n_initial_iter)
+        call output_grid(handle_iter, iter, n_initial_iter)
      end if
 
      ! Sync killed photon counters

@@ -9,21 +9,24 @@ if sys.version_info[0] == 2:
 else:
     from configparser import SafeConfigParser
 
-import h5py
-
 if (sys.version_info[0] == 2 and sys.version_info[1] < 7) or \
    (sys.version_info[0] == 3 and sys.version_info[1] <= 1):
     from optparse import OptionParser
     parser = OptionParser()
+    parser.add_option("-f", help="overwrite output file if it already exists",
+                      action='store_true')
     parser.add_option("-m", dest="n_cores",
                       help="use MPI code on n_cores cores",
                       metavar="n_cores")
     options, args = parser.parse_args()
     n_cores = options.n_cores
+    force_overwrite = options.f is True
     input, output = args[0], args[1]
 else:
     from argparse import ArgumentParser
     parser = ArgumentParser(description="Run the Hyperion code")
+    parser.add_argument("-f", help="overwrite output file if it already exists",
+                        action='store_true')
     parser.add_argument("-m", type=int, dest="n_cores",
                        help="use MPI code on multiple cores",
                        metavar="n_cores")
@@ -31,7 +34,10 @@ else:
     parser.add_argument('output', help='The output HDF5 file')
     args = parser.parse_args()
     n_cores = args.n_cores
+    force_overwrite = args.f
     input, output = args.input, args.output
+
+import h5py
 
 f = h5py.File(input, 'r')
 coord_type = f['Grid']['Geometry'].attrs['grid_type'].decode('utf-8')
@@ -84,7 +90,7 @@ else:
     command = '{0} -n {1} hyperion_{2}_mpi'.format(mpi_command,
                                                    n_cores, suffix)
 
-returncode = subprocess.call('{0} {1} {2}'.format(command, input, output), shell=True)
+returncode = subprocess.call('{0}{1}{2} {3}'.format(command, " -f " if force_overwrite else " ", input, output), shell=True)
 
 # If errors are raised by the fortran code, these are printed to stderr, but
 # the return code may still be zero. The easiest way to check whether the run
