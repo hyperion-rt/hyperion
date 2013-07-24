@@ -116,7 +116,7 @@ and the dust object should be passed directly to add_density::
     d = SphericalDust('kmh.hdf5')
     d.set_sublimation_temperature('fast', temperature=1600.)
 
-    m.add_density_grid(density, dust)
+    m.add_density_grid(density, d)
 
 The first argument of ``set_sublimation_temperature`` can be ``none`` (dust
 sublimation does not occur), ``cap`` (temperatures in excess of the one
