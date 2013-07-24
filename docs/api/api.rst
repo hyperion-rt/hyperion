@@ -18,6 +18,7 @@ Models
    hyperion.model.Model
    hyperion.model.AnalyticalYSOModel
    hyperion.model.ModelOutput
+   hyperion.model.helpers
 
 Density structures
 ------------------
