@@ -10,7 +10,7 @@ from astropy.tests.helper import pytest
 from .. import Model
 from .test_helpers import random_id, get_test_dust, get_realistic_test_dust
 from ...grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid, AMRGrid, OctreeGrid
-from ...dust import IsotropicDust
+from ...dust import IsotropicDust, SphericalDust
 
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -267,3 +267,30 @@ def test_dust_mix(tmpdir):
 
     m.write(tmpdir.join(random_id()).strpath)
     m.run(tmpdir.join(random_id()).strpath)
+
+
+def test_dust_changed_nosave(tmpdir):
+
+    kmh_dust = SphericalDust(os.path.join(DATA, 'kmh_lite.hdf5'))
+    kmh_dust.set_sublimation_temperature('fast', temperature=1600)
+
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    m.add_density_grid(np.array([[[1.]]]), kmh_dust)
+    m.set_n_photons(initial=1, imaging=1)
+    with pytest.raises(ValueError) as exc:
+        m.write(tmpdir.join(random_id()).strpath, copy=False)
+    assert exc.value.args[0].startswith('Dust properties have been modified since being read in')
+
+
+def test_dust_changed_save(tmpdir):
+
+    kmh_dust = SphericalDust(os.path.join(DATA, 'kmh_lite.hdf5'))
+    kmh_dust.set_sublimation_temperature('fast', temperature=1600)
+    kmh_dust.write(tmpdir.join(random_id()).strpath)
+
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    m.add_density_grid(np.array([[[1.]]]), kmh_dust)
+    m.set_n_photons(initial=1, imaging=1)
+    m.write(tmpdir.join(random_id()).strpath, copy=False)

@@ -588,10 +588,17 @@ class Model(FreezableClass, RunConf):
                     else:
 
                         if type(dust) != str:
-                            if dust.filename is None:
+                            if dust._file is None:
                                 raise ValueError("Dust properties are not located in a file, so cannot link. Use copy=True or write the dust properties to a file first")
                             else:
-                                dust = dust.filename
+                                # Check that has still matches file
+                                if dust.hash() != dust._file[1]:
+                                    raise ValueError("Dust properties have been modified since "
+                                                     "being read in, so cannot link to dust file "
+                                                     "on disk. You can solve this by writing out "
+                                                     "the dust properties to a new file, or by "
+                                                     "using copy=True.")
+                                dust = dust._file[0]
 
                         if absolute_paths:
                             path = os.path.abspath(dust)

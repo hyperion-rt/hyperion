@@ -30,7 +30,7 @@ class SphericalDust(FreezableClass):
 
     def __init__(self, *args):
 
-        self.filename = None
+        self._file = None
         self.md5 = None
 
         self.optical_properties = OpticalProperties()
@@ -66,6 +66,10 @@ class SphericalDust(FreezableClass):
             h.update('none'.encode('utf-8'))
         else:
             h.update(self.mean_opacities.hash().encode('utf-8'))
+
+        import struct
+        h.update(self.sublimation_mode.encode('utf-8'))
+        h.update(struct.pack('>d', self.sublimation_energy))
 
         return h.hexdigest()
 
@@ -251,7 +255,7 @@ class SphericalDust(FreezableClass):
         if isinstance(dt, h5py.highlevel.File):
             dt.close()
 
-        self.filename = filename
+        self._file = (filename, self.hash())
 
     def read(self, filename):
         '''
@@ -265,8 +269,6 @@ class SphericalDust(FreezableClass):
             # Check file exists
             if not os.path.exists(filename):
                 raise Exception("File not found: %s" % filename)
-
-            self.filename = filename
 
             # Read in dust table set
             dt = h5py.File(filename, 'r')
@@ -300,6 +302,7 @@ class SphericalDust(FreezableClass):
         # Close file object if needed
         if close:
             dt.close()
+            self._file = (filename, self.hash())
 
 
 class IsotropicDust(SphericalDust):
