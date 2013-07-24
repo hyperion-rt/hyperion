@@ -114,8 +114,8 @@ from the output files.
           components, but are using the same dust file for the different
           components, these will by default be merged prior to the radiative
           transfer calculation, so you will need to set
-          ``merge_if_possible=False`` when calling
-          :meth:`~hyperion.model.AnalyticalYSOModel.write` to prevent this
+          ``merge_if_possible=False`` when
+          calling :meth:`~hyperion.model.AnalyticalYSOModel.write` to prevent this
           (see :meth:`~hyperion.model.AnalyticalYSOModel.write` for more
           information).
 
