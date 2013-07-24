@@ -34,4 +34,14 @@ Once the model is set up, you can write it out to the disk for use
 with the Fortran radiation transfer code::
 
     m.write('example.rtin')
+
+See :meth:`~hyperion.model.AnalyticalYSOModel.write` for information about the
+available options.
+
+.. note:: One of the available options is ``merge_if_possible=``, which if set
+          to ``True`` will merge the various density components into a single
+          one if the dust types match. This allows the code to run faster, but
+          on the other hand means that if tracking e.g. photon origin, the
+          separate origin of components that have been merged will be lost.
+          This option is enabled by default, but you may want to disable it.
     

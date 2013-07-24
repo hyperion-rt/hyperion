@@ -125,6 +125,9 @@ hyperion.model.Model
    .. automethod:: Model.set_enforce_energy_range
    .. automethod:: Model.set_copy_input
 
+   .. automethod:: Model.write
+   .. automethod:: Model.run
+
    .. automethod:: Model.read
    .. automethod:: Model.use_geometry
    .. automethod:: Model.use_quantities

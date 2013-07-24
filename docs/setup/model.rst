@@ -35,3 +35,6 @@ Once the model is set up, you can write it out to the disk for use
 with the Fortran radiation transfer code::
 
     m.write('example.rtin')
+
+See :meth:`~hyperion.model.Model.write` for information about the
+available options.

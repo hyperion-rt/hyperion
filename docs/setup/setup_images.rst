@@ -109,6 +109,16 @@ scattered, and two for photons emitted from dust and subsequently scattered.
 See :ref:`post-processing` for information on how to extract this information
 from the output files.
 
+.. note:: If you are using the :class:`~hyperion.model.AnalyticalYSOModel`
+          class and are interested in separating the disk, envelope, and other
+          components, but are using the same dust file for the different
+          components, these will by default be merged prior to the radiative
+          transfer calculation, so you will need to set
+          ``merge_if_possible=False`` when calling
+          :meth:`~hyperion.model.AnalyticalYSOModel.write` to prevent this
+          (see :meth:`~hyperion.model.AnalyticalYSOModel.write` for more
+          information).
+
 Disabling SEDs or Images
 ------------------------
 

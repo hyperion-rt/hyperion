@@ -856,6 +856,29 @@ class Model(FreezableClass, RunConf):
         self._minimum_specific_energy = specific_energy
 
     def run(self, filename=None, logfile=None, mpi=False, n_processes=multiprocessing.cpu_count(), overwrite=False):
+        """
+        Run the model (should be called after `write()`).
+
+        Parameters
+        ----------
+        filename : str, optional
+            The output filename for the model. If not specified, then if the
+            input file name contains ``.rtin``, then this is replaced with
+            ``.rtout``, and otherwise ``.rtout`` is appended to the input
+            filename.
+        logfile : str, optional
+            If specified, the standard output and errors will be output to
+            this log file
+        mpi : bool, optional
+            Whether to run the model using the parallel (MPI) version of
+            Hyperion.
+        n_processes : int, optional
+            If ``mpi`` is set to ``True``, this can be used to specify the
+            number of processes to run Hyperion on.
+        overwrite : bool, optional
+            If set to ``True``, the output file is overwritten without
+            warning.
+        """
 
         if self.filename is None:
             raise ValueError("Input file does not exist - write() needs to be called before run()")
