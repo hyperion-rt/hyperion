@@ -68,7 +68,7 @@ class TestRunner(object):
 
             try:
 
-                from astropy.tests.helper import pytest_cov
+                import pytest_cov
 
             except ImportError:
 
