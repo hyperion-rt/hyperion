@@ -9,7 +9,7 @@ Downloading
 
 Stable releases can be found at:
 
-    https://github.com/hyperion-rt/hyperion/downloads
+    https://pypi.python.org/pypi/Hyperion/
 
 To download from the git repository, use:
 
