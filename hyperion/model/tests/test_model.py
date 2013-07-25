@@ -294,3 +294,13 @@ def test_dust_changed_save(tmpdir):
     m.add_density_grid(np.array([[[1.]]]), kmh_dust)
     m.set_n_photons(initial=1, imaging=1)
     m.write(tmpdir.join(random_id()).strpath, copy=False)
+
+
+def test_model_minimal(tmpdir):
+
+    m = Model()
+    m.set_cartesian_grid([-1., 1.],[-1., 1.],[-1., 1.])
+    m.set_n_initial_iterations(0)
+    m.set_n_photons(imaging=10)
+    m.write(tmpdir.join(random_id()).strpath)
+    m.run()

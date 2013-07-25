@@ -5,6 +5,37 @@ from astropy.tests.helper import pytest
 
 from .. import Model
 from ...util.functions import virtual_file
+from .test_helpers import random_id
+
+
+def test_io_minimal(tmpdir):
+
+    filename = tmpdir.join(random_id()).strpath
+
+    m1 = Model()
+    m1.set_cartesian_grid([-1., 1.],[-1., 1.],[-1., 1.])
+    m1.set_n_initial_iterations(0)
+    m1.set_n_photons(imaging=10)
+    m1.write(filename)
+
+    m2 = Model.read(filename)
+
+
+def test_io_minimal_mono(tmpdir):
+
+    filename = tmpdir.join(random_id()).strpath
+
+    m1 = Model()
+    m1.set_cartesian_grid([-1., 1.],[-1., 1.],[-1., 1.])
+    m1.set_n_initial_iterations(0)
+    m1.set_monochromatic(True, frequencies=[1, 4.5, 7.7])
+    m1.set_n_photons(imaging_sources=10, imaging_dust=10)
+    m1.write(filename)
+
+    m2 = Model.read(filename)
+
+    assert m1._monochromatic == m2._monochromatic
+    assert_equal(m1._frequencies, m2._frequencies)
 
 
 @pytest.mark.parametrize(('value'), [True, False])

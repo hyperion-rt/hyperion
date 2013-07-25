@@ -156,7 +156,7 @@ class Model(FreezableClass, RunConf):
         self.use_geometry(filename)
         self.use_quantities(filename, only_initial=only_initial)
         self.use_sources(filename)
-        # TODO: read in monochromatic parameters
+        self.use_monochromatic_config(filename)
         self.use_run_config(filename)
         self.use_image_config(filename)
         self.use_output_config(filename)
@@ -321,7 +321,7 @@ class Model(FreezableClass, RunConf):
                 self.grid[quantity] = h5py.ExternalLink(file_path, quantities_path[quantity] + '/' + quantity)
 
         # Minimum specific energy
-        if use_minimum_specific_energy:
+        if use_minimum_specific_energy and 'minimum_specific_energy' in f[minimum_specific_energy_path].attrs:
             logger.info("Using minimum_specific_energy from {filename}".format(filename=filename))
             self.set_minimum_specific_energy([float(x) for x in f[minimum_specific_energy_path].attrs['minimum_specific_energy']])
 
@@ -365,6 +365,32 @@ class Model(FreezableClass, RunConf):
         # Close the file
         f.close()
 
+    def use_monochromatic_config(self, filename):
+        '''
+        Use monochromatic configuration from an existing output file.
+
+        Parameters
+        ----------
+        filename : str
+            The file to read the configuration from. This should be the input or
+            output file of a radiation transfer run.
+        '''
+
+        logger.info("Retrieving monochromatic configuration from %s" % filename)
+
+        # Open existing file
+        f = h5py.File(filename, 'r')
+
+        # Get a pointer to the group with the sources
+        if 'Input' in f:
+            f = f['/Input']
+
+        # Read in monochromatic configuration
+        self._read_monochromatic(f)
+
+        # Close the file
+        f.close()
+
     def use_run_config(self, filename):
         '''
         Use runtime configuration from an existing output or input file
@@ -376,6 +402,9 @@ class Model(FreezableClass, RunConf):
             or output file from a radiation transfer run.
         '''
 
+        # need to do this here because n_photons will depend on monochromatic vs not
+        self.use_monochromatic_config(filename)
+
         logger.info("Retrieving runtime configuration from %s" % filename)
 
         # Open existing file
@@ -386,9 +415,6 @@ class Model(FreezableClass, RunConf):
             g_par = f['/Input/']
         else:
             g_par = f
-
-        # Read in monochromatic information
-        self._read_monochromatic(g_par)
 
         # Read in runtime configuration
         self.read_run_conf(g_par)
@@ -403,6 +429,9 @@ class Model(FreezableClass, RunConf):
             The file to read the parameters from. This can be either the input
             or output file from a radiation transfer run.
         '''
+
+        # need to do this here because image wavelength interval will depend on monochromatic vs not
+        self.use_monochromatic_config(filename)
 
         logger.info("Retrieving image configuration from %s" % filename)
 
