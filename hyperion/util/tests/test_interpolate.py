@@ -17,25 +17,25 @@ class GenericTests(object):
         x = np.linspace(1., 10., 10)
         y = self.f(x)
         xval = np.linspace(1., 10., 100)
-        assert_array_almost_equal_nulp(self.interp(x, y, xval), self.f(xval), 10)
+        assert_array_almost_equal_nulp(self.interp(x, y, xval), self.f(xval), 15)
 
     def test_interp_linear_scalar1(self):
         x = np.linspace(1., 10., 10)
         y = self.f(x)
         xval = 1.
-        assert_array_almost_equal_nulp(self.interp(x, y, xval), self.f(xval), 10)
+        assert_array_almost_equal_nulp(self.interp(x, y, xval), self.f(xval), 15)
 
     def test_interp_linear_scalar2(self):
         x = np.linspace(1., 10., 10)
         y = self.f(x)
         xval = 4.
-        assert_array_almost_equal_nulp(self.interp(x, y, xval), self.f(xval), 10)
+        assert_array_almost_equal_nulp(self.interp(x, y, xval), self.f(xval), 15)
 
     def test_interp_linear_scalar3(self):
         x = np.linspace(1., 10., 10)
         y = self.f(x)
         xval = 10.
-        assert_array_almost_equal_nulp(self.interp(x, y, xval), self.f(xval), 10)
+        assert_array_almost_equal_nulp(self.interp(x, y, xval), self.f(xval), 15)
 
     def test_interp_linear_array_invalid1(self):
         x = np.linspace(1., 10., 10)
@@ -75,14 +75,14 @@ class GenericTests(object):
         xval = np.linspace(0., 10., 100)
         ref = self.f(xval)
         ref[xval < x[0]] = -2.
-        assert_array_almost_equal_nulp(self.interp(x, y, xval, bounds_error=False, fill_value=-2.), ref, 10)
+        assert_array_almost_equal_nulp(self.interp(x, y, xval, bounds_error=False, fill_value=-2.), ref, 15)
 
     def test_interp_linear_scalar_fill(self):
         x = np.linspace(1., 10., 10)
         y = self.f(x)
         xval = 11.
         ref = -2.
-        assert_array_almost_equal_nulp(self.interp(x, y, xval, bounds_error=False, fill_value=-2.), ref, 10)
+        assert_array_almost_equal_nulp(self.interp(x, y, xval, bounds_error=False, fill_value=-2.), ref, 15)
 
     def test_length_mismatch(self):
         x = np.linspace(1., 10., 10)
