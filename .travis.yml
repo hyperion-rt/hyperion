@@ -34,7 +34,7 @@ install:
    - pip -q install astropy
 
 script:
-   - cd deps/fortran ; sudo python install.py --fc-compiler=/usr/bin/gfortran-4.6 /usr/hyperion ; cd ../../
+   - cd deps/fortran ; sudo python install.py --verbose --fc-compiler=/usr/bin/gfortran-4.6 /usr/hyperion ; cd ../../
    - PATH=/usr/hyperion/bin:$PATH ./configure
    - PATH=/usr/hyperion/bin:$PATH make serial
    - sudo make install
