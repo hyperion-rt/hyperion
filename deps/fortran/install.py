@@ -1,15 +1,26 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import os
 import platform
 import tempfile
-import urllib
 import sys
 import tarfile
 import hashlib
 import shlex
 from distutils import version
 import subprocess
+
+try:
+    from urllib import urlopen
+except ImportError:
+    from urllib.request import urlopen
+
+try:
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlencode
 
 TEST_FC_F90 = '''
 program test
@@ -58,6 +69,8 @@ end program test
 INSTALL_HDF5 = True
 INSTALL_MPICH2 = True
 
+VERBOSE = False
+
 fc = None
 cc = None
 cxx = None
@@ -66,18 +79,19 @@ prefix = None
 
 
 def usage():
-    print ""
-    print " Usage: python install.py [options] installation_path"
-    print ""
-    print " Available options include:"
-    print ""
-    print "  --only-hdf5             only compile the HDF5 library"
-    print "  --only-mpich2           only compile the MPICH2 library"
-    print "  --fc-compiler=<value>   force script to use a specific fortran compiler"
-    print "  --cc-compiler=<value>   force script to use a specific C compiler"
-    print "  --cxx-compiler=<value>  force script to use a specific C++ compiler"
-    print "  --help                  display this message"
-    print ""
+    print("")
+    print(" Usage: python install.py [options] installation_path")
+    print("")
+    print(" Available options include:")
+    print("")
+    print("  --only-hdf5             only compile the HDF5 library")
+    print("  --only-mpich2           only compile the MPICH2 library")
+    print("  --fc-compiler=<value>   force script to use a specific fortran compiler")
+    print("  --cc-compiler=<value>   force script to use a specific C compiler")
+    print("  --cxx-compiler=<value>  force script to use a specific C++ compiler")
+    print("  --verbose               output standard output to terminal")
+    print("  --help                  display this message")
+    print("")
     sys.exit(1)
 
 if '--help' in sys.argv[1:]:
@@ -90,6 +104,9 @@ for arg in sys.argv[1:]:
 
     if arg == '--only-mpich2':
         INSTALL_HDF5 = False
+
+    if arg == '--verbose':
+        VERBOSE = True
 
     if arg.startswith('--fc-compiler'):
         if '=' in arg:
@@ -113,17 +130,23 @@ for arg in sys.argv[1:]:
         if prefix is None:
             prefix = arg
         else:
-            print 'ERROR: only one non-optional argument can be provided (the installation path)'
+            print("ERROR: only one non-optional argument can be provided (the installation path)")
             usage()
 
 if prefix is None:
-    print "ERROR: please specify installation directory with 'python install.py directory'"
+    print("ERROR: please specify installation directory with 'python install.py directory'")
     sys.exit(1)
 
 
 def run(command, logfile):
+
     import subprocess
-    status = subprocess.call(command + ' >& ' + logfile, shell=True, executable="/bin/bash")
+
+    if VERBOSE:
+        status = subprocess.call(command + ' 2>&1 | tee ' + logfile, shell=True, executable="/bin/bash")
+    else:
+        status = subprocess.call(command + ' >& ' + logfile, shell=True, executable="/bin/bash")
+
     if status != 0:
         par = {}
         par['api_dev_key'] = 'd3b3e1a0b666fbcbe383162be949f81e'
@@ -131,20 +154,20 @@ def run(command, logfile):
         par['api_paste_code'] = open(logfile).read()
         par['api_paste_name'] = command
         par['api_paste_format'] = 'bash'
-        u = urllib.urlopen('http://pastebin.com/api/api_post.php',
-                           data=urllib.urlencode(par))
+        u = urlopen('http://pastebin.com/api/api_post.php',
+                           data=urlencode(par))
         url = u.read()
-        print "=" * 72
-        print "The installation failed. The log of the failed command has been sent"
-        print "to: " + url
-        print "=" * 72
+        print("=" * 72)
+        print("The installation failed. The log of the failed command has been sent")
+        print("to: " + url)
+        print("=" * 72)
         sys.exit(1)
     else:
         return
 
-print "=" * 72
-print "Determining system setup"
-print "=" * 72
+print("=" * 72)
+print("Determining system setup")
+print("=" * 72)
 
 start_dir = os.path.abspath('.')
 
@@ -159,12 +182,12 @@ HDF5_SHA1 = '4ba3ede947b1571e9586fdeb8351d6585a56133c'
 MPICH2_URL = 'http://www.mpich.org/static/tarballs/1.5/mpich2-1.5.tar.gz'
 MPICH2_SHA1 = 'be7448227dde5badf3d6ebc0c152b200998421e0'
 
-print " -> changing to work directory... "
+print(" -> changing to work directory... ")
 work_dir = tempfile.mkdtemp()
 os.chdir(work_dir)
-print "    %s" % work_dir
+print("    %s" % work_dir)
 
-print " -> determining platform... ",
+print(" -> determining platform... ", end=' ')
 
 # Determine system
 system = platform.uname()[0]
@@ -179,11 +202,11 @@ else:
 
     system_version = ''
 
-print system, '/', system_version
+print(system, '/', system_version)
 
 if fc is None:
 
-    print " -> determining best fortran compiler... ",
+    print(" -> determining best fortran compiler... ", end=' ')
 
     # Determine available fortran compilers
     FORTRAN_COMPILERS = ['ifort',
@@ -197,7 +220,7 @@ if fc is None:
                          'pgf95']
 
     # Create test script
-    open('test_fc.f90', 'wb').write(TEST_FC_F90)
+    open('test_fc.f90', 'w').write(TEST_FC_F90)
 
     fc = None
     for compiler in FORTRAN_COMPILERS:
@@ -211,48 +234,48 @@ if fc is None:
             fc = compiler
             break
 
-    print fc
+    print(fc)
 
 else:
 
-    print " -> using user-specified fortran compiler...", fc
+    print(" -> using user-specified fortran compiler...", fc)
 
 if fc is None:
-    print "ERROR: none of the known Fortran compilers were found"
+    print("ERROR: none of the known Fortran compilers were found")
     sys.exit(1)
 
 if cc is None:
 
-    print " -> determining best C compiler...",
+    print(" -> determining best C compiler...", end=' ')
 
     # TODO: implement search
     cc = 'gcc'
 
-    print cc
+    print(cc)
 
 else:
 
-    print " -> using user-specified C compiler...", cc
+    print(" -> using user-specified C compiler...", cc)
 
 if cc is None:
-    print "ERROR: none of the known C compilers were found"
+    print("ERROR: none of the known C compilers were found")
     sys.exit(1)
 
 if cxx is None:
 
-    print " -> determining best C compiler...",
+    print(" -> determining best C compiler...", end=' ')
 
     # TODO: implement search
     cxx = 'g++'
 
-    print cxx
+    print(cxx)
 
 else:
 
-    print " -> using user-specified C++ compiler...", cxx
+    print(" -> using user-specified C++ compiler...", cxx)
 
 if cxx is None:
-    print "ERROR: none of the known C++ compilers were found"
+    print("ERROR: none of the known C++ compilers were found")
     sys.exit(1)
 
 # The following section deals with issues that occur when using the intel
@@ -260,22 +283,22 @@ if cxx is None:
 
 # Check whether C compiler is gcc
 p = subprocess.Popen(shlex.split(cc + ' --version'), stdout=subprocess.PIPE)
-output = p.communicate()[0].strip().split('\n')[0]
+output = (p.communicate()[0]).decode('ascii').strip().splitlines()[0]
 is_gcc = 'GCC' in output
 
 # Check whether Fortran compiler is ifort
 p = subprocess.Popen(shlex.split(fc + ' --version'), stdout=subprocess.PIPE)
-output = p.communicate()[0].strip().split('\n')[0]
+output = (p.communicate()[0]).decode('ascii').strip().splitlines()[0]
 is_ifort = '(IFORT)' in output
 
 # Check whether Fortran compiler is g95
 p = subprocess.Popen(shlex.split(fc + ' --version'), stdout=subprocess.PIPE)
-output = p.communicate()[0].strip().split('\n')[0]
+output = (p.communicate()[0]).decode('ascii').strip().splitlines()[0]
 is_g95 = 'g95' in output
 
 # Check whether Fortran compiler is pgfortran
 p = subprocess.Popen(shlex.split(fc + ' --version'), stdout=subprocess.PIPE)
-output = p.communicate()[0].strip().split('\n')[0]
+output = (p.communicate()[0]).decode('ascii').strip().splitlines()[0]
 is_pgfortran = 'pgfortran' in output or \
                'pgf95' in output
 
@@ -287,29 +310,29 @@ if system == 'Darwin' and is_gcc:
 
     # Determine gcc version
     p = subprocess.Popen(shlex.split(cc + ' -dumpversion'), stdout=subprocess.PIPE)
-    gcc_version = version.LooseVersion(p.communicate()[0].split('\n')[0])
+    gcc_version = version.LooseVersion((p.communicate()[0]).decode('ascii').splitlines()[0])
 
     if gcc_version >= version.LooseVersion('4.5.0'):
 
         p = subprocess.Popen(shlex.split(cc + ' -print-search-dirs'),
                              stdout=subprocess.PIPE)
-        output = p.communicate()[0].split('\n')[0]
+        output = (p.communicate()[0]).decode('ascii').splitlines()[0]
         if output.startswith('install:'):
             libs = output.split(':', 1)[1].strip()
             libs = ' -L' + libs.replace(':', '-L')
             libs += ' -lgcc_eh'
             fc += libs
-            print " -> SPECIAL CASE: adjusting fortran compiler:", fc
+            print(" -> SPECIAL CASE: adjusting fortran compiler:", fc)
         else:
-            print "ERROR: unexpected output for %s -print-search-dirs: %s" % (cc, output)
+            print("ERROR: unexpected output for %s -print-search-dirs: %s" % (cc, output))
             sys.exit(1)
 
     # Check whether the C and Fotran compiler give different architecture builds by default
 
-    open('test_arch.c', 'wb').write(TEST_ARCH_C)
+    open('test_arch.c', 'w').write(TEST_ARCH_C)
     subprocess.Popen(shlex.split(cc + ' test_arch.c -o test_arch_c')).wait()
     p = subprocess.Popen(shlex.split('file test_arch_c'), stdout=subprocess.PIPE)
-    output = p.communicate()[0].split('\n')[0].strip()
+    output = (p.communicate()[0]).decode('ascii').splitlines()[0].strip()
     if output == 'test_arch_c: Mach-O 64-bit executable x86_64':
         arch_c = 64
     elif output == 'test_arch_c: Mach-O executable i386':
@@ -317,10 +340,10 @@ if system == 'Darwin' and is_gcc:
     else:
         arch_c = None
 
-    open('test_arch.f90', 'wb').write(TEST_ARCH_F90)
+    open('test_arch.f90', 'w').write(TEST_ARCH_F90)
     subprocess.Popen(shlex.split(fc + ' test_arch.f90 -o test_arch_f90')).wait()
     p = subprocess.Popen(shlex.split('file test_arch_f90'), stdout=subprocess.PIPE)
-    output = p.communicate()[0].split('\n')[0].strip()
+    output = (p.communicate()[0]).decode('ascii').splitlines()[0].strip()
     if output == 'test_arch_f90: Mach-O 64-bit executable x86_64':
         arch_f90 = 64
     elif output == 'test_arch_f90: Mach-O executable i386':
@@ -334,135 +357,135 @@ if system == 'Darwin' and is_gcc:
         if arch_c == 32:
             cc += '- m64'
             cxx += ' -m64'
-            print " -> SPECIAL CASE: adjusting C compiler:", cc
+            print(" -> SPECIAL CASE: adjusting C compiler:", cc)
         else:
             fc += ' -m64'
-            print " -> SPECIAL CASE: adjusting fortran compiler:", fc
+            print(" -> SPECIAL CASE: adjusting fortran compiler:", fc)
 
 if INSTALL_HDF5:
 
-    print "=" * 72
-    print "Installing ZLIB (for HDF5)"
-    print "=" * 72
+    print("=" * 72)
+    print("Installing ZLIB (for HDF5)")
+    print("=" * 72)
 
     zlib_file = os.path.basename(ZLIB_URL)
     if os.path.exists(zlib_file):
         sha1 = hashlib.sha1(open(zlib_file, 'rb').read()).hexdigest()
         if sha1 == ZLIB_SHA1:
-            print " -> file exists, skipping download"
+            print(" -> file exists, skipping download")
         else:
-            print " -> file exists but incorrect SHA1, re-downloading"
-            open(zlib_file, 'wb').write(urllib.urlopen(ZLIB_URL).read())
+            print(" -> file exists but incorrect SHA1, re-downloading")
+            open(zlib_file, 'wb').write(urlopen(ZLIB_URL).read())
     else:
-        print " -> downloading"
-        open(zlib_file, 'wb').write(urllib.urlopen(ZLIB_URL).read())
+        print(" -> downloading")
+        open(zlib_file, 'wb').write(urlopen(ZLIB_URL).read())
 
-    print ' -> expanding tarfile'
+    print(" -> expanding tarfile")
     t = tarfile.open(zlib_file, 'r:gz')
     t.extractall()
     os.chdir(zlib_file.replace('.tar.gz', ''))
 
-    print " -> configuring"
+    print(" -> configuring")
     run('./configure --prefix={prefix}'.format(prefix=prefix), 'log_configure')
 
-    print " -> making"
+    print(" -> making")
     run('make', 'log_make')
 
-    print " -> installing"
+    print(" -> installing")
     run('make install', 'log_make_install')
 
     os.chdir(work_dir)
 
-    print "=" * 72
-    print "Installing HDF5"
-    print "=" * 72
+    print("=" * 72)
+    print("Installing HDF5")
+    print("=" * 72)
 
     hdf5_file = os.path.basename(HDF5_URL)
     if os.path.exists(hdf5_file):
         sha1 = hashlib.sha1(open(hdf5_file, 'rb').read()).hexdigest()
         if sha1 == HDF5_SHA1:
-            print " -> file exists, skipping download"
+            print(" -> file exists, skipping download")
         else:
-            print " -> file exists but incorrect SHA1, re-downloading"
-            open(hdf5_file, 'wb').write(urllib.urlopen(HDF5_URL).read())
+            print(" -> file exists but incorrect SHA1, re-downloading")
+            open(hdf5_file, 'wb').write(urlopen(HDF5_URL).read())
     else:
-        print " -> downloading"
-        open(hdf5_file, 'wb').write(urllib.urlopen(HDF5_URL).read())
+        print(" -> downloading")
+        open(hdf5_file, 'wb').write(urlopen(HDF5_URL).read())
 
-    print ' -> expanding tarfile'
+    print(" -> expanding tarfile")
     t = tarfile.open(hdf5_file, 'r:gz')
     t.extractall()
     os.chdir(hdf5_file.replace('.tar.gz', ''))
 
     # SPECIAL CASE - g95 requires patching
     if is_g95:
-        print " -> SPECIAL CASE: patching for g95"
+        print(" -> SPECIAL CASE: patching for g95")
         conf = open('config/gnu-fflags', 'rb').read()
         conf = conf.replace('-Wconversion -Wunderflow ', '')
-        open('config/gnu-fflags', 'wb').write(conf)
+        open('config/gnu-fflags', 'w').write(conf)
 
-    print " -> configuring"
+    print(" -> configuring")
     run('./configure FC="{fc}" --enable-fortran --enable-hl --with-zlib={prefix}/include,{prefix}/lib --prefix={prefix}'.format(fc=fc, prefix=prefix), 'log_configure')
 
-    print " -> making"
+    print(" -> making")
     run('make', 'log_make')
 
-    print " -> installing"
+    print(" -> installing")
     run('make install', 'log_make_install')
 
     os.chdir(work_dir)
 
-    print " -> testing installation"
-    open('test_hdf5.f90', 'wb').write(TEST_HDF5_F90)
+    print(" -> testing installation")
+    open('test_hdf5.f90', 'w').write(TEST_HDF5_F90)
     run('{prefix}/bin/h5fc test_hdf5.f90 -o test_hdf5'.format(prefix=prefix), 'log_test_hdf5_compile')
     run('./test_hdf5', 'log_test_hdf5_run')
 
 if INSTALL_MPICH2:
 
-    print "=" * 72
-    print "Installing MPICH2"
-    print "=" * 72
+    print("=" * 72)
+    print("Installing MPICH2")
+    print("=" * 72)
 
     mpich2_file = os.path.basename(MPICH2_URL)
     if os.path.exists(mpich2_file):
         sha1 = hashlib.sha1(open(mpich2_file, 'rb').read()).hexdigest()
         if sha1 == MPICH2_SHA1:
-            print " -> file exists, skipping download"
+            print(" -> file exists, skipping download")
         else:
-            print " -> file exists but incorrect SHA1, re-downloading"
-            open(mpich2_file, 'wb').write(urllib.urlopen(MPICH2_URL).read())
+            print(" -> file exists but incorrect SHA1, re-downloading")
+            open(mpich2_file, 'wb').write(urlopen(MPICH2_URL).read())
     else:
-        print " -> downloading"
-        open(mpich2_file, 'wb').write(urllib.urlopen(MPICH2_URL).read())
+        print(" -> downloading")
+        open(mpich2_file, 'wb').write(urlopen(MPICH2_URL).read())
 
-    print ' -> expanding tarfile'
+    print(" -> expanding tarfile")
     t = tarfile.open(mpich2_file, 'r:gz')
     t.extractall()
 
-    print " -> configuring"
+    print(" -> configuring")
     os.chdir(mpich2_file.replace('.tar.gz', ''))
     run('./configure F77="{fc}" FC="{fc}" CC="{cc}" CXX="{cxx}" --enable-fc --prefix={prefix}'.format(fc=fc, cc=cc, cxx=cxx, prefix=prefix), 'log_configure')
 
-    print " -> making"
+    print(" -> making")
     run('make', 'log_make')
 
-    print " -> installing"
+    print(" -> installing")
     run('make install', 'log_make_install')
 
     os.chdir(work_dir)
 
-    print " -> testing installation"
-    open('test_mpif90.f90', 'wb').write(TEST_MPIF90_F90)
+    print(" -> testing installation")
+    open('test_mpif90.f90', 'w').write(TEST_MPIF90_F90)
     run('{prefix}/bin/mpif90 test_mpif90.f90 -o test_mpif90'.format(prefix=prefix), 'log_test_mpif90_compile')
     run('./test_mpif90', 'log_test_mpif90_run')
 
-print "=" * 72
+print("=" * 72)
 
 # Go back to starting directory
 os.chdir(start_dir)
 
 # Print out message regarding environment variables
-print "Installation succeeded! You will now need to add the installation\n" \
+print("Installation succeeded! You will now need to add the installation\n" \
     + "directory to your $PATH environment variable. For example, in bash,\n" \
     + "you should add the following to your ~/.bash_profile:\n" \
     + "\n" \
@@ -473,6 +496,6 @@ print "Installation succeeded! You will now need to add the installation\n" \
     + "$ which h5fc\n" \
     + "%s/bin/h5fc\n" % prefix\
     + "$ which mpif90\n" \
-    + "%s/bin/mpif90" % prefix
+    + "%s/bin/mpif90" % prefix)
 
-print "=" * 72
+print("=" * 72)
