@@ -202,7 +202,7 @@ def test_spectrum_negative(source_type):
     s = source_type()
     with pytest.raises(ValueError) as exc:
         s.spectrum = (nu, fnu)
-    assert exc.value.args[0] == 'fnu should be strictly positive'
+    assert exc.value.args[0] == 'fnu should be positive'
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
 def test_spectrum_nan(source_type):

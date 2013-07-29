@@ -172,7 +172,7 @@ class Source(FreezableClass):
                 raise ValueError("nu should be strictly positive")
 
             if np.any(fnu <= 0.):
-                raise ValueError("fnu should be strictly positive")
+                raise ValueError("fnu should be positive")
 
             # Check for any NaN or Inf values
 
