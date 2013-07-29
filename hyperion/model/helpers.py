@@ -70,7 +70,6 @@ def tau_to_radius(model, tau, wav):
             tau_col = np.hstack([0., tau_all[ip, it, :]])
             if tau < np.max(tau_col):
                 r[ip, it] = interp1d_fast(tau_col, model.grid.r_wall[::-1], tau)
-                # print(tau_col, r[ip, it])
             else:
                 r[ip, it] = 0.
 

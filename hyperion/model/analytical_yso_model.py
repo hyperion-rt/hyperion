@@ -484,7 +484,6 @@ class AnalyticalYSOModel(Model):
                             + [envelope.rmax for envelope in self.envelopes])
             if self.ambient is not None:
                 rmax_values += [self.ambient.rmax]
-            print(rmax_values)
             rmax = _max_none(*rmax_values)
 
         if rmax < rmin:

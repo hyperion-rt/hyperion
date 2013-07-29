@@ -103,7 +103,6 @@ def test_io_peeled_image_conf_inside():
     i1.write(v)
     i2 = PeeledImageConf.read(v)
     for i in range(len(i2.viewing_angles)):
-        print(i2.viewing_angles[i][0])
         assert i2.viewing_angles[i][0] == i1.viewing_angles[i][0]
         assert i2.viewing_angles[i][1] == i1.viewing_angles[i][1]
     assert_equal(i2.inside_observer, i1.inside_observer)
@@ -186,7 +185,6 @@ def test_io_run_conf_n_photons_raytracing():
     r2 = RunConf()
     r2.read_run_conf(v)
     for key in r1.n_photons:
-        print(key)
         assert r2.n_photons[key] == r1.n_photons[key]
 
 

@@ -235,7 +235,6 @@ class Source(FreezableClass):
         elif handle.attrs['spectrum'] == b'lte':
             pass
         else:
-            print(handle.attrs['spectrum'])
             raise ValueError('Unexpected value for `spectrum`: %s' % handle.attrs['spectrum'])
 
         return self
@@ -773,7 +772,6 @@ class MapSource(Source):
         if not handle.attrs['type'] == b'map':
             raise ValueError("Source is not a MapSource")
         self = super(MapSource, cls).read(handle)
-        print(handle.items())
         self.map = np.array(handle['Luminosity map'])
         return self
 
