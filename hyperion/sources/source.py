@@ -166,6 +166,22 @@ class Source(FreezableClass):
             if len(np.unique(nu)) != len(nu):
                 raise ValueError("nu sequence contains duplicate values")
 
+            # Check for any negative values
+
+            if np.any(nu <= 0.):
+                raise ValueError("nu should be strictly positive")
+
+            if np.any(fnu <= 0.):
+                raise ValueError("fnu should be strictly positive")
+
+            # Check for any NaN or Inf values
+
+            if np.any(np.isnan(nu) | np.isinf(nu)):
+                raise ValueError("nu contains NaN/Inf values")
+
+            if np.any(np.isnan(fnu) | np.isinf(fnu)):
+                raise ValueError("fnu contains NaN/Inf values")
+
             # Check if spectrum needs sorting
             if not monotonically_increasing(nu):
                 logger.warn("Spectrum is being re-sorted in order of increasing frequency")

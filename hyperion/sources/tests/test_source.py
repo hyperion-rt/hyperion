@@ -187,6 +187,40 @@ def test_set_spectrum_temperature(source_type):
         s.temperature = 1000.  # spectrum has already been specified
     assert exc.value.args[0] == 'A spectrum has already been set, so cannot set a temperature'
 
+@pytest.mark.parametrize(('source_type'), ALL_SOURCES)
+def test_spectrum_negative(source_type):
+
+    nu = np.array([1, 2, -3])
+    fnu = np.array([1, 2, 3])
+    s = source_type()
+    with pytest.raises(ValueError) as exc:
+        s.spectrum = (nu, fnu)
+    assert exc.value.args[0] == 'nu should be strictly positive'
+
+    nu = np.array([1, 2, 3])
+    fnu = np.array([1, -2, 3])
+    s = source_type()
+    with pytest.raises(ValueError) as exc:
+        s.spectrum = (nu, fnu)
+    assert exc.value.args[0] == 'fnu should be strictly positive'
+
+@pytest.mark.parametrize(('source_type'), ALL_SOURCES)
+def test_spectrum_nan(source_type):
+
+    nu = np.array([1, 2, np.nan])
+    fnu = np.array([1, 2, 3])
+    s = source_type()
+    with pytest.raises(ValueError) as exc:
+        s.spectrum = (nu, fnu)
+    assert exc.value.args[0] == 'nu contains NaN/Inf values'
+
+    nu = np.array([1, 2, 3])
+    fnu = np.array([1, np.inf, 3])
+    s = source_type()
+    with pytest.raises(ValueError) as exc:
+        s.spectrum = (nu, fnu)
+    assert exc.value.args[0] == 'fnu contains NaN/Inf values'
+
 # POSITION
 
 SOURCES_POSITION = [PointSource,
