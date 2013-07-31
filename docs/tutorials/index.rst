@@ -17,4 +17,11 @@ Post-processing
    tutorial_animations.rst
    tutorial_quantities.rst
    tutorial_quantities_yt.rst
-  
+
+Example models
+==============
+
+.. toctree::
+   :maxdepth: 2
+
+   example_pure_scattering.rst
