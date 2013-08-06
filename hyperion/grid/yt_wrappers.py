@@ -4,7 +4,7 @@ import numpy as np
 
 import yt.frontends.stream.api as stream
 from yt.utilities.io_handler import BaseIOHandler
-
+from yt.utilities.definitions import mpc_conversion
 
 class HyperionIOHandler(BaseIOHandler):
 
@@ -185,6 +185,10 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
     spf = stream.StreamStaticOutput(handler)
     spf.units["cm"] = 1.0
     spf.units["unitary"] = 1.0 / ((spf.domain_right_edge - spf.domain_left_edge).max())
+    spf.units['1'] = 1.0
+    box_in_mpc = 1.0 / mpc_conversion['cm']
+    for unit in mpc_conversion.keys():
+        spf.units[unit] = mpc_conversion[unit] * box_in_mpc
 
     return spf
 
@@ -308,6 +312,10 @@ def octree_grid_to_yt_stream(grid, dust_id=0):
     spf = stream.StreamStaticOutput(handler)
     spf.units["cm"] = 1.0
     spf.units["unitary"] = 1.0 / ((spf.domain_right_edge - spf.domain_left_edge).max())
+    spf.units['1'] = 1.0
+    box_in_mpc = 1.0 / mpc_conversion['cm']
+    for unit in mpc_conversion.keys():
+        spf.units[unit] = mpc_conversion[unit] * box_in_mpc
 
     return spf
 
@@ -356,5 +364,9 @@ def cartesian_grid_to_yt_stream(grid, xmin, xmax, ymin, ymax, zmin, zmax, dust_i
     spf = stream.StreamStaticOutput(handler)
     spf.units["cm"] = 1.0
     spf.units["unitary"] = 1.0 / ((spf.domain_right_edge - spf.domain_left_edge).max())
+    spf.units['1'] = 1.0
+    box_in_mpc = 1.0 / mpc_conversion['cm']
+    for unit in mpc_conversion.keys():
+        spf.units[unit] = mpc_conversion[unit] * box_in_mpc
 
     return spf
