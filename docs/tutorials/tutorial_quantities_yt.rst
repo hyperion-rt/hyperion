@@ -26,15 +26,14 @@ where ``pf`` is a ``StaticOutput`` yt object! This can then be used as a
 normal dataset in yt. For example, we can easily make projections of density
 and temperature along the y-axis::
 
-    from yt.mods import PlotCollection
+    from yt.mods import ProjectionPlot
 
-    pc = PlotCollection(pf, [0.0,0.0,0.0])
-    p2 = pc.add_projection("temperature", 1)
-    p2.set_cmap('gist_heat')
-    p2 = pc.add_projection("density", 1)
-    p2.set_cmap('gist_heat')
-    p2.set_log_field(True)
-    pc.save()
+    prj = ProjectionPlot(pf, 'y', ['density', 'temperature'], 
+                         center=[0.0, 0.0, 0.0])
+    prj.set_cmap('temperature', 'gist_heat')
+    prj.set_cmap('density', 'gist_heat')
+    prj.set_log('density', True)
+    prj.save()
 
 The ``to_yt`` method is also available for regular cartesian grids, but not
 for the spherical or cylindrical polar grids.
