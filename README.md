@@ -27,7 +27,7 @@ To build the HTML documentation:
     make html
 
 The documentation will then be available at `docs/build/html`. Note that <a
-href="cd documentation">Sphinx</a> is required to build the documentation
+href="http://sphinx-doc.org/">Sphinx</a> is required to build the documentation
 
 Updating
 ========
