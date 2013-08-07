@@ -15,7 +15,6 @@ transfer.
    indepth_amr.rst
    logger.rst
    peeloff.rst
-   scaling_isrf.rst
 
 
 Finally, the two following topics are reserved for coding ninjas! They explain

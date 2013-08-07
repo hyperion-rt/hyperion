@@ -1,5 +1,5 @@
-Example: Disk model image with pure scattering
-==============================================
+How to efficiently compute pure scattering models
+=================================================
 
 In some cases, for example if the wavelength is short enough, it is possible to
 ignore dust emission when computing images. In such cases, we can make Hyperion

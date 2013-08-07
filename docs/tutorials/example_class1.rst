@@ -1,5 +1,5 @@
-Example: Typical Analytical YSO Model
-=====================================
+Typical Analytical YSO Model
+============================
 
 The following example model sets up the Class I model from `Whitney et al
 (2003) <http://adsabs.harvard.edu/abs/2003ApJ...598.1079W>`_ For now, this

@@ -84,7 +84,7 @@ that ``initial`` is not needed, and ``imaging_dust`` and ``raytracing_dust``
 can be set to 0.
 
 For a full example of a model computing scattered light images, see
-:doc:`../tutorial/example_pure_scattering.rst`.
+:doc:`../tutorials/howto_pure_scattering`.
 
 Miscellaneous Settings
 ----------------------

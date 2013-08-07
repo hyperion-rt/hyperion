@@ -5,6 +5,16 @@ Tutorials
 
 .. _tutorials-post-processing:
 
+Basic Python
+============
+
+.. toctree::
+   :maxdepth: 1
+
+   python_writing.rst
+   python_matplotlib.rst
+
+
 Post-processing
 ===============
 
@@ -25,4 +35,12 @@ Example models
    :maxdepth: 2
 
    example_class1.rst
-   example_pure_scattering.rst
+
+Advanced
+========
+
+.. toctree::
+   :maxdepth: 2
+
+   howto_pure_scattering.rst
+   howto_scaling_isrf.rst
