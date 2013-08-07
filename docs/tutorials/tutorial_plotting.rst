@@ -11,93 +11,64 @@ can't use another. The examples below get you to write Python scripts,
 but you can also run these interactively in python or ipython if you
 like.
 
-The tutorial here assumes that you are using the :ref:`tutorial-model`.
-
 .. note:: If you have never used Matplotlib before, you can first take a look
           at the :doc:`python_matplotlib` tutorial.
 
-We are now ready to make a simple SED plot. The first step is to extract the
-SED from the output file from the radiation transfer code. This step is
-described in detail in :ref:`post-processing`. Combining this with what we
-learned above about making plots, we can write scripts that will fetch SEDs and plot them. For
-example, if we want to plot an SED for the first inclination and the largest
-aperture, we can do::
+Example model
+=============
 
-    import matplotlib as mpl
-    mpl.use('Agg')
-    import matplotlib.pyplot as plt
+As an example, let's set up a simple model of a star with a blackbody spectrum
+surrounded by a flared disk using the
+:class:`~hyperion.model.AnalyticalYSOModel` class.
 
-    from hyperion.model import ModelOutput
-    from hyperion.util.constants import pc
+.. literalinclude:: scripts/class2_sed_setup.py
+   :language: python
+   
+If you want to run this model you will need to download the
+:download:`kmh_lite.hdf5 <kmh_lite.hdf5>` dust file into the same directory as
+the script above (**disclaimer**: do not use this dust file outside of these
+tutorials!).
 
-    # Open the model - we specify the name without the .rtout extension
-    m = ModelOutput('tutorial_model.rtout')
+Note that the subsequent plotting code applies to any model, not just
+:class:`~hyperion.model.AnalyticalYSOModel` models.
 
-    # Create the plot
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
+Plotting total flux SEDs
+========================
 
-    # Extract the SED for the smallest inclination and largest aperture, and
-    # scale to 300pc. In Python, negative indices can be used for lists and
-    # arrays, and indicate the position from the end. So to get the SED in the
-    # largest aperture, we set aperture=-1.
-    wav, nufnu = m.get_sed(inclination=0, aperture=-1, distance=300 * pc)
+Once the above model has run, we are ready to make a simple SED plot. The first
+step is to extract the SED from the output file from the radiation transfer
+code. This step is described in detail in :ref:`post-processing`. Combining
+this with what we learned above about making plots, we can write scripts that
+will fetch SEDs and plot them. For example, if we want to plot an SED for the
+first inclination and the largest aperture, we can do:
 
-    # Plot the SED. The loglog command is similar to plot, but automatically
-    # sets the x and y axes to be on a log scale.
-    ax.loglog(wav, nufnu)
-
-    # Add some axis labels (we are using LaTeX here)
-    ax.set_xlabel(r'$\lambda$ [$\mu$m]')
-    ax.set_ylabel(r'$\lambda F_\lambda$ [ergs/s/cm$^2$]')
-
-    # Set view limits
-    ax.set_xlim(0.1, 5000.)
-    ax.set_ylim(1.e-12, 2.e-6)
-
-    # Write out the plot
-    fig.savefig('sed.png')
+.. literalinclude:: scripts/class2_sed_plot_single.py
+   :language: python
 
 This script produces the following plot:
 
-.. image:: images/sed.png
+.. image:: scripts/class2_sed_plot_single.png
    :scale: 75 %
    :alt: Simple SED plot
    :align: center
 
-Now let's say that we want to plot the SED for all inclinations. We can either call get_sed and loglog once for each inclination, or call it once with ``inclination='all'`` and then call only loglog once for each inclination::
+Now let's say that we want to plot the SED for all inclinations. We can either
+call :meth:`~hyperion.model.ModelOutput.get_sed` and loglog once for each
+inclination, or call it once with ``inclination='all'`` and then call only
+loglog once for each inclination:
 
-    import matplotlib as mpl
-    mpl.use('Agg')
-    import matplotlib.pyplot as plt
-
-    from hyperion.model import ModelOutput
-    from hyperion.util.constants import pc
-
-    m = ModelOutput('tutorial_model.rtout')
-
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-
-    # Extract all SEDs
-    wav, nufnu = m.get_sed(inclination='all', aperture=-1, distance=300 * pc)
-
-    # Plot SED for each inclination
-    for i in range(nufnu.shape[0]):
-        ax.loglog(wav, nufnu[i, :], color='black')
-
-    ax.set_xlabel(r'$\lambda$ [$\mu$m]')
-    ax.set_ylabel(r'$\lambda F_\lambda$ [ergs/s/cm$^2$]')
-    ax.set_xlim(0.1, 5000.)
-    ax.set_ylim(1.e-12, 2.e-6)
-    fig.savefig('sed_incl.png')
+.. literalinclude:: scripts/class2_sed_plot_incl.py
+   :language: python
 
 This script produces the following plot:
 
-.. image:: images/sed_incl.png
+.. image:: scripts/class2_sed_plot_incl.png
    :scale: 75 %
    :alt: Simple SED plot with inclination dependence
    :align: center
+
+Plotting individual SED components
+==================================
 
 Now let's do something a little more fancy. Assuming that you set up the SEDs with photon tracking::
 
@@ -107,49 +78,16 @@ or::
 
     sed.set_track_origin('detailed')
 
-you can plot the individual components. The following example retrieves each separate components, and plots it in a different color::
+you can plot the individual components. Notice that we included the former in the model at the top of this page, so we can make use of it here to plot separate components of the SED.
 
-    import matplotlib as mpl
-    mpl.use('Agg')
-    import matplotlib.pyplot as plt
+The following example retrieves each separate components, and plots it in a different color:
 
-    from hyperion.model import ModelOutput
-    from hyperion.util.constants import pc
-
-    m = ModelOutput('tutorial_model.rtout')
-
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-
-    # Direct stellar photons
-    wav, nufnu = m.get_sed(inclination=0, aperture=-1, distance=300 * pc,
-                           component='source_emit')
-    ax.loglog(wav, nufnu, color='blue')
-
-    # Scattered stellar photons
-    wav, nufnu = m.get_sed(inclination=0, aperture=-1, distance=300 * pc,
-                           component='source_scat')
-    ax.loglog(wav, nufnu, color='teal')
-
-    # Direct dust photons
-    wav, nufnu = m.get_sed(inclination=0, aperture=-1, distance=300 * pc,
-                           component='dust_emit')
-    ax.loglog(wav, nufnu, color='red')
-
-    # Scattered dust photons
-    wav, nufnu = m.get_sed(inclination=0, aperture=-1, distance=300 * pc,
-                           component='dust_scat')
-    ax.loglog(wav, nufnu, color='orange')
-
-    ax.set_xlabel(r'$\lambda$ [$\mu$m]')
-    ax.set_ylabel(r'$\lambda F_\lambda$ [ergs/s/cm$^2$]')
-    ax.set_xlim(0.1, 5000.)
-    ax.set_ylim(1.e-12, 2.e-6)
-    fig.savefig('sed_origin.png')
+.. literalinclude:: scripts/class2_sed_plot_components.py
+   :language: python
 
 This script produces the following plot:
 
-.. image:: images/sed_origin.png
+.. image:: scripts/class2_sed_plot_components.png
    :scale: 75 %
    :alt: Simple SED plot with origin tracking
    :align: center
