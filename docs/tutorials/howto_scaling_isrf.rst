@@ -22,14 +22,14 @@ in the solar neighborhood.
 We now set up a model with a spherical grid extending to 1pc in radius, with
 the spectrum given by MMP83:
 
-.. literalinclude:: setup_example_isrf.py
+.. literalinclude:: scripts/setup_example_isrf.py
    :language: python
 
 To run this model, you will need the :download:`mmp83.txt <mmp83.txt>` file
 which contains the spectrum of the interstellar radiation field. We have set up
 an observer inside the grid to make an all-sky integrated intensity map:
 
-.. literalinclude:: extract_example_isrf.py
+.. literalinclude:: scripts/extract_example_isrf.py
    :language: python
 
 which gives:
