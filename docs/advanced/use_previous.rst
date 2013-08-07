@@ -172,5 +172,3 @@ and optionally add new images. For more information, see
 :meth:`~hyperion.model.Model.use_image_config`,
 :meth:`~hyperion.model.Model.use_run_config`, and
 :meth:`~hyperion.model.Model.use_output_config`.
-
-TODO: mention use_sources
