@@ -1,18 +1,14 @@
-=============
-Plotting SEDs
-=============
+=============================
+Plotting and writing out SEDs
+=============================
 
 .. _Matplotlib: http://matplotlib.org
 
-So you've run a model with SEDs and/or images and you now want to plot
-them. You now want to make plots of these from Python. The plotting
-library used in this tutorial is `Matplotlib`_ but there is no reason why you
-can't use another. The examples below get you to write Python scripts,
-but you can also run these interactively in python or ipython if you
-like.
-
-.. note:: If you have never used Matplotlib before, you can first take a look
-          at the :doc:`python_matplotlib` tutorial.
+So you've run a model with SEDs, and you now want to plot them or write the out
+to files. The plotting library used in this tutorial is `Matplotlib`_ but there
+is no reason why you can't use another. The examples below get you to write
+Python scripts, but you can also run these interactively in python or ipython
+if you like.
 
 Example model
 =============
@@ -32,8 +28,14 @@ tutorials!).
 Note that the subsequent plotting code applies to any model, not just
 :class:`~hyperion.model.AnalyticalYSOModel` models.
 
-Plotting total flux SEDs
-========================
+Plotting SEDs
+=============
+
+.. note:: If you have never used Matplotlib before, you can first take a look
+          at the :doc:`python_matplotlib` tutorial.
+
+Total flux
+----------
 
 Once the above model has run, we are ready to make a simple SED plot. The first
 step is to extract the SED from the output file from the radiation transfer
@@ -67,8 +69,8 @@ This script produces the following plot:
    :alt: Simple SED plot with inclination dependence
    :align: center
 
-Plotting individual SED components
-==================================
+Individual SED components
+-------------------------
 
 Now let's do something a little more fancy. Assuming that you set up the SEDs with photon tracking::
 
@@ -91,3 +93,27 @@ This script produces the following plot:
    :scale: 75 %
    :alt: Simple SED plot with origin tracking
    :align: center
+   
+Writing out SEDs
+================
+
+.. note:: If you have never written text files from Python before, you can 
+          first take a look at the :doc:`python_writing` tutorial.
+
+In some cases, you may also want to write out SEDs to ASCII files. The first
+step, as for plotting (see `Plotting SEDs`_ above) is to extract the SED from
+the output file from the radiation transfer code. This step is also described
+in detail in :ref:`post-processing`. Once we have extracted an SED we can write
+a script that will write it out to disk. For example, if we want to write out
+the SED for the first inclination and the largest aperture from the `Example
+Model`_, we can do:
+
+.. literalinclude:: scripts/class2_sed_write.py
+   :language: python
+
+This script produces a file that looks like:
+
+.. literalinclude:: scripts/sed.txt
+    :lines: 1-8
+    :append: ...
+    
