@@ -24,4 +24,5 @@ Example models
 .. toctree::
    :maxdepth: 2
 
+   example_class1.rst
    example_pure_scattering.rst
