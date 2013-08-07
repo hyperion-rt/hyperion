@@ -72,7 +72,8 @@ This script produces the following plot:
 Individual SED components
 -------------------------
 
-Now let's do something a little more fancy. Assuming that you set up the SEDs with photon tracking::
+Now let's do something a little more fancy. Assuming that you set up the SEDs
+with photon tracking::
 
     sed.set_track_origin('basic')
 
@@ -80,9 +81,12 @@ or::
 
     sed.set_track_origin('detailed')
 
-you can plot the individual components. Notice that we included the former in the model at the top of this page, so we can make use of it here to plot separate components of the SED.
+you can plot the individual components. Notice that we included the former in
+the model at the top of this page, so we can make use of it here to plot
+separate components of the SED.
 
-The following example retrieves each separate components, and plots it in a different color:
+The following example retrieves each separate components, and plots it in a
+different color:
 
 .. literalinclude:: scripts/class2_sed_plot_components.py
    :language: python
