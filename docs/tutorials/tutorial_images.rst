@@ -68,3 +68,26 @@ Adding World Coordinate System (WCS) information is easy using
 
 .. literalinclude:: scripts/simple_cube_write_wcs.py
    :language: python
+
+Making 3-color images
+=====================
+
+Making 3-color images is possible using the `Python Imaging Library
+<http://www.pythonware.com/products/pil/>`_. The following example demonstrates
+how to produce a 3-color PNG of the above model using the scattered light
+wavelengths:
+
+
+.. literalinclude:: scripts/simple_cube_rgb.py
+   :language: python
+
+which gives:
+
+.. image:: scripts/simple_cube_rgb.png
+  :alt: Simple RGB plot
+  :align: center
+
+Alternatively, you can write out the required images to FITS format, then use
+the `make_rgb_image function in APLpy
+<http://aplpy.readthedocs.org/en/v0.9.9/howto_rgb.html>`_ to make the 3-color
+images.
