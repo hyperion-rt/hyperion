@@ -104,13 +104,19 @@ Writing out SEDs
 .. note:: If you have never written text files from Python before, you can 
           first take a look at the :doc:`python_writing` tutorial.
 
-In some cases, you may also want to write out SEDs to ASCII files. The first
-step, as for plotting (see `Plotting SEDs`_ above) is to extract the SED from
-the output file from the radiation transfer code. This step is also described
-in detail in :ref:`post-processing`. Once we have extracted an SED we can write
-a script that will write it out to disk. For example, if we want to write out
-the SED for the first inclination and the largest aperture from the `Example
-Model`_, we can do:
+The output files from the radiative transfer code are in the HDF5 file format,
+and can therefore be accessed directly from most programming/scripting
+languages. However, in many cases it might be most convenient to write a small
+Python script to extract the required information and to write it out to files
+that can then be read in to other tools.
+
+For instance, you may want to write out the SEDs to ASCII files. To do this,
+the first step, as for plotting (see `Plotting SEDs`_ above) is to extract the
+SED from the output file from the radiation transfer code. This step is also
+described in detail in :ref:`post-processing`. Once we have extracted an SED we
+can write a script that will write it out to disk. For example, if we want to
+write out the SED for the first inclination and the largest aperture from the
+`Example Model`_, we can do:
 
 .. literalinclude:: scripts/class2_sed_write.py
    :language: python

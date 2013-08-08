@@ -1,0 +1,61 @@
+===========================
+Plotting and writing images
+===========================
+
+.. _Numpy: http://numpy.scipy.org/
+.. _Astropy: http://www.astropy.org
+
+As mentioned in :doc:`tutorial_seds`, the output files from the radiative
+transfer code are in the HDF5 file format, and can therefore be accessed
+directly from most programming/scripting languages. However, in most cases it
+is easiest to use the Hyperion Python library to extract the required
+information and write it out to files. In this tutorial, we learn how to write
+out images to FITS files (for an example of writing out SEDs, see
+:doc:`tutorial_seds`).
+
+Example model
+=============
+
+.. literalinclude:: scripts/simple_cube_setup.py
+   :language: python
+
+Plotting images
+===============
+
+.. note:: If you have never used Matplotlib before, you can first take a look
+          at the :doc:`python_matplotlib` tutorial.
+
+The first step is to extract the image cube from the output file
+(``simple_cube.rtout``). This step is described in detail in
+:ref:`post-processing`. We can make a plot of the surface brightness
+
+.. literalinclude:: scripts/simple_cube_plot.py
+   :language: python
+
+This script produces the following plot:
+
+.. image:: scripts/simple_cube_plot.png
+   :scale: 75 %
+   :alt: Simple Image plot
+   :align: center
+
+Writing out images
+==================
+
+Writing out images to text files does not make much sense, so in this section
+we see how to write out images extracted from the radiative transfer code
+results to a FITS file, and add WCS information. Once a 2D image or 3D
+wavelength cube have been extracted as shown in `Plotting images`_, we can
+write them out to a FITS file using `Astropy`_:
+
+.. literalinclude:: scripts/simple_cube_write.py
+   :language: python
+
+Writing out images with WCS information
+=======================================
+
+Adding World Coordinate System (WCS) information is easy using
+`Astropy`_:
+
+.. literalinclude:: scripts/simple_cube_write_wcs.py
+   :language: python
