@@ -1,6 +1,6 @@
-==================
+====================
 hyperion.model.Image
-==================
+====================
 
 .. currentmodule:: hyperion.model
 

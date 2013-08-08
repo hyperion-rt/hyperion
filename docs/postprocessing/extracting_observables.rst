@@ -13,15 +13,16 @@ To extract SEDs, use the :meth:`~hyperion.model.ModelOutput.get_sed` method::
 
     sed = m.get_sed()
 
-A number of arguments can be passed to ``get_sed()``, for example to select
-specific Stokes parameters, inclinations, apertures, to scale the SED to a
-specific distance, to convert it to certain units, to extract the SED
-originating from different components, etc. For full details about the
-available arguments, see the :meth:`~hyperion.model.ModelOutput.get_sed`
-documentation. The method returns a single :class:`~hyperion.model.SED` object
-that contains e.g. the wavelength, frequency, flux, and optionally
-uncertainties (see :class:`~hyperion.model.SED` for details of the available
-attributes).
+A number of arguments can be passed to
+:meth:`~hyperion.model.ModelOutput.get_sed`, for example to select specific
+Stokes parameters, inclinations, apertures, to scale the SED to a specific
+distance, to convert it to certain units, to extract the SED originating from
+different components, etc. For full details about the available arguments, see
+the :meth:`~hyperion.model.ModelOutput.get_sed` documentation. The method
+returns a single :class:`~hyperion.model.SED` object that contains e.g. the
+wavelength (``sed.wav``), frequency (``sed.nu``), flux (``sed.flux``), and
+optionally uncertainties (``sed.unc``). See :class:`~hyperion.model.SED` for
+the full list of the available attributes.
 
 By default, the I stokes parameter is returned for all inclinations and
 apertures, and ``sed.flux`` is a data cube with three dimensions (inclinations,
@@ -47,10 +48,13 @@ method::
     image = m.get_image()
 
 Similarly to SEDs, a number of arguments can be passed to
-:meth:`~hyperion.model.ModelOutput.get_image`, and an
-:class:`~hyperion.model.Image` object is returned. For full details about the
+:meth:`~hyperion.model.ModelOutput.get_image`. For full details about the
 available arguments, see the :meth:`~hyperion.model.ModelOutput.get_image`
-documentation.
+documentation. This method returns a single :class:`~hyperion.model.Image`
+object that contains e.g. the wavelength (``image.wav``), frequency
+(``image.nu``), flux (``image.flux``), and optionally uncertainties
+(``image.unc``). See :class:`~hyperion.model.Image` for the full list of the
+available attributes.
 
 As for SEDs, the attributes of the image will depend on the options specified.
 The main difference compared to SEDs is that there are two dimensions for the x

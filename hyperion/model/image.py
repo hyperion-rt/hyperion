@@ -49,6 +49,9 @@ class Image(FreezableClass):
 
     @property
     def nu(self):
+        """
+        The frequencies for which the image is defined (in Hz).
+        """
         return self._nu
 
     @nu.setter
@@ -64,6 +67,9 @@ class Image(FreezableClass):
 
     @property
     def flux(self):
+        """
+        The image fluxes or flux densities (with the units given by the ``.unit`` property).
+        """
         return self._flux
 
     @flux.setter
@@ -85,6 +91,9 @@ class Image(FreezableClass):
 
     @property
     def unc(self):
+        """
+        The uncertainties on the image fluxes (with the units given by the ``.unit`` property).
+        """
         return self._unc
 
     @unc.setter
@@ -103,8 +112,12 @@ class Image(FreezableClass):
                 self._unc = value
         else:
             raise TypeError("unc should be a multi-dimensional array")
+
     @property
     def unit(self):
+        """
+        The units of the image fluxes.
+        """
         return self._unit
 
     @unit.setter
@@ -116,6 +129,9 @@ class Image(FreezableClass):
 
     @property
     def wav(self):
+        """
+        The wavelengths for which the image is defined (in microns).
+        """
         return c / self.nu * 1e4
 
     def __iter__(self):
@@ -127,7 +143,7 @@ class Image(FreezableClass):
     @property
     def x_min(self):
         """
-        Lower extent of the image in the x direction in cm.
+        Lower extent of the image in the x direction (in cm).
         """
         return self._x_min
 
@@ -141,7 +157,7 @@ class Image(FreezableClass):
     @property
     def x_max(self):
         """
-        Upper extent of the image in the x direction in cm.
+        Upper extent of the image in the x direction (in cm).
         """
         return self._x_max
 
@@ -155,7 +171,7 @@ class Image(FreezableClass):
     @property
     def y_min(self):
         """
-        Lower extent of the image in the y direction in cm.
+        Lower extent of the image in the y direction (in cm).
         """
         return self._y_min
 
@@ -169,7 +185,7 @@ class Image(FreezableClass):
     @property
     def y_max(self):
         """
-        Upper extent of the image in the y direction in cm.
+        Upper extent of the image in the y direction (in cm).
         """
         return self._y_max
 
@@ -183,7 +199,7 @@ class Image(FreezableClass):
     @property
     def lon_min(self):
         """
-        Lower extent of the image in the x direction in degrees.
+        Lower extent of the image in the x direction (in degrees).
         """
         return self._lon_min
 
@@ -197,7 +213,7 @@ class Image(FreezableClass):
     @property
     def lon_max(self):
         """
-        Upper extent of the image in the x direction in degrees.
+        Upper extent of the image in the x direction (in degrees).
         """
         return self._lon_max
 
@@ -211,7 +227,7 @@ class Image(FreezableClass):
     @property
     def lat_min(self):
         """
-        Lower extent of the image in the y direction in degrees.
+        Lower extent of the image in the y direction (in degrees).
         """
         return self._lat_min
 
@@ -225,7 +241,7 @@ class Image(FreezableClass):
     @property
     def lat_max(self):
         """
-        Upper extent of the image in the y direction in degrees.
+        Upper extent of the image in the y direction (in degrees).
         """
         return self._lat_max
 
@@ -239,7 +255,7 @@ class Image(FreezableClass):
     @property
     def distance(self):
         """
-        Distance assumed for the image.
+        Distance assumed for the image (in cm).
         """
         return self._distance
 
@@ -253,7 +269,7 @@ class Image(FreezableClass):
     @property
     def pix_area_sr(self):
         """
-        Pixel area in steradians.
+        Pixel area (in steradians).
         """
         return self._pix_area_sr
 

@@ -40,6 +40,9 @@ class SED(FreezableClass):
 
     @property
     def nu(self):
+        """
+        The frequencies for which the SED is defined (in Hz)
+        """
         return self._nu
 
     @nu.setter
@@ -55,6 +58,9 @@ class SED(FreezableClass):
 
     @property
     def flux(self):
+        """
+        The SED fluxes or flux densities (with the units given by the ``.unit`` property).
+        """
         return self._flux
 
     @flux.setter
@@ -76,6 +82,9 @@ class SED(FreezableClass):
 
     @property
     def unc(self):
+        """
+        The uncertainties on the SED fluxes (with the units given by the ``.unit`` property).
+        """
         return self._unc
 
     @unc.setter
@@ -94,8 +103,12 @@ class SED(FreezableClass):
                 self._unc = value
         else:
             raise TypeError("unc should be a multi-dimensional array")
+
     @property
     def unit(self):
+        """
+        The units of the SED fluxes.
+        """
         return self._unit
 
     @unit.setter
@@ -107,6 +120,9 @@ class SED(FreezableClass):
 
     @property
     def wav(self):
+        """
+        The wavelengths for which the SED is defined (in microns).
+        """
         return c / self.nu * 1e4
 
     def __iter__(self):
@@ -118,7 +134,7 @@ class SED(FreezableClass):
     @property
     def ap_min(self):
         """
-        Lower extent of the image in the x direction in degrees.
+        Minimum aperture used to define the SEDs (in cm).
         """
         return self._ap_min
 
@@ -132,7 +148,7 @@ class SED(FreezableClass):
     @property
     def ap_max(self):
         """
-        Upper extent of the image in the x direction in degrees.
+        Maximum aperture used to define the SEDs (in cm).
         """
         return self._ap_max
 
@@ -146,7 +162,7 @@ class SED(FreezableClass):
     @property
     def distance(self):
         """
-        Distance assumed for the image.
+        Distance assumed for the image (in cm).
         """
         return self._distance
 
