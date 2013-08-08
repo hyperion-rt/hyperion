@@ -25,16 +25,16 @@ the spectrum given by MMP83:
 .. literalinclude:: scripts/setup_example_isrf.py
    :language: python
 
-To run this model, you will need the :download:`mmp83.txt <mmp83.txt>` file
-which contains the spectrum of the interstellar radiation field. We have set up
-an observer inside the grid to make an all-sky integrated intensity map:
+To run this model, you will need the :download:`mmp83.txt <scripts/mmp83.txt>`
+file which contains the spectrum of the interstellar radiation field. We have
+set up an observer inside the grid to make an all-sky integrated intensity map:
 
 .. literalinclude:: scripts/extract_example_isrf.py
    :language: python
 
 which gives:
 
-.. image:: images/isrf_intensity.png
+.. image:: scripts/isrf_intensity.png
 
 As we can see, the value for :math:`4\pi J` is almost identical to the value we
 initially used above.
