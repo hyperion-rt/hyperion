@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from hyperion.model import ModelOutput
-from hyperion.util.constants import pc, au
+from hyperion.util.constants import au
 
 # Read in the model
 m = ModelOutput('quantity_spherical.rtout')

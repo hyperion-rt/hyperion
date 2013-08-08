@@ -1,7 +1,7 @@
 import numpy as np
 
 from hyperion.model import AnalyticalYSOModel
-from hyperion.util.constants import rsun, lsun, au, msun, yr, c, pi, sigma
+from hyperion.util.constants import rsun, au, msun, sigma
 
 # Initalize the model
 m = AnalyticalYSOModel()
