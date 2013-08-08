@@ -68,4 +68,4 @@ m.set_convergence(True, percentile=99.0, absolute=2.0, relative=1.1)
 
 # Write out file
 m.write('class1_example.rtin')
-m.run('class1_example.rtout', mpi=True, n_processes=12)
+m.run('class1_example.rtout', mpi=True)

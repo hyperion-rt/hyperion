@@ -49,4 +49,4 @@ m.set_n_photons(imaging_sources=10000000, imaging_dust=0,
 
 # Write out the model and run it in parallel
 m.write('disk.rtin')
-m.run('disk.rtout', mpi=True, n_processes=8)
+m.run('disk.rtout', mpi=True)

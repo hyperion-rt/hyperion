@@ -19,7 +19,7 @@ wav, jlambda = np.loadtxt('mmp83.txt', unpack=True)
 nu = c / (wav * 1.e-4)
 jnu = jlambda * wav / nu
 
-# Set up the source - note that the normalization of the spectrum is not 
+# Set up the source - note that the normalization of the spectrum is not
 # important - the luminosity is set separately.
 s = m.add_external_spherical_source()
 s.radius = pc

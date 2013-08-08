@@ -21,7 +21,7 @@ image = m.get_image(distance=300 * pc, units='MJy/sr')
 for iview in range(image.flux.shape[0]):
 
     # Open figure and create axes
-    fig = plt.figure(figsize=(3,3))
+    fig = plt.figure(figsize=(3, 3))
     ax = fig.add_subplot(1, 1, 1)
 
     # This is the command to show the image. The parameters vmin and vmax are

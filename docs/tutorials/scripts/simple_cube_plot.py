@@ -12,7 +12,7 @@ m = ModelOutput('simple_cube.rtout')
 image = m.get_image(inclination=0, distance=300 * pc, units='MJy/sr')
 
 # Open figure and create axes
-fig = plt.figure(figsize=(8,8))
+fig = plt.figure(figsize=(8, 8))
 
 # Pre-set maximum for colorscales
 VMAX = {}
@@ -34,7 +34,7 @@ for i, wav in enumerate([1, 30, 100, 300]):
 
     # This is the command to show the image. The parameters vmin and vmax are
     # the min and max levels for the colorscale (remove for default values).
-    ax.imshow(np.sqrt(image.flux[:, :, iwav]), vmin=0, vmax=np.sqrt(VMAX[wav]), \
+    ax.imshow(np.sqrt(image.flux[:, :, iwav]), vmin=0, vmax=np.sqrt(VMAX[wav]),
               cmap=plt.cm.gist_heat, origin='lower', extent=[-w, w, -w, w])
 
     # Finalize the plot
@@ -42,5 +42,5 @@ for i, wav in enumerate([1, 30, 100, 300]):
     ax.set_xlabel('x (arcmin)')
     ax.set_xlabel('y (arcmin)')
     ax.set_title(str(wav) + ' microns', y=0.88, x=0.5, color='white')
-              
+
 fig.savefig('simple_cube_plot.png', bbox_inches='tight')

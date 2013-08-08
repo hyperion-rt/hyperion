@@ -41,7 +41,7 @@ image = ax.pcolormesh(l, b, intensity, cmap=plt.cm.gist_heat, vmin=0.0, vmax=0.0
 # Add mean intensity
 four_pi_jnu = round(np.sum(intensity * area), 4)
 fig.text(0.40, 0.15, r"$4\pi J = %6.4f$ "
-                     r"${\rm erg\,cm^{-2}\,s^{-1}}$" % four_pi_jnu , size=14)
+                     r"${\rm erg\,cm^{-2}\,s^{-1}}$" % four_pi_jnu, size=14)
 
 # Add a colorbar
 cax = fig.add_axes([0.92, 0.25, 0.02, 0.5])

@@ -13,7 +13,7 @@ m.set_cartesian_grid(w, w, w)
 # Add density grid with constant density and add a higher density cube inside to
 # cause a shadow.
 density = np.ones(m.grid.shape) * 1e-21
-density[26:38,26:38,26:38] = 1.e-18
+density[26:38, 26:38, 26:38] = 1.e-18
 m.add_density_grid(density, 'kmh_lite.hdf5')
 
 # Add a point source in the center

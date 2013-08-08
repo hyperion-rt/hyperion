@@ -46,4 +46,4 @@ m.set_n_initial_iterations(5)
 
 # Write out file
 m.write('class2_sed.rtin')
-m.run('class2_sed.rtout', mpi=True, n_processes=12)
+m.run('class2_sed.rtout', mpi=True)

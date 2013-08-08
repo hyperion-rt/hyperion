@@ -17,13 +17,13 @@ xw, yw = g.x_wall / pc, g.y_wall / pc
 X, Y = np.meshgrid(xw, yw)
 
 # Calculate the density-weighted temperature
-weighted_temperature =  np.sum(g['temperature'][0].array \
-                               * g['density'][0].array, axis=2)\
-                        / np.sum(g['density'][0].array, axis=2)
+weighted_temperature = (np.sum(g['temperature'][0].array
+                               * g['density'][0].array, axis=2)
+                        / np.sum(g['density'][0].array, axis=2))
 
 # Make the plot
 fig = plt.figure()
-ax = fig.add_subplot(1,1,1)
+ax = fig.add_subplot(1, 1, 1)
 c = ax.pcolormesh(X, Y, weighted_temperature)
 ax.set_xlim(xw[0], xw[-1])
 ax.set_xlim(yw[0], yw[-1])
@@ -36,7 +36,7 @@ fig.savefig('weighted_temperature_cartesian.png', bbox_inches='tight')
 # show image
 
 fig = plt.figure()
-ax = fig.add_subplot(1,1,1)
+ax = fig.add_subplot(1, 1, 1)
 c = ax.pcolormesh(X, Y, g['temperature'][0].array[:, 49, :])
 ax.set_xlim(xw[0], xw[-1])
 ax.set_xlim(yw[0], yw[-1])
