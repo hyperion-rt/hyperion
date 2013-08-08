@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from hyperion.model import ModelOutput
-from hyperion.util.constants import c
 from hyperion.util.integrate import integrate_loglog
 
 # Use LaTeX for plots
@@ -12,13 +11,12 @@ plt.rc('text', usetex=True)
 m = ModelOutput('example_isrf.rtout')
 
 # Get an all-sky flux map
-wav, fnu = m.get_image(units='ergs/cm^2/s/Hz', inclination=0)
-nu = c / (wav * 1.e-4)
+image = m.get_image(units='ergs/cm^2/s/Hz', inclination=0)
 
 # Compute the frequency-integrated flux
-fint = np.zeros(fnu.shape[:-1])
+fint = np.zeros(image.flux.shape[:-1])
 for (j, i) in np.ndindex(fint.shape):
-    fint[j, i] = integrate_loglog(nu, fnu[j, i, :])
+    fint[j, i] = integrate_loglog(image.nu, image.flux[j, i, :])
 
 # Find the area of each pixel
 l = np.radians(np.linspace(180., -180., fint.shape[1] + 1))
