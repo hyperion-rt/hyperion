@@ -53,7 +53,8 @@ ax.set_xlim(X.min() / 10., X.max() / 10.)
 ax.set_ylim(Z.min() / 10., Z.max() / 10.)
 ax.set_xlabel('x (au)')
 ax.set_yticklabels('')
-ax.text(0.1, 0.95, 'Zoom 10x', ha='left', va='center', transform=ax.transAxes, color='white')
+ax.text(0.1, 0.95, 'Zoom 10x', ha='left', va='center',
+        transform=ax.transAxes, color='white')
 
 ax = fig.add_axes([0.54, 0.1, 0.2, 0.8])
 c = ax.pcolormesh(X, Z, g['temperature'][0].array[0, :, :])
@@ -61,7 +62,8 @@ ax.set_xlim(X.min() / 100., X.max() / 100)
 ax.set_ylim(Z.min() / 100, Z.max() / 100)
 ax.set_xlabel('x (au)')
 ax.set_yticklabels('')
-ax.text(0.1, 0.95, 'Zoom 100x', ha='left', va='center', transform=ax.transAxes, color='white')
+ax.text(0.1, 0.95, 'Zoom 100x', ha='left', va='center',
+        transform=ax.transAxes, color='white')
 
 ax = fig.add_axes([0.75, 0.1, 0.03, 0.8])
 cb = fig.colorbar(c, cax=ax)
