@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from hyperion.model import ModelOutput
 from hyperion.util.constants import pc
 
-mo = ModelOutput('disk.rtout')
+mo = ModelOutput('pure_scattering.rtout')
 
 wav, fnu = mo.get_image(inclination=0, units='MJy/sr', distance=300. * pc)
 wav, pol = mo.get_image(inclination=0, stokes='linpol')
@@ -35,4 +35,4 @@ ax.set_yticklabels('')
 
 axcb = fig.add_axes([0.92, 0.3, 0.02, 0.4])
 plt.colorbar(im, label="%", cax=axcb)
-fig.savefig('inner_disk.png', bbox_inches='tight')
+fig.savefig('pure_scattering_inner_disk.png', bbox_inches='tight')
