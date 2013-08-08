@@ -8,6 +8,9 @@ Tutorials
 Basic Python
 ============
 
+If you are not comfortable with writing out files or making plots in Python, the following two
+sections will help you get started:
+
 .. toctree::
    :maxdepth: 1
 
@@ -19,11 +22,10 @@ Post-processing
 ===============
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   tutorial_model.rst
-   tutorial_plotting.rst
-   tutorial_writing.rst
+   tutorial_seds.rst
+   tutorial_images.rst
    tutorial_animations.rst
    tutorial_quantities.rst
    tutorial_quantities_yt.rst
@@ -32,7 +34,7 @@ Example models
 ==============
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    example_class1.rst
 
@@ -40,7 +42,7 @@ Advanced
 ========
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    howto_pure_scattering.rst
    howto_scaling_isrf.rst
