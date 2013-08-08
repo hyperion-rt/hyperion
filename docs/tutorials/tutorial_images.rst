@@ -16,8 +16,17 @@ out images to FITS files (for an example of writing out SEDs, see
 Example model
 =============
 
+In this example, we set up a simple model that consists of a cube of constant
+density, with a point source shining isotropically. A denser cube then causes
+some of the emission to be blocked, and casts a shadow:
+
 .. literalinclude:: scripts/simple_cube_setup.py
    :language: python
+
+.. note:: If you want to run this model you will need to download the
+          :download:`kmh_lite.hdf5 <kmh_lite.hdf5>` dust file into the same
+          directory as the script above (**disclaimer**: do not use this dust
+          file outside of these tutorials!).
 
 Plotting images
 ===============
