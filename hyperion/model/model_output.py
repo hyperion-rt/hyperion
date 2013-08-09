@@ -439,7 +439,7 @@ class ModelOutput(FreezableClass):
             raise ValueError("Unknown Stokes parameter: %s" % stokes)
 
         from .sed import SED
-        sed = SED(nu=nu, flux=flux, unc=unc if uncertainties else None, units=units)
+        sed = SED(nu=nu, val=flux, unc=unc if uncertainties else None, units=units)
 
         # Add aperture information
         sed.ap_min = g['seds'].attrs['apmin']
@@ -831,7 +831,7 @@ class ModelOutput(FreezableClass):
             raise ValueError("Unknown Stokes parameter: %s" % stokes)
 
         from .image import Image
-        image = Image(nu=nu, flux=flux, unc=unc if uncertainties else None, units=units)
+        image = Image(nu=nu, val=flux, unc=unc if uncertainties else None, units=units)
 
         # Add physical extent
         image.x_min = x_min
