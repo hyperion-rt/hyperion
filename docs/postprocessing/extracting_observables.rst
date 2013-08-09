@@ -20,8 +20,8 @@ distance, to convert it to certain units, to extract the SED originating from
 different components, etc. For full details about the available arguments, see
 the :meth:`~hyperion.model.ModelOutput.get_sed` documentation. The method
 returns a single :class:`~hyperion.model.SED` object that contains e.g. the
-wavelengths (``sed.wav``), frequencies (``sed.nu``), fluxes, flux densities,
-or polarization values (``sed.val``), and optionally uncertainties
+wavelengths (``sed.wav``), frequencies (``sed.nu``), values (i.e. fluxes, flux
+densities, or polarization values; ``sed.val``), and optionally uncertainties
 (``sed.unc``). See :class:`~hyperion.model.SED` for the full list of the
 available attributes.
 
@@ -53,9 +53,9 @@ Similarly to SEDs, a number of arguments can be passed to
 available arguments, see the :meth:`~hyperion.model.ModelOutput.get_image`
 documentation. This method returns a single :class:`~hyperion.model.Image`
 object that contains e.g. the wavelengths (``image.wav``), frequencies
-(``image.nu``), fluxes, flux densities, or polarizations (``image.val``), and
-optionally uncertainties (``image.unc``). See :class:`~hyperion.model.Image`
-for the full list of the available attributes.
+(``image.nu``), values (i.e. fluxes, flux densities, or polarization
+values; ``image.val``), and optionally uncertainties (``image.unc``). See
+:class:`~hyperion.model.Image` for the full list of the available attributes.
 
 As for SEDs, the attributes of the image will depend on the options specified.
 The main difference compared to SEDs is that there are two dimensions for the x
