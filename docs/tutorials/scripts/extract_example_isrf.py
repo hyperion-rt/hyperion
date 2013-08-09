@@ -14,9 +14,9 @@ m = ModelOutput('example_isrf.rtout')
 image = m.get_image(units='ergs/cm^2/s/Hz', inclination=0)
 
 # Compute the frequency-integrated flux
-fint = np.zeros(image.flux.shape[:-1])
+fint = np.zeros(image.val.shape[:-1])
 for (j, i) in np.ndindex(fint.shape):
-    fint[j, i] = integrate_loglog(image.nu, image.flux[j, i, :])
+    fint[j, i] = integrate_loglog(image.nu, image.val[j, i, :])
 
 # Find the area of each pixel
 l = np.radians(np.linspace(180., -180., fint.shape[1] + 1))

@@ -12,7 +12,7 @@ fig = plt.figure(figsize=(8, 8))
 # Make total intensity sub-plot
 
 ax = fig.add_axes([0.1, 0.3, 0.4, 0.4])
-ax.imshow(image_fnu.flux[:, :, 0], extent=[-13, 13, -13, 13],
+ax.imshow(image_fnu.val[:, :, 0], extent=[-13, 13, -13, 13],
           interpolation='none', cmap=plt.cm.gist_heat,
           origin='lower', vmin=0., vmax=4e9)
 ax.set_xlim(-13., 13.)
@@ -24,7 +24,7 @@ ax.set_title("Surface brightness")
 # Make linear polarization sub-plot
 
 ax = fig.add_axes([0.51, 0.3, 0.4, 0.4])
-im = ax.imshow(image_pol.flux[:, :, 0] * 100., extent=[-13, 13, -13, 13],
+im = ax.imshow(image_pol.val[:, :, 0] * 100., extent=[-13, 13, -13, 13],
                interpolation='none', cmap=plt.cm.gist_heat,
                origin='lower', vmin=0., vmax=100.)
 ax.set_xlim(-13., 13.)

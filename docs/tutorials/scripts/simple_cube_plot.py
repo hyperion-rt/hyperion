@@ -34,7 +34,7 @@ for i, wav in enumerate([1, 30, 100, 300]):
 
     # This is the command to show the image. The parameters vmin and vmax are
     # the min and max levels for the colorscale (remove for default values).
-    ax.imshow(np.sqrt(image.flux[:, :, iwav]), vmin=0, vmax=np.sqrt(VMAX[wav]),
+    ax.imshow(np.sqrt(image.val[:, :, iwav]), vmin=0, vmax=np.sqrt(VMAX[wav]),
               cmap=plt.cm.gist_heat, origin='lower', extent=[-w, w, -w, w])
 
     # Finalize the plot

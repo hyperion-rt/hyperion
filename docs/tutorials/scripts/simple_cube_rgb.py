@@ -8,9 +8,9 @@ m = ModelOutput('simple_cube.rtout')
 image = m.get_image(inclination=0, distance=300 * pc, units='MJy/sr')
 
 # Extract the slices we want to use for red, green, and blue
-r = image.flux[:, :, 17]
-g = image.flux[:, :, 18]
-b = image.flux[:, :, 19]
+r = image.val[:, :, 17]
+g = image.val[:, :, 18]
+b = image.val[:, :, 19]
 
 # Now we need to rescale the values we want to the range 0 to 255, clip values
 # outside the range, and convert to unsigned 8-bit integers. We also use a sqrt

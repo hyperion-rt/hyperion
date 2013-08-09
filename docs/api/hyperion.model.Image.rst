@@ -12,7 +12,7 @@ hyperion.model.Image
 
       ~Image.wav
       ~Image.nu
-      ~Image.flux
+      ~Image.val
       ~Image.unc
       ~Image.unit
       ~Image.x_min

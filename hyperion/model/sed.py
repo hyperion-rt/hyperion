@@ -12,20 +12,20 @@ class SED(FreezableClass):
     ----------
     nu : ndarray
         The frequencies at which the SED is defined, in Hz
-    flux : ndarray, optional
-        The fluxes for the SED. The last dimensions should match the number of
-        frequencies. This flux can be f_nu or nu * f_nu.
+    val : ndarray, optional
+        The values for the SED. The last dimensions should match the number of
+        frequencies.
     unc : ndarray, optional
-        The flux uncertainties for the SED. The last dimensions should match
+        The uncertainties for the SED values. The last dimensions should match
         the number of frequencies.
     units : str
-        The units of the flux
+        The units of the values
     """
 
-    def __init__(self, nu, flux=None, unc=None, units=None):
+    def __init__(self, nu, val=None, unc=None, units=None):
 
         self.nu = nu
-        self.flux = flux
+        self.val = val
         self.unc = unc
         self.units = units
 
@@ -57,33 +57,33 @@ class SED(FreezableClass):
             raise TypeError("nu should be a 1-d sequence")
 
     @property
-    def flux(self):
+    def val(self):
         """
-        The SED fluxes or flux densities (with the units given by the ``.unit`` property).
+        The SED values (fluxes, flux densities, surface brightness, or polarization) in the units given by the ``.unit`` property.
         """
-        return self._flux
+        return self._val
 
-    @flux.setter
-    def flux(self, value):
+    @val.setter
+    def val(self, value):
         if type(value) in [list, tuple]:
             value = np.array(value)
         if value is None:
-            self._flux = value
+            self._val = value
         elif isinstance(value, np.ndarray) and value.ndim >= 1:
             if self.nu is not None and len(self.nu) != value.shape[-1]:
-                raise ValueError("the last dimension of the flux array should match the length of the nu array (expected {0} but found {1})".format(len(self.nu), value.shape[-1]))
+                raise ValueError("the last dimension of the value array should match the length of the nu array (expected {0} but found {1})".format(len(self.nu), value.shape[-1]))
             else:
                 if hasattr(self, 'unc') and self.unc is not None:
                     if value.shape != self.unc.shape:
                         raise ValueError("dimensions should match that of unc")
-                self._flux = value
+                self._val = value
         else:
-            raise TypeError("flux should be a multi-dimensional array")
+            raise TypeError("val should be a multi-dimensional array")
 
     @property
     def unc(self):
         """
-        The uncertainties on the SED fluxes (with the units given by the ``.unit`` property).
+        The uncertainties on the SED values in the units given by the ``.unit`` property.
         """
         return self._unc
 
@@ -97,9 +97,9 @@ class SED(FreezableClass):
             if self.nu is not None and len(self.nu) != value.shape[-1]:
                 raise ValueError("the last dimension of the unc array should match the length of the nu array (expected {0} but found {1})".format(len(self.nu), value.shape[-1]))
             else:
-                if hasattr(self, 'flux') and  self.flux is not None:
-                    if value.shape != self.flux.shape:
-                        raise ValueError("dimensions should match that of flux")
+                if hasattr(self, 'val') and  self.val is not None:
+                    if value.shape != self.val.shape:
+                        raise ValueError("dimensions should match that of val")
                 self._unc = value
         else:
             raise TypeError("unc should be a multi-dimensional array")
@@ -107,7 +107,7 @@ class SED(FreezableClass):
     @property
     def unit(self):
         """
-        The units of the SED fluxes.
+        The units of the SED values.
         """
         return self._unit
 
@@ -127,9 +127,9 @@ class SED(FreezableClass):
 
     def __iter__(self):
         if self.unc is None:
-            return (x for x in [self.wav, self.flux])
+            return (x for x in [self.wav, self.val])
         else:
-            return (x for x in [self.wav, self.flux, self.unc])
+            return (x for x in [self.wav, self.val, self.unc])
 
     @property
     def ap_min(self):

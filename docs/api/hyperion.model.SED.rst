@@ -12,7 +12,7 @@ hyperion.model.SED
 
       ~SED.wav
       ~SED.nu
-      ~SED.flux
+      ~SED.val
       ~SED.unc
       ~SED.unit
       ~SED.ap_min
