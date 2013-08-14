@@ -338,7 +338,7 @@ class TestImage(object):
 
         assert image.nu.shape == (5,)
         assert image.wav.shape == (5,)
-        assert image.flux.shape == (2, 20, 10, 5)
+        assert image.val.shape == (2, 20, 10, 5)
 
     def test_image_attributes_distance(self):
 
@@ -371,7 +371,7 @@ class TestImage(object):
 
         assert image.nu.shape == (5,)
         assert image.wav.shape == (5,)
-        assert image.flux.shape == (2, 20, 10, 5)
+        assert image.val.shape == (2, 20, 10, 5)
 
     def test_unit_conversion(self):
 
@@ -381,24 +381,24 @@ class TestImage(object):
         ref = self.m.get_image(group=0, units='ergs/cm^2/s', distance=100., inclination=1)
 
         # Make sure the flux is non-zero
-        assert np.sum(ref.flux) > 0
+        assert np.sum(ref.val) > 0
 
         # Check conversion to monochromatic flux
         mono = self.m.get_image(group=0, units='ergs/cm^2/s/Hz', distance=100., inclination=1)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), mono.flux, 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), mono.val, 10)
 
         # Check conversion to Jy
         Jy = self.m.get_image(group=0, units='Jy', distance=100., inclination=1)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), Jy.flux * 1.e-23, 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), Jy.val * 1.e-23, 10)
 
         # Check conversion to mJy
         mJy = self.m.get_image(group=0, units='mJy', distance=100., inclination=1)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), mJy.flux * 1.e-26, 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), mJy.val * 1.e-26, 10)
 
         # Check conversion to MJy/sr. For the far-field, all pixels have the
         # same area, so this is simple.
         MJy_per_sr = self.m.get_image(group=0, units='MJy/sr', distance=100., inclination=1)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), MJy_per_sr.flux * 1.e-17 * MJy_per_sr.pix_area_sr, 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), MJy_per_sr.val * 1.e-17 * MJy_per_sr.pix_area_sr, 10)
 
 
 class TestInsideImage(object):
@@ -466,7 +466,7 @@ class TestInsideImage(object):
         assert image.lat_min == lat_min
         assert image.lat_max == lat_max
 
-        nx, ny = image.flux.shape[2], image.flux.shape[1]
+        nx, ny = image.val.shape[2], image.val.shape[1]
 
         lon = np.linspace(np.radians(lon_min), np.radians(lon_max), nx + 1)
         lat = np.cos(np.linspace(np.radians(90. - lat_min), np.radians(90. - lat_max), ny + 1))
@@ -486,7 +486,7 @@ class TestInsideImage(object):
 
         assert image.nu.shape == (3,)
         assert image.wav.shape == (3,)
-        assert image.flux.shape == (3, 40, 30, 3)
+        assert image.val.shape == (3, 40, 30, 3)
 
     def test_image_distance(self):
 
@@ -502,21 +502,21 @@ class TestInsideImage(object):
         ref = self.m.get_image(group=0, units='ergs/cm^2/s', inclination=0)
 
         # Make sure the flux is non-zero
-        assert np.sum(ref.flux) > 0
+        assert np.sum(ref.val) > 0
 
         # Check conversion to monochromatic flux
         mono = self.m.get_image(group=0, units='ergs/cm^2/s/Hz', inclination=0)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), mono.flux, 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), mono.val, 10)
 
         # Check conversion to Jy
         Jy = self.m.get_image(group=0, units='Jy', inclination=0)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), Jy.flux * 1.e-23, 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), Jy.val * 1.e-23, 10)
 
         # Check conversion to mJy
         mJy = self.m.get_image(group=0, units='mJy', inclination=0)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), mJy.flux * 1.e-26, 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), mJy.val * 1.e-26, 10)
 
         # Check conversion to MJy/sr. For the far-field, all pixels have the
         # same area, so this is simple.
         MJy_per_sr = self.m.get_image(group=0, units='MJy/sr', inclination=0)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), MJy_per_sr.flux * 1.e-17 * MJy_per_sr.pix_area_sr[:, :, np.newaxis], 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), MJy_per_sr.val * 1.e-17 * MJy_per_sr.pix_area_sr[:, :, np.newaxis], 10)

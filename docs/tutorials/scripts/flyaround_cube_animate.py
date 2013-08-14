@@ -16,9 +16,9 @@ m = ModelOutput('flyaround_cube.rtout')
 # Read image from model
 image = m.get_image(distance=300 * pc, units='MJy/sr')
 
-# image.flux is now an array with four dimensions (n_view, n_y, n_x, n_wav)
+# image.val is now an array with four dimensions (n_view, n_y, n_x, n_wav)
 
-for iview in range(image.flux.shape[0]):
+for iview in range(image.val.shape[0]):
 
     # Open figure and create axes
     fig = plt.figure(figsize=(3, 3))
@@ -30,7 +30,7 @@ for iview in range(image.flux.shape[0]):
     # include plt.cm.gray (grayscale), plt.cm.gist_yarg (inverted grayscale),
     # plt.cm.jet (default, colorful). The np.sqrt() is used to plot the
     # images on a sqrt stretch.
-    ax.imshow(np.sqrt(image.flux[iview, :, :, 0]), vmin=0, vmax=np.sqrt(2000.),
+    ax.imshow(np.sqrt(image.val[iview, :, :, 0]), vmin=0, vmax=np.sqrt(2000.),
               cmap=plt.cm.gist_heat, origin='lower')
 
     # Save figure. The facecolor='black' and edgecolor='black' are for

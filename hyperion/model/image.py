@@ -12,20 +12,20 @@ class Image(FreezableClass):
     ----------
     nu : ndarray
         The frequencies at which the image is defined, in Hz
-    flux : ndarray, optional
-        The fluxes for the image. The last dimensions should match the number
-        of frequencies. This flux can be f_nu or nu * f_nu.
+    val : ndarray, optional
+        The values for the image. The last dimensions should match the number
+        of frequencies.
     unc : ndarray, optional
-        The flux uncertainties for the image. The last dimensions should match
-        the number of frequencies.
+        The uncertainties for the image values. The last dimensions should
+        match the number of frequencies.
     units : str
-        The units of the flux
+        The units of the values
     """
 
-    def __init__(self, nu, flux=None, unc=None, units=None):
+    def __init__(self, nu, val=None, unc=None, units=None):
 
         self.nu = nu
-        self.flux = flux
+        self.val = val
         self.unc = unc
         self.units = units
 
@@ -49,6 +49,9 @@ class Image(FreezableClass):
 
     @property
     def nu(self):
+        """
+        The frequencies for which the image is defined (in Hz).
+        """
         return self._nu
 
     @nu.setter
@@ -63,28 +66,34 @@ class Image(FreezableClass):
             raise TypeError("nu should be a 1-d sequence")
 
     @property
-    def flux(self):
-        return self._flux
+    def val(self):
+        """
+        The image values (fluxes, flux densities, surface brightness, or polarization) in the units given by the ``.unit`` property.
+        """
+        return self._val
 
-    @flux.setter
-    def flux(self, value):
+    @val.setter
+    def val(self, value):
         if type(value) in [list, tuple]:
             value = np.array(value)
         if value is None:
-            self._flux = value
+            self._val = value
         elif isinstance(value, np.ndarray) and value.ndim >= 1:
             if self.nu is not None and len(self.nu) != value.shape[-1]:
-                raise ValueError("the last dimension of the flux array should match the length of the nu array (expected {0} but found {1})".format(len(self.nu), value.shape[-1]))
+                raise ValueError("the last dimension of the value array should match the length of the nu array (expected {0} but found {1})".format(len(self.nu), value.shape[-1]))
             else:
                 if hasattr(self, 'unc') and self.unc is not None:
                     if value.shape != self.unc.shape:
                         raise ValueError("dimensions should match that of unc")
-                self._flux = value
+                self._val = value
         else:
-            raise TypeError("flux should be a multi-dimensional array")
+            raise TypeError("val should be a multi-dimensional array")
 
     @property
     def unc(self):
+        """
+        The uncertainties on the image values in the units given by the ``.unit`` property.
+        """
         return self._unc
 
     @unc.setter
@@ -97,14 +106,18 @@ class Image(FreezableClass):
             if self.nu is not None and len(self.nu) != value.shape[-1]:
                 raise ValueError("the last dimension of the unc array should match the length of the nu array (expected {0} but found {1})".format(len(self.nu), value.shape[-1]))
             else:
-                if hasattr(self, 'flux') and  self.flux is not None:
-                    if value.shape != self.flux.shape:
-                        raise ValueError("dimensions should match that of flux")
+                if hasattr(self, 'val') and  self.val is not None:
+                    if value.shape != self.val.shape:
+                        raise ValueError("dimensions should match that of val")
                 self._unc = value
         else:
             raise TypeError("unc should be a multi-dimensional array")
+
     @property
     def unit(self):
+        """
+        The units of the image values.
+        """
         return self._unit
 
     @unit.setter
@@ -116,18 +129,21 @@ class Image(FreezableClass):
 
     @property
     def wav(self):
+        """
+        The wavelengths for which the image is defined (in microns).
+        """
         return c / self.nu * 1e4
 
     def __iter__(self):
         if self.unc is None:
-            return (x for x in [self.wav, self.flux])
+            return (x for x in [self.wav, self.val])
         else:
-            return (x for x in [self.wav, self.flux, self.unc])
+            return (x for x in [self.wav, self.val, self.unc])
 
     @property
     def x_min(self):
         """
-        Lower extent of the image in the x direction in cm.
+        Lower extent of the image in the x direction (in cm).
         """
         return self._x_min
 
@@ -141,7 +157,7 @@ class Image(FreezableClass):
     @property
     def x_max(self):
         """
-        Upper extent of the image in the x direction in cm.
+        Upper extent of the image in the x direction (in cm).
         """
         return self._x_max
 
@@ -155,7 +171,7 @@ class Image(FreezableClass):
     @property
     def y_min(self):
         """
-        Lower extent of the image in the y direction in cm.
+        Lower extent of the image in the y direction (in cm).
         """
         return self._y_min
 
@@ -169,7 +185,7 @@ class Image(FreezableClass):
     @property
     def y_max(self):
         """
-        Upper extent of the image in the y direction in cm.
+        Upper extent of the image in the y direction (in cm).
         """
         return self._y_max
 
@@ -183,7 +199,7 @@ class Image(FreezableClass):
     @property
     def lon_min(self):
         """
-        Lower extent of the image in the x direction in degrees.
+        Lower extent of the image in the x direction (in degrees).
         """
         return self._lon_min
 
@@ -197,7 +213,7 @@ class Image(FreezableClass):
     @property
     def lon_max(self):
         """
-        Upper extent of the image in the x direction in degrees.
+        Upper extent of the image in the x direction (in degrees).
         """
         return self._lon_max
 
@@ -211,7 +227,7 @@ class Image(FreezableClass):
     @property
     def lat_min(self):
         """
-        Lower extent of the image in the y direction in degrees.
+        Lower extent of the image in the y direction (in degrees).
         """
         return self._lat_min
 
@@ -225,7 +241,7 @@ class Image(FreezableClass):
     @property
     def lat_max(self):
         """
-        Upper extent of the image in the y direction in degrees.
+        Upper extent of the image in the y direction (in degrees).
         """
         return self._lat_max
 
@@ -239,7 +255,7 @@ class Image(FreezableClass):
     @property
     def distance(self):
         """
-        Distance assumed for the image.
+        Distance assumed for the image (in cm).
         """
         return self._distance
 
@@ -253,7 +269,7 @@ class Image(FreezableClass):
     @property
     def pix_area_sr(self):
         """
-        Pixel area in steradians.
+        Pixel area (in steradians).
         """
         return self._pix_area_sr
 
