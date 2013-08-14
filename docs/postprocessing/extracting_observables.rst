@@ -40,6 +40,9 @@ array with the same dimensions and units as ``sed.val``::
 
     sed = m.get_sed(uncertainties=True)
 
+See :doc:`../tutorials/tutorial_seds` for an example of extracting SEDs from a
+model.
+
 Images
 ------
 
@@ -60,3 +63,7 @@ values; ``image.val``), and optionally uncertainties (``image.unc``). See
 As for SEDs, the attributes of the image will depend on the options specified.
 The main difference compared to SEDs is that there are two dimensions for the x
 and y position in the image instead of the aperture dimension.
+
+See :doc:`../tutorials/tutorial_images` for an example of extracting images
+from a model.
+
