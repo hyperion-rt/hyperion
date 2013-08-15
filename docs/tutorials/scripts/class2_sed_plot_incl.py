@@ -9,11 +9,11 @@ fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1)
 
 # Extract all SEDs
-wav, nufnu = m.get_sed(inclination='all', aperture=-1, distance=300 * pc)
+sed = m.get_sed(inclination='all', aperture=-1, distance=300 * pc)
 
 # Plot SED for each inclination
-for i in range(nufnu.shape[0]):
-    ax.loglog(wav, nufnu[i, :], color='black')
+for i in range(sed.val.shape[0]):
+    ax.loglog(sed.wav, sed.val[i, :], color='black')
 
 ax.set_xlabel(r'$\lambda$ [$\mu$m]')
 ax.set_ylabel(r'$\lambda F_\lambda$ [ergs/s/cm$^2$]')

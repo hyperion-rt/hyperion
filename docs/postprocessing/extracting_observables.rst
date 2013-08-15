@@ -11,38 +11,59 @@ SEDs
 
 To extract SEDs, use the :meth:`~hyperion.model.ModelOutput.get_sed` method::
 
-    wav, nufnu = m.get_sed()
+    sed = m.get_sed()
 
-A number of arguments can be passed to ``get_sed()``, for example to select
-specific Stokes parameters, inclinations, apertures, to scale the SED to a
-specific distance, to convert it to certain units, to extract the SED
-originating from different components, etc. For full details about the
-available arguments, see the :meth:`~hyperion.model.ModelOutput.get_sed` documentation.
+A number of arguments can be passed to
+:meth:`~hyperion.model.ModelOutput.get_sed`, for example to select specific
+Stokes parameters, inclinations, apertures, to scale the SED to a specific
+distance, to convert it to certain units, to extract the SED originating from
+different components, etc. For full details about the available arguments, see
+the :meth:`~hyperion.model.ModelOutput.get_sed` documentation. The method
+returns a single :class:`~hyperion.model.SED` object that contains e.g. the
+wavelengths (``sed.wav``), frequencies (``sed.nu``), values (i.e. fluxes, flux
+densities, or polarization values; ``sed.val``), and optionally uncertainties
+(``sed.unc``). See :class:`~hyperion.model.SED` for the full list of the
+available attributes.
 
-What the method returns will depend on the options specified. By default, the
-I stokes parameter is returned for all inclinations and apertures. Thus,
-``nufnu`` is a data cube with three dimensions (inclinations, apertures, and
-wavelengths respectively). If an aperture or an inclination is specified, that
-dimension is removed from the array. Thus, specifying both inclination and
-aperture makes ``nufnu`` a one-dimensional array.
+By default, the I stokes parameter is returned for all inclinations and
+apertures, and ``sed.val`` is a data cube with three dimensions (inclinations,
+apertures, and wavelengths respectively). If an aperture or an inclination is
+specified, that dimension is removed from the array. Thus, specifying both
+inclination and aperture makes ``sed.val`` a one-dimensional array.
 
-The default units are microns for ``wav`` and ergs/s for nufnu. If distance is
-specified, ``nufnu`` is in ergs/cm^2/s.
+The default units are microns for ``sed.wav`` and ergs/s for ``sed.val``. If a
+distance is specified when extracting the SED, ``sed.val`` is in ergs/cm^2/s
+by default.
 
-If uncertainties are requested, then :meth:`~hyperion.model.ModelOutput.get_sed` returns three values instead
-of two, the third being an uncertainty array with the same dimensions and
-units as ``nufnu``::
+If uncertainties are requested, then ``sed.unc`` is set, which is uncertainty
+array with the same dimensions and units as ``sed.val``::
 
-    wav, nufnu, dnufnu = m.get_sed(uncertainties=True)
+    sed = m.get_sed(uncertainties=True)
+
+See :doc:`../tutorials/tutorial_seds` for an example of extracting SEDs from a
+model.
 
 Images
 ------
 
-To extract images, use the :meth:`~hyperion.model.ModelOutput.get_image` method::
+To extract images, use the :meth:`~hyperion.model.ModelOutput.get_image`
+method::
 
-    wav, nufnu = m.get_image()
+    image = m.get_image()
 
-As for SEDs, a number of arguments can be passed to :meth:`~hyperion.model.ModelOutput.get_image`. For full
-details about the available arguments, see the :meth:`~hyperion.model.ModelOutput.get_image` documentation.
+Similarly to SEDs, a number of arguments can be passed to
+:meth:`~hyperion.model.ModelOutput.get_image`. For full details about the
+available arguments, see the :meth:`~hyperion.model.ModelOutput.get_image`
+documentation. This method returns a single :class:`~hyperion.model.Image`
+object that contains e.g. the wavelengths (``image.wav``), frequencies
+(``image.nu``), values (i.e. fluxes, flux densities, or polarization
+values; ``image.val``), and optionally uncertainties (``image.unc``). See
+:class:`~hyperion.model.Image` for the full list of the available attributes.
 
-As for SEDs, the output of the function depends on the options specified. The main difference compared to SEDs is that there are two dimensions for the x and y position in the image instead of the aperture dimension.
+As for SEDs, the attributes of the image will depend on the options specified.
+The main difference compared to SEDs is that there are two dimensions for the x
+and y position in the image instead of the aperture dimension.
+
+See :doc:`../tutorials/tutorial_images` for an example of extracting images
+from a model.
+

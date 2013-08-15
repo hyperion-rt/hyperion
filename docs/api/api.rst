@@ -10,7 +10,7 @@ Utilities
    hyperion.util.constants
 
 Models
-------------------
+------
 
 .. toctree::
    :maxdepth: 1
@@ -57,3 +57,12 @@ Grid
    hyperion.grid.SphericalPolarGrid.rst
    hyperion.grid.AMRGrid.rst
    hyperion.grid.OctreeGrid.rst
+
+Outputs
+-------
+
+.. toctree::
+   :maxdepth: 1
+
+   hyperion.model.SED
+   hyperion.model.Image

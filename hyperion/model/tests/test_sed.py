@@ -295,7 +295,7 @@ class TestSED(object):
 
         assert sed.nu.shape == (5,)
         assert sed.wav.shape == (5,)
-        assert sed.flux.shape == (2, 4, 5)
+        assert sed.val.shape == (2, 4, 5)
 
     def test_sed_attributes_distance(self):
 
@@ -312,7 +312,7 @@ class TestSED(object):
 
         assert sed.nu.shape == (5,)
         assert sed.wav.shape == (5,)
-        assert sed.flux.shape == (2, 4, 5)
+        assert sed.val.shape == (2, 4, 5)
 
     def test_unit_conversion(self):
 
@@ -322,19 +322,19 @@ class TestSED(object):
         ref = self.m.get_sed(group=0, units='ergs/cm^2/s', distance=100., inclination=1)
 
         # Make sure the flux is non-zero
-        assert np.sum(ref.flux) > 0
+        assert np.sum(ref.val) > 0
 
         # Check conversion to monochromatic flux
         mono = self.m.get_sed(group=0, units='ergs/cm^2/s/Hz', distance=100., inclination=1)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), mono.flux, 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), mono.val, 10)
 
         # Check conversion to Jy
         Jy = self.m.get_sed(group=0, units='Jy', distance=100., inclination=1)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), Jy.flux * 1.e-23, 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), Jy.val * 1.e-23, 10)
 
         # Check conversion to mJy
         mJy = self.m.get_sed(group=0, units='mJy', distance=100., inclination=1)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), mJy.flux * 1.e-26, 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), mJy.val * 1.e-26, 10)
 
 
 class TestInsideSED(object):
@@ -397,7 +397,7 @@ class TestInsideSED(object):
 
         assert sed.nu.shape == (3,)
         assert sed.wav.shape == (3,)
-        assert sed.flux.shape == (3, 4, 3)
+        assert sed.val.shape == (3, 4, 3)
 
     def test_sed_distance(self):
 
@@ -413,16 +413,16 @@ class TestInsideSED(object):
         ref = self.m.get_sed(group=0, units='ergs/cm^2/s', inclination=0)
 
         # Make sure the flux is non-zero
-        assert np.sum(ref.flux) > 0
+        assert np.sum(ref.val) > 0
 
         # Check conversion to monochromatic flux
         mono = self.m.get_sed(group=0, units='ergs/cm^2/s/Hz', inclination=0)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), mono.flux, 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), mono.val, 10)
 
         # Check conversion to Jy
         Jy = self.m.get_sed(group=0, units='Jy', inclination=0)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), Jy.flux * 1.e-23, 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), Jy.val * 1.e-23, 10)
 
         # Check conversion to mJy
         mJy = self.m.get_sed(group=0, units='mJy', inclination=0)
-        assert_array_almost_equal_nulp((ref.flux / ref.nu), mJy.flux * 1.e-26, 10)
+        assert_array_almost_equal_nulp((ref.val / ref.nu), mJy.val * 1.e-26, 10)
