@@ -26,13 +26,13 @@ class custom_sdist(sdist):
     def run(self):
         if not self.unstable:
             version_file = 'hyperion/version.py'
-            content = open(version_file, 'rb').read()
-            open(version_file, 'wb').write(content.replace('__dev__ = True', "__dev__ = False"))
+            content = open(version_file, 'r').read()
+            open(version_file, 'w').write(content.replace('__dev__ = True', "__dev__ = False"))
         try:
             sdist.run(self)
         finally:
             if not self.unstable:
-                open(version_file, 'wb').write(content)
+                open(version_file, 'w').write(content)
 
 numpy_includes = get_numpy_include()
 
