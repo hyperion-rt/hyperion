@@ -460,11 +460,11 @@ contains
 
     if(p%on_wall_id%w3 /= -1) then
        t1 = ( geo%w3(p%icell%i3) - p%r%z ) / p%v%z
-       call insert_t(t1,3, -1, geo%ew1(p%icell%i3))
+       call insert_t(t1,3, -1, geo%ew3(p%icell%i3))
     end if
     if(p%on_wall_id%w3 /= +1) then
        t2 = ( geo%w3(p%icell%i3+1) - p%r%z ) / p%v%z
-       call insert_t(t2,3, +1, geo%ew1(p%icell%i3 + 1))
+       call insert_t(t2,3, +1, geo%ew3(p%icell%i3 + 1))
     end if
 
     call find_next_wall(tnearest,id_min)
