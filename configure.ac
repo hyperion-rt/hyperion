@@ -77,19 +77,17 @@ else
 fi
 
 # Find out what compiler is buried under the HDF5 wrapper
+# and remove any leading path from the compiler
 if test "$hdf_compiler" == "h5fc"
 then
-  hdf_compiler=`h5fc -show | awk {'print $1'}`
+  hdf_compiler=`basename $(h5fc -show | awk {'print $1'})`
 else
-  hdf_compiler=`h5pfc -show | awk {'print $1'}`
+  hdf_compiler=`basename $(h5pfc -show | awk {'print $1'})`
   if test "$hdf_compiler" == "mpif90"
   then
-    hdf_compiler=`mpif90 -show | awk {'print $1'}`
+    hdf_compiler=`basename $(mpif90 -show | awk {'print $1'})`
   fi
 fi
-
-# Remove any leading path from the compiler
-hdf_compiler=`basename $hdf_compiler`
 
 # gfortran sometimes includes version number, so check whether this is the case
 hdf_compiler_short=`echo $hdf_compiler | cut -c1-8`
@@ -139,24 +137,23 @@ fi
 # First find out if we can use h5pfc
 AC_CHECK_PROGS(parallel_compiler, [h5pfc mpif90])
 
+# Find out what compiler is buried under the MPI wrapper
+# and remove any leading path from the compiler
 if test "$parallel_compiler" == h5pfc
 then
-  mpi_compiler=`h5pfc -show | awk {'print $1'}`
+  mpi_compiler=`basename $(h5pfc -show | awk {'print $1'})`
   if test "$mpi_compiler" == mpif90
   then
-    mpi_compiler=`mpif90 -show | awk {'print $1'}`
+    mpi_compiler=`basename $(mpif90 -show | awk {'print $1'})`
   fi
   AC_SUBST(mpi_fc, 'h5pfc')
 elif test "$parallel_compiler" == mpif90
 then
-  mpi_compiler=`mpif90 -show | awk {'print $1'}`
+  mpi_compiler=`basename $(mpif90 -show | awk {'print $1'})`
   AC_SUBST(mpi_fc, 'HDF5_FLINKER=mpif90 HDF5_FC=mpif90 h5fc')
 else
   AC_ERROR(["h5pfc or mpif90 need to be present"])
 fi
-
-# Remove any leading path from the compiler
-mpi_compiler=`basename $mpi_compiler`
 
 # gfortran sometimes includes version number, so check whether this is the case
 mpi_compiler_short=`echo $mpi_compiler | cut -c1-8`
