@@ -51,7 +51,7 @@ Automated Installation
 
 The easiest way to install these dependencies correctly is to use the
 installation script provided with Hyperion. First, make sure you have
-downloaded the latest tar file from `here <https://github.com/hyperion-rt/hyperion/downloads>`_, then expand it with::
+downloaded the latest tar file from `here <https://pypi.python.org/pypi/Hyperion/>`_, then expand it with::
 
     tar xvzf hyperion-x.x.x.tar.gz
     cd hyperion-x.x.x

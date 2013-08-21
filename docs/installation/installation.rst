@@ -28,7 +28,7 @@ dependencies installed.
 Hyperion
 ========
 
-Download the latest tar file from `here <https://github.com/hyperion-rt/hyperion/downloads>`_, then expand it with::
+Download the latest tar file from `here <https://pypi.python.org/pypi/Hyperion/>`_, then expand it with::
 
     tar xvzf hyperion-x.x.x.tar.gz
     cd hyperion-x.x.x
