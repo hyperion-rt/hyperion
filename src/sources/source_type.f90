@@ -8,6 +8,7 @@ module type_source
   use grid_physics
   use type_dust
   use dust_main, only : d
+  use lorentz, only : lorentz_boost
 
   implicit none
   save
@@ -55,6 +56,7 @@ module type_source
 
      ! Source position, used for point, spherical, and spot sources
      type(vector3d_dp) :: position
+     type(vector3d_dp) :: velocity
 
      ! Collection of positions (used for PointSourceCollection)
      type(pdf_discrete_dp) :: collection_pdf
@@ -113,6 +115,10 @@ contains
     real(dp),allocatable :: luminosity_collection(:), position_collection(:,:)
 
     call mp_read_keyword(group, '.', 'type', type)
+
+    call mp_read_keyword(group, '.', 'vx', s%velocity%x)
+    call mp_read_keyword(group, '.', 'vy', s%velocity%y)
+    call mp_read_keyword(group, '.', 'vz', s%velocity%z)
 
     select case(trim(type))
     case('point')
@@ -442,6 +448,10 @@ contains
 
        ! The frequency is fixed, but the Stokes intensity needs to be modified to reflect the probability of emission
 
+       ! TODO - requires different treatment for Lorentz transform. Can just
+       ! set nu below to correct one, but use the modified frame of reference
+       ! for interpolation.
+
        p%nu = nu
 
        if(src%type==3.and.ispot .le. src%n_spots) then
@@ -499,6 +509,11 @@ contains
           p%emiss_var_frac = jnu_var_frac(p%icell%ic, p%dust_id)
           call dust_sample_j_nu(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu)
        end select
+
+       ! Lorentz shift
+       call angle3d_to_vector3d(p%a,p%v)
+       call lorentz_boost(p%nu, p%v, src%velocity)
+       call vector3d_to_angle3d(p%v,p%a)
 
     end if
 

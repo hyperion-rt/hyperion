@@ -102,6 +102,28 @@ class Source(FreezableClass):
         handle.attrs['luminosity'] = self.luminosity
 
     @property
+    def velocity(self):
+        '''
+        The cartesian velocity of the source ``(vx, vy, vz)`` as a sequence of three floating-point values (cm/s)
+        '''
+        return self._velocity
+
+    @velocity.setter
+    def velocity(self, value):
+        if value is not None:
+            if type(value) in [tuple, list]:
+                if len(value) != 3:
+                    raise ValueError("velocity should be a sequence of 3 values")
+            elif is_numpy_array(value):
+                if value.ndim != 1:
+                    raise ValueError("velocity should be a 1-D sequence")
+                if len(value) != 3:
+                    raise ValueError("velocity should be a sequence of 3 values")
+            else:
+                raise ValueError("velocity should be a tuple, list, or Numpy array")
+        self._velocity = value
+
+    @property
     def temperature(self):
         '''
         The temperature of the source (K)
@@ -258,6 +280,8 @@ class Source(FreezableClass):
         else:
             raise ValueError('Unexpected value for `spectrum`: %s' % handle.attrs['spectrum'])
 
+        self.velocity = (handle.attrs['vx'], handle.attrs['vy'], handle.attrs['vz'])
+
         return self
 
     def write(self, handle):
@@ -281,6 +305,10 @@ class Source(FreezableClass):
             handle.attrs['temperature'] = self.temperature
         else:
             handle.attrs['spectrum'] = np.string_('lte'.encode('utf-8'))
+
+        g.attrs['vx'] = self.velocity[0]
+        g.attrs['vy'] = self.velocity[1]
+        g.attrs['vz'] = self.velocity[2]
 
     def has_lte_spectrum(self):
         return self.spectrum is None and self.temperature is None
