@@ -1,3 +1,4 @@
-from .source import (Source, PointSource, SphericalSource, SpotSource,
-                     ExternalSphericalSource, ExternalBoxSource, MapSource,
-                     PlaneParallelSource, read_source)
+from .source import (Source, PointSource, PointSourceCollection,
+                     SphericalSource, SpotSource, ExternalSphericalSource,
+                     ExternalBoxSource, MapSource, PlaneParallelSource,
+                     read_source)

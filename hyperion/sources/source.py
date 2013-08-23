@@ -18,6 +18,8 @@ def read_source(handle):
         return SpotSource.read(handle)
     elif source_type == 'point':
         return PointSource.read(handle)
+    elif source_type == 'point_collection':
+        return PointSourceCollection.read(handle)
     elif source_type == 'sphere':
         return SphericalSource.read(handle)
     elif source_type == 'extern_sph':
@@ -418,6 +420,68 @@ class PointSource(Source):
         g.attrs['z'] = self.position[2]
         Source.write(self, g)
 
+class PointSourceCollection(Source):
+    '''
+    A point source.
+
+    Parameters
+    ----------
+    name : str, optional
+        The name of the source
+    peeloff : bool, optional
+        Whether to peel-off photons from this source
+
+    Notes
+    -----
+    Any additional arguments are are used to initialize attributes.
+    '''
+
+    def __init__(self, name=None, peeloff=True, **kwargs):
+
+        self.position = None
+
+        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
+
+    @property
+    def position(self):
+        '''
+        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
+        '''
+        return self._position
+
+    @position.setter
+    def position(self, value):
+        if value is not None:
+            if is_numpy_array(value):
+                if value.ndim != 2:
+                    raise ValueError("position should be a 2-D array")
+                if value.shape[1] != 3:
+                    raise ValueError("position should be a N x 3 array")
+            else:
+                raise ValueError("position should be a Numpy array")
+        self._position = value
+
+    def _check_all_set(self):
+        Source._check_all_set(self)
+        if self.position is None:
+            raise ValueError("position is not set")
+        if self.has_lte_spectrum():
+            raise ValueError("Point source cannot have LTE spectrum")
+
+    @classmethod
+    def read(cls, handle):
+        if not handle.attrs['type'] == b'point_collection':
+            raise ValueError("Source is not a PointSource")
+        self = super(PointSource, cls).read(handle)
+        self.position = handle['position']
+        return self
+
+    def write(self, handle, name):
+        self._check_all_set()
+        g = handle.create_group(name)
+        g.attrs['type'] = np.string_('point_collection'.encode('utf-8'))
+        g.create_dataset('position', data=self.position, compression=True)
+        Source.write(self, g)
 
 class SphericalSource(Source):
     '''
