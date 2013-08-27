@@ -58,6 +58,7 @@ class Source(FreezableClass):
             self.name = random_id(length=8)
 
         self.peeloff = peeloff
+        self.velocity = None
 
         # Initialize attributes
         self.luminosity = None
@@ -306,9 +307,9 @@ class Source(FreezableClass):
         else:
             handle.attrs['spectrum'] = np.string_('lte'.encode('utf-8'))
 
-        g.attrs['vx'] = self.velocity[0]
-        g.attrs['vy'] = self.velocity[1]
-        g.attrs['vz'] = self.velocity[2]
+        handle.attrs['vx'] = self.velocity[0]
+        handle.attrs['vy'] = self.velocity[1]
+        handle.attrs['vz'] = self.velocity[2]
 
     def has_lte_spectrum(self):
         return self.spectrum is None and self.temperature is None

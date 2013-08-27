@@ -18,6 +18,7 @@ module type_photon
      type(angle3d_dp)  :: a       ! Direction (angle)
      type(stokes_dp)   :: s       ! Stokes parameters
      real(dp)          :: nu      ! Frequency
+     real(dp)          :: nu0      ! Frequency in frame of reference of emitter/scatterer
      real(dp)          :: energy  ! Energy
      logical(1) :: in_cell = .false. ! Whether the photon is in a cell
      logical(1) :: on_wall = .false. ! Whether the photon is on a wall

@@ -742,7 +742,7 @@ class Model(FreezableClass, RunConf):
     def add_source(self, source):
         self.sources.append(source)
 
-    def add_density_grid(self, density, dust, specific_energy=None, merge_if_possible=False):
+    def add_density_grid(self, density, dust, specific_energy=None, velocity=None, merge_if_possible=False):
         '''
         Add a density grid to the model
 
@@ -765,6 +765,9 @@ class Model(FreezableClass, RunConf):
             this to be useful, the number of initial iterations should be set
             to zero, otherwise these values will be overwritten after the
             first initial iteration.
+        velocity : tuple of three np.ndarray or grid quantity instances, optional
+            The velocity of the material, as a tuple of (vx, vy, vz) giving the
+            3-dimensional velocity of the material.
         merge_if_possible : bool
             Whether to merge density arrays that have the same dust type
         '''
@@ -787,14 +790,20 @@ class Model(FreezableClass, RunConf):
         if 'density' in self.grid:
             if specific_energy is not None and 'specific_energy' not in self.grid:
                 raise Exception("Cannot add specific energy as it was not added for previous density arrays")
+            if velocity is not None and 'velocity_x' not in self.grid:
+                raise Exception("Cannot add velocity as it was not added for previous density arrays")
         else:
             self.dust = []
             self.grid['density'] = []
             if specific_energy is not None:
                 self.grid['specific_energy'] = []
+            if velocity is not None:
+                self.grid['velocity_x'] = []
+                self.grid['velocity_y'] = []
+                self.grid['velocity_z'] = []
 
         # Check whether the density can be added to an existing one
-        if merge_if_possible:
+        if merge_if_possible and velocity is None:
 
             # Only consider this if the specific energy is not specified
             if specific_energy is None:
@@ -833,6 +842,12 @@ class Model(FreezableClass, RunConf):
         # Set specific energy if specified
         if specific_energy is not None:
             self.grid['specific_energy'].append(specific_energy)
+
+        # Set velocity if specified
+        if velocity is not None:
+            self.grid['velocity_x'].append(velocity[0])
+            self.grid['velocity_y'].append(velocity[1])
+            self.grid['velocity_z'].append(velocity[2])
 
     def set_cartesian_grid(self, x_wall, y_wall, z_wall):
         self.set_grid(CartesianGrid(x_wall, y_wall, z_wall))

@@ -8,6 +8,7 @@ module dust_interact
   use dust_main
   use grid_physics
 
+  use lorentz, only : doppler_shift
 
   implicit none
   save
@@ -41,10 +42,13 @@ contains
     p%v_prev = p%v
     p%s_prev = p%s
 
+    ! Transform frequency to frame of reference of dust
+    if(allocated(velocity)) p%nu0 = doppler_shift(p%nu, p%a, -velocity(p%icell%ic,id))
+
     ! Decide whether to absorb or scatter
     call random(xi)
     if(xi > albedo) then
-       call dust_emit(d(id),jnu_var_id(p%icell%ic,id),jnu_var_frac(p%icell%ic,id),p%nu,p%a,p%s,energy_scaling)
+       call dust_emit(d(id),jnu_var_id(p%icell%ic,id),jnu_var_frac(p%icell%ic,id),p%nu0,p%a,p%s,energy_scaling)
        p%energy = p%energy * energy_scaling
        call update_optconsts(p)
        p%scattered=.false.
@@ -53,13 +57,16 @@ contains
        p%dust_id = id
        p%last = 'de'
     else
-       call dust_scatter(d(id),p%nu,p%a,p%s)
+       call dust_scatter(d(id),p%nu0,p%a,p%s)
        p%scattered=.true.
        p%last_isotropic = .false.
        p%dust_id = id
        p%last = 'ds'
        p%n_scat = p%n_scat + 1
     end if
+
+    ! Lorentz shift into absolute frame of reference
+    if(allocated(velocity)) p%nu = doppler_shift(p%nu0, p%a, velocity(p%icell%ic,id))
 
     call angle3d_to_vector3d(p%a,p%v)
 
@@ -78,6 +85,10 @@ contains
        call error("interact_peeloff","unexpected p%last flag: "//p%last)
     end select
     call angle3d_to_vector3d(p%a,p%v)
+
+    ! Lorentz shift here too
+    if(allocated(velocity)) p%nu = doppler_shift(p%nu0, p%a, velocity(p%icell%ic,p%dust_id))
+
   end subroutine interact_peeloff
 
 end module dust_interact

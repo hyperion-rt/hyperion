@@ -8,7 +8,7 @@ module type_source
   use grid_physics
   use type_dust
   use dust_main, only : d
-  use lorentz, only : lorentz_boost
+  use lorentz, only : doppler_shift
 
   implicit none
   save
@@ -53,6 +53,9 @@ module type_source
 
      ! Whether the source should be peeled off
      logical :: peeloff
+
+     ! Whether the source is moving
+     logical :: moving = .false.
 
      ! Source position, used for point, spherical, and spot sources
      type(vector3d_dp) :: position
@@ -116,9 +119,15 @@ contains
 
     call mp_read_keyword(group, '.', 'type', type)
 
-    call mp_read_keyword(group, '.', 'vx', s%velocity%x)
-    call mp_read_keyword(group, '.', 'vy', s%velocity%y)
-    call mp_read_keyword(group, '.', 'vz', s%velocity%z)
+    if(mp_exists_keyword(group, '.', 'vx')) then
+       call mp_read_keyword(group, '.', 'vx', s%velocity%x)
+       call mp_read_keyword(group, '.', 'vy', s%velocity%y)
+       call mp_read_keyword(group, '.', 'vz', s%velocity%z)
+       if(s%velocity%x /= 0._dp .or. s%velocity%y /= 0._dp .or. s%velocity%z /= 0._dp) s%moving = .true.
+    else
+       s%moving = .false.
+    end if
+
 
     select case(trim(type))
     case('point')
@@ -511,9 +520,12 @@ contains
        end select
 
        ! Lorentz shift
-       call angle3d_to_vector3d(p%a,p%v)
-       call lorentz_boost(p%nu, p%v, src%velocity)
-       call vector3d_to_angle3d(p%v,p%a)
+       if(src%moving) then
+          p%nu0 = p%nu
+          p%nu = doppler_shift(p%nu0, p%a, src%velocity)
+          !            print *,p%nu0, p%nu
+          p%last_isotropic = .false.
+       end if
 
     end if
 
@@ -533,12 +545,21 @@ contains
        case(6)
           call emit_from_extern_box_peeloff(src,p,a_req)
        case default
-          stop "Should not be here, all other source types are isotropic"
+          ! if emission was isotropic but from a moving source, we end up here
+          ! because last_isotropic gets set to .false. for all moving sources
+          p%s = stokes_dp(1._dp, 0._dp, 0._dp, 0._dp)
+          p%a = a_req
        end select
     else
        p%s = stokes_dp(0._dp, 0._dp, 0._dp, 0._dp)
        p%a = a_req
     end if
+
+    ! Lorentz shift
+    if(src%moving) p%nu = doppler_shift(p%nu0, p%a, src%velocity)
+
+    !     print *,p%nu0, p%nu
+
   end subroutine source_emit_peeloff
 
   !**********************************************************************!

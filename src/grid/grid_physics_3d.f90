@@ -41,6 +41,8 @@ module grid_physics
   real(dp),allocatable, public :: energy_abs_tot(:)
   real(dp),allocatable, public :: minimum_specific_energy(:)
 
+  type(vector3d_dp), allocatable, public :: velocity(:,:)
+
   real(dp), allocatable,target, public :: alpha_inv_planck(:)
 
   integer, allocatable, public :: jnu_var_id(:,:)
@@ -95,6 +97,7 @@ contains
 
     integer(hid_t),intent(in) :: group
     logical,intent(in) :: use_mrw, use_pda
+    real(dp),allocatable :: vx(:,:),vy(:,:),vz(:,:)
 
     ! Density
     allocate(density(geo%n_cells, n_dust))
@@ -151,7 +154,7 @@ contains
              if(main_process()) write(*, '(" [grid_physics] applying mask to specific_energy grid")')
              do id=1,n_dust
                 where(.not.geo%mask)
-                   specific_energy(:, id) = 0.
+                   specific_energy(:, id) = 0._dp
                 end where
              end do
           end if
@@ -179,6 +182,46 @@ contains
           do id=1,n_dust
              specific_energy(:,id) = minimum_specific_energy(id)
           end do
+
+       end if
+
+       if(grid_exists(group, 'velocity_x')) then
+
+          allocate(vx(geo%n_cells, n_dust))
+          allocate(vy(geo%n_cells, n_dust))
+          allocate(vz(geo%n_cells, n_dust))
+
+          if(main_process()) write(*,'(" [grid_physics] reading velocity grid")')
+
+          ! Read in specific_energy
+          call read_grid_4d(group, 'velocity_x', vx, geo)
+          call read_grid_4d(group, 'velocity_y', vy, geo)
+          call read_grid_4d(group, 'velocity_z', vz, geo)
+
+          ! Check number of dust types for specific_energy
+          if(size(vx, 2).ne.n_dust) call error("setup_grid","vx array has wrong number of dust types")
+          if(size(vy, 2).ne.n_dust) call error("setup_grid","vy array has wrong number of dust types")
+          if(size(vz, 2).ne.n_dust) call error("setup_grid","vz array has wrong number of dust types")
+
+          ! Reset specific energy to zero in masked cells
+          if(geo%masked) then
+             if(main_process()) write(*, '(" [grid_physics] applying mask to velocity grid")')
+             do id=1,n_dust
+                where(.not.geo%mask)
+                   vx(:, id) = 0._dp
+                   vy(:, id) = 0._dp
+                   vz(:, id) = 0._dp
+                end where
+             end do
+          end if
+
+          allocate(velocity(geo%n_cells, n_dust))
+
+          velocity%x = vx
+          velocity%y = vy
+          velocity%z = vz
+
+          deallocate(vx, vy, vz)
 
        end if
 
