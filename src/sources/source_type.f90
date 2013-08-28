@@ -55,7 +55,8 @@ module type_source
      type(vector3d_dp) :: position
 
      ! Collection of positions (used for PointSourceCollection)
-     real(dp),allocatable :: position_collection(:,:)
+     type(pdf_discrete_dp) :: collection_pdf
+     type(vector3d_dp),allocatable :: position_collection(:)
 
      ! Spot position and size
      integer :: n_spots = 0
@@ -108,6 +109,7 @@ contains
     real(dp) :: dx, dy, dz
     real(dp) :: theta, phi
     real(dp),allocatable :: tmp3d(:,:,:)
+    real(dp),allocatable :: luminosity_collection(:), position_collection(:,:)
 
     call mp_read_keyword(group, '.', 'type', type)
 
@@ -256,9 +258,16 @@ contains
 
        s%type = 8
 
-       call mp_read_keyword(group, '.', 'luminosity', s%luminosity)
        call mp_read_keyword(group, '.', 'peeloff', s%peeloff)
-       call mp_read_array_auto(group, 'position', s%position_collection)
+       call mp_read_array_auto(group, 'position', position_collection)
+       call mp_read_array_auto(group, 'luminosity', luminosity_collection)
+
+       s%position_collection%x = position_collection(1,:)
+       s%position_collection%y = position_collection(2,:)
+       s%position_collection%z = position_collection(3,:)
+
+       s%luminosity = sum(luminosity_collection)
+       call set_pdf(s%collection_pdf, luminosity_collection)
 
        call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
 
@@ -563,16 +572,11 @@ contains
     type(photon),intent(inout) :: p
     ! the emitted photon
 
-    real(dp) :: xi, pos(3)
     integer :: i_source
 
     ! Set position to that of one of the point sources
-    call random(xi)
-    i_source = int(xi * real(size(src%position_collection, 2), dp))
-    pos = src%position_collection(:,i_source)
-    p%r%x = pos(1)
-    p%r%y = pos(2)
-    p%r%z = pos(3)
+    i_source = sample_pdf(src%collection_pdf)
+    p%r = src%position_collection(i_source)
 
     ! Sample isotropic angle
     call random_sphere_angle3d(p%a)
