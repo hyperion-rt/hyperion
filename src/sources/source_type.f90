@@ -64,6 +64,7 @@ module type_source
      ! Collection of positions (used for PointSourceCollection)
      type(pdf_discrete_dp) :: collection_pdf
      type(vector3d_dp),allocatable :: position_collection(:)
+     real(dp),allocatable :: velocity_collection(:,:)
 
      ! Spot position and size
      integer :: n_spots = 0
@@ -286,6 +287,13 @@ contains
 
        s%luminosity = sum(luminosity_collection)
        call set_pdf(s%collection_pdf, luminosity_collection)
+       
+       if(mp_path_exists(group, 'velocity')) then
+           call mp_read_array_auto(group, 'velocity', s%velocity_collection)
+           s%moving = .true.
+       else
+           s%moving = .false.
+       end if
 
        call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
 
@@ -523,7 +531,6 @@ contains
        if(src%moving) then
           p%nu0 = p%nu
           p%nu = doppler_shift(p%nu0, p%a, src%velocity)
-          !            print *,p%nu0, p%nu
           p%last_isotropic = .false.
        end if
 
@@ -557,8 +564,6 @@ contains
 
     ! Lorentz shift
     if(src%moving) p%nu = doppler_shift(p%nu0, p%a, src%velocity)
-
-    !     print *,p%nu0, p%nu
 
   end subroutine source_emit_peeloff
 

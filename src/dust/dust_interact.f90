@@ -10,6 +10,8 @@ module dust_interact
 
   use lorentz, only : doppler_shift
 
+  use type_vector3d
+
   implicit none
   save
 
@@ -43,7 +45,7 @@ contains
     p%s_prev = p%s
 
     ! Transform frequency to frame of reference of dust
-    if(allocated(velocity)) p%nu0 = doppler_shift(p%nu, p%a, -velocity(p%icell%ic,id))
+    if(allocated(velocity)) p%nu0 = doppler_shift(p%nu, p%a, vector3d_dp(0._dp, 0._dp, 0._dp)-velocity(p%icell%ic,id))
 
     ! Decide whether to absorb or scatter
     call random(xi)

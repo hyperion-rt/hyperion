@@ -9,6 +9,7 @@ module lorentz
 
   private
   public :: doppler_shift
+  public :: doppler_factor
 
 contains
 
@@ -52,6 +53,44 @@ contains
     nu = (1._dp - (beta .dot. d)) * nu0 / sqrt(1._dp - (beta .dot. beta))
 
   end function doppler_shift
+  
+
+  real(dp) function doppler_factor(a, v)
+
+    ! Relativistic doppler shift without beaming - that is, the frequency
+    ! changes but the direction of the photon remains the same. This is used
+    ! because if the full Lorentz transform was used, the direction of
+    ! propagation of the photons would change, which would make proper
+    ! raytracing and peeloff, etc. much more difficult.
+    !
+    ! Parameters
+    ! ----------
+    ! a : angle3d_dp
+    !     The direction vector of the photon in the original frame of reference
+    ! v : vector3d_dp
+    !     The velocity of the frame of reference relative to the original frame
+    !     of reference
+    !
+    ! Returns
+    ! -------
+    ! doppler_factor : real(dp)
+    !     The factor by which to multiply the frequency
+
+    type(angle3d_dp),intent(in) :: a
+    type(vector3d_dp),intent(in) :: v
+
+    type(vector3d_dp) :: d
+
+    real(dp), parameter :: c = 29979245800.
+
+    type(vector3d_dp) :: beta
+
+    call angle3d_to_vector3d(a, d)
+
+    beta = v / c
+    doppler_factor = (1._dp - (beta .dot. d)) / sqrt(1._dp - (beta .dot. beta))
+
+  end function doppler_factor
 
   subroutine lorentz_boost(nu, a, v)
 

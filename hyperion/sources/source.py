@@ -124,6 +124,14 @@ class Source(FreezableClass):
                 raise ValueError("velocity should be a tuple, list, or Numpy array")
         self._velocity = value
 
+    def _write_velocity(self, handle):
+        handle.attrs['vx'] = self.velocity[0]
+        handle.attrs['vy'] = self.velocity[1]
+        handle.attrs['vz'] = self.velocity[2]
+
+    def _read_velocity(self, handle):
+        self.velocity = (handle.attrs['vx'], handle.attrs['vy'], handle.attrs['vz'])
+
     @property
     def temperature(self):
         '''
@@ -281,7 +289,7 @@ class Source(FreezableClass):
         else:
             raise ValueError('Unexpected value for `spectrum`: %s' % handle.attrs['spectrum'])
 
-        self.velocity = (handle.attrs['vx'], handle.attrs['vy'], handle.attrs['vz'])
+        self._read_velocity(handle)
 
         return self
 
@@ -307,9 +315,8 @@ class Source(FreezableClass):
         else:
             handle.attrs['spectrum'] = np.string_('lte'.encode('utf-8'))
 
-        handle.attrs['vx'] = self.velocity[0]
-        handle.attrs['vy'] = self.velocity[1]
-        handle.attrs['vz'] = self.velocity[2]
+        if self.velocity is not None:
+            self._write_velocity(handle)
 
     def has_lte_spectrum(self):
         return self.spectrum is None and self.temperature is None
@@ -470,6 +477,7 @@ class PointSource(Source):
         g.attrs['z'] = self.position[2]
         Source.write(self, g)
 
+
 class PointSourceCollection(Source):
     '''
     A point source.
@@ -539,6 +547,31 @@ class PointSourceCollection(Source):
             else:
                 raise ValueError("position should be a Numpy array")
         self._position = value
+
+    @property
+    def velocity(self):
+        '''
+        The cartesian velocity of the source ``(vx, vy, vz)`` as a sequence of three floating-point values (cm/s)
+        '''
+        return self._velocity
+
+    @velocity.setter
+    def velocity(self, value):
+        if value is not None:
+            if is_numpy_array(value):
+                if value.ndim != 2:
+                    raise ValueError("velocity should be a 2-D array")
+                if value.shape[1] != 3:
+                    raise ValueError("velocity should be a N x 3 array")
+            else:
+                raise ValueError("velocity should be a Numpy array")
+        self._velocity = value
+
+    def _write_velocity(self, handle):
+        handle.create_dataset('velocity', data=self.velocity, compression=True)
+
+    def _read_velocity(self, handle):
+        self.velocity = handle['velocity']
 
     def _check_all_set(self):
         Source._check_all_set(self)
