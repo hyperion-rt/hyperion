@@ -262,6 +262,8 @@ contains
        call mp_read_array_auto(group, 'position', position_collection)
        call mp_read_array_auto(group, 'luminosity', luminosity_collection)
 
+       allocate(s%position_collection(size(position_collection, 2)))
+
        s%position_collection%x = position_collection(1,:)
        s%position_collection%y = position_collection(2,:)
        s%position_collection%z = position_collection(3,:)

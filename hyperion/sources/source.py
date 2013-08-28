@@ -84,6 +84,12 @@ class Source(FreezableClass):
             validate_scalar('luminosity', value, domain='positive')
         self._luminosity = value
 
+    def _read_luminosity(self, handle):
+        self.luminosity = handle.attrs['luminosity']
+
+    def _write_luminosity(self, handle):
+        handle.attrs['luminosity'] = self.luminosity
+
     @property
     def temperature(self):
         '''
@@ -226,7 +232,7 @@ class Source(FreezableClass):
 
         self = cls()
 
-        self.luminosity = handle.attrs['luminosity']
+        self._read_luminosity(handle)
 
         self.peeloff = str2bool(handle.attrs['peeloff'])
 
@@ -245,7 +251,7 @@ class Source(FreezableClass):
 
         self._check_all_set()
 
-        handle.attrs['luminosity'] = self.luminosity
+        self._write_luminosity(handle)
 
         handle.attrs['peeloff'] = np.string_(bool2str(self.peeloff))
 
@@ -443,6 +449,31 @@ class PointSourceCollection(Source):
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
     @property
+    def luminosity(self):
+        '''
+        The bolometric luminosity of the source (ergs/s)
+        '''
+        return self._luminosity
+
+    @luminosity.setter
+    def luminosity(self, value):
+        if value is not None:
+            if is_numpy_array(value):
+                if value.ndim != 1:
+                    raise ValueError("luminosity should be a 1-D array")
+                if self.position is not None and value.shape[0] != self.position.shape[0]:
+                    raise ValueError("luminosity should be a 1-D array with the same number of rows as position")
+            else:
+                raise ValueError("luminosity should be a Numpy array")
+        self._luminosity = value
+
+    def _read_luminosity(self, handle):
+        self.luminosity = handle['luminosity']
+
+    def _write_luminosity(self, handle):
+        handle.create_dataset('luminosity', data=self.luminosity, compression=True)
+
+    @property
     def position(self):
         '''
         The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
@@ -457,6 +488,8 @@ class PointSourceCollection(Source):
                     raise ValueError("position should be a 2-D array")
                 if value.shape[1] != 3:
                     raise ValueError("position should be a N x 3 array")
+                if self.luminosity is not None and value.shape[0] != self.luminosity.shape[0]:
+                    raise ValueError("position should be a 1-D array with the same number of rows as luminosity")
             else:
                 raise ValueError("position should be a Numpy array")
         self._position = value
@@ -553,7 +586,7 @@ class SphericalSource(Source):
     @limb.setter
     def limb(self, value):
         if value is not None:
-            if not type(value) == bool:
+            if not isinstance(value, bool):
                 raise ValueError("limb should be a boolean value (True/False)")
         self._limb = value
 
