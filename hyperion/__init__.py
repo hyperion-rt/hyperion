@@ -2,6 +2,22 @@ from __future__ import print_function, division
 
 from .version import __version__
 
+try:
+    _HYPERION_SETUP_
+except NameError:  # we are not currently running setup.py
+    try:
+        from .util import integrate
+    except ImportError:
+        import os
+        import sys
+        if os.path.exists('setup.py'):
+            print("\nYou appear to be importing Hyperion from the source code "
+                  "directory. Try changing to a different directory and try "
+                  "importing Hyperion again.\n")
+            sys.exit(0)
+        else:
+            raise
+
 # Set up the test function
 _test_runner = None
 

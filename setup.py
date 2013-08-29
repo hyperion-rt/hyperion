@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 
 import os
+import sys
+
+if sys.version_info[0] >= 3:
+    import builtins
+else:
+    import __builtin__ as builtins
+builtins._HYPERION_SETUP_ = True
 
 from distutils.core import setup, Extension
 from distutils.command.sdist import sdist
