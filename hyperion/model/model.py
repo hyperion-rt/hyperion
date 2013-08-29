@@ -11,7 +11,7 @@ import numpy as np
 from ..version import __version__
 from ..util.functions import delete_file
 from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid
-from ..sources import PointSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource, read_source
+from ..sources import PointSource, PointSourceCollection, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource, read_source
 from ..conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from ..util.constants import c
 from ..util.functions import FreezableClass, link_or_copy, is_numpy_array, bool2str, str2bool
@@ -682,6 +682,11 @@ class Model(FreezableClass, RunConf):
 
     def add_point_source(self, *args, **kwargs):
         source = PointSource(*args, **kwargs)
+        self.add_source(source)
+        return source
+
+    def add_point_source_collection(self, *args, **kwargs):
+        source = PointSourceCollection(*args, **kwargs)
         self.add_source(source)
         return source
 

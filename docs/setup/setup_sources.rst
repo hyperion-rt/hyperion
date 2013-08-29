@@ -102,6 +102,9 @@ demonstrate adding different point sources:
           always be specified in cartesian coordinates, and in the order
           ``(x, y, z)``.
 
+If you want to set up many point sources (for example for a galaxy model) you
+may instead want to consider using a `Point source collections`_.
+
 Spherical sources
 -----------------
 
@@ -200,3 +203,39 @@ circular beam with a given origin and direction)::
 
 where ``direction`` is a tuple of (theta, phi) that gives the direction of the
 beam.
+
+.. _point-source-collections:
+
+Point source collections
+------------------------
+
+In cases where you want to set up more than a few dozen point sources, it may
+be worth instead using a point source collection, which can contain an
+arbitrary number of point sources with different luminosities, and a common
+temperature or spectrum. To add a point source collection, use e.g.::
+
+    source = m.add_point_source_collection()
+
+The attributes are the same as for the `Point Sources`_ but the
+``source.luminosity`` attribute should be set to an array with as many elements
+as sources, and the ``source.position`` attribute should be set to a 2-d array
+where the first dimension matches ``source.luminosity``, and with 3 elements in
+the second dimension (x, y, and z). The following example shows how to set up
+1000 random point sources with random positions from -1au to 1au in all
+directions, and with random luminosities between 0 and lsun::
+
+    N = 1000
+    x = np.random.uniform(-1., 1, N) * au
+    y = np.random.uniform(-1., 1, N) * au
+    z = np.random.uniform(-1., 1, N) * au
+
+    source = m.add_point_source_collection()
+    source.luminosity = np.random.random(N) * lsun
+    source.position = np.vstack([x, y, z]).transpose()
+    source.temperature = 6000.
+
+In terms of photon sampling, a point source collection acts as a single source
+with a luminosity given by the sum of the components - so if you have one point
+source collection and one spherical source with the same total luminosity, the
+number of photons will be evenly split between the two. Within the point source
+collection, the number of photons is split according to luminosity.

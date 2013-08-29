@@ -18,6 +18,8 @@ def read_source(handle):
         return SpotSource.read(handle)
     elif source_type == 'point':
         return PointSource.read(handle)
+    elif source_type == 'point_collection':
+        return PointSourceCollection.read(handle)
     elif source_type == 'sphere':
         return SphericalSource.read(handle)
     elif source_type == 'extern_sph':
@@ -70,6 +72,17 @@ class Source(FreezableClass):
             self.__setattr__(kwarg, kwargs[kwarg])
 
     @property
+    def name(self):
+        """
+        A string identifying the source (optional)
+        """
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    @property
     def luminosity(self):
         '''
         The bolometric luminosity of the source (ergs/s)
@@ -81,6 +94,12 @@ class Source(FreezableClass):
         if value is not None:
             validate_scalar('luminosity', value, domain='positive')
         self._luminosity = value
+
+    def _read_luminosity(self, handle):
+        self.luminosity = handle.attrs['luminosity']
+
+    def _write_luminosity(self, handle):
+        handle.attrs['luminosity'] = self.luminosity
 
     @property
     def temperature(self):
@@ -224,7 +243,9 @@ class Source(FreezableClass):
 
         self = cls()
 
-        self.luminosity = handle.attrs['luminosity']
+        self._read_luminosity(handle)
+
+        self.name = handle.attrs['name'].decode('utf-8')
 
         self.peeloff = str2bool(handle.attrs['peeloff'])
 
@@ -243,7 +264,9 @@ class Source(FreezableClass):
 
         self._check_all_set()
 
-        handle.attrs['luminosity'] = self.luminosity
+        self._write_luminosity(handle)
+
+        handle.attrs['name'] = np.string_(self.name.encode('utf-8'))
 
         handle.attrs['peeloff'] = np.string_(bool2str(self.peeloff))
 
@@ -418,6 +441,97 @@ class PointSource(Source):
         g.attrs['z'] = self.position[2]
         Source.write(self, g)
 
+class PointSourceCollection(Source):
+    '''
+    A point source.
+
+    Parameters
+    ----------
+    name : str, optional
+        The name of the source
+    peeloff : bool, optional
+        Whether to peel-off photons from this source
+
+    Notes
+    -----
+    Any additional arguments are are used to initialize attributes.
+    '''
+
+    def __init__(self, name=None, peeloff=True, **kwargs):
+
+        self.position = None
+
+        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
+
+    @property
+    def luminosity(self):
+        '''
+        The bolometric luminosity for the N sources as a 1-D Numpy array (ergs/s)
+        '''
+        return self._luminosity
+
+    @luminosity.setter
+    def luminosity(self, value):
+        if value is not None:
+            if is_numpy_array(value):
+                if value.ndim != 1:
+                    raise ValueError("luminosity should be a 1-D array")
+                if not np.all(value > 0.):
+                    raise ValueError("luminosity should be positive")
+                if self.position is not None and value.shape[0] != self.position.shape[0]:
+                    raise ValueError("luminosity should be a 1-D array with the same number of rows as position")
+            else:
+                raise ValueError("luminosity should be a Numpy array")
+        self._luminosity = value
+
+    def _read_luminosity(self, handle):
+        self.luminosity = np.array(handle['luminosity'])
+
+    def _write_luminosity(self, handle):
+        handle.create_dataset('luminosity', data=self.luminosity, compression=True)
+
+    @property
+    def position(self):
+        '''
+        The cartesian position of the N sources ``(x, y, z)`` as a 2-D Numpy array with shape Nx3 (cm)
+        '''
+        return self._position
+
+    @position.setter
+    def position(self, value):
+        if value is not None:
+            if is_numpy_array(value):
+                if value.ndim != 2:
+                    raise ValueError("position should be a 2-D array")
+                if value.shape[1] != 3:
+                    raise ValueError("position should be an Nx3 array")
+                if self.luminosity is not None and value.shape[0] != self.luminosity.shape[0]:
+                    raise ValueError("position should be a 1-D array with the same number of rows as luminosity")
+            else:
+                raise ValueError("position should be a Numpy array")
+        self._position = value
+
+    def _check_all_set(self):
+        Source._check_all_set(self)
+        if self.position is None:
+            raise ValueError("position is not set")
+        if self.has_lte_spectrum():
+            raise ValueError("Point source cannot have LTE spectrum")
+
+    @classmethod
+    def read(cls, handle):
+        if not handle.attrs['type'] == b'point_collection':
+            raise ValueError("Source is not a PointSource")
+        self = super(PointSourceCollection, cls).read(handle)
+        self.position = np.array(handle['position'])
+        return self
+
+    def write(self, handle, name):
+        self._check_all_set()
+        g = handle.create_group(name)
+        g.attrs['type'] = np.string_('point_collection'.encode('utf-8'))
+        g.create_dataset('position', data=self.position, compression=True)
+        Source.write(self, g)
 
 class SphericalSource(Source):
     '''
@@ -489,7 +603,7 @@ class SphericalSource(Source):
     @limb.setter
     def limb(self, value):
         if value is not None:
-            if not type(value) == bool:
+            if not isinstance(value, bool):
                 raise ValueError("limb should be a boolean value (True/False)")
         self._limb = value
 

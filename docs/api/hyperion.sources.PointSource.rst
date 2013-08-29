@@ -10,6 +10,7 @@ hyperion.sources.PointSource
 
    .. autosummary::
 
+      ~PointSource.name
       ~PointSource.luminosity
       ~PointSource.temperature
       ~PointSource.spectrum

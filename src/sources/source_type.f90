@@ -39,6 +39,9 @@ module type_source
      ! 3 : sphere section (spot)
      ! 4 : luminosity grid (used e.g. for accretion disk luminosity)
      ! 5 : external illumination sphere
+     ! 6 : external illumination box
+     ! 7 : plane parallel source
+     ! 8 : point source collection
 
      integer  :: type = 0
 
@@ -50,6 +53,10 @@ module type_source
 
      ! Source position, used for point, spherical, and spot sources
      type(vector3d_dp) :: position
+
+     ! Collection of positions (used for PointSourceCollection)
+     type(pdf_discrete_dp) :: collection_pdf
+     type(vector3d_dp),allocatable :: position_collection(:)
 
      ! Spot position and size
      integer :: n_spots = 0
@@ -94,13 +101,15 @@ contains
     implicit none
     integer(hid_t),intent(in) :: group
     type(source), intent(out) :: s
-    character(len=15) :: type
+    character(len=50) :: type
     real(dp) :: lon, lat, spot_size, luminosity
     integer :: i
     character(len=255),allocatable :: spot_names(:)
     integer(hid_t) :: g_spot
     real(dp) :: dx, dy, dz
     real(dp) :: theta, phi
+    real(dp),allocatable :: tmp3d(:,:,:)
+    real(dp),allocatable :: luminosity_collection(:), position_collection(:,:)
 
     call mp_read_keyword(group, '.', 'type', type)
 
@@ -244,6 +253,27 @@ contains
        call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
 
        if(s%freq_type == 3) call error("source_read", "Plane parallel cannot have LTE spectrum")
+
+    case('point_collection')
+
+       s%type = 8
+
+       call mp_read_keyword(group, '.', 'peeloff', s%peeloff)
+       call mp_read_array_auto(group, 'position', position_collection)
+       call mp_read_array_auto(group, 'luminosity', luminosity_collection)
+
+       allocate(s%position_collection(size(position_collection, 2)))
+
+       s%position_collection%x = position_collection(1,:)
+       s%position_collection%y = position_collection(2,:)
+       s%position_collection%z = position_collection(3,:)
+
+       s%luminosity = sum(luminosity_collection)
+       call set_pdf(s%collection_pdf, luminosity_collection)
+
+       call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
+
+       if(s%freq_type == 3) call error("source_read", "Point source collection cannot have LTE spectrum")
 
     case default
        call error("source_read", "unknown type in source list: "//trim(type))
@@ -403,6 +433,8 @@ contains
        call emit_from_extern_box(src,p)
     case(7)
        call emit_from_plane_parallel(src,p)
+    case(8)
+       call emit_from_point_collection(src,p)
     end select
 
     if(present(nu)) then
@@ -523,6 +555,40 @@ contains
     p%last_isotropic = .true.
 
   end subroutine emit_from_point
+
+  !**********************************************************************!
+  ! emit_from_point_collection : emit a photon from a point source collection
+  !**********************************************************************!
+
+  subroutine emit_from_point_collection(src,p)
+
+    implicit none
+
+    ! --- Input --- !
+
+    type(source),intent(in) :: src
+    ! the source to emit from
+
+    ! --- Output --- !
+
+    type(photon),intent(inout) :: p
+    ! the emitted photon
+
+    integer :: i_source
+
+    ! Set position to that of one of the point sources
+    i_source = sample_pdf(src%collection_pdf)
+    p%r = src%position_collection(i_source)
+
+    ! Sample isotropic angle
+    call random_sphere_angle3d(p%a)
+
+    ! Set Stokes vector
+    p%s = stokes_dp(1._dp,0._dp,0._dp,0._dp)
+
+    p%last_isotropic = .true.
+
+  end subroutine emit_from_point_collection
 
   !**********************************************************************!
   ! emit_from_sphere : emit a photon from a sphere s
