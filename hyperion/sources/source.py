@@ -470,7 +470,7 @@ class PointSourceCollection(Source):
         self._luminosity = value
 
     def _read_luminosity(self, handle):
-        self.luminosity = handle['luminosity']
+        self.luminosity = np.array(handle['luminosity'])
 
     def _write_luminosity(self, handle):
         handle.create_dataset('luminosity', data=self.luminosity, compression=True)
@@ -507,8 +507,8 @@ class PointSourceCollection(Source):
     def read(cls, handle):
         if not handle.attrs['type'] == b'point_collection':
             raise ValueError("Source is not a PointSource")
-        self = super(PointSource, cls).read(handle)
-        self.position = handle['position']
+        self = super(PointSourceCollection, cls).read(handle)
+        self.position = np.array(handle['position'])
         return self
 
     def write(self, handle, name):

@@ -4,9 +4,9 @@ import numpy as np
 from numpy.testing import assert_equal
 from astropy.tests.helper import pytest
 
-from .. import (Source, PointSource, SpotSource, SphericalSource,
-                ExternalSphericalSource, ExternalBoxSource, MapSource,
-                PlaneParallelSource, read_source)
+from .. import (Source, PointSource, PointSourceCollection, SpotSource,
+                SphericalSource, ExternalSphericalSource, ExternalBoxSource,
+                MapSource, PlaneParallelSource, read_source)
 from ...grid import CartesianGrid
 from ...util.functions import virtual_file
 
@@ -78,6 +78,19 @@ def test_io_point_source():
     assert s2.spectrum is None
     assert_equal(s2.position, s1.position)
 
+
+def test_io_point_source_collection():
+    s1 = PointSourceCollection()
+    s1.luminosity = np.array([1.,3.,4.])
+    s1.temperature = 5000.
+    s1.position = np.array([[3., 2., 5.], [-3., 2., 6.], [9., 2., 1.]])
+    v = virtual_file()
+    s1.write(v, 'test')
+    s2 = read_source(v['test'])
+    assert_equal(s2.luminosity, s1.luminosity)
+    assert s2.temperature == s1.temperature
+    assert s2.spectrum is None
+    assert_equal(s2.position, s1.position)
 
 @pytest.mark.parametrize('limb', [True, False])
 def test_io_spherical_source(limb):
