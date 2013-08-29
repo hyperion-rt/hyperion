@@ -18,6 +18,10 @@ New features
   2-d array where the first dimension matches ``source.luminosity``, and with 3
   elements in the second dimension (x, y, and z).
 
+- Sources can now be given names as strings, which can then be used as an
+  argument to ``source_id`` in :meth:`~hyperion.model.ModelOutput.get_sed` and
+  :meth:`~hyperion.model.ModelOutput.get_image` (when using photon tracking).
+
 0.9.2 (2013-08-16)
 ------------------
 
