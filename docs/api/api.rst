@@ -67,3 +67,15 @@ Outputs
 
    hyperion.model.SED
    hyperion.model.Image
+
+Dust
+----
+
+.. toctree::
+   :maxdepth: 1
+
+   hyperion.dust.SphericalDust
+   hyperion.dust.IsotropicDust
+   hyperion.dust.HenyeyGreensteinDust
+   hyperion.dust.HOCHUNKDust
+
