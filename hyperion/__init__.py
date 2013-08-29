@@ -7,7 +7,7 @@ try:
 except NameError:  # we are not currently running setup.py
     try:
         from .util import integrate
-    except ImportError:
+    except ImportError:  # indicates the C extension failed to build
         import os
         import sys
         if os.path.exists('setup.py'):
