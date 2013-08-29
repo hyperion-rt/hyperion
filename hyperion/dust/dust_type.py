@@ -27,6 +27,21 @@ def henyey_greenstein(mu, g, p_lin_max):
 
 
 class SphericalDust(FreezableClass):
+    r"""
+    This class should be used in cases where fully arbitrary dust properties
+    need to be specified, within the framework of randomly oriented grains,
+    which means that the scattering phase function has the general form:
+
+    .. math:: R(\theta) = \left[\begin{array}{cccc}P_1 & P_2 & 0 & 0 \\P_2 & P_1 & 0 & 0 \\0 & 0 & P_3 & -P_4 \\0 & 0 & P_4 & P_3\end{array}\right]
+
+    This class is initialized with::
+
+        d = SphericalDust()
+
+    and the properties should then be set manually. See
+    `here <http://docs.hyperion-rt.org/en/stable/setup/setup_dust.html#fully-customized-4-element-dust>`_
+    for a description of the available properties and how to set them.
+    """
 
     def __init__(self, *args):
 
@@ -306,6 +321,15 @@ class SphericalDust(FreezableClass):
 
 
 class IsotropicDust(SphericalDust):
+    """
+    This class should be used for dust properties that include isotropic
+    scattering. The dust properties should be instatiated as::
+
+        d = IsotropicDust(nu, albedo, chi)
+
+    where ``nu``, ``albedo``, and ``chi`` are 1-D Numpy arrays containing the
+    frequencies, albedo, and opacity to extinction respectively.
+    """
 
     def __init__(self, nu, albedo, chi):
 
@@ -333,6 +357,20 @@ class IsotropicDust(SphericalDust):
 
 
 class HenyeyGreensteinDust(SphericalDust):
+    """
+    This class should be used for dust properties that include
+    scattering parameterized by the `Henyey-Greenstein, 1941
+    <http://dx.doi.org/10.1086/144246>`_ function. The dust properties should
+    be instatiated as::
+
+        d = HenyeyGreensteinDust(nu, albedo, chi, g, p_lin_max)
+
+    where ``nu``, ``albedo``, and ``chi`` are 1-D Numpy arrays containing the
+    frequencies, albedo, and opacity to extinction respectively, and ``g`` and
+    ``p_lin_max`` are also 1-D Numpy arrays containing the asymmetry parameter
+    and the maximum linear polarization.
+    """
+
 
     def __init__(self, nu, albedo, chi, g, p_lin_max):
 
@@ -357,8 +395,19 @@ class HenyeyGreensteinDust(SphericalDust):
             self.optical_properties.P4[:, i] = henyey_greenstein(self.optical_properties.mu[i], g, p_lin_max)
 
 
-class TTsreDust(HenyeyGreensteinDust):
+class HOCHUNKDust(HenyeyGreensteinDust):
+    """
+    This class should be used for dust properties that include
+    scattering parameterized by the `Henyey-Greenstein, 1941
+    <http://dx.doi.org/10.1086/144246>`_ function, which are formatted for the
+    `HOCHUNK code <http://gemelli.colorado.edu/~bwhitney/codes/>`_. The dust
+    properties should be instatiated as::
 
+        d = HOCHUNKDust(filename)
+
+    where ``filename`` is the name of the file containing the dust properties
+    in the HOCHUNK format.
+    """
     def __init__(self, filename):
 
         # Read in dust file
@@ -378,6 +427,7 @@ class TTsreDust(HenyeyGreensteinDust):
 
         HenyeyGreensteinDust.__init__(self, nu, albedo, dustfile['chi'], dustfile['g'], dustfile['p_lin_max'])
 
+TTsreDust = HOCHUNKDust
 
 class CoatsphSingle(SphericalDust):
 
