@@ -10,6 +10,7 @@ hyperion.sources.ExternalSphericalSource
 
    .. autosummary::
 
+      ~ExternalSphericalSource.name
       ~ExternalSphericalSource.luminosity
       ~ExternalSphericalSource.temperature
       ~ExternalSphericalSource.spectrum

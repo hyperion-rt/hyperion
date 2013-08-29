@@ -10,6 +10,7 @@ hyperion.sources.PlaneParallelSource
 
    .. autosummary::
 
+      ~PlaneParallelSource.name
       ~PlaneParallelSource.luminosity
       ~PlaneParallelSource.temperature
       ~PlaneParallelSource.spectrum

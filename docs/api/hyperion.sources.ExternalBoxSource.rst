@@ -10,6 +10,7 @@ hyperion.sources.ExternalBoxSource
 
    .. autosummary::
 
+      ~ExternalBoxSource.name
       ~ExternalBoxSource.luminosity
       ~ExternalBoxSource.temperature
       ~ExternalBoxSource.spectrum

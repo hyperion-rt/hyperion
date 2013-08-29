@@ -1,6 +1,27 @@
 Version History
 ===============
 
+0.9.3 (unreleased)
+------------------
+
+New features
+^^^^^^^^^^^^
+
+- For models that require many point sources with a common spectrum, a new
+  source type (point source collection) is now available. To add a point source
+  collection, use::
+
+      source = m.add_point_source_collection()
+
+  The ``source.luminosity`` attribute should be set to an array with as many
+  elements as sources, and the ``source.position`` attribute should be set to a
+  2-d array where the first dimension matches ``source.luminosity``, and with 3
+  elements in the second dimension (x, y, and z).
+
+- Sources can now be given names as strings, which can then be used as an
+  argument to ``source_id`` in :meth:`~hyperion.model.ModelOutput.get_sed` and
+  :meth:`~hyperion.model.ModelOutput.get_image` (when using photon tracking).
+
 0.9.2 (2013-08-16)
 ------------------
 

@@ -196,7 +196,9 @@ class ModelOutput(FreezableClass):
             the first source or dust type). If 'all' is specified, then all
             components are returned individually. If neither of these are
             not specified, then the total component requested for all
-            sources or dust types is returned.
+            sources or dust types is returned. For sources, it is also possible
+            to specify a source name as a string, if the source name was set
+            during the set-up.
 
         Returns
         -------
@@ -270,6 +272,12 @@ class ModelOutput(FreezableClass):
                     io = 3
 
                 if track_origin == 'detailed':
+
+                    if isinstance(source_id, basestring) and source_id != 'all':
+                        try:
+                            source_id = self.get_available_sources().index(source_id)
+                        except ValueError:
+                            raise ValueError("No source named {0}".format(source_id))
 
                     ns = g['seds'].attrs['n_sources']
                     nd = g['seds'].attrs['n_dust']
@@ -531,7 +539,9 @@ class ModelOutput(FreezableClass):
             the first source or dust type). If 'all' is specified, then all
             components are returned individually. If neither of these are
             not specified, then the total component requested for all
-            sources or dust types is returned.
+            sources or dust types is returned. For sources, it is also possible
+            to specify a source name as a string, if the source name was set
+            during the set-up.
 
         Returns
         -------
@@ -605,6 +615,12 @@ class ModelOutput(FreezableClass):
                     io = 3
 
                 if track_origin == 'detailed':
+
+                    if isinstance(source_id, basestring) and source_id != 'all':
+                        try:
+                            source_id = self.get_available_sources().index(source_id)
+                        except ValueError:
+                            raise ValueError("No source named {0}".format(source_id))
 
                     ns = g['images'].attrs['n_sources']
                     nd = g['images'].attrs['n_dust']
@@ -855,6 +871,20 @@ class ModelOutput(FreezableClass):
         image.inside_observer = inside_observer
 
         return image
+
+    @on_the_fly_hdf5
+    def get_available_sources(self):
+        """
+        Find out what sources are available in the output image (useful if detailed tracking was used)
+        """
+        if self.file['Input'].file != self.file.file:
+            # Workaround for h5py bug - can't access link directly,
+            # need to use file attribute
+            g_sources = self.file['Input'].file[self.file['Input'].name]['Sources']
+        else:
+            g_sources = self.file['Input/Sources']
+
+        return sorted([s.attrs['name'].decode('utf-8') for s in g_sources.values()])
 
     @on_the_fly_hdf5
     def get_available_components(self, iteration=-1):

@@ -45,6 +45,7 @@ Sources
    hyperion.sources.ExternalBoxSource.rst
    hyperion.sources.MapSource.rst
    hyperion.sources.PlaneParallelSource.rst
+   hyperion.sources.PointSourceCollection.rst
 
 Grid
 ----

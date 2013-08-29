@@ -10,6 +10,7 @@ hyperion.sources.MapSource
 
    .. autosummary::
 
+      ~MapSource.name
       ~MapSource.luminosity
       ~MapSource.temperature
       ~MapSource.spectrum

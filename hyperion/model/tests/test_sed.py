@@ -147,10 +147,12 @@ class TestSEDSimpleModelTrackingDetailed(object):
         m.add_density_grid(np.array([[[1.e-30]]]), get_test_dust())
 
         s = m.add_point_source()
+        s.name = 'first'
         s.luminosity = 1.
         s.temperature = 6000.
 
         s = m.add_point_source()
+        s.name = 'second'
         s.luminosity = 1.
         s.temperature = 6000.
 
@@ -180,6 +182,12 @@ class TestSEDSimpleModelTrackingDetailed(object):
 
     def test_sed_source_valid2(self):
         wav, nufnu = self.m.get_sed(source_id=1, component='source_emit')
+
+    def test_sed_source_valid3(self):
+        wav, nufnu = self.m.get_sed(source_id='first', component='source_emit')
+
+    def test_sed_source_valid4(self):
+        wav, nufnu = self.m.get_sed(source_id='second', component='source_emit')
 
     def test_sed_source_invalid1(self):
         with pytest.raises(ValueError) as exc:

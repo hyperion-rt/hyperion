@@ -142,6 +142,10 @@ numbers of photons for both sources. You can enable this with::
 
     m.set_sample_sources_evenly(True)
 
+Note that this does not yet cause point sources within
+:ref:`point-source-collections` to be evenly sampled. For the purposes of this
+option, a point source collection counts as a single source.
+
 Outputting physical quantities
 ------------------------------
 
