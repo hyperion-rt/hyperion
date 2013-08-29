@@ -73,6 +73,7 @@ def test_io_point_source():
     v = virtual_file()
     s1.write(v, 'test')
     s2 = read_source(v['test'])
+    assert s2.name == s1.name
     assert s2.luminosity == s1.luminosity
     assert s2.temperature == s1.temperature
     assert s2.spectrum is None
@@ -87,6 +88,7 @@ def test_io_point_source_collection():
     v = virtual_file()
     s1.write(v, 'test')
     s2 = read_source(v['test'])
+    assert s2.name == s1.name
     assert_equal(s2.luminosity, s1.luminosity)
     assert s2.temperature == s1.temperature
     assert s2.spectrum is None
@@ -103,6 +105,7 @@ def test_io_spherical_source(limb):
     v = virtual_file()
     s1.write(v, 'test')
     s2 = read_source(v['test'])
+    assert s2.name == s1.name
     assert s2.luminosity == s1.luminosity
     assert s2.temperature == s1.temperature
     assert s2.spectrum is None
@@ -133,6 +136,7 @@ def test_io_spherical_source_with_spots():
     v = virtual_file()
     s1.write(v, 'test')
     s2 = read_source(v['test'])
+    assert s2.name == s1.name
     assert s2.luminosity == s1.luminosity
     assert s2.temperature == s1.temperature
     assert s2.spectrum is None
@@ -154,6 +158,7 @@ def test_io_external_spherical_source():
     v = virtual_file()
     s1.write(v, 'test')
     s2 = read_source(v['test'])
+    assert s2.name == s1.name
     assert s2.luminosity == s1.luminosity
     assert s2.temperature == s1.temperature
     assert s2.spectrum is None
@@ -169,6 +174,7 @@ def test_io_external_box_source():
     v = virtual_file()
     s1.write(v, 'test')
     s2 = read_source(v['test'])
+    assert s2.name == s1.name
     assert s2.luminosity == s1.luminosity
     assert s2.temperature == s1.temperature
     assert s2.spectrum is None
@@ -187,6 +193,7 @@ def test_io_map_source():
     s1.write(v, 'test', g)
 
     s2 = read_source(v['test'])
+    assert s2.name == s1.name
     assert s2.luminosity == s1.luminosity
     assert_equal(s2.map, s1.map)
 
@@ -201,6 +208,7 @@ def test_io_plane_parallel_source():
     v = virtual_file()
     s1.write(v, 'test')
     s2 = read_source(v['test'])
+    assert s2.name == s1.name
     assert s2.luminosity == s1.luminosity
     assert s2.temperature == s1.temperature
     assert s2.spectrum is None

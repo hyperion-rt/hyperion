@@ -72,6 +72,17 @@ class Source(FreezableClass):
             self.__setattr__(kwarg, kwargs[kwarg])
 
     @property
+    def name(self):
+        """
+        A string identifying the source (optional)
+        """
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    @property
     def luminosity(self):
         '''
         The bolometric luminosity of the source (ergs/s)
@@ -234,6 +245,8 @@ class Source(FreezableClass):
 
         self._read_luminosity(handle)
 
+        self.name = handle.attrs['name'].decode('utf-8')
+
         self.peeloff = str2bool(handle.attrs['peeloff'])
 
         if handle.attrs['spectrum'] == b'spectrum':
@@ -252,6 +265,8 @@ class Source(FreezableClass):
         self._check_all_set()
 
         self._write_luminosity(handle)
+
+        handle.attrs['name'] = np.string_(self.name.encode('utf-8'))
 
         handle.attrs['peeloff'] = np.string_(bool2str(self.peeloff))
 
