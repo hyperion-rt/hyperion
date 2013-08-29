@@ -461,6 +461,8 @@ class PointSourceCollection(Source):
             if is_numpy_array(value):
                 if value.ndim != 1:
                     raise ValueError("luminosity should be a 1-D array")
+                if not np.all(value > 0.):
+                    raise ValueError("luminosity should be positive")
                 if self.position is not None and value.shape[0] != self.position.shape[0]:
                     raise ValueError("luminosity should be a 1-D array with the same number of rows as position")
             else:
@@ -487,7 +489,7 @@ class PointSourceCollection(Source):
                 if value.ndim != 2:
                     raise ValueError("position should be a 2-D array")
                 if value.shape[1] != 3:
-                    raise ValueError("position should be a N x 3 array")
+                    raise ValueError("position should be an Nx3 array")
                 if self.luminosity is not None and value.shape[0] != self.luminosity.shape[0]:
                     raise ValueError("position should be a 1-D array with the same number of rows as luminosity")
             else:

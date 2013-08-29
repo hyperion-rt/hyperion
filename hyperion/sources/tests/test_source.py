@@ -4,41 +4,80 @@ from astropy.tests.helper import pytest
 import numpy as np
 from astropy.table import Table, Column
 
-from .. import Source, PointSource, SpotSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource
-from ...grid import CartesianGrid, \
-                    CylindricalPolarGrid, \
-                    SphericalPolarGrid, \
-                    AMRGrid, \
-                    OctreeGrid
+from .. import (Source, PointSource, PointSourceCollection, SpotSource,
+                SphericalSource, ExternalSphericalSource, ExternalBoxSource,
+                MapSource, PlaneParallelSource)
+
+from ...grid import (CartesianGrid,
+                    CylindricalPolarGrid,
+                    SphericalPolarGrid,
+                    AMRGrid,
+                    OctreeGrid)
+
 from ...util.functions import virtual_file
 
-ALL_SOURCES = [Source, PointSource, SpotSource, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource]
+ALL_SOURCES = [Source, PointSource, PointSourceCollection, SpotSource,
+               SphericalSource, ExternalSphericalSource, ExternalBoxSource,
+               MapSource, PlaneParallelSource]
 
 
-# LUMINOSITY
+# SCALAR LUMINOSITY
 
 
-@pytest.mark.parametrize(('source_type'), ALL_SOURCES)
-def test_luminosity_invalid2(source_type):
+@pytest.mark.parametrize(('source_type'), list(set(ALL_SOURCES) - set([PointSourceCollection])))
+def test_luminosity_scalar(source_type):
+    s = source_type()
+    s.luminosity = 1.
+
+@pytest.mark.parametrize(('source_type'), list(set(ALL_SOURCES) - set([PointSourceCollection])))
+def test_luminosity_scalar_invalid2(source_type):
     s = source_type()
     with pytest.raises(ValueError) as exc:
         s.luminosity = np.array([1, 2, 3])  # luminosity should be a scalar
     assert exc.value.args[0] == 'luminosity should be a scalar value'
 
 
-@pytest.mark.parametrize(('source_type'), ALL_SOURCES)
-def test_luminosity_invalid3(source_type):
+@pytest.mark.parametrize(('source_type'), list(set(ALL_SOURCES) - set([PointSourceCollection])))
+def test_luminosity_scalar_invalid3(source_type):
     s = source_type()
     with pytest.raises(ValueError) as exc:
         s.luminosity = 'invalid'  # luminosity should be a number
     assert exc.value.args[0] == 'luminosity should be a numerical value'
 
 
-@pytest.mark.parametrize(('source_type'), ALL_SOURCES)
-def test_luminosity_invalid4(source_type):
+@pytest.mark.parametrize(('source_type'), list(set(ALL_SOURCES) - set([PointSourceCollection])))
+def test_luminosity_scalar_invalid4(source_type):
     s = source_type()
     with pytest.raises(ValueError) as exc:
         s.luminosity = -1.  # luminosity should be positive
+    assert exc.value.args[0] == 'luminosity should be positive'
+
+# ARRAY LUMINOSITY
+
+@pytest.mark.parametrize(('source_type'), [PointSourceCollection])
+def test_luminosity_array(source_type):
+    s = source_type()
+    s.luminosity = np.array([1, 2, 3])
+
+@pytest.mark.parametrize(('source_type'), [PointSourceCollection])
+def test_luminosity_array_invalid1(source_type):
+    s = source_type()
+    with pytest.raises(ValueError) as exc:
+        s.luminosity = 1.
+    assert exc.value.args[0] == 'luminosity should be a Numpy array'
+
+@pytest.mark.parametrize(('source_type'), [PointSourceCollection])
+def test_luminosity_array_invalid2(source_type):
+    s = source_type()
+    with pytest.raises(ValueError) as exc:
+        s.luminosity = np.ones((2,2))
+    assert exc.value.args[0] == 'luminosity should be a 1-D array'
+
+@pytest.mark.parametrize(('source_type'), [PointSourceCollection])
+def test_luminosity_array_invalid3(source_type):
+    s = source_type()
+    with pytest.raises(ValueError) as exc:
+        s.luminosity = np.array([1, 2, -3])
     assert exc.value.args[0] == 'luminosity should be positive'
 
 # TEMPERATURE
@@ -289,6 +328,44 @@ def test_position_numpy_invalid2(source_type):
     with pytest.raises(ValueError) as exc:
         s.position = np.array([[1., 2., 3.]])  # wrong dimensionality
     assert exc.value.args[0] == 'position should be a 1-D sequence'
+
+# POSITION (ARRAY)
+
+SOURCES_POSITION_ARRAY = [PointSourceCollection]
+
+
+@pytest.mark.parametrize(('source_type'), SOURCES_POSITION_ARRAY)
+def test_position_none(source_type):
+    s = source_type()
+    s.position = None
+
+
+@pytest.mark.parametrize(('source_type'), SOURCES_POSITION_ARRAY)
+def test_position_array(source_type):
+    s = source_type()
+    s.position = np.array([[1., 2., 3.]])
+
+
+@pytest.mark.parametrize(('source_type'), SOURCES_POSITION_ARRAY)
+def test_position_invalid1(source_type):
+    s = source_type()
+    with pytest.raises(ValueError) as exc:
+        s.position = [0., 1., 2.]
+    assert exc.value.args[0] == 'position should be a Numpy array'
+
+@pytest.mark.parametrize(('source_type'), SOURCES_POSITION_ARRAY)
+def test_position_invalid2(source_type):
+    s = source_type()
+    with pytest.raises(ValueError) as exc:
+        s.position = np.array([0., 1., 2.])
+    assert exc.value.args[0] == 'position should be a 2-D array'
+
+@pytest.mark.parametrize(('source_type'), SOURCES_POSITION_ARRAY)
+def test_position_invalid3(source_type):
+    s = source_type()
+    with pytest.raises(ValueError) as exc:
+        s.position = np.array([[0., 1., 2., 4.]])
+    assert exc.value.args[0] == 'position should be an Nx3 array'
 
 # RADIUS
 
