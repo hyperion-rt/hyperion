@@ -17,7 +17,7 @@ class AlphaDisk(FreezableClass):
     implemented in `Whitney et al. (2003)
     <http://dx.doi.org/10.1086/375415>`_, with a density given by:
 
-    .. math:: \rho(R,z,\phi) = \rho_0^{\rm disk}\,\left(1 - \sqrt{\frac{R_0}{R}}\right)\left(\frac{R_0}{R}\right)^{\beta - p}\,\exp{\left[-\frac{1}{2}\left(\frac{z}{h(R)}\right)^2\right]} \\
+    .. math:: \rho(R,z,\phi) = \rho_0^{\rm disk}\,\left(1 - \sqrt{\frac{R_{\star}}{R}}\right)\left(\frac{R_0}{R}\right)^{\beta - p}\,\exp{\left[-\frac{1}{2}\left(\frac{z}{h(R)}\right)^2\right]} \\
 
     Once the :class:`~hyperion.densities.AlphaDisk` class has been
     instantiated, the parameters for the density structure can be set via
@@ -37,7 +37,7 @@ class AlphaDisk(FreezableClass):
     relation between the accretion rate and the accretion luminosity in an
     infinitesimal volume is:
 
-    .. math:: \frac{d\dot{E}_{\rm acc}}{dV} = \frac{3 G M_\star \dot{M}_{\rm acc}}{\sqrt{32 \pi^3} R^3 h(R)} \left(1 - \sqrt{\frac{R_0}{R}}\right) \exp{\left[-\frac{1}{2}\left(\frac{z}{h(R)}\right)^2\right]}
+    .. math:: \frac{d\dot{E}_{\rm acc}}{dV} = \frac{3 G M_\star \dot{M}_{\rm acc}}{\sqrt{32 \pi^3} R^3 h(R)} \left(1 - \sqrt{\frac{R_{\star}}{R}}\right) \exp{\left[-\frac{1}{2}\left(\frac{z}{h(R)}\right)^2\right]}
 
     This is equation (4) from `Whitney et al. (2003)
     <http://dx.doi.org/10.1086/375415>`_. Once integrated over the whole disk,
