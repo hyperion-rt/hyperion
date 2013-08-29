@@ -204,6 +204,8 @@ circular beam with a given origin and direction)::
 where ``direction`` is a tuple of (theta, phi) that gives the direction of the
 beam.
 
+.. _point-source-collections:
+
 Point source collections
 ------------------------
 

@@ -466,7 +466,7 @@ class PointSourceCollection(Source):
     @property
     def luminosity(self):
         '''
-        The bolometric luminosity of the source (ergs/s)
+        The bolometric luminosity for the N sources as a 1-D Numpy array (ergs/s)
         '''
         return self._luminosity
 
@@ -493,7 +493,7 @@ class PointSourceCollection(Source):
     @property
     def position(self):
         '''
-        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
+        The cartesian position of the N sources ``(x, y, z)`` as a 2-D Numpy array with shape Nx3 (cm)
         '''
         return self._position
 
