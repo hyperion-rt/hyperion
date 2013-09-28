@@ -78,4 +78,5 @@ Dust
    hyperion.dust.IsotropicDust
    hyperion.dust.HenyeyGreensteinDust
    hyperion.dust.HOCHUNKDust
+   hyperion.dust.BHDust
 
