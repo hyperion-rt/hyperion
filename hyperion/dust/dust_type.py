@@ -622,7 +622,23 @@ class MieXDust(SphericalDust):
 
 
 class BHDust(SphericalDust):
+    """
+    This class should be used for dust properties that were computed using
+    `this dust calculation code <https://github.com/hyperion-rt/bhmie>`_ which
+    is a wrapper to the ``bhmie`` routine originally written by C.F. Bohren and
+    D. Huffman and improved by B. Draine.
 
+    When using the ``bhmie`` code, you should set the output format to ``2``,
+    which will create a number of files ending in ``.wav``, ``.mu``, ``.alb``,
+    etc. Then, instantiate this class with the name of the directory containing
+    these output files along with the prefix used. For example, if you use
+    ``directory/mydust`` as a prefix in ``bhmie``, you can import this dust
+    with::
+
+        >>> from hyperion.dust import BHDust
+        >>> d = BHDust('directory/mydust')
+
+    """
     def __init__(self, model):
 
         SphericalDust.__init__(self)
