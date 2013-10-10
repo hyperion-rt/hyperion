@@ -300,7 +300,7 @@ class RunConf(object):
     def _write_raytracing(self, group):
         group.attrs['raytracing'] = bool2str(self.raytracing)
 
-    def set_max_interactions(self, inter_max):
+    def set_max_interactions(self, inter_max, warn=True):
         '''
         Set the maximum number of interactions a photon can have.
 
@@ -311,16 +311,22 @@ class RunConf(object):
             used to prevent photons from getting stuck in very optically
             thick regions, especially if the modified random walk is not
             used.
+        warn : bool, optional
+            Whether to emit a warning whenever photons are killed for exceeding
+            the maximum number of iterations.
         '''
         self.n_inter_max = inter_max
+        self.n_inter_max_warn = warn
 
     def _read_max_interactions(self, group):
         self.n_inter_max = group.attrs['n_inter_max']
+        self.n_inter_max_warn = str2bool(group.attrs['n_inter_max_warn'])
 
     def _write_max_interactions(self, group):
         group.attrs['n_inter_max'] = self.n_inter_max
+        group.attrs['n_inter_max_warn'] = bool2str(self.n_inter_max_warn)
 
-    def set_max_reabsorptions(self, reabs_max):
+    def set_max_reabsorptions(self, reabs_max, warn=True):
         '''
         Set the maximum number of successive reabsorptions by a source that a
         photon can have.
@@ -329,14 +335,20 @@ class RunConf(object):
         ----------
         reabs_max : int
             Maximum number of reabsorptions for a single photon.
+        warn : bool, optional
+            Whether to emit a warning whenever photons are killed for exceeding
+            the maximum number of reabsorptions.
         '''
         self.n_reabs_max = reabs_max
+        self.n_reabs_max_warn = warn
 
     def _read_max_reabsorptions(self, group):
         self.n_reabs_max = group.attrs['n_reabs_max']
+        self.n_reabs_max_warn = str2bool(group.attrs['n_reabs_max_warn'])
 
     def _write_max_reabsorptions(self, group):
         group.attrs['n_reabs_max'] = self.n_reabs_max
+        group.attrs['n_reabs_max_warn'] = bool2str(self.n_reabs_max_warn)
 
     def set_pda(self, pda):
         '''
@@ -364,7 +376,7 @@ class RunConf(object):
     def _write_pda(self, group):
         group.attrs['pda'] = bool2str(self.pda)
 
-    def set_mrw(self, mrw, gamma=1.0, inter_max=1000):
+    def set_mrw(self, mrw, gamma=1.0, inter_max=1000, warn=True):
         '''
         Set whether to use the Modified Random Walk (MRW) approximation
 
@@ -385,6 +397,9 @@ class RunConf(object):
             This can be used to prevent photons from getting stuck in the
             corners of cells in very optically thick regions, where the MRW
             stars to become inefficient itself.
+        warn : bool, optional
+            Whether to emit a warning whenever photons are killed for exceeding
+            the maximum number of mrw steps.
 
         References
         ----------
@@ -393,18 +408,21 @@ class RunConf(object):
         self.mrw = mrw
         self.mrw_gamma = gamma
         self.n_inter_mrw_max = inter_max
+        self.n_inter_mrw_max_warn = warn
 
     def _read_mrw(self, group):
         self.mrw = str2bool(group.attrs['mrw'])
         if self.mrw:
             self.mrw_gamma = group.attrs['mrw_gamma']
             self.n_inter_mrw_max = group.attrs['n_inter_mrw_max']
+            self.n_inter_mrw_max_warn = str2bool(group.attrs['n_inter_mrw_max_warn'])
 
     def _write_mrw(self, group):
         group.attrs['mrw'] = bool2str(self.mrw)
         if self.mrw:
             group.attrs['mrw_gamma'] = self.mrw_gamma
             group.attrs['n_inter_mrw_max'] = self.n_inter_mrw_max
+            group.attrs['n_inter_mrw_max_warn'] = bool2str(self.n_inter_mrw_max_warn)
 
     def set_convergence(self, convergence, percentile=100., absolute=0., relative=0.):
         '''

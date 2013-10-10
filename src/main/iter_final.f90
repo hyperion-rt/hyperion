@@ -32,9 +32,12 @@ module iteration_final
   use settings, only : forced_first_scattering, &
        &               kill_on_absorb, &
        &               n_inter_max, &
+       &               n_inter_max_warn, &
        &               mrw_gamma, &
        &               n_mrw_max, &
+       &               n_mrw_max_warn, &
        &               n_reabs_max, &
+       &               n_reabs_max_warn, &
        &               use_mrw
 
   use performance, only : perf_header, perf_footer
@@ -178,7 +181,12 @@ contains
                    exit
                 end if
              end do
-             if(mrw_steps == n_mrw_max+1) call error('do_lucy', 'maximum number of MRW steps exceeded')
+             if(mrw_steps == n_mrw_max + 1) then
+                if(n_mrw_max_warn) call warn("do_final","maximum number of MRW steps exceeded - killing")
+                killed_photons_int = killed_photons_int + 1
+                p%killed = .true.
+                exit
+             end if
           end if
        end if
 
@@ -209,7 +217,12 @@ contains
           end do
 
           ! Check that we haven't reached the maximum number of successive reabsorptions
-          if(ia == n_reabs_max + 1) call error('do_lucy', 'maximum number of successive re-absorptions exceeded')
+          if(ia == n_reabs_max + 1) then
+             if(n_reabs_max_warn) call warn('do_final', 'maximum number of successive re-absorptions exceeded')
+             killed_photons_int = killed_photons_int + 1
+             p%killed = .true.
+             exit
+          end if
 
        end if
 
@@ -229,7 +242,7 @@ contains
     end do
 
     if(interactions==n_inter_max+1) then
-       call warn("main","photon exceeded maximum number of interactions - killing")
+       if(n_inter_max_warn) call warn("main","photon exceeded maximum number of interactions - killing")
        killed_photons_int = killed_photons_int + 1
        p%killed = .true.
     end if
