@@ -1,75 +1,61 @@
 import numpy as np
 
 
-def refine(xmin, xmax, ymin, ymax, zmin, zmax, px, py, pz):
-
-    xmid = 0.5 * (xmin + xmax)
-    ymid = 0.5 * (ymin + ymax)
-    zmid = 0.5 * (zmin + zmax)
+def refine(x, y, z, dx, dy, dz, px, py, pz):
 
     if len(px) < 3:
-        return [0], [(px, py, pz)], [(xmin, xmax, ymin, ymax, zmin, zmax)]
+        return [0], [(px, py, pz)], [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
 
     b_all = [1]
     p_all = [([],[],[])]
-    l_all = [(xmin, xmax, ymin, ymax, zmin, zmax)]
+    l_all = [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
 
-    k = (px < xmid) & (py < ymid) & (pz < zmid)
-    b, p, l = refine(xmin, xmid, ymin, ymid, zmin, zmid, px[k], py[k], pz[k])
-    b_all += b
-    p_all += p
-    l_all += l
+    for xcomp in (np.less, np.greater):
+        xsub = x - dx * 0.5 if xcomp is np.less else x + dx * 0.5
 
-    k = (px > xmid) & (py < ymid) & (pz < zmid)
-    b, p, l = refine(xmid, xmax, ymin, ymid, zmin, zmid, px[k], py[k], pz[k])
-    b_all += b
-    p_all += p
-    l_all += l
+        for ycomp in (np.less, np.greater):
+            ysub = y - dy * 0.5 if ycomp is np.less else y + dy * 0.5
 
-    k = (px < xmid) & (py > ymid) & (pz < zmid)
-    b, p, l = refine(xmin, xmid, ymid, ymax, zmin, zmid, px[k], py[k], pz[k])
-    b_all += b
-    p_all += p
-    l_all += l
+            for zcomp in (np.less, np.greater):
+                zsub = z - dz * 0.5 if zcomp is np.less else z + dz * 0.5
 
-    k = (px > xmid) & (py > ymid) & (pz < zmid)
-    b, p, l = refine(xmid, xmax, ymid, ymax, zmin, zmid, px[k], py[k], pz[k])
-    b_all += b
-    p_all += p
-    l_all += l
+                keep = xcomp(px, x) & ycomp(py, y) & zcomp(pz, z)
 
-    k = (px < xmid) & (py < ymid) & (pz > zmid)
-    b, p, l = refine(xmin, xmid, ymin, ymid, zmid, zmax, px[k], py[k], pz[k])
-    b_all += b
-    p_all += p
-    l_all += l
+                b, p, l = refine(xsub, ysub, zsub,
+                                 dx * 0.5, dy * 0.5, dz * 0.5,
+                                 px[keep], py[keep], pz[keep])
 
-    k = (px > xmid) & (py < ymid) & (pz > zmid)
-    b, p, l = refine(xmid, xmax, ymin, ymid, zmid, zmax, px[k], py[k], pz[k])
-    b_all += b
-    p_all += p
-    l_all += l
-
-    k = (px < xmid) & (py > ymid) & (pz > zmid)
-    b, p, l = refine(xmin, xmid, ymid, ymax, zmid, zmax, px[k], py[k], pz[k])
-    b_all += b
-    p_all += p
-    l_all += l
-
-    k = (px > xmid) & (py > ymid) & (pz > zmid)
-    b, p, l = refine(xmid, xmax, ymid, ymax, zmid, zmax, px[k], py[k], pz[k])
-    b_all += b
-    p_all += p
-    l_all += l
+                b_all += b
+                p_all += p
+                l_all += l
 
     return b_all, p_all, l_all
 
 
-def construct_octree(xmin, xmax, ymin, ymax, zmin, zmax, px, py, pz):
+def construct_octree(x, y, z, dx, dy, dz, px, py, pz):
+    """
+    Construct an Octree grid from SPH particles
 
-    refine, particles, limits = refine(XMIN, XMAX, YMIN, YMAX, ZMIN, ZMAX, x, y, z)
+    Parameters
+    ----------
+    x, y, z : float
+        The center of the top-level cell
+    dx, dy, dz : float
+        The half-width of the top-level cell
+    px, py, pz : np.ndarray
+        The SPH particles
+
+    Returns
+    -------
+    grid : `~hyperion.grid.octree_grid.OctreeGrid`
+        The octree grid
+    """
+
+    refined, particles, limits = refine(x, y, z, dx, dy, dz, px, py, pz)
 
     xmin, xmax, ymin, ymax, zmin, zmax = zip(*limits)
+    
+    print xmin
 
 
 if __name__ == '__main__':
@@ -78,13 +64,16 @@ if __name__ == '__main__':
 
     N = 100
 
-    XMIN = 0.
-    XMAX = 1.
-    YMIN = 0.
-    YMAX = 1.
-    ZMIN = 0.
-    ZMAX = 1.
-
-    x = np.random.uniform(XMIN, XMAX, N)
-    y = np.random.uniform(YMIN, YMAX, N)
-    z = np.random.uniform(ZMIN, ZMAX, N)
+    XMID = 0.
+    DX = 0.5
+    YMID = 0.
+    DY = 0.5
+    ZMID = 0.
+    DZ = 0.5
+    
+    px = np.random.uniform(XMID - DX, XMID + DX, N)
+    py = np.random.uniform(YMID - DY, YMID + DY, N)
+    pz = np.random.uniform(ZMID - DZ, ZMID + DZ, N)
+    
+    construct_octree(XMID, YMID, ZMID, DX, DY, DZ, px, py, pz)
+    
