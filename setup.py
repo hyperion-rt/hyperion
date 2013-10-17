@@ -53,6 +53,9 @@ ext_modules = [Extension("hyperion.util._integrate_core",
                          include_dirs=[numpy_includes]),
                Extension("hyperion.util._interpolate_core",
                          ['hyperion/util/_interpolate_core.c'],
+                         include_dirs=[numpy_includes]),
+               Extension("hyperion.importers._discretize_sph",
+                         ['hyperion/importers/_discretize_sph.c'],
                          include_dirs=[numpy_includes])]
 
 scripts = ['hyperion', 'hyperion2fits']
