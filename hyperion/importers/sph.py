@@ -1,7 +1,8 @@
+import random
 import numpy as np
 
 
-def refine(x, y, z, dx, dy, dz, px, py, pz, h):
+def refine(x, y, z, dx, dy, dz, px, py, pz, h, level):
 
     if len(px) < 3 and np.all(dx < h / 5.) and np.all(dy < h / 5.) and np.all(dz < h / 5.):
         return [False], [(px, py, pz)], [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
@@ -23,7 +24,7 @@ def refine(x, y, z, dx, dy, dz, px, py, pz, h):
 
                 b, p, l = refine(xsub, ysub, zsub,
                                  dx * 0.5, dy * 0.5, dz * 0.5,
-                                 px[keep], py[keep], pz[keep], h[keep])
+                                 px[keep], py[keep], pz[keep], h[keep], level + 1)
 
                 b_all += b
                 p_all += p
@@ -56,7 +57,7 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, h):
     from ..grid import OctreeGrid
     from ._discretize_sph import _discretize_sph_func
 
-    refined, particles, limits = refine(x, y, z, dx, dy, dz, px, py, pz, h)
+    refined, particles, limits = refine(x, y, z, dx, dy, dz, px, py, pz, h, 0)
 
     octree = OctreeGrid(x, y, z, dx, dy, dz, refined)
 
@@ -72,6 +73,12 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, h):
     zmax = np.array(zmax)
 
     density = _discretize_sph_func(xmin, xmax, ymin, ymax, zmin, zmax, px, py, pz, sigmax, sigmay, sigmaz)
+
+    # Reset density to zero in cells that are sub-divided
+    density[refined] = 0
+
+    # Normalize by volume
+    density = density / (xmax - xmin) / (ymax - ymin) / (zmax - zmin)
 
     octree['density'] = []
     octree['density'].append(density)
