@@ -48,7 +48,7 @@ MOD_INIT(_discretize_sph)
 
 static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
 {
-        
+
     PyObject *xmin_obj, *xmax_obj;
     PyObject *ymin_obj, *ymax_obj;
     PyObject *zmin_obj, *zmax_obj;
@@ -134,7 +134,7 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
         Py_XDECREF(sigma_z_array);
         return NULL;
     }
-    
+
     /* Build the output array */
     npy_intp dims[1];
     dims[0] = ncells;
@@ -170,31 +170,34 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
     double *sigma_y = (double*)PyArray_DATA(sigma_y_array);
     double *sigma_z = (double*)PyArray_DATA(sigma_z_array);
     double *total = (double*)PyArray_DATA(total_array);
-    
+
     /* Calculate total */
 
     int i, j;
 
     /* Loop over all cells */
-    for (i = 0; i < ncells - 1; i++)
+    for (i = 0; i < ncells; i++)
     {
-        
+
+        total[i] = 0.;
+
         /* Loop over all SPH particles */
 
-        for (j = 0; j < nsph - 1; j++)
+        for (j = 0; j < nsph; j++)
         {
-            if(mu_x[j] < xmax[i] + 5.0 * sigma_x[j] && 
-               mu_x[j] > xmin[i] - 5.0 * sigma_x[j] && 
-               mu_y[j] < ymax[i] + 5.0 * sigma_y[j] && 
-               mu_y[j] > ymin[i] - 5.0 * sigma_y[j] && 
-               mu_z[j] < zmax[i] + 5.0 * sigma_z[j] && 
+            if(mu_x[j] < xmax[i] + 5.0 * sigma_x[j] &&
+               mu_x[j] > xmin[i] - 5.0 * sigma_x[j] &&
+               mu_y[j] < ymax[i] + 5.0 * sigma_y[j] &&
+               mu_y[j] > ymin[i] - 5.0 * sigma_y[j] &&
+               mu_z[j] < zmax[i] + 5.0 * sigma_z[j] &&
                mu_z[j] > zmin[i] - 5.0 * sigma_z[j])
             {
-                total[i] += abs((erf((xmax[i] - mu_x[j]) / sigma_x[j]) - erf((xmin[i] - mu_x[j]) / sigma_x[j])) *
+                total[i] += fabs((erf((xmax[i] - mu_x[j]) / sigma_x[j]) - erf((xmin[i] - mu_x[j]) / sigma_x[j])) *
                                 (erf((ymax[i] - mu_y[j]) / sigma_y[j]) - erf((ymin[i] - mu_y[j]) / sigma_y[j])) *
                                 (erf((zmax[i] - mu_z[j]) / sigma_z[j]) - erf((zmin[i] - mu_z[j]) / sigma_z[j])));
             }
         }
+
     }
 
     /* Clean up. */

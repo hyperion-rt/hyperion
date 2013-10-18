@@ -3,10 +3,10 @@ import numpy as np
 
 def refine(x, y, z, dx, dy, dz, px, py, pz):
 
-    if len(px) < 3:
-        return [0], [(px, py, pz)], [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
+    if len(px) < 3 and dx < 0.01:
+        return [False], [(px, py, pz)], [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
 
-    b_all = [1]
+    b_all = [True]
     p_all = [([],[],[])]
     l_all = [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
 
@@ -32,7 +32,7 @@ def refine(x, y, z, dx, dy, dz, px, py, pz):
     return b_all, p_all, l_all
 
 
-def construct_octree(x, y, z, dx, dy, dz, px, py, pz):
+def construct_octree(x, y, z, dx, dy, dz, px, py, pz, h):
     """
     Construct an Octree grid from SPH particles
 
@@ -43,7 +43,9 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz):
     dx, dy, dz : float
         The half-width of the top-level cell
     px, py, pz : np.ndarray
-        The SPH particles
+        The positions of the SPH particles
+    h : np.ndarray
+        The radii of the SPH particles
 
     Returns
     -------
@@ -51,29 +53,27 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz):
         The octree grid
     """
 
+    from ..grid import OctreeGrid
+    from ._discretize_sph import _discretize_sph_func
+
     refined, particles, limits = refine(x, y, z, dx, dy, dz, px, py, pz)
 
+    octree = OctreeGrid(x, y, z, dx, dy, dz, refined)
+
     xmin, xmax, ymin, ymax, zmin, zmax = zip(*limits)
-    
-    print xmin
 
+    sigmax, sigmay, sigmaz = h, h, h
 
-if __name__ == '__main__':
+    xmin = np.array(xmin)
+    xmax = np.array(xmax)
+    ymin = np.array(ymin)
+    ymax = np.array(ymax)
+    zmin = np.array(zmin)
+    zmax = np.array(zmax)
 
-    np.random.seed(12345)
+    density = _discretize_sph_func(xmin, xmax, ymin, ymax, zmin, zmax, px, py, pz, sigmax, sigmay, sigmaz)
 
-    N = 100
+    octree['density'] = []
+    octree['density'].append(density)
 
-    XMID = 0.
-    DX = 0.5
-    YMID = 0.
-    DY = 0.5
-    ZMID = 0.
-    DZ = 0.5
-    
-    px = np.random.uniform(XMID - DX, XMID + DX, N)
-    py = np.random.uniform(YMID - DY, YMID + DY, N)
-    pz = np.random.uniform(ZMID - DZ, ZMID + DZ, N)
-    
-    construct_octree(XMID, YMID, ZMID, DX, DY, DZ, px, py, pz)
-    
+    return octree
