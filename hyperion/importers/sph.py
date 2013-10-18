@@ -1,9 +1,9 @@
 import numpy as np
 
 
-def refine(x, y, z, dx, dy, dz, px, py, pz):
+def refine(x, y, z, dx, dy, dz, px, py, pz, h):
 
-    if len(px) < 3 and dx < 0.01:
+    if len(px) < 3 and np.all(dx < h / 5.) and np.all(dy < h / 5.) and np.all(dz < h / 5.):
         return [False], [(px, py, pz)], [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
 
     b_all = [True]
@@ -23,7 +23,7 @@ def refine(x, y, z, dx, dy, dz, px, py, pz):
 
                 b, p, l = refine(xsub, ysub, zsub,
                                  dx * 0.5, dy * 0.5, dz * 0.5,
-                                 px[keep], py[keep], pz[keep])
+                                 px[keep], py[keep], pz[keep], h[keep])
 
                 b_all += b
                 p_all += p
@@ -56,7 +56,7 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, h):
     from ..grid import OctreeGrid
     from ._discretize_sph import _discretize_sph_func
 
-    refined, particles, limits = refine(x, y, z, dx, dy, dz, px, py, pz)
+    refined, particles, limits = refine(x, y, z, dx, dy, dz, px, py, pz, h)
 
     octree = OctreeGrid(x, y, z, dx, dy, dz, refined)
 
@@ -77,3 +77,5 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, h):
     octree['density'].append(density)
 
     return octree
+
+# TODO: parallelize top-level search on 8 processes
