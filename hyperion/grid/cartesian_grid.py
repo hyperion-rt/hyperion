@@ -76,7 +76,10 @@ class CartesianGrid(FreezableClass):
         self._freeze()
 
         if len(args) > 0:
-            self.set_walls(*args)
+            if isinstance(args[0], CartesianGrid):
+                self.set_walls(args[0].x_wall, args[0].y_wall, args[0].z_wall)
+            else:
+                self.set_walls(*args)
 
     def set_walls(self, x_wall, y_wall, z_wall):
 
@@ -196,6 +199,9 @@ class CartesianGrid(FreezableClass):
         '''
 
         n_pop_ref = None
+
+        if isinstance(array, CartesianGridView):
+            array = array.quantities[array.viewed_quantity]
 
         for quantity in self.quantities:
 

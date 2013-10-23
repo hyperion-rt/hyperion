@@ -383,10 +383,12 @@ class Model(FreezableClass, RunConf):
 
         # Get a pointer to the group with the sources
         if 'Input' in f:
-            f = f['/Input']
+            g = f['/Input']
+        else:
+            g = f
 
         # Read in monochromatic configuration
-        self._read_monochromatic(f)
+        self._read_monochromatic(g)
 
         # Close the file
         f.close()
@@ -829,7 +831,10 @@ class Model(FreezableClass, RunConf):
         if isinstance(grid, AMRGrid):
             self.grid = AMRGrid(grid)
         else:
-            self.grid = deepcopy(grid)
+            if len(grid.quantities) > 0:
+                self.grid = grid.__class__(grid)
+            else:
+                self.grid = deepcopy(grid)
 
     def add_peeled_images(self, **kwargs):
         self.peeled_output.append(PeeledImageConf(**kwargs))

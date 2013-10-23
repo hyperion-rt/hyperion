@@ -76,7 +76,10 @@ class CylindricalPolarGrid(FreezableClass):
         self._freeze()
 
         if len(args) > 0:
-            self.set_walls(*args)
+            if isinstance(args[0], CylindricalPolarGrid):
+                self.set_walls(args[0].w_wall, args[0].z_wall, args[0].p_wall)
+            else:
+                self.set_walls(*args)
 
     def set_walls(self, w_wall, z_wall, p_wall):
 
@@ -222,6 +225,9 @@ class CylindricalPolarGrid(FreezableClass):
         '''
 
         n_pop_ref = None
+
+        if isinstance(array, CylindricalPolarGridView):
+            array = array.quantities[array.viewed_quantity]
 
         for quantity in self.quantities:
 

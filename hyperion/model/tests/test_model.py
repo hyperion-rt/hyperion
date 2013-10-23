@@ -3,6 +3,7 @@ from __future__ import print_function, division
 import os
 import tempfile
 import shutil
+from copy import deepcopy
 
 import numpy as np
 from astropy.tests.helper import pytest
@@ -78,7 +79,7 @@ class TestAllGridTypes(object):
         grid.ymin, grid.ymax = -1., 1.
         grid.zmin, grid.zmax = -1., 1.
         grid.nx, grid.ny, grid.nz = 8, 8, 8
-        grid.quantities['density'] = np.ones((8, 8, 8))
+        grid.quantities['density'] = [np.ones((8, 8, 8))]
 
         refined = [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                    0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -89,7 +90,7 @@ class TestAllGridTypes(object):
         self.density['car'] = np.array([[[1.]]])
         self.density['cyl'] = np.array([[[1.]]])
         self.density['sph'] = np.array([[[1.]]])
-        self.density['amr'] = self.grid['amr']['density']
+        self.density['amr'] = self.grid['amr']['density'][0]
         self.density['oct'] = np.ones(len(refined))
 
         self.dust = get_test_dust()
@@ -113,6 +114,36 @@ class TestAllGridTypes(object):
         with pytest.raises(Exception) as exc:
             m.write(tmpdir.join(random_id()).strpath)
         assert exc.value.args[0] == "Not all dust lists in the grid have the same size"
+
+    @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
+    def test_add_density(self, tmpdir, grid_type):
+        m = Model()
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 5000.
+        m.set_grid(self.grid[grid_type])
+        m.add_density_grid(self.density[grid_type], self.dust)
+        m.set_n_photons(initial=100, imaging=100)
+        m.write(tmpdir.join(random_id()).strpath)
+        m.run(tmpdir.join(random_id()).strpath)
+
+    @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
+    def test_add_density_from_grid(self, tmpdir, grid_type):
+        m = Model()
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 5000.
+        g = deepcopy(self.grid[grid_type])
+        if grid_type != 'amr':
+            g['density'] = []
+            g['density'].append(self.density[grid_type])
+        m.set_grid(g)
+        print(g['density'])
+        m.add_density_grid(g['density'][0], self.dust)
+        m.add_density_grid(g['density'][0], self.dust)
+        m.set_n_photons(initial=100, imaging=100)
+        m.write(tmpdir.join(random_id()).strpath)
+        m.run(tmpdir.join(random_id()).strpath)
 
     @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
     def test_merge_density(self, tmpdir, grid_type):
