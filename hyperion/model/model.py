@@ -383,10 +383,12 @@ class Model(FreezableClass, RunConf):
 
         # Get a pointer to the group with the sources
         if 'Input' in f:
-            f = f['/Input']
+            g = f['/Input']
+        else:
+            g = f
 
         # Read in monochromatic configuration
-        self._read_monochromatic(f)
+        self._read_monochromatic(g)
 
         # Close the file
         f.close()
