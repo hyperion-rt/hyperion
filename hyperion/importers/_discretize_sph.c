@@ -53,16 +53,18 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
     PyObject *ymin_obj, *ymax_obj;
     PyObject *zmin_obj, *zmax_obj;
 
-    PyObject *mu_x_obj, *sigma_x_obj;
-    PyObject *mu_y_obj, *sigma_y_obj;
-    PyObject *mu_z_obj, *sigma_z_obj;
+    PyObject *mu_x_obj;
+    PyObject *mu_y_obj;
+    PyObject *mu_z_obj;
+    PyObject *sigma_obj;
+    PyObject *mass_obj;
 
     /* Parse the input tuple */
-    if (!PyArg_ParseTuple(args, "OOOOOOOOOOOO", &xmin_obj, &xmax_obj,
+    if (!PyArg_ParseTuple(args, "OOOOOOOOOOO", &xmin_obj, &xmax_obj,
                                                 &ymin_obj, &ymax_obj,
                                                 &zmin_obj, &zmax_obj,
                                                 &mu_x_obj, &mu_y_obj, &mu_z_obj,
-                                                &sigma_x_obj, &sigma_y_obj, &sigma_z_obj))
+                                                &sigma_obj, &mass_obj))
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
@@ -75,16 +77,15 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
     PyObject *mu_x_array = PyArray_FROM_OTF(mu_x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
     PyObject *mu_y_array = PyArray_FROM_OTF(mu_y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
     PyObject *mu_z_array = PyArray_FROM_OTF(mu_z_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *sigma_x_array = PyArray_FROM_OTF(sigma_x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *sigma_y_array = PyArray_FROM_OTF(sigma_y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *sigma_z_array = PyArray_FROM_OTF(sigma_z_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+    PyObject *sigma_array = PyArray_FROM_OTF(sigma_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+    PyObject *mass_array = PyArray_FROM_OTF(mass_obj, NPY_DOUBLE, NPY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
     if (xmin_array == NULL || xmax_array == NULL ||
         ymin_array == NULL || ymax_array == NULL ||
         zmin_array == NULL || zmax_array == NULL ||
         mu_x_array == NULL || mu_y_array == NULL || mu_z_array == NULL ||
-        sigma_x_array == NULL || sigma_y_array == NULL || sigma_z_array == NULL) {
+        sigma_array == NULL || mass_array == NULL) {
         PyErr_SetString(PyExc_TypeError, "Couldn't parse the input arrays.");
         Py_XDECREF(xmin_array);
         Py_XDECREF(xmax_array);
@@ -95,9 +96,8 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
         Py_XDECREF(mu_x_array);
         Py_XDECREF(mu_y_array);
         Py_XDECREF(mu_z_array);
-        Py_XDECREF(sigma_x_array);
-        Py_XDECREF(sigma_y_array);
-        Py_XDECREF(sigma_z_array);
+        Py_XDECREF(sigma_array);
+        Py_XDECREF(mass_array);
         return NULL;
     }
 
@@ -115,9 +115,8 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
         ncells != (int)PyArray_DIM(zmax_array, 0) ||
         nsph != (int)PyArray_DIM(mu_y_array, 0) ||
         nsph != (int)PyArray_DIM(mu_z_array, 0) ||
-        nsph != (int)PyArray_DIM(sigma_x_array, 0) ||
-        nsph != (int)PyArray_DIM(sigma_y_array, 0) ||
-        nsph != (int)PyArray_DIM(sigma_z_array, 0)
+        nsph != (int)PyArray_DIM(sigma_array, 0) ||
+        nsph != (int)PyArray_DIM(mass_array, 0)
     ) {
         PyErr_SetString(PyExc_RuntimeError, "xmax array dimension mismatch.");
         Py_XDECREF(xmin_array);
@@ -129,9 +128,8 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
         Py_XDECREF(mu_x_array);
         Py_XDECREF(mu_y_array);
         Py_XDECREF(mu_z_array);
-        Py_XDECREF(sigma_x_array);
-        Py_XDECREF(sigma_y_array);
-        Py_XDECREF(sigma_z_array);
+        Py_XDECREF(sigma_array);
+        Py_XDECREF(mass_array);
         return NULL;
     }
 
@@ -150,9 +148,8 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
         Py_XDECREF(mu_x_array);
         Py_XDECREF(mu_y_array);
         Py_XDECREF(mu_z_array);
-        Py_XDECREF(sigma_x_array);
-        Py_XDECREF(sigma_y_array);
-        Py_XDECREF(sigma_z_array);
+        Py_XDECREF(sigma_array);
+        Py_XDECREF(mass_array);
         return NULL;
     }
 
@@ -166,9 +163,8 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
     double *mu_x = (double*)PyArray_DATA(mu_x_array);
     double *mu_y = (double*)PyArray_DATA(mu_y_array);
     double *mu_z = (double*)PyArray_DATA(mu_z_array);
-    double *sigma_x = (double*)PyArray_DATA(sigma_x_array);
-    double *sigma_y = (double*)PyArray_DATA(sigma_y_array);
-    double *sigma_z = (double*)PyArray_DATA(sigma_z_array);
+    double *sigma = (double*)PyArray_DATA(sigma_array);
+    double *mass = (double*)PyArray_DATA(mass_array);
     double *total = (double*)PyArray_DATA(total_array);
 
     /* Calculate total */
@@ -185,16 +181,16 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
 
         for (j = 0; j < nsph; j++)
         {
-            if(mu_x[j] < xmax[i] + 5.0 * sigma_x[j] &&
-               mu_x[j] > xmin[i] - 5.0 * sigma_x[j] &&
-               mu_y[j] < ymax[i] + 5.0 * sigma_y[j] &&
-               mu_y[j] > ymin[i] - 5.0 * sigma_y[j] &&
-               mu_z[j] < zmax[i] + 5.0 * sigma_z[j] &&
-               mu_z[j] > zmin[i] - 5.0 * sigma_z[j])
+            if(mu_x[j] < xmax[i] + 3.0 * sigma[j] &&
+               mu_x[j] > xmin[i] - 3.0 * sigma[j] &&
+               mu_y[j] < ymax[i] + 3.0 * sigma[j] &&
+               mu_y[j] > ymin[i] - 3.0 * sigma[j] &&
+               mu_z[j] < zmax[i] + 3.0 * sigma[j] &&
+               mu_z[j] > zmin[i] - 3.0 * sigma[j])
             {
-                total[i] += fabs((erf((xmax[i] - mu_x[j]) / sigma_x[j]) - erf((xmin[i] - mu_x[j]) / sigma_x[j])) *
-                                (erf((ymax[i] - mu_y[j]) / sigma_y[j]) - erf((ymin[i] - mu_y[j]) / sigma_y[j])) *
-                                (erf((zmax[i] - mu_z[j]) / sigma_z[j]) - erf((zmin[i] - mu_z[j]) / sigma_z[j])));
+                total[i] += fabs((erf((xmax[i] - mu_x[j]) / sigma[j]) - erf((xmin[i] - mu_x[j]) / sigma[j])) *
+                                (erf((ymax[i] - mu_y[j]) / mass[j]) - erf((ymin[i] - mu_y[j]) / sigma[j])) *
+                                (erf((zmax[i] - mu_z[j]) / sigma[j]) - erf((zmin[i] - mu_z[j]) / sigma[j]))) * 0.125 * mass[j];
             }
         }
 
@@ -210,9 +206,8 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
     Py_XDECREF(mu_x_array);
     Py_XDECREF(mu_y_array);
     Py_XDECREF(mu_z_array);
-    Py_XDECREF(sigma_x_array);
-    Py_XDECREF(sigma_y_array);
-    Py_XDECREF(sigma_z_array);
+    Py_XDECREF(sigma_array);
+    Py_XDECREF(mass_array);
 
     return total_array;
 
