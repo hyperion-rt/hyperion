@@ -829,7 +829,10 @@ class Model(FreezableClass, RunConf):
         if isinstance(grid, AMRGrid):
             self.grid = AMRGrid(grid)
         else:
-            self.grid = deepcopy(grid)
+            if len(grid.quantities) > 0:
+                self.grid = grid.__class__(grid)
+            else:
+                self.grid = deepcopy(grid)
 
     def add_peeled_images(self, **kwargs):
         self.peeled_output.append(PeeledImageConf(**kwargs))

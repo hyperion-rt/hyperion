@@ -79,7 +79,7 @@ class TestAllGridTypes(object):
         grid.ymin, grid.ymax = -1., 1.
         grid.zmin, grid.zmax = -1., 1.
         grid.nx, grid.ny, grid.nz = 8, 8, 8
-        grid.quantities['density'] = np.ones((8, 8, 8))
+        grid.quantities['density'] = [np.ones((8, 8, 8))]
 
         refined = [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                    0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -90,7 +90,7 @@ class TestAllGridTypes(object):
         self.density['car'] = np.array([[[1.]]])
         self.density['cyl'] = np.array([[[1.]]])
         self.density['sph'] = np.array([[[1.]]])
-        self.density['amr'] = self.grid['amr']['density']
+        self.density['amr'] = self.grid['amr']['density'][0]
         self.density['oct'] = np.ones(len(refined))
 
         self.dust = get_test_dust()
@@ -138,7 +138,9 @@ class TestAllGridTypes(object):
             g['density'] = []
             g['density'].append(self.density[grid_type])
         m.set_grid(g)
-        m.add_density_grid(g['density'], self.dust)
+        print(g['density'])
+        m.add_density_grid(g['density'][0], self.dust)
+        m.add_density_grid(g['density'][0], self.dust)
         m.set_n_photons(initial=100, imaging=100)
         m.write(tmpdir.join(random_id()).strpath)
         m.run(tmpdir.join(random_id()).strpath)

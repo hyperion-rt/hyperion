@@ -79,7 +79,10 @@ class SphericalPolarGrid(FreezableClass):
         self._freeze()
 
         if len(args) > 0:
-            self.set_walls(*args)
+            if isinstance(args[0], SphericalPolarGrid):
+                self.set_walls(args[0].r_wall, args[0].t_wall, args[0].p_wall)
+            else:
+                self.set_walls(*args)
 
     def set_walls(self, r_wall, t_wall, p_wall):
 
@@ -232,6 +235,9 @@ class SphericalPolarGrid(FreezableClass):
         '''
 
         n_pop_ref = None
+
+        if isinstance(array, SphericalPolarGridView):
+            array = array.quantities[array.viewed_quantity]
 
         for quantity in self.quantities:
 

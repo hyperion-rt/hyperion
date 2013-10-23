@@ -119,7 +119,12 @@ class OctreeGrid(FreezableClass):
         self._freeze()
 
         if len(args) > 0:
-            self.set_walls(*args)
+            if isinstance(args[0], OctreeGrid):
+                self.set_walls(args[0].x, args[0].y, args[0].z,
+                               args[0].dx, args[0].dy, args[0].dz,
+                               args[0].refined)
+            else:
+                self.set_walls(*args)
 
     def set_walls(self, x, y, z, dx, dy, dz, refined):
 
@@ -198,6 +203,9 @@ class OctreeGrid(FreezableClass):
         '''
 
         n_pop_ref = None
+
+        if isinstance(array, OctreeGridView):
+            array = array.quantities[array.viewed_quantity]
 
         for quantity in self.quantities:
 
