@@ -4,7 +4,7 @@ from astropy.tests.helper import pytest
 import numpy as np
 from numpy.testing import assert_array_almost_equal_nulp
 
-from .. import FlaredDisk, AlphaDisk, PowerLawEnvelope, UlrichEnvelope, BipolarCavity
+from .. import FlaredDisk, AlphaDisk, PowerLawEnvelope, UlrichEnvelope, BipolarCavity, AmbientMedium
 from ...grid import SphericalPolarGrid
 from ...util.convenience import OptThinRadius
 from ...util.constants import G
@@ -652,3 +652,139 @@ def test_bipolar_cavity_invalid2(parameter):
     with pytest.raises(ValueError) as exc:
         c.__setattr__(parameter, [1., 2.])  # should be scalar
     assert exc.value.args[0] == parameter + ' should be a scalar value'
+
+
+# Ambient medium
+
+
+@pytest.mark.parametrize(('parameter'), ['rho', 'rmin', 'rmax'])
+def test_ambient_positive(parameter):
+    a = AmbientMedium()
+    a.__setattr__(parameter, 1.)
+
+
+@pytest.mark.parametrize(('parameter'), ['rho', 'rmin', 'rmax'])
+def test_ambient_negative(parameter):
+    a = AmbientMedium()
+    with pytest.raises(ValueError) as exc:
+        a.__setattr__(parameter, -1.)  # negative values are not valid
+    assert exc.value.args[0] == parameter + ' should be positive'
+
+
+@pytest.mark.parametrize(('parameter'), ['rho', 'rmin', 'rmax'])
+def test_ambient_optthin(parameter):
+    a = AmbientMedium()
+    if parameter in ['rmin', 'rmax']:
+        a.__setattr__(parameter, OptThinRadius(1.))
+    else:
+        with pytest.raises(ValueError) as exc:
+            a.__setattr__(parameter, OptThinRadius(1.))  # not valid for these parameters
+        assert exc.value.args[0] == parameter + ' should be a scalar value'
+
+
+@pytest.mark.parametrize(('parameter'), ['rho', 'rmin', 'rmax'])
+def test_ambient_invalid1(parameter):
+    a = AmbientMedium()
+    with pytest.raises(ValueError) as exc:
+        a.__setattr__(parameter, 'a')  # can't be string
+    if parameter in ['rmin', 'rmax']:
+        assert exc.value.args[0] == parameter + ' should be a numerical value or an OptThinRadius instance'
+    else:
+        assert exc.value.args[0] == parameter + ' should be a numerical value'
+
+
+@pytest.mark.parametrize(('parameter'), ['rho', 'rmin', 'rmax'])
+def test_ambient_invalid2(parameter):
+    a = AmbientMedium()
+    with pytest.raises(ValueError) as exc:
+        a.__setattr__(parameter, [1., 2.])  # should be scalar
+    if parameter in ['rmin', 'rmax']:
+        assert exc.value.args[0] == parameter + ' should be a scalar value or an OptThinRadius instance'
+    else:
+        assert exc.value.args[0] == parameter + ' should be a scalar value'
+
+
+def test_ambient_densities_1():
+
+    r = np.linspace(0., 10., 10)
+    t = [0., np.pi]
+    p = [0., 2 * np.pi]
+    g = SphericalPolarGrid(r, t, p)
+
+    a = AmbientMedium()
+    a.rho = 2.
+    a.rmin = 0.1
+    a.rmax = 10.
+
+    expected = np.ones(len(r) - 1) * 2.
+    assert_array_almost_equal_nulp(a.density(g)[0,0,:], expected, 10)
+
+def test_ambient_densities_2():
+
+    r = np.linspace(0., 10., 10)
+    t = [0., np.pi]
+    p = [0., 2 * np.pi]
+    g = SphericalPolarGrid(r, t, p)
+
+    # Set up envelope
+    p1 = PowerLawEnvelope()
+    p1.power = -2
+    p1.r_0 = 1.
+    p1.rho_0 = 10.
+    p1.rmin = 0.1
+    p1.rmax = 10.
+
+    a = AmbientMedium()
+    a.rho = 2.
+    a.rmin = 0.1
+    a.rmax = 10.
+    a.subtract = [p1]
+
+    expected = 10. * g.r ** -2
+    assert_array_almost_equal_nulp(p1.density(g)[0,0,:], expected, 10)
+
+    expected = np.clip(2 - 10. * g.r ** -2, 0., np.inf)
+    assert_array_almost_equal_nulp(a.density(g)[0,0,:], expected, 10)
+
+    expected = np.clip(10. * g.r ** -2, 2., np.inf)
+    assert_array_almost_equal_nulp((a.density(g) + p1.density(g))[0,0,:],
+                                   expected, 10)
+
+def test_ambient_densities_3():
+
+    r = np.linspace(0., 10., 10)
+    t = [0., np.pi]
+    p = [0., 2 * np.pi]
+    g = SphericalPolarGrid(r, t, p)
+
+    # Set up envelope
+    p1 = PowerLawEnvelope()
+    p1.power = -2
+    p1.r_0 = 1.
+    p1.rho_0 = 10.
+    p1.rmin = 0.1
+    p1.rmax = 10.
+
+    # Set up another envelope
+    p2 = PowerLawEnvelope()
+    p2.power = -1.5
+    p2.r_0 = 1.
+    p2.rho_0 = 8.
+    p2.rmin = 0.1
+    p2.rmax = 10.
+
+    a = AmbientMedium()
+    a.rho = 2.
+    a.rmin = 0.1
+    a.rmax = 10.
+    a.subtract = [p1, p2]
+
+    expected = 10. * g.r ** -2
+    assert_array_almost_equal_nulp(p1.density(g)[0,0,:], expected, 10)
+
+    expected = np.clip(2 - 10. * g.r ** -2 - 8. * g.r ** -1.5, 0., np.inf )
+    assert_array_almost_equal_nulp(a.density(g)[0,0,:], expected, 10)
+
+    expected = np.clip(10. * g.r ** -2 + 8. * g.r ** -1.5, 2., np.inf)
+    assert_array_almost_equal_nulp((a.density(g) + p1.density(g) + p2.density(g))[0,0,:],
+                                   expected, 10)

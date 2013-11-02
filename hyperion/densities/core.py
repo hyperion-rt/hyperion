@@ -17,7 +17,7 @@ class Disk(Density):
     pass
 
 
-class Envelope(FreezableClass):
+class Envelope(Density):
     """
     Base class for envelope density structures
     """

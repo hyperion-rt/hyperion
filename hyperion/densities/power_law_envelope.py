@@ -231,11 +231,10 @@ class PowerLawEnvelope(Envelope):
         rho[grid.gr < self.rmin] = 0.
         rho[grid.gr > self.rmax] = 0.
 
-        norm = self.mass / np.sum(rho * grid.volumes)
-
-        logger.info("Normalization factor for envelope mass: %5.2f" % norm)
-
-        rho = rho * norm
+        if self._rho_0 is None:
+            norm = self.mass / np.sum(rho * grid.volumes)
+            logger.info("Normalization factor for envelope mass: %5.2f" % norm)
+            rho = rho * norm
 
         if not ignore_cavity and self.cavity is not None:
             mask = self.cavity.mask(grid)
