@@ -116,8 +116,7 @@ class AnalyticalYSOModel(Model):
         self.star = Star()
         self.disks = []
         self.envelopes = []
-
-        self.ambient = None
+        self.ambients = []
 
         Model.__init__(self, name=name)
 
@@ -132,9 +131,15 @@ class AnalyticalYSOModel(Model):
 
     # DENSITY COMPONENTS
 
-    def add_ambient_medium(self):
+    def add_ambient_medium(self, subtract=[]):
         '''
-        Add an infalling rotationally flatted envelope to the model
+        Add an ambient density medium to the model
+
+        Parameters
+        ----------
+        subtract : list
+            Components to subtract from the ambient density medium (see
+            notes below).
 
         Returns
         -------
@@ -160,17 +165,27 @@ class AnalyticalYSOModel(Model):
 
         Notes
         -----
-        Unlike other density structures, the ambient medium is not added to
-        the whole density structure, but it is instead used as a minimum
-        threshold. That is, anywhere within ``ambient.rmin`` and
-        ``ambient.rmax``, the density is reset to ``ambient.rho`` if it was
-        initially lower.
+
+        By default, the ambient medium simply adds a constant density ``rho`` of
+        dust to the whole model between the inner and outer radius. However, it
+        is possible to pass components that should be subtracted from the
+        constant density using the ``subtract=`` argument. In the following
+        example::
+
+            >>> e = m.add_power_law_envelope()
+            >>> m.add_ambient_medium(subtract=[e])
+
+        the ambient medium does not simply add a constant density ``rho`` of
+        dust everywhere, but it adds dust such that the density never falls
+        below ``rho`` between ``rmin`` and ``rmax`` - that is, it subtracts the
+        density of component ``e`` from the ``rho``, with a minimum of zero. In
+        regions where the density of component of ``e`` is larger than ``rho``,
+        no dust is added.
         '''
-        if self.ambient is not None:
-            raise Exception("Ambient medium already present")
         ambient = AmbientMedium()
         ambient.star = self.star
-        self.ambient = ambient
+        ambient.subtract = subtract
+        self.ambients.append(ambient)
         return ambient
 
     def add_flared_disk(self):
@@ -329,8 +344,8 @@ class AnalyticalYSOModel(Model):
             disk._check_all_set()
         for envelope in self.envelopes:
             envelope._check_all_set()
-        if self.ambient is not None:
-            self.ambient._check_all_set()
+        for ambient in self.ambients:
+            ambient._check_all_set()
 
     # MIDPLANE OPTICAL DEPTH
 
@@ -391,20 +406,20 @@ class AnalyticalYSOModel(Model):
 
     def radial_range(self):
 
-        if len(self.disks) == 0 and len(self.envelopes) == 0:
+        if (len(self.disks) == 0 and
+            len(self.envelopes) == 0 and
+            len(self.ambients) == 0):
             rmin = self.star.radius
         else:
-            rmin_values = ([disk.rmin for disk in self.disks]
-                           + [envelope.rmin for envelope in self.envelopes])
-            if self.ambient is not None:
-                rmin_values += [self.ambient.rmin]
+            rmin_values = ([disk.rmin for disk in self.disks] +
+                           [envelope.rmin for envelope in self.envelopes] +
+                           [ambient.rmin for ambient in self.ambients])
             rmin = _min_none(*rmin_values)
 
         rmax_values = [self.star.radius]
-        rmax_values += ([disk.rmax for disk in self.disks]
-                        + [envelope.rmax for envelope in self.envelopes])
-        if self.ambient is not None:
-            rmax_values += [self.ambient.rmax]
+        rmax_values += ([disk.rmax for disk in self.disks] +
+                        [envelope.rmax for envelope in self.envelopes] +
+                        [ambient.rmax for ambient in self.ambients])
         rmax = _max_none(*rmax_values)
 
         return rmin, rmax
@@ -472,18 +487,16 @@ class AnalyticalYSOModel(Model):
         if len(self.disks) == 0 and len(self.envelopes) == 0:
             rmin = self.star.radius
         else:
-            rmin_values = ([disk.rmin for disk in self.disks]
-                           + [envelope.rmin for envelope in self.envelopes])
-            if self.ambient is not None:
-                rmin_values += [self.ambient.rmin]
+            rmin_values = ([disk.rmin for disk in self.disks] +
+                           [envelope.rmin for envelope in self.envelopes] +
+                           [ambient.rmin for ambient in self.ambients])
             rmin = _min_none(*rmin_values)
 
         if not rmax:
             rmax_values = [2. * self.star.radius]
-            rmax_values += ([disk.rmax for disk in self.disks]
-                            + [envelope.rmax for envelope in self.envelopes])
-            if self.ambient is not None:
-                rmax_values += [self.ambient.rmax]
+            rmax_values += ([disk.rmax for disk in self.disks] +
+                            [envelope.rmax for envelope in self.envelopes] +
+                            [ambient.rmax for ambient in self.ambients])
             rmax = _max_none(*rmax_values)
 
         if rmax < rmin:
@@ -734,32 +747,18 @@ class AnalyticalYSOModel(Model):
 
         # AMBIENT MEDIUM
 
-        if self.ambient is not None:
+        for i, ambient in enumerate(self.ambients):
 
-            if self.ambient.density == 0.:
+            if ambient.density == 0.:
                 logger.warn("Ambient medium has zero density, "
                             "ignoring density contribution")
             else:
 
-                ambient = self.ambient
-
                 if not ambient.dust:
                     raise Exception("Ambient medium dust not set")
 
-                # Find the density of the ambient medium
-                density_amb = ambient.density(m.grid)
-
-                if m.grid.n_dust is not None and m.grid.n_dust > 0:
-
-                    # Find total density in other components
-                    shape = list(m.grid.shape)
-                    shape.insert(0, m.grid.n_dust)
-                    density_sum = np.sum(np.vstack(m.grid['density'].quantities['density']).reshape(*shape), axis=0)
-
-                    density_amb -= density_sum
-                    density_amb[density_amb < 0.] = 0.
-
-                m.add_density_grid(density_amb, ambient.dust,
+                m.add_density_grid(ambient.density(m.grid),
+                                   ambient.dust,
                                    merge_if_possible=merge_if_possible)
 
         # SOURCES

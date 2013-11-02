@@ -1,17 +1,18 @@
 from __future__ import print_function, division
 
 import numpy as np
+from astropy import log as logger
 
+from ..dust import SphericalDust
 from ..util.constants import pi
-from ..util.functions import FreezableClass
 from ..util.convenience import OptThinRadius
 from ..util.integrate import integrate_powerlaw
-from ..dust import SphericalDust
-from astropy import log as logger
 from ..util.validator import validate_scalar
 
+from .core import Disk
 
-class FlaredDisk(FreezableClass):
+
+class FlaredDisk(Disk):
     r'''
     This class implements the density structure for a flared axisymmatric
     disk, with a density given by:

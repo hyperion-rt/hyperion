@@ -1,16 +1,17 @@
 from __future__ import print_function, division
 
 import numpy as np
+from astropy import log as logger
 
+from ..dust import SphericalDust
+from ..grid import SphericalPolarGrid
 from ..util.constants import pi
-from ..densities.envelope import Envelope
-from ..densities.bipolar_cavity import BipolarCavity
 from ..util.convenience import OptThinRadius
 from ..util.integrate import integrate_powerlaw
-from ..dust import SphericalDust
-from astropy import log as logger
 from ..util.validator import validate_scalar
-from ..grid import SphericalPolarGrid
+
+from .core import Envelope
+from .bipolar_cavity import BipolarCavity
 
 
 class PowerLawEnvelope(Envelope):
@@ -230,11 +231,10 @@ class PowerLawEnvelope(Envelope):
         rho[grid.gr < self.rmin] = 0.
         rho[grid.gr > self.rmax] = 0.
 
-        norm = self.mass / np.sum(rho * grid.volumes)
-
-        logger.info("Normalization factor for envelope mass: %5.2f" % norm)
-
-        rho = rho * norm
+        if self._rho_0 is None:
+            norm = self.mass / np.sum(rho * grid.volumes)
+            logger.info("Normalization factor for envelope mass: %5.2f" % norm)
+            rho = rho * norm
 
         if not ignore_cavity and self.cavity is not None:
             mask = self.cavity.mask(grid)

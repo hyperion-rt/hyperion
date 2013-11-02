@@ -2,14 +2,16 @@ from __future__ import print_function, division
 
 import numpy as np
 
+from ..dust import SphericalDust
+from ..grid import SphericalPolarGrid
 from ..util.functions import FreezableClass
 from ..util.convenience import OptThinRadius
-from ..dust import SphericalDust
 from ..util.validator import validate_scalar
-from ..grid import SphericalPolarGrid
+
+from .core import Density
 
 
-class AmbientMedium(FreezableClass):
+class AmbientMedium(Density):
     r'''
     This class implements the density structure for an ambient density
     medium defined by a constant density, and an inner and outer radius.
@@ -26,13 +28,30 @@ class AmbientMedium(FreezableClass):
 
     :class:`~hyperion.densities.AmbientMedium` instances can only be used with
     spherical polar grids at this time.
+
+    By default, the ambient medium simply adds a constant density ``rho`` of
+    dust to the whole model between the inner and outer radius. However, it
+    is possible to pass components that should be subtracted from the
+    constant density using the ``subtract=`` argument. In the following
+    example::
+
+        >>> e = PowerLawEnvelope()
+        >>> AmbientMedium(subtract=[e])
+
+    the ambient medium does not simply add a constant density ``rho`` of dust
+    everywhere, but it adds dust such that the density never falls below
+    ``rho`` between ``rmin`` and ``rmax`` - that is, it subtracts the density
+    of component ``e`` from the ``rho``, with a minimum of zero. In regions
+    where the density of component of ``e`` is larger than ``rho``, no dust is
+    added.
     '''
-    def __init__(self, rho=None, rmin=None, rmax=None):
+    def __init__(self, rho=None, rmin=None, rmax=None, subtract=[]):
 
         # Basic ambient medium parameters
         self.rho = rho
         self.rmin = rmin
         self.rmax = rmax
+        self.subtract = subtract
 
         # Dust
         self.dust = None
@@ -83,6 +102,24 @@ class AmbientMedium(FreezableClass):
         '''dust properties (filename or dust object)'''
         return self._dust
 
+    @property
+    def subtract(self):
+        '''Components to subtract from the ambient density medium'''
+        return self._subtract
+
+    @subtract.setter
+    def subtract(self, value):
+        if value is not None:
+            if not isinstance(value, (list, tuple)):
+                raise TypeError("subtract should be a list")
+            for c in value:
+                if not isinstance(c, Density):
+                    raise TypeError("component in `subtract` should be a density instance")
+                if isinstance(c, AmbientMedium):
+                    raise TypeError("component in `subtract` cannot be an ambient density instance")
+
+        self._subtract = value
+
     @dust.setter
     def dust(self, value):
         if isinstance(value, basestring):
@@ -129,7 +166,13 @@ class AmbientMedium(FreezableClass):
 
         rho = np.ones(grid.gr.shape) * self.rho
 
+        # Reset density outside rmin < r < rmax
         rho[grid.gr < self.rmin] = 0.
         rho[grid.gr > self.rmax] = 0.
+
+        # Subtract specified components (if any)
+        for component in self.subtract:
+            rho -= component.density(grid)
+        rho[rho < 0] = 0.
 
         return rho
