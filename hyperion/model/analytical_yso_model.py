@@ -116,7 +116,7 @@ class AnalyticalYSOModel(Model):
         self.star = Star()
         self.disks = []
         self.envelopes = []
-        self.ambient = []
+        self.ambients = []
 
         Model.__init__(self, name=name)
 
@@ -182,12 +182,10 @@ class AnalyticalYSOModel(Model):
         regions where the density of component of ``e`` is larger than ``rho``,
         no dust is added.
         '''
-        if self.ambient is not None:
-            raise Exception("Ambient medium already present")
         ambient = AmbientMedium()
         ambient.star = self.star
         ambient.subtract = subtract
-        self.ambient.append(mbient)
+        self.ambients.append(ambient)
         return ambient
 
     def add_flared_disk(self):
@@ -346,8 +344,8 @@ class AnalyticalYSOModel(Model):
             disk._check_all_set()
         for envelope in self.envelopes:
             envelope._check_all_set()
-        if self.ambient is not None:
-            self.ambient._check_all_set()
+        for ambient in self.ambients:
+            ambient._check_all_set()
 
     # MIDPLANE OPTICAL DEPTH
 
@@ -408,20 +406,20 @@ class AnalyticalYSOModel(Model):
 
     def radial_range(self):
 
-        if len(self.disks) == 0 and len(self.envelopes) == 0:
+        if (len(self.disks) == 0 and
+            len(self.envelopes) == 0 and
+            len(self.ambients) == 0):
             rmin = self.star.radius
         else:
-            rmin_values = ([disk.rmin for disk in self.disks]
-                           + [envelope.rmin for envelope in self.envelopes])
-            if self.ambient is not None:
-                rmin_values += [self.ambient.rmin]
+            rmin_values = ([disk.rmin for disk in self.disks] +
+                           [envelope.rmin for envelope in self.envelopes] +
+                           [ambient.rmin for ambient in self.ambients])
             rmin = _min_none(*rmin_values)
 
         rmax_values = [self.star.radius]
-        rmax_values += ([disk.rmax for disk in self.disks]
-                        + [envelope.rmax for envelope in self.envelopes])
-        if self.ambient is not None:
-            rmax_values += [self.ambient.rmax]
+        rmax_values += ([disk.rmax for disk in self.disks] +
+                        [envelope.rmax for envelope in self.envelopes] +
+                        [ambient.rmax for ambient in self.ambients])
         rmax = _max_none(*rmax_values)
 
         return rmin, rmax
@@ -489,18 +487,16 @@ class AnalyticalYSOModel(Model):
         if len(self.disks) == 0 and len(self.envelopes) == 0:
             rmin = self.star.radius
         else:
-            rmin_values = ([disk.rmin for disk in self.disks]
-                           + [envelope.rmin for envelope in self.envelopes])
-            if self.ambient is not None:
-                rmin_values += [self.ambient.rmin]
+            rmin_values = ([disk.rmin for disk in self.disks] +
+                           [envelope.rmin for envelope in self.envelopes] +
+                           [ambient.rmin for ambient in self.ambients])
             rmin = _min_none(*rmin_values)
 
         if not rmax:
             rmax_values = [2. * self.star.radius]
-            rmax_values += ([disk.rmax for disk in self.disks]
-                            + [envelope.rmax for envelope in self.envelopes])
-            if self.ambient is not None:
-                rmax_values += [self.ambient.rmax]
+            rmax_values += ([disk.rmax for disk in self.disks] +
+                            [envelope.rmax for envelope in self.envelopes] +
+                            [ambient.rmax for ambient in self.ambients])
             rmax = _max_none(*rmax_values)
 
         if rmax < rmin:
@@ -751,7 +747,7 @@ class AnalyticalYSOModel(Model):
 
         # AMBIENT MEDIUM
 
-        for i, ambient in enumerate(self.ambient):
+        for i, ambient in enumerate(self.ambients):
 
             if ambient.density == 0.:
                 logger.warn("Ambient medium has zero density, "
