@@ -1,13 +1,13 @@
 from __future__ import print_function, division
 
 import numpy as np
+from astropy import log as logger
 
 from ..util.functions import FreezableClass
 from ..dust import SphericalDust
-from ..densities.envelope import Envelope
 from ..util.validator import validate_scalar
-from astropy import log as logger
 
+from .core import Envelope
 
 class BipolarCavity(FreezableClass):
     r'''

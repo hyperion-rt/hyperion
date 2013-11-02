@@ -1,15 +1,17 @@
 from __future__ import print_function, division
 
 import numpy as np
-
-from ..util.constants import G, pi
-from ..densities.envelope import Envelope
-from ..densities.bipolar_cavity import BipolarCavity
-from ..util.convenience import OptThinRadius
-from ..dust import SphericalDust
 from astropy import log as logger
-from ..util.validator import validate_scalar
+
+from ..dust import SphericalDust
 from ..grid import SphericalPolarGrid
+from ..util.constants import G, pi
+from ..util.convenience import OptThinRadius
+from ..util.integrate import integrate_powerlaw
+from ..util.validator import validate_scalar
+
+from .core import Envelope
+from .bipolar_cavity import BipolarCavity
 
 
 def delta_neg(r, q):

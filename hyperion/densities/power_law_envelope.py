@@ -1,16 +1,17 @@
 from __future__ import print_function, division
 
 import numpy as np
+from astropy import log as logger
 
+from ..dust import SphericalDust
+from ..grid import SphericalPolarGrid
 from ..util.constants import pi
-from ..densities.envelope import Envelope
-from ..densities.bipolar_cavity import BipolarCavity
 from ..util.convenience import OptThinRadius
 from ..util.integrate import integrate_powerlaw
-from ..dust import SphericalDust
-from astropy import log as logger
 from ..util.validator import validate_scalar
-from ..grid import SphericalPolarGrid
+
+from .core import Envelope
+from .bipolar_cavity import BipolarCavity
 
 
 class PowerLawEnvelope(Envelope):
