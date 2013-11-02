@@ -80,8 +80,39 @@ returns a :class:`~hyperion.densities.BipolarCavity` instance::
     cavity.power = 1.5                  # Shape exponent z~w^exp
     cavity.r_0 = 1.e-20                 # Radius to specify rho_0 and theta_0
     cavity.theta_0 = 10                 # Opening angle at r_0 (degrees)
-    cavity.rho_0 = 1.e-20               # Density at r_0
+    cavity.rho_0 = 1.e-20               # Density at r_0 in g/cm^3
     cavity.rho_exp = 0.                 # Vertical density exponent
+
+Ambient medium
+--------------
+
+In addition to disks and envelopes, it is also possible to add a constant
+ambient density medium using the
+:meth:`~hyperion.model.AnalyticalYSOModel.add_ambient_medium` method, which
+returns an :class:`~hyperion.densities.AmbientMedium` instance::
+
+    ambient = m.add_ambient_medium()
+    ambient.rmin = 0.1 * au            # Inner radius
+    ambient.rmax = 1000 * au           # Outer radius
+    ambient.rho = 1.e-20               # Ambient density in g/cm^3
+
+By default, the ambient medium simply adds a constant density to any
+pre-existing density. However, in some cases you may want to use this as a
+minimum density. In order to do this, set the ``subtract`` attribute to a list
+containing any component you want to subtract from the constant density::
+
+    disk = m.add_flared_disk()
+    ...
+    envelope = m.add_ulrich_envelope()
+    ...
+    ambient = m.add_ambient_medium()
+    ...
+    ambient.subtract = [envelope, disk]
+
+In regions where the sum of the densities from these components exceeds the
+ambient density, no dust is added to the model, whereas in regions where the
+sum of the density of the components is below the ambient density, the density
+gets set to the ambient density.
 
 Accretion
 ---------
