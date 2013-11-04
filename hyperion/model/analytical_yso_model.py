@@ -1,17 +1,19 @@
 from __future__ import print_function, division
 
+import collections
 from copy import deepcopy
 
 import numpy as np
+from astropy import log as logger
 
-from . import Model
 from ..densities import FlaredDisk, AlphaDisk, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
 from ..util.interpolate import interp1d_fast_loglog
 from ..util.constants import pi, sigma, c, G
 from ..sources import SphericalSource, SpotSource
 from ..util.functions import FreezableClass, virtual_file
 from ..grid import SphericalPolarGrid, CylindricalPolarGrid
-from astropy import log as logger
+
+from . import Model
 
 
 def _min_none(*args):
@@ -679,7 +681,10 @@ class AnalyticalYSOModel(Model):
         m = Model()
 
         # Set up grid
-        m.grid = self._set_polar_grid_auto(**self.grid)
+        if isinstance(self.grid, collections.Mapping):
+            m.grid = self._set_polar_grid_auto(**self.grid)
+        else:
+            m.grid = deepcopy(self.grid)
 
         # Copy over settings
         m.name = self.name
