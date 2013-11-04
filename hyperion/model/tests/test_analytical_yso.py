@@ -455,3 +455,37 @@ def test_complete_cylindrical_optthin(tmpdir):
     m.set_n_photons(initial=0, imaging=0)
 
     m.write(tmpdir.join(random_id()).strpath)
+
+
+def test_manual_grid(tmpdir):
+    """
+    Regression test for the case where the analytical YSO grid is set manually.
+    """
+
+    dust = get_test_dust()
+
+    m = AnalyticalYSOModel()
+
+    m.star.radius = 1.
+    m.star.temperature = 1000.
+    m.star.luminosity = 1.
+
+    d = m.add_flared_disk()
+    d.mass = 1.
+    d.rmin = 0.1
+    d.rmax = 10.
+    d.p = -1
+    d.beta = 1.25
+    d.h_0 = 0.1
+    d.r_0 = 2.
+    d.dust = dust
+
+    r = np.linspace(0., 10., 100)
+    t = [0., np.pi]
+    p = [0., 2. * np.pi]
+
+    m.set_spherical_polar_grid(r, t, p)
+
+    m.set_n_photons(initial=0, imaging=0)
+
+    m.write(tmpdir.join(random_id()).strpath)
