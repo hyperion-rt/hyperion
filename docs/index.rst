@@ -9,10 +9,11 @@ Hyperion documentation
 Introduction
 ------------
 
-This is the documentation for `Hyperion <http://www.hyperion-rt.org>`_, a three-dimensional dust continuum Monte-Carlo radiative
-transfer code. Models are set up via Python scripts, and are run using
-a compiled Fortran code, optionally making use of the Message Passing
-Interface (MPI) for parallel computing.
+This is the documentation for `Hyperion <http://www.hyperion-rt.org>`_, a
+three-dimensional dust continuum Monte-Carlo radiative transfer code. Models
+are set up via Python scripts, and are run using a compiled Fortran code,
+optionally making use of the Message Passing Interface (MPI) for parallel
+computing.
 
 .. important:: **Before you proceed, please make sure you have read the
                following disclaimers**:
@@ -33,6 +34,10 @@ Interface (MPI) for parallel computing.
 If your work makes use of Hyperion, please cite:
 
 **Robitaille, 2011**, *HYPERION: an open-source parallelized three-dimensional dust continuum radiative transfer code*, Astronomy & Astrophysics 536 A79 (`ADS <http://adsabs.harvard.edu/abs/2011A%26A...536A..79R>`_, `BibTeX <http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=2011A%26A...536A..79R&data_type=BIBTEX&db_key=AST&nocookieset=1>`_).
+
+If you need consulting on using Hyperion beyond the current documentation, then
+please `contact me <mailto:thomas.robitaille@gmail.com>`_ with details of your
+project.
 
 Note on units and constants
 ---------------------------
@@ -56,6 +61,7 @@ Documentation
    :maxdepth: 1
 
    installation/installation.rst
+   important/important.rst
    setup/setup.rst
    running/running.rst
    postprocessing/postprocessing.rst
