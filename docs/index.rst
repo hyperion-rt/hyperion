@@ -26,10 +26,12 @@ computing.
                  usage, a bug in the code, or a mistake in the
                  documentation.
 
-               * The user is fully responsible for ensuring that parameters
-                 such as photon numbers and grid resolution are adequate for
-                 the problem being studied. Hyperion will *not* raise errors
-                 if these inputs are inadequate.
+               * Users should read the :doc:`important/important` before using
+                 Hyperion. In particular, users are fully responsible for
+                 ensuring that parameters such as photon numbers and grid
+                 resolution are adequate for the problem being studied.
+                 Hyperion will *not* raise errors if these inputs are
+                 inadequate.
 
 If your work makes use of Hyperion, please cite:
 
