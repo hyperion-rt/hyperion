@@ -1,6 +1,10 @@
 Setting up a YSO model
 ======================
 
+.. note:: If you haven't already done so, please make sure you read
+          the :doc:`../important/important` to understand whether to
+          specify dust or dust+gas densities!
+
 Source parameters
 -----------------
 
@@ -64,6 +68,13 @@ further::
     envelope.rc = 100 * au              # Centrifugal radius
     envelope.rmax = 1000 * au           # Outer radius
 
+As mentioned in the :doc:`../important/important`, the infall rate ``mdot`` is
+not necessarily the dust+gas infall rate - for instance if the dust opacities
+are per unit dust mass, the infall rate specified should only include the dust
+(because it is only used to set the density structure, and does not add any
+accretion luminosity).
+
+
 .. note:: the Ulrich (1976) solution is sometimes (incorrectly) referred to
           as the Terebey, Shu, and Cassen (TSC) solution, which is much more
           complex. The Ulrich envelope implemented here is the same envelope
@@ -106,7 +117,8 @@ object to set the parameters further. The parameters are the same as for flared 
     disk.p = -1                         # Radial surface density exponent
     disk.beta = 1.25                    # Disk flaring power
 
-except that the accretion properties of the disk can also be specified. Either the disk accretion rate can be specified::
+except that the accretion properties of the disk can also be specified. Either
+the disk accretion rate can be specified::
 
     disk.mdot = 1e-6 * msun / yr        # Disk accretion rate
 
@@ -114,8 +126,14 @@ or the accretion luminosity from viscous dissipation::
 
     disk.lvisc = 0.01 * lsun
 
+As mentioned in the :doc:`../important/important`, the accretion rate ``mdot``
+should always be the total dust+gas accretion rate, because it is the total
+dust+gas accretion rate that sets the accretion luminosity.
+
 Note that this accretion luminosity only includes the luminosity down to
-``disk.rmin``, and does not include the luminosity from the stellar surface (see `Magnetospheric accretion`_). For more details on the accretion luminosity from viscous dissipation, see :class:`~hyperion.densities.AlphaDisk`.
+``disk.rmin``, and does not include the luminosity from the stellar surface
+(see `Magnetospheric accretion`_). For more details on the accretion luminosity
+from viscous dissipation, see :class:`~hyperion.densities.AlphaDisk`.
 
 Magnetospheric accretion
 ^^^^^^^^^^^^^^^^^^^^^^^^
