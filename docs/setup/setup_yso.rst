@@ -1,6 +1,10 @@
 Setting up a YSO model
 ======================
 
+.. note:: If you haven't already done so, please make sure you read
+          the :doc:`../important/important` to understand whether to
+          specify dust or dust+gas densities!
+
 Source parameters
 -----------------
 
@@ -41,9 +45,11 @@ Power-law spherically symmetric envelope
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The simplest kind of envelope is a spherically symmetric envelope with a
-power-law distribution in density. A power-law envelope can be added using
-the :meth:`~hyperion.model.AnalyticalYSOModel.add_power_law_envelope` method, and capturing the reference to the :class:`~hyperion.densities.PowerLawEnvelope` object to set the parameters
-further::
+power-law distribution in density. A power-law envelope can be added using the
+:meth:`~hyperion.model.AnalyticalYSOModel.add_power_law_envelope` method, and
+capturing the reference to the :class:`~hyperion.densities.PowerLawEnvelope`
+object to set the parameters further::
+
 
     envelope = m.add_power_law_envelope()
     envelope.mass = 0.1 * msun          # Envelope mass
@@ -54,8 +60,11 @@ further::
 Ulrich rotationally flattened envelope
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A more complex envelope density distribution is that of Ulrich (1976), which consists of a rotationally flattened envelope. A power-law envelope can be added using
-the :meth:`~hyperion.model.AnalyticalYSOModel.add_ulrich_envelope` method, and capturing the reference to the :class:`~hyperion.densities.UlrichEnvelope` object to set the parameters
+A more complex envelope density distribution is that of Ulrich (1976), which
+consists of a rotationally flattened envelope. A power-law envelope can be
+added using the :meth:`~hyperion.model.AnalyticalYSOModel.add_ulrich_envelope`
+method, and capturing the reference to the
+:class:`~hyperion.densities.UlrichEnvelope` object to set the parameters
 further::
 
     envelope = m.add_ulrich_envelope()
@@ -63,6 +72,13 @@ further::
     envelope.rmin = 0.1 * au            # Inner radius
     envelope.rc = 100 * au              # Centrifugal radius
     envelope.rmax = 1000 * au           # Outer radius
+
+As mentioned in the :doc:`../important/important`, the infall rate ``mdot`` is
+not necessarily the dust+gas infall rate - for instance if the dust opacities
+are per unit dust mass, the infall rate specified should only include the dust
+(because it is only used to set the density structure, and does not add any
+accretion luminosity).
+
 
 .. note:: the Ulrich (1976) solution is sometimes (incorrectly) referred to
           as the Terebey, Shu, and Cassen (TSC) solution, which is much more
@@ -123,7 +139,9 @@ Viscous dissipation
 .. note:: This feature is still experimental, please use with caution and
           report any issues!
 
-To simulate the effects of accretion due to viscous dissipation of energy in the disk, you can use an 'alpha accretion' disk instead of a plain flared disk. Such disks can be added using the
+To simulate the effects of accretion due to viscous dissipation of energy in
+the disk, you can use an 'alpha accretion' disk instead of a plain flared disk.
+Such disks can be added using the
 :meth:`~hyperion.model.AnalyticalYSOModel.add_alpha_disk` method, and
 capturing the reference to the :class:`~hyperion.densities.AlphaDisk`
 object to set the parameters further. The parameters are the same as for flared disks::
@@ -137,7 +155,8 @@ object to set the parameters further. The parameters are the same as for flared 
     disk.p = -1                         # Radial surface density exponent
     disk.beta = 1.25                    # Disk flaring power
 
-except that the accretion properties of the disk can also be specified. Either the disk accretion rate can be specified::
+except that the accretion properties of the disk can also be specified. Either
+the disk accretion rate can be specified::
 
     disk.mdot = 1e-6 * msun / yr        # Disk accretion rate
 
@@ -145,8 +164,14 @@ or the accretion luminosity from viscous dissipation::
 
     disk.lvisc = 0.01 * lsun
 
+As mentioned in the :doc:`../important/important`, the disk accretion rate
+``mdot`` should always be the total dust+gas accretion rate, because it is the
+total dust+gas accretion rate that sets the accretion luminosity.
+
 Note that this accretion luminosity only includes the luminosity down to
-``disk.rmin``, and does not include the luminosity from the stellar surface (see `Magnetospheric accretion`_). For more details on the accretion luminosity from viscous dissipation, see :class:`~hyperion.densities.AlphaDisk`.
+``disk.rmin``, and does not include the luminosity from the stellar surface
+(see `Magnetospheric accretion`_). For more details on the accretion luminosity
+from viscous dissipation, see :class:`~hyperion.densities.AlphaDisk`.
 
 Magnetospheric accretion
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -162,7 +187,11 @@ magnetosphere to the surface of the star. Half the energy goes into X-rays,
 and half goes into heating spots on the stellar surface, and is then
 re-emitted with a spectrum hotter than the rest of the stellar surface.
 
-To help set this up, a convenience method :meth:`~hyperion.model.AnalyticalYSOModel.setup_magnetospheric_accretion` is provided, which takes the accretion rate, the radius at which the matter free-falls from, the spot covering fraction, and optionally parameters describing the X-ray spectrum. For example::
+To help set this up, a convenience method
+:meth:`~hyperion.model.AnalyticalYSOModel.setup_magnetospheric_accretion` is
+provided, which takes the accretion rate, the radius at which the matter
+free-falls from, the spot covering fraction, and optionally parameters
+describing the X-ray spectrum. For example::
 
     m.setup_magnetospheric_accretion(1.e-6 * msun / yr, 5 * m.star.radius, 0.2)
 
@@ -178,7 +207,8 @@ for more details.
 Dust
 ----
 
-The dust file to use for each component should be specified using the ``dust`` attribute for the component, e.g.::
+The dust file to use for each component should be specified using the ``dust``
+attribute for the component, e.g.::
 
     disk.dust = 'www003.hdf5'
     envelope.dust = 'kmh.hdf5'

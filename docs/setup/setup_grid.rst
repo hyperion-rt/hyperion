@@ -23,6 +23,10 @@ The ``add_density_grid`` method can be called multiple times if multiple
 density arrays are needed (for example if different dust sizes have different
 spatial distributions).
 
+.. note:: If you haven't already done so, please make sure you read
+          the :doc:`../important/important` to understand whether to
+          specify dust or dust+gas densities!
+
 Optionally, a specific energy distribution can also be specified in
 ``add_density_grid`` using the ``specific_energy=`` argument::
 
