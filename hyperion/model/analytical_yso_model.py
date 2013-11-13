@@ -427,7 +427,7 @@ class AnalyticalYSOModel(Model):
         return rmin, rmax
 
     def set_cylindrical_polar_grid_auto(self, n_w, n_z, n_phi,
-                                        wmax=None, zmax=None):
+                                        wmax=None, zmax=None, min_spacing=1.e-8):
         '''
         Set the grid to be cylindrical polar with automated resolution.
 
@@ -444,13 +444,17 @@ class AnalyticalYSOModel(Model):
             The maximum height above and below the midplane to extend to. If
             not specified, this is set to the maximum cylindrical radius of
             the dust geometry.
+        min_spacing : float, optional
+            The minimum spacing (in relative terms) for the inner cell walls.
+            The spacing from rmin to the next cell wall cannot be smaller than
+            rmin * (1 + min_spacing).
         '''
         self.grid = {'grid_type': 'cylindrical',
                      'n1': n_w, 'n2': n_z, 'n3': n_phi,
-                     'rmax': wmax, 'zmax': zmax}
+                     'rmax': wmax, 'zmax': zmax, 'min_spacing':min_spacing}
 
     def set_spherical_polar_grid_auto(self, n_r, n_theta, n_phi,
-                                      rmax=None):
+                                      rmax=None, min_spacing=1.e-8):
         '''
         Set the grid to be spherical polar with automated resolution.
 
@@ -466,13 +470,17 @@ class AnalyticalYSOModel(Model):
             cylindrical outer edge, this should be set to a value larger
             than the disk radius, otherwise the disk will be truncated with
             a spherical edge.
+        min_spacing : float, optional
+            The minimum spacing (in relative terms) for the inner cell walls.
+            The spacing from rmin to the next cell wall cannot be smaller than
+            rmin * (1 + min_spacing).
         '''
         self.grid = {'grid_type': 'spherical',
                      'n1': n_r, 'n2': n_theta, 'n3': n_phi,
-                     'rmax': rmax}
+                     'rmax': rmax, 'min_spacing':min_spacing}
 
     def _set_polar_grid_auto(self, n1=None, n2=None, n3=None, grid_type=None,
-                             zmax=None, rmax=None):
+                             zmax=None, rmax=None, min_spacing=1.e-8):
 
         if self.star.radius is None:
             raise Exception("The central source radius need to be defined "
@@ -548,8 +556,8 @@ class AnalyticalYSOModel(Model):
         rnext = min(r_next_real, r_next_tau)
 
         # Make sure rnext isn't too small
-        if rmin * (1. + 1.e-12) > rnext + rmin:
-            rnext = rmin * 1.e-12
+        if rmin * (1. + min_spacing) > rnext + rmin:
+            rnext = rmin * min_spacing
 
         # Define wall positions
         r_wall = np.hstack([0., np.logspace(np.log10(rnext / rmin), np.log10((rmax - rmin) / rmin), n_r - 1)]) * rmin + rmin
