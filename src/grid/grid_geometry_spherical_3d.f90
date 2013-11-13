@@ -688,6 +688,11 @@ contains
     d1 = r - geo%w1(p%icell%i1)
     d2 = geo%w1(p%icell%i1+1) - r
 
+    ! If value is within machine precision of wall position, then set to zero
+    ! (this takes care of negative values too)
+    if(abs(d1) < geo%ew1(p%icell%i1)) d1 = 0._dp
+    if(abs(d2) < geo%ew1(p%icell%i1+1)) d2 = 0._dp
+
     ! Theta walls - point-line distance
     !
     ! Distance between a line with equation y=-a/b*x-c/b and point (x0,y0) is:
