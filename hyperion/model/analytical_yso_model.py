@@ -557,6 +557,7 @@ class AnalyticalYSOModel(Model):
 
         # Make sure rnext isn't too small
         if rmin * (1. + min_spacing) > rnext + rmin:
+            logger.warn("Spacing of inner radial cells is too small, resetting to {0}".format(min_spacing))
             rnext = rmin * min_spacing
 
         # Define wall positions
