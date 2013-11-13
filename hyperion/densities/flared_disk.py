@@ -19,6 +19,17 @@ class FlaredDisk(Disk):
 
     .. math:: \rho(R,z,\phi) = \rho_0^{\rm disk}\,\left(\frac{R_0}{R}\right)^{\beta - p}\,\exp{\left[-\frac{1}{2}\left(\frac{z}{h(R)}\right)^2\right]} \\
 
+    where
+
+    .. math:: h(R) = h_0\left(\frac{R}{R_0}\right)^\beta
+
+    The :math:`\rho_0^{\rm disk}` parameter does not need to be set directly
+    (although it can be), and is instead automatically calculated when you set
+    the disk mass. The exact equation relating :math:`\rho_0^{\rm disk}` to the
+    disk mass can be found by integrating the equation for
+    :math:`\rho(R,z,\phi)` over three dimensions and setting the result equal
+    to the disk mass.
+
     Once the :class:`~hyperion.densities.FlaredDisk` class has been
     instantiated, the parameters for the density structure can be set via
     attributes::
