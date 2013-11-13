@@ -22,6 +22,31 @@ New features
   argument to ``source_id`` in :meth:`~hyperion.model.ModelOutput.get_sed` and
   :meth:`~hyperion.model.ModelOutput.get_image` (when using photon tracking).
 
+- Improved documentation to explain better in which cases dust and total
+  densities should be used. This is summarized in :doc:`important/important`.
+
+- Added an option to specify the minimum (relative) radial cell spacing for the
+  :class:`~hyperion.model.AnalyticalYSOModel` class.
+
+- Fixed bug that prevented users from setting the grid manually with the
+  :class:`~hyperion.model.AnalyticalYSOModel` class.
+
+- It is now possible to include multiple ambient mediums with different dust
+  properties (this was limited to a single ambient medium property previously).
+
+- The :meth:`~hyperion.model.Model.add_density_grid` method can now be called
+  with a grid view for all grid types (previously this was only possible for
+  AMR grids).
+
+- Added dust classes to the API documentation.
+
+- Fixed a typo in the equation for the :class:`~hyperion.densities.AlphaDisk`
+  class, and added definitions of the scaleheight for
+  :class:`~hyperion.densities.AlphaDisk` and
+  :class:`~hyperion.densities.FlaredDisk`.
+
+- Improve the reliability of the configure script.
+
 0.9.2 (2013-08-16)
 ------------------
 
