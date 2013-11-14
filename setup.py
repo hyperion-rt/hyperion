@@ -60,11 +60,14 @@ scripts = ['hyperion', 'hyperion2fits']
 if __dev__:
     scripts.append('mctherm2hyperion')
 
-setup(name='hyperion',
+setup(name='Hyperion',
       version=__version__,
       url='http://www.hyperion-rt.org',
+      description='Monte-Carlo Radiative Transfer Code',
+      long_description='Monte-Carlo Radiative Transfer Code',
       author='Thomas Robitaille',
       author_email='thomas.robitaille@gmail.com',
+      license='BSD',
       packages=['hyperion',
                 'hyperion.conf',
                 'hyperion.conf.tests',
