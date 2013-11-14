@@ -1,7 +1,10 @@
 Version History
 ===============
 
-0.9.3 (unreleased)
+0.9.4 (unreleased)
+------------------
+
+0.9.3 (2013-11-14)
 ------------------
 
 New features
