@@ -434,3 +434,51 @@ class TestInsideSED(object):
         # Check conversion to mJy
         mJy = self.m.get_sed(group=0, units='mJy', inclination=0)
         assert_array_almost_equal_nulp((ref.val / ref.nu), mJy.val * 1.e-26, 10)
+
+
+class TestSEDStokesOption(object):
+
+    def setup_class(self):
+
+        m = Model()
+
+        m.set_cartesian_grid([-1., 1.],
+                             [-1., 1.],
+                             [-1., 1.])
+
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 6000.
+
+        sed = m.add_peeled_images(sed=True, image=False)
+        sed.set_viewing_angles([1., 2.], [1., 2.])
+        sed.set_wavelength_range(5, 0.1, 100.)
+        sed.set_aperture_range(4, 2., 5.)
+
+        m.set_n_initial_iterations(0)
+
+        m.set_n_photons(imaging=10000)
+
+        self.tmpdir = tempfile.mkdtemp()
+
+        m.write(os.path.join(self.tmpdir, random_id()))
+        self.m1 = m.run()
+
+        sed.set_stokes(False)
+
+        m.write(os.path.join(self.tmpdir, random_id()))
+        self.m2 = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
+
+    def test_get_sed_I(self):
+        self.m1.get_sed()
+        self.m2.get_sed()
+
+    @pytest.mark.parametrize('stokes', ['Q', 'U', 'V', 'linpol', 'circpol'])
+    def test_get_sed_stokes(self, stokes):
+        self.m1.get_sed(stokes=stokes)
+        with pytest.raises(ValueError) as exc:
+            self.m2.get_sed(stokes=stokes)
+        assert exc.value.args[0] == "Only the Stokes I value was stored for this SED"

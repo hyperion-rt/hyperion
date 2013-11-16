@@ -528,3 +528,53 @@ class TestInsideImage(object):
         # same area, so this is simple.
         MJy_per_sr = self.m.get_image(group=0, units='MJy/sr', inclination=0)
         assert_array_almost_equal_nulp((ref.val / ref.nu), MJy_per_sr.val * 1.e-17 * MJy_per_sr.pix_area_sr[:, :, np.newaxis], 10)
+
+
+class TestImageStokesOption(object):
+
+    def setup_class(self):
+
+        m = Model()
+
+        m.set_cartesian_grid([-1., 1.],
+                             [-1., 1.],
+                             [-1., 1.])
+
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 6000.
+
+        img = m.add_peeled_images(sed=False, image=True)
+        img.set_viewing_angles([1., 2.], [1., 2.])
+        img.set_image_limits(-1., 2., -3., 4.)
+        img.set_image_size(10, 20)
+        img.set_wavelength_range(5, 0.1, 100.)
+
+        m.set_n_initial_iterations(0)
+
+        m.set_n_photons(imaging=10000)
+
+        self.tmpdir = tempfile.mkdtemp()
+
+        m.write(os.path.join(self.tmpdir, random_id()))
+        self.m1 = m.run()
+
+        img.set_stokes(False)
+
+        m.write(os.path.join(self.tmpdir, random_id()))
+        print("HEAR", m.peeled_output[0].stokes)
+        self.m2 = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
+
+    def test_get_image_I(self):
+        self.m1.get_image()
+        self.m2.get_image()
+
+    @pytest.mark.parametrize('stokes', ['Q', 'U', 'V', 'linpol', 'circpol'])
+    def test_get_image_stokes(self, stokes):
+        self.m1.get_image(stokes=stokes)
+        with pytest.raises(ValueError) as exc:
+            self.m2.get_image(stokes=stokes)
+        assert exc.value.args[0] == "Only the Stokes I value was stored for this image"
