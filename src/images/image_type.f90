@@ -94,6 +94,7 @@ module type_image
      ! emissivity of the dust types, binned to the image spectral resolution
 
      real(dp),allocatable :: tmp_spectrum(:)
+     real(dp),allocatable :: tmp_stokes(:)
 
      character(len=10) :: track_origin
      logical :: uncertainties
@@ -162,12 +163,27 @@ contains
     real(dp),intent(in),optional :: frequencies(:)
     real(dp) :: wav_min, wav_max
     integer :: io_bytes
+    logical :: compute_stokes
 
     img%n_view = n_view
     img%n_sources = n_sources
     img%n_dust = n_dust
 
     call mp_read_keyword(handle, path, 'n_wav',img%n_nu)
+
+    if(mp_exists_keyword(handle, path, 'compute_stokes')) then
+       call mp_read_keyword(handle, path, 'compute_stokes',compute_stokes)
+    else
+       compute_stokes = .true.
+    end if
+
+    if(compute_stokes) then
+       img%n_stokes = 4
+    else
+       img%n_stokes = 1
+    end if
+
+    allocate(img%tmp_stokes(img%n_stokes))
 
     call mp_read_keyword(handle, path, 'compute_image',img%compute_image)
     if(img%compute_image) then
@@ -360,7 +376,6 @@ contains
     integer,intent(in) :: im ! sub-image to bin into
     real(dp) :: log10_nu_image
     integer :: ix,iy,ir,inu,io ! Bins
-    real(dp) :: stokes_vector(4)
 
     if(img%compute_image.and..not.allocated(img%img)) call error('bin_photon','Image not allocated')
     if(img%compute_sed.and..not.allocated(img%sed)) call error('bin_photon','SED not allocated')
@@ -397,16 +412,20 @@ contains
        io = 1
     end if
 
-    stokes_vector = [p%s%i,p%s%q,p%s%u,p%s%v]
+    if(img%n_stokes == 4) then
+       img%tmp_stokes = [p%s%i,p%s%q,p%s%u,p%s%v]
+    else
+       img%tmp_stokes = [p%s%i]
+    end if
 
     if(inu >= 1 .and. inu <= img%n_nu) then
        if(img%compute_image) then
           call find_image_bin(img,x_image,y_image,ix,iy)
           if(ix >= 1 .and. ix <= img%n_x) then
              if(iy >= 1 .and. iy <= img%n_y) then
-                img%img(inu,ix,iy,im,io,:) = img%img(inu,ix,iy,im,io,:) + stokes_vector * p%energy
+                img%img(inu,ix,iy,im,io,:) = img%img(inu,ix,iy,im,io,:) + img%tmp_stokes * p%energy
                 if(img%uncertainties) then
-                   img%img2(inu,ix,iy,im,io,:) = img%img2(inu,ix,iy,im,io,:) + stokes_vector**2._dp * p%energy**2._dp
+                   img%img2(inu,ix,iy,im,io,:) = img%img2(inu,ix,iy,im,io,:) + img%tmp_stokes**2._dp * p%energy**2._dp
                    img%imgn(inu,ix,iy,im,io,:) = img%imgn(inu,ix,iy,im,io,:) + 1._dp
                 end if
              end if
@@ -415,9 +434,9 @@ contains
        if(img%compute_sed) then
           call find_sed_bin(img,x_image,y_image,ir)
           if(ir >= 1 .and. ir <= img%n_ap) then
-             img%sed(inu,ir,im,io,:) = img%sed(inu,ir,im,io,:) + stokes_vector * p%energy
+             img%sed(inu,ir,im,io,:) = img%sed(inu,ir,im,io,:) + img%tmp_stokes * p%energy
              if(img%uncertainties) then
-                img%sed2(inu,ir,im,io,:) = img%sed2(inu,ir,im,io,:) + stokes_vector**2._dp * p%energy**2._dp
+                img%sed2(inu,ir,im,io,:) = img%sed2(inu,ir,im,io,:) + img%tmp_stokes**2._dp * p%energy**2._dp
                 img%sedn(inu,ir,im,io,:) = img%sedn(inu,ir,im,io,:) + 1._dp
              end if
           end if
