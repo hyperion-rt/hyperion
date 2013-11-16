@@ -80,16 +80,25 @@ Uncertainties can be computed for SEDs/images (doubling the memory/disk space re
 Stokes components
 -----------------
 
-By default, the stokes components for the images are saved, but this results in
-four times the amount of memory, and four times the amount of disk space for
-the output. To disable the storage of the Stokes components other than I, make
-use of the ``set_stokes`` method::
+By default, to save memory and disk space, the Stokes components other than I
+for the images are not saved. To enable the storage of the Stokes components
+other than I, make use of the ``set_stokes`` method::
 
     sed.set_stokes(True)
 
 or::
 
-    image.set_stokes(False)
+    image.set_stokes(True)
+
+If you do not do this, then you will not be able to make use of the ``stokes=``
+option in :meth:`~hyperion.model.ModelOutput.get_sed` and
+:meth:`~hyperion.model.ModelOutput.get_image`.
+
+.. note:: In Hyperion 0.9.3 and earlier versions, this option did not exist and
+          Stokes components were all saved by default. Note that the default
+          behavior is now changed. However, files produced in Hyperion 0.9.3
+          and earlier will behave as if the option was set to `True` for
+          backward-compatibility.
 
 File output
 -----------

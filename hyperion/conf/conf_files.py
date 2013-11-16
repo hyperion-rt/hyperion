@@ -647,7 +647,7 @@ class ImageConf(FreezableClass):
         self.set_output_bytes(8)
         self.set_track_origin('no')
         self.set_uncertainties(False)
-        self.set_stokes(True)
+        self.set_stokes(False)
         self._monochromatic = False
         self._freeze()
 

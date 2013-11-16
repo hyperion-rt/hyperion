@@ -33,6 +33,7 @@ class TestSEDSimpleModel(object):
         i.set_viewing_angles([1., 2.], [1., 2.])
         i.set_wavelength_range(5, 0.1, 100.)
         i.set_aperture_range(3, 1., 10.)
+        i.set_stokes(True)
 
         m.set_n_initial_iterations(0)
 
@@ -460,6 +461,8 @@ class TestSEDStokesOption(object):
         m.set_n_photons(imaging=10000)
 
         self.tmpdir = tempfile.mkdtemp()
+
+        sed.set_stokes(True)
 
         m.write(os.path.join(self.tmpdir, random_id()))
         self.m1 = m.run()
