@@ -77,6 +77,20 @@ Uncertainties can be computed for SEDs/images (doubling the memory/disk space re
 
     image.set_uncertainties(True)
 
+Stokes components
+-----------------
+
+By default, the stokes components for the images are saved, but this results in
+four times the amount of memory, and four times the amount of disk space for
+the output. To disable the storage of the Stokes components other than I, make
+use of the ``set_stokes`` method::
+
+    sed.set_stokes(True)
+
+or::
+
+    image.set_stokes(False)
+
 File output
 -----------
 
