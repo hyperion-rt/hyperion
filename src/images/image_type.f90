@@ -641,8 +641,8 @@ contains
 
        write(*,'(" [image_write] writing out images")')
 
-       allocate(cube6d(img%n_nu, img%n_x, img%n_y, img%n_view, img%n_orig, 4))
-       if(img%uncertainties) allocate(cube6de(img%n_nu, img%n_x, img%n_y, img%n_view, img%n_orig, 4))
+       allocate(cube6d(img%n_nu, img%n_x, img%n_y, img%n_view, img%n_orig, img%n_stokes))
+       if(img%uncertainties) allocate(cube6de(img%n_nu, img%n_x, img%n_y, img%n_view, img%n_orig, img%n_stokes))
 
        cube6d = img%img
 
