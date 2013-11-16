@@ -347,56 +347,50 @@ contains
 
     integer :: ip
 
-    real(dp),allocatable :: cube4d(:,:,:,:)
     real(dp),allocatable :: cube5d(:,:,:,:,:)
+    real(dp),allocatable :: cube6d(:,:,:,:,:,:)
 
     if(make_binned_images) then
 
        if(binned_image%compute_sed) then
 
-          allocate(cube4d(binned_image%n_nu,binned_image%n_ap,binned_image%n_view,binned_image%n_orig))
+          allocate(cube5d(binned_image%n_nu,binned_image%n_ap,binned_image%n_view,binned_image%n_orig,binned_image%n_stokes))
 
-          call mpi_reduce(binned_image%sed%i, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%sed%i = cube4d
-          call mpi_reduce(binned_image%sed%q, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%sed%q = cube4d
-          call mpi_reduce(binned_image%sed%u, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%sed%u = cube4d
-          call mpi_reduce(binned_image%sed%v, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%sed%v = cube4d
+          call mpi_reduce(binned_image%sed, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+          binned_image%sed = cube5d
 
           if(binned_image%uncertainties) then
 
-             call mpi_reduce(binned_image%sed2%i, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%sed2%i = cube4d
-             call mpi_reduce(binned_image%sed2%q, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%sed2%q = cube4d
-             call mpi_reduce(binned_image%sed2%u, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%sed2%u = cube4d
-             call mpi_reduce(binned_image%sed2%v, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%sed2%v = cube4d
+             call mpi_reduce(binned_image%sed2, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+             binned_image%sed2 = cube5d
 
-             call mpi_reduce(binned_image%sedn, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%sedn = cube4d
+             call mpi_reduce(binned_image%sedn, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+             binned_image%sedn = cube5d
 
           end if
 
-          deallocate(cube4d)
+          deallocate(cube5d)
 
        end if
 
        if(binned_image%compute_image) then
 
-          allocate(cube5d(binned_image%n_nu,binned_image%n_x,binned_image%n_y,binned_image%n_view,binned_image%n_orig))
+          allocate(cube6d(binned_image%n_nu,binned_image%n_x,binned_image%n_y,binned_image%n_view,binned_image%n_orig,binned_image%n_stokes))
 
-          call mpi_reduce(binned_image%img%i, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%img%i = cube5d
-          call mpi_reduce(binned_image%img%q, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%img%q = cube5d
-          call mpi_reduce(binned_image%img%u, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%img%u = cube5d
-          call mpi_reduce(binned_image%img%v, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%img%v = cube5d
+          call mpi_reduce(binned_image%img, cube6d, size(cube6d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+          binned_image%img = cube6d
 
           if(binned_image%uncertainties) then
 
-             call mpi_reduce(binned_image%img2%i, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%img2%i = cube5d
-             call mpi_reduce(binned_image%img2%q, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%img2%q = cube5d
-             call mpi_reduce(binned_image%img2%u, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%img2%u = cube5d
-             call mpi_reduce(binned_image%img2%v, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%img2%v = cube5d
+             call mpi_reduce(binned_image%img2, cube6d, size(cube6d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+             binned_image%img2 = cube6d
 
-             call mpi_reduce(binned_image%imgn, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; binned_image%imgn = cube5d
+             call mpi_reduce(binned_image%imgn, cube6d, size(cube6d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+             binned_image%imgn = cube6d
 
           end if
 
-          deallocate(cube5d)
+          deallocate(cube6d)
 
        end if
 
@@ -408,49 +402,43 @@ contains
 
           if(peeled_image(ip)%compute_sed) then
 
-             allocate(cube4d(peeled_image(ip)%n_nu,peeled_image(ip)%n_ap,peeled_image(ip)%n_view,peeled_image(ip)%n_orig))
+             allocate(cube5d(peeled_image(ip)%n_nu,peeled_image(ip)%n_ap,peeled_image(ip)%n_view,peeled_image(ip)%n_orig, peeled_image(ip)%n_stokes))
 
-             call mpi_reduce(peeled_image(ip)%sed%i, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%sed%i = cube4d
-             call mpi_reduce(peeled_image(ip)%sed%q, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%sed%q = cube4d
-             call mpi_reduce(peeled_image(ip)%sed%u, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%sed%u = cube4d
-             call mpi_reduce(peeled_image(ip)%sed%v, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%sed%v = cube4d
+             call mpi_reduce(peeled_image(ip)%sed, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+             peeled_image(ip)%sed = cube5d
 
              if(peeled_image(ip)%uncertainties) then
 
-                call mpi_reduce(peeled_image(ip)%sed2%i, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%sed2%i = cube4d
-                call mpi_reduce(peeled_image(ip)%sed2%q, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%sed2%q = cube4d
-                call mpi_reduce(peeled_image(ip)%sed2%u, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%sed2%u = cube4d
-                call mpi_reduce(peeled_image(ip)%sed2%v, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%sed2%v = cube4d
+                call mpi_reduce(peeled_image(ip)%sed2, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+                peeled_image(ip)%sed2 = cube5d
 
-                call mpi_reduce(peeled_image(ip)%sedn, cube4d, size(cube4d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%sedn = cube4d
+                call mpi_reduce(peeled_image(ip)%sedn, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+                peeled_image(ip)%sedn = cube5d
 
              end if
 
-             deallocate(cube4d)
+             deallocate(cube5d)
 
           end if
 
           if(peeled_image(ip)%compute_image) then
 
-             allocate(cube5d(peeled_image(ip)%n_nu,peeled_image(ip)%n_x,peeled_image(ip)%n_y,peeled_image(ip)%n_view,peeled_image(ip)%n_orig))
+             allocate(cube6d(peeled_image(ip)%n_nu,peeled_image(ip)%n_x,peeled_image(ip)%n_y,peeled_image(ip)%n_view,peeled_image(ip)%n_orig,peeled_image(ip)%n_stokes))
 
-             call mpi_reduce(peeled_image(ip)%img%i, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%img%i = cube5d
-             call mpi_reduce(peeled_image(ip)%img%q, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%img%q = cube5d
-             call mpi_reduce(peeled_image(ip)%img%u, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%img%u = cube5d
-             call mpi_reduce(peeled_image(ip)%img%v, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%img%v = cube5d
+             call mpi_reduce(peeled_image(ip)%img, cube6d, size(cube6d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+             peeled_image(ip)%img = cube6d
 
              if(peeled_image(ip)%uncertainties) then
 
-                call mpi_reduce(peeled_image(ip)%img2%i, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%img2%i = cube5d
-                call mpi_reduce(peeled_image(ip)%img2%q, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%img2%q = cube5d
-                call mpi_reduce(peeled_image(ip)%img2%u, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%img2%u = cube5d
-                call mpi_reduce(peeled_image(ip)%img2%v, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%img2%v = cube5d
+                call mpi_reduce(peeled_image(ip)%img2, cube6d, size(cube6d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+                peeled_image(ip)%img2 = cube6d
 
-                call mpi_reduce(peeled_image(ip)%imgn, cube5d, size(cube5d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr) ; peeled_image(ip)%imgn = cube5d
+                call mpi_reduce(peeled_image(ip)%imgn, cube6d, size(cube6d), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+                peeled_image(ip)%imgn = cube6d
 
              end if
 
-             deallocate(cube5d)
+             deallocate(cube6d)
 
           end if
 
