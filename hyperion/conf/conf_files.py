@@ -647,6 +647,7 @@ class ImageConf(FreezableClass):
         self.set_output_bytes(8)
         self.set_track_origin('no')
         self.set_uncertainties(False)
+        self.set_stokes(True)
         self._monochromatic = False
         self._freeze()
 
@@ -852,6 +853,28 @@ class ImageConf(FreezableClass):
     def _write_uncertainties(self, group):
         group.attrs['uncertainties'] = bool2str(self.uncertainties)
 
+    def set_stokes(self, stokes):
+        '''
+        Set whether to save the full Stokes vector for the images/SEDs.
+
+        If set to `False`, only the I component is saved.
+
+        Parameters
+        ----------
+        stokes : bool
+            Whether to save the full Stokes vector for the images/SEDs.
+        '''
+        self.stokes = stokes
+
+    def _read_stokes(self, group):
+        if 'compute_stokes' in group.attrs:
+            self.stokes = str2bool(group.attrs['compute_stokes'])
+        else:
+            self.stokes = True
+
+    def _write_stokes(self, group):
+        group.attrs['compute_stokes'] = bool2str(self.stokes)
+
     @classmethod
     def read(cls, group):
         self = cls()
@@ -881,6 +904,7 @@ class ImageConf(FreezableClass):
         self._read_output_bytes(group)
         self._read_track_origin(group)
         self._read_uncertainties(group)
+        self._read_stokes(group)
 
     def _write_main_info(self, group):
         group.attrs['compute_sed'] = bool2str(self.sed)
@@ -894,6 +918,7 @@ class ImageConf(FreezableClass):
         self._write_output_bytes(group)
         self._write_track_origin(group)
         self._write_uncertainties(group)
+        self._write_stokes(group)
 
 
 class BinnedImageConf(ImageConf):
