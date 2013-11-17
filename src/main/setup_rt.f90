@@ -49,10 +49,18 @@ contains
     call mp_read_keyword(input_handle, '/', 'n_stats', n_stats)
 
     call mp_read_keyword(input_handle, '/', 'n_inter_max', n_inter_max)
-    call mp_read_keyword(input_handle, '/', 'n_inter_max_warn', n_inter_max_warn)
+    if(mp_exists_keyword(input_handle, '/', 'n_inter_max_warn')) then
+       call mp_read_keyword(input_handle, '/', 'n_inter_max_warn', n_inter_max_warn)
+    else
+       n_inter_max_warn = .true.
+    end if
 
     call mp_read_keyword(input_handle, '/', 'n_reabs_max', n_reabs_max)
-    call mp_read_keyword(input_handle, '/', 'n_reabs_max_warn', n_reabs_max_warn)
+    if(mp_exists_keyword(input_handle, '/', 'n_reabs_max_warn')) then
+       call mp_read_keyword(input_handle, '/', 'n_reabs_max_warn', n_reabs_max_warn)
+    else
+       n_reabs_max_warn = .true.
+    end if
 
     call mp_read_keyword(input_handle, '/', 'pda', use_pda)
     call mp_read_keyword(input_handle, '/', 'mrw', use_mrw)
@@ -60,7 +68,11 @@ contains
     if(use_mrw) then
        call mp_read_keyword(input_handle, '/', 'mrw_gamma', mrw_gamma)
        call mp_read_keyword(input_handle, '/', 'n_inter_mrw_max', n_mrw_max)
-       call mp_read_keyword(input_handle, '/', 'n_inter_mrw_max_warn', n_mrw_max_warn)
+       if(mp_exists_keyword(input_handle, '/', 'n_inter_mrw_max_warn')) then
+          call mp_read_keyword(input_handle, '/', 'n_inter_mrw_max_warn', n_mrw_max_warn)
+       else
+          n_mrw_max_warn = .true.
+       end if
     end if
 
     call mp_read_keyword(input_handle, '/', 'kill_on_absorb', kill_on_absorb)
