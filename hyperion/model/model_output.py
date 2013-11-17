@@ -136,6 +136,9 @@ class ModelOutput(FreezableClass):
                 * 'linpol':  Total linear polarization fraction
                 * 'circpol': Total circular polariation fraction
 
+            Note that if the SED was set up with ``set_stokes(False)``, then
+            only the ``I`` component is available.
+
         technique : str, optional
             Whether to retrieve SED(s) computed with photon peeling-off
             ('peeled') or binning ('binned'). Default is 'peeled'.
@@ -425,6 +428,9 @@ class ModelOutput(FreezableClass):
 
         # Select correct Stokes component
 
+        if flux.shape[0] == 1 and stokes != 'I':
+            raise ValueError("Only the Stokes I value was stored for this SED")
+
         if stokes in STOKESD:
             flux = flux[STOKESD[stokes]]
             if uncertainties:
@@ -481,6 +487,9 @@ class ModelOutput(FreezableClass):
                 * 'V': V Stokes parameter (circular polarization)
                 * 'linpol':  Total linear polarization fraction
                 * 'circpol': Total circular polariation fraction
+
+            Note that if the image was set up with ``set_stokes(False)``, then
+            only the ``I`` component is available.
 
         technique : str, optional
             Whether to retrieve an image computed with photon peeling-off
@@ -824,6 +833,9 @@ class ModelOutput(FreezableClass):
             raise Exception("Unknown component: %s" % component)
 
         # Select correct Stokes component
+
+        if flux.shape[0] == 1 and stokes != 'I':
+            raise ValueError("Only the Stokes I value was stored for this image")
 
         if stokes in STOKESD:
             flux = flux[STOKESD[stokes]]

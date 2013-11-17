@@ -64,16 +64,25 @@ module type_image
 
      ! IMAGE AND SED
 
+     ! Here we used to use the type `stokes_dp` type for the image/SED arrays,
+     ! but this turns out to not be ideal because there is no way to turn off
+     ! the stokes component. However, if instead we simply use the last
+     ! dimension of the array to represent the stokes vector, we can allocate
+     ! the array differently depending on whether we care about the
+     ! polarization elements.
+
+     integer :: n_stokes = 4
+
      logical :: compute_image
-     type(stokes_dp),allocatable :: img(:,:,:,:,:)
-     type(stokes_dp),allocatable :: img2(:,:,:,:,:)
-     real(dp),allocatable :: imgn(:,:,:,:,:)
+     real(dp),allocatable :: img(:,:,:,:,:,:)
+     real(dp),allocatable :: img2(:,:,:,:,:,:)
+     real(dp),allocatable :: imgn(:,:,:,:,:,:)
      ! the stokes Image array and the summation array for the variance
 
      logical :: compute_sed
-     type(stokes_dp),allocatable :: sed(:,:,:,:)
-     type(stokes_dp),allocatable :: sed2(:,:,:,:)
-     real(dp),allocatable :: sedn(:,:,:,:)
+     real(dp),allocatable :: sed(:,:,:,:,:)
+     real(dp),allocatable :: sed2(:,:,:,:,:)
+     real(dp),allocatable :: sedn(:,:,:,:,:)
      ! the stokes SED array and the summation array for the variance
 
      ! RAYTRACING
@@ -85,6 +94,7 @@ module type_image
      ! emissivity of the dust types, binned to the image spectral resolution
 
      real(dp),allocatable :: tmp_spectrum(:)
+     real(dp),allocatable :: tmp_stokes(:)
 
      character(len=10) :: track_origin
      logical :: uncertainties
@@ -131,32 +141,12 @@ contains
     type(image), intent(inout) :: img
     real(dp), intent(in) :: scale
 
-    if(img%compute_image) then
-       img%img%i = img%img%i * scale
-       img%img%q = img%img%q * scale
-       img%img%u = img%img%u * scale
-       img%img%v = img%img%v * scale
-    end if
-    if(img%compute_sed) then
-       img%sed%i = img%sed%i * scale
-       img%sed%q = img%sed%q * scale
-       img%sed%u = img%sed%u * scale
-       img%sed%v = img%sed%v * scale
-    end if
+    if(img%compute_image) img%img = img%img * scale
+    if(img%compute_sed) img%sed = img%sed * scale
 
     if(img%uncertainties) then
-       if(img%compute_image) then
-          img%img2%i = img%img2%i * scale**2
-          img%img2%q = img%img2%q * scale**2
-          img%img2%u = img%img2%u * scale**2
-          img%img2%v = img%img2%v * scale**2
-       end if
-       if(img%compute_sed) then
-          img%sed2%i = img%sed2%i * scale**2
-          img%sed2%q = img%sed2%q * scale**2
-          img%sed2%u = img%sed2%u * scale**2
-          img%sed2%v = img%sed2%v * scale**2
-       end if
+       if(img%compute_image) img%img2 = img%img2 * scale**2
+       if(img%compute_sed) img%sed2 = img%sed2 * scale**2
     end if
 
   end subroutine image_scale
@@ -173,12 +163,27 @@ contains
     real(dp),intent(in),optional :: frequencies(:)
     real(dp) :: wav_min, wav_max
     integer :: io_bytes
+    logical :: compute_stokes
 
     img%n_view = n_view
     img%n_sources = n_sources
     img%n_dust = n_dust
 
     call mp_read_keyword(handle, path, 'n_wav',img%n_nu)
+
+    if(mp_exists_keyword(handle, path, 'compute_stokes')) then
+       call mp_read_keyword(handle, path, 'compute_stokes',compute_stokes)
+    else
+       compute_stokes = .true.
+    end if
+
+    if(compute_stokes) then
+       img%n_stokes = 4
+    else
+       img%n_stokes = 1
+    end if
+
+    allocate(img%tmp_stokes(img%n_stokes))
 
     call mp_read_keyword(handle, path, 'compute_image',img%compute_image)
     if(img%compute_image) then
@@ -244,35 +249,35 @@ contains
     ! Allocate arrays
 
     if(img%compute_image) then
-       allocate(img%img(img%n_nu,img%n_x,img%n_y,img%n_view,img%n_orig))
+       allocate(img%img(img%n_nu,img%n_x,img%n_y,img%n_view,img%n_orig,img%n_stokes))
        if(img%uncertainties) then
-          allocate(img%img2(img%n_nu,img%n_x,img%n_y,img%n_view,img%n_orig))
-          allocate(img%imgn(img%n_nu,img%n_x,img%n_y,img%n_view,img%n_orig))
+          allocate(img%img2(img%n_nu,img%n_x,img%n_y,img%n_view,img%n_orig,img%n_stokes))
+          allocate(img%imgn(img%n_nu,img%n_x,img%n_y,img%n_view,img%n_orig,img%n_stokes))
        end if
     end if
 
     if(img%compute_sed) then
-       allocate(img%sed(img%n_nu,img%n_ap,img%n_view,img%n_orig))
+       allocate(img%sed(img%n_nu,img%n_ap,img%n_view,img%n_orig,img%n_stokes))
        if(img%uncertainties) then
-          allocate(img%sed2(img%n_nu,img%n_ap,img%n_view,img%n_orig))
-          allocate(img%sedn(img%n_nu,img%n_ap,img%n_view,img%n_orig))
+          allocate(img%sed2(img%n_nu,img%n_ap,img%n_view,img%n_orig,img%n_stokes))
+          allocate(img%sedn(img%n_nu,img%n_ap,img%n_view,img%n_orig,img%n_stokes))
        end if
     end if
 
     ! Initialize all arrays
 
     if(img%compute_image) then
-       img%img = stokes_dp(0.,0.,0.,0.)
+       img%img = 0._dp
        if(img%uncertainties) then
-          img%img2 = stokes_dp(0.,0.,0.,0.)
+          img%img2 = 0._dp
           img%imgn = 0._dp
        end if
     end if
 
     if(img%compute_sed) then
-       img%sed = stokes_dp(0.,0.,0.,0.)
+       img%sed = 0._dp
        if(img%uncertainties) then
-          img%sed2 = stokes_dp(0.,0.,0.,0.)
+          img%sed2 = 0._dp
           img%sedn = 0._dp
        end if
     end if
@@ -407,15 +412,21 @@ contains
        io = 1
     end if
 
+    if(img%n_stokes == 4) then
+       img%tmp_stokes = [p%s%i,p%s%q,p%s%u,p%s%v]
+    else
+       img%tmp_stokes = [p%s%i]
+    end if
+
     if(inu >= 1 .and. inu <= img%n_nu) then
        if(img%compute_image) then
           call find_image_bin(img,x_image,y_image,ix,iy)
           if(ix >= 1 .and. ix <= img%n_x) then
              if(iy >= 1 .and. iy <= img%n_y) then
-                img%img(inu,ix,iy,im,io) = img%img(inu,ix,iy,im,io) + p%s * p%energy
+                img%img(inu,ix,iy,im,io,:) = img%img(inu,ix,iy,im,io,:) + img%tmp_stokes * p%energy
                 if(img%uncertainties) then
-                   img%img2(inu,ix,iy,im,io) = img%img2(inu,ix,iy,im,io) + p%s**2._dp * p%energy**2._dp
-                   img%imgn(inu,ix,iy,im,io) = img%imgn(inu,ix,iy,im,io) + 1._dp
+                   img%img2(inu,ix,iy,im,io,:) = img%img2(inu,ix,iy,im,io,:) + img%tmp_stokes**2._dp * p%energy**2._dp
+                   img%imgn(inu,ix,iy,im,io,:) = img%imgn(inu,ix,iy,im,io,:) + 1._dp
                 end if
              end if
           end if
@@ -423,10 +434,10 @@ contains
        if(img%compute_sed) then
           call find_sed_bin(img,x_image,y_image,ir)
           if(ir >= 1 .and. ir <= img%n_ap) then
-             img%sed(inu,ir,im,io) = img%sed(inu,ir,im,io) + p%s * p%energy
+             img%sed(inu,ir,im,io,:) = img%sed(inu,ir,im,io,:) + img%tmp_stokes * p%energy
              if(img%uncertainties) then
-                img%sed2(inu,ir,im,io) = img%sed2(inu,ir,im,io) + p%s**2._dp * p%energy**2._dp
-                img%sedn(inu,ir,im,io) = img%sedn(inu,ir,im,io) + 1._dp
+                img%sed2(inu,ir,im,io,:) = img%sed2(inu,ir,im,io,:) + img%tmp_stokes**2._dp * p%energy**2._dp
+                img%sedn(inu,ir,im,io,:) = img%sedn(inu,ir,im,io,:) + 1._dp
              end if
           end if
        end if
@@ -499,10 +510,10 @@ contains
        if(ix >= 1 .and. ix <= img%n_x) then
           if(iy >= 1 .and. iy <= img%n_y) then
              do iw=1,img%n_nu
-                img%img(iw,ix,iy,im,io)%i = img%img(iw,ix,iy,im,io)%i + img%tmp_spectrum(iw)
+                img%img(iw,ix,iy,im,io,1) = img%img(iw,ix,iy,im,io,1) + img%tmp_spectrum(iw)
                 if(img%uncertainties) then
-                   img%img2(iw,ix,iy,im,io)%i = img%img2(iw,ix,iy,im,io)%i + img%tmp_spectrum(iw)**2._dp
-                   img%imgn(iw,ix,iy,im,io) = img%imgn(iw,ix,iy,im,io) + 1._dp
+                   img%img2(iw,ix,iy,im,io,1) = img%img2(iw,ix,iy,im,io,1) + img%tmp_spectrum(iw)**2._dp
+                   img%imgn(iw,ix,iy,im,io,1) = img%imgn(iw,ix,iy,im,io,1) + 1._dp
                 end if
              end do
           end if
@@ -513,10 +524,10 @@ contains
        call find_sed_bin(img,x_image,y_image,ir)
        if(ir >= 1 .and. ir <= img%n_ap) then
           do iw=1,img%n_nu
-             img%sed(iw,ir,im,io)%i = img%sed(iw,ir,im,io)%i + img%tmp_spectrum(iw)
+             img%sed(iw,ir,im,io,1) = img%sed(iw,ir,im,io,1) + img%tmp_spectrum(iw)
              if(img%uncertainties) then
-                img%sed2(iw,ir,im,io)%i = img%sed2(iw,ir,im,io)%i + img%tmp_spectrum(iw)**2._dp
-                img%sedn(iw,ir,im,io) = img%sedn(iw,ir,im,io) + 1._dp
+                img%sed2(iw,ir,im,io,1) = img%sed2(iw,ir,im,io,1) + img%tmp_spectrum(iw)**2._dp
+                img%sedn(iw,ir,im,io,1) = img%sedn(iw,ir,im,io,1) + 1._dp
              end if
           end do
        end if
@@ -572,25 +583,16 @@ contains
 
        write(*,'(" [image_write] writing out SEDs")')
 
-       allocate(cube5d(img%n_nu, img%n_ap, img%n_view,img%n_orig,4))
-       if(img%uncertainties) allocate(cube5de(img%n_nu, img%n_ap, img%n_view,img%n_orig,4))
+       allocate(cube5d(img%n_nu, img%n_ap, img%n_view,img%n_orig,img%n_stokes))
+       if(img%uncertainties) allocate(cube5de(img%n_nu, img%n_ap, img%n_view,img%n_orig,img%n_stokes))
 
-       cube5d(:,:,:,:,1) = img%sed%i
-       cube5d(:,:,:,:,2) = img%sed%q
-       cube5d(:,:,:,:,3) = img%sed%u
-       cube5d(:,:,:,:,4) = img%sed%v
+       cube5d = img%sed
 
        if(img%uncertainties) then
           where(img%sedn > 1)
-             cube5de(:,:,:,:,1) = sqrt((img%sed2%i + (img%sed%i)**2 / img%sedn) / (img%sedn - 1)) * sqrt(img%sedn)
-             cube5de(:,:,:,:,2) = sqrt((img%sed2%q + (img%sed%q)**2 / img%sedn) / (img%sedn - 1)) * sqrt(img%sedn)
-             cube5de(:,:,:,:,3) = sqrt((img%sed2%u + (img%sed%u)**2 / img%sedn) / (img%sedn - 1)) * sqrt(img%sedn)
-             cube5de(:,:,:,:,4) = sqrt((img%sed2%v + (img%sed%v)**2 / img%sedn) / (img%sedn - 1)) * sqrt(img%sedn)
+             cube5de = sqrt((img%sed2 + (img%sed)**2 / img%sedn) / (img%sedn - 1)) * sqrt(img%sedn)
           elsewhere
-             cube5de(:,:,:,:,1) = 0._dp
-             cube5de(:,:,:,:,2) = 0._dp
-             cube5de(:,:,:,:,3) = 0._dp
-             cube5de(:,:,:,:,4) = 0._dp
+             cube5de = 0._dp
           end where
        end if
 
@@ -639,25 +641,16 @@ contains
 
        write(*,'(" [image_write] writing out images")')
 
-       allocate(cube6d(img%n_nu, img%n_x, img%n_y, img%n_view, img%n_orig, 4))
-       if(img%uncertainties) allocate(cube6de(img%n_nu, img%n_x, img%n_y, img%n_view, img%n_orig, 4))
+       allocate(cube6d(img%n_nu, img%n_x, img%n_y, img%n_view, img%n_orig, img%n_stokes))
+       if(img%uncertainties) allocate(cube6de(img%n_nu, img%n_x, img%n_y, img%n_view, img%n_orig, img%n_stokes))
 
-       cube6d(:,:,:,:,:,1) = img%img%i
-       cube6d(:,:,:,:,:,2) = img%img%q
-       cube6d(:,:,:,:,:,3) = img%img%u
-       cube6d(:,:,:,:,:,4) = img%img%v
+       cube6d = img%img
 
        if(img%uncertainties) then
           where(img%imgn > 1)
-             cube6de(:,:,:,:,:,1) = sqrt((img%img2%i + (img%img%i)**2 / img%imgn) / (img%imgn - 1)) * sqrt(img%imgn)
-             cube6de(:,:,:,:,:,2) = sqrt((img%img2%q + (img%img%q)**2 / img%imgn) / (img%imgn - 1)) * sqrt(img%imgn)
-             cube6de(:,:,:,:,:,3) = sqrt((img%img2%u + (img%img%u)**2 / img%imgn) / (img%imgn - 1)) * sqrt(img%imgn)
-             cube6de(:,:,:,:,:,4) = sqrt((img%img2%v + (img%img%v)**2 / img%imgn) / (img%imgn - 1)) * sqrt(img%imgn)
+             cube6de = sqrt((img%img2 + (img%img)**2 / img%imgn) / (img%imgn - 1)) * sqrt(img%imgn)
           elsewhere
-             cube6de(:,:,:,:,:,1) = 0._dp
-             cube6de(:,:,:,:,:,2) = 0._dp
-             cube6de(:,:,:,:,:,3) = 0._dp
-             cube6de(:,:,:,:,:,4) = 0._dp
+             cube6de = 0._dp
           end where
        end if
 

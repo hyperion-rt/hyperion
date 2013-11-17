@@ -4,6 +4,17 @@ Version History
 0.9.4 (unreleased)
 ------------------
 
+New features
+^^^^^^^^^^^^
+
+- Image and SED groups now have a ``set_stokes`` option that allows users to
+  specify whether to save Stokes componenets other than I. Prior to this
+  version, all Stokes components were always saved, but this resulted in an
+  unecessarily high memory usage in many cases, so the default is now set to
+  `False`, and users have to explicitly set ``set_stokes(True)`` in order to
+  save all Stokes components. [#61]
+
+
 0.9.3 (2013-11-14)
 ------------------
 
