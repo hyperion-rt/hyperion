@@ -320,7 +320,10 @@ class RunConf(object):
 
     def _read_max_interactions(self, group):
         self.n_inter_max = group.attrs['n_inter_max']
-        self.n_inter_max_warn = str2bool(group.attrs['n_inter_max_warn'])
+        if 'n_inter_max_warn' in group.attrs:
+            self.n_inter_max_warn = str2bool(group.attrs['n_inter_max_warn'])
+        else:
+            self.n_inter_max_warn = True
 
     def _write_max_interactions(self, group):
         group.attrs['n_inter_max'] = self.n_inter_max
@@ -344,7 +347,10 @@ class RunConf(object):
 
     def _read_max_reabsorptions(self, group):
         self.n_reabs_max = group.attrs['n_reabs_max']
-        self.n_reabs_max_warn = str2bool(group.attrs['n_reabs_max_warn'])
+        if 'n_reabs_max_warn' in group.attrs:
+            self.n_reabs_max_warn = str2bool(group.attrs['n_reabs_max_warn'])
+        else:
+            self.n_reabs_max_warn = True
 
     def _write_max_reabsorptions(self, group):
         group.attrs['n_reabs_max'] = self.n_reabs_max
@@ -415,7 +421,10 @@ class RunConf(object):
         if self.mrw:
             self.mrw_gamma = group.attrs['mrw_gamma']
             self.n_inter_mrw_max = group.attrs['n_inter_mrw_max']
-            self.n_inter_mrw_max_warn = str2bool(group.attrs['n_inter_mrw_max_warn'])
+            if 'n_inter_mrw_max_warn' in group.attrs:
+                self.n_inter_mrw_max_warn = str2bool(group.attrs['n_inter_mrw_max_warn'])
+            else:
+                self.n_inter_mrw_max_warn = True
 
     def _write_mrw(self, group):
         group.attrs['mrw'] = bool2str(self.mrw)
