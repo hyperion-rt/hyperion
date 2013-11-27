@@ -33,41 +33,41 @@ def refine(x, y, z, dx, dy, dz, px, py, pz, h, levels_remaining):
 
     return b_all, p_all, l_all
 
-def refine_paralle_wrapper(args):
-    return refine(*args)
-
-def refine_parallel(x, y, z, dx, dy, dz, px, py, pz, h, level):
-
-    b_all = [True]
-    p_all = [([],[],[])]
-    l_all = [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
-
-    px_pos = px > x
-    py_pos = py > y
-    pz_pos = pz > z
-
-    arguments = []
-
-    for xcomp, xsub in ((~px_pos, x - dx * 0.5),(px_pos, x + dx  *0.5)):
-        for ycomp, ysub in ((~py_pos, y - dy * 0.5),(py_pos, y + dy  *0.5)):
-            for zcomp, zsub in ((~pz_pos, z - dz * 0.5),(pz_pos, z + dz  *0.5)):
-
-                keep = xcomp & ycomp & zcomp
-
-                arguments.append((xsub, ysub, zsub,
-                                  dx * 0.5, dy * 0.5, dz * 0.5,
-                                  px[keep], py[keep], pz[keep], h[keep], level + 1))
-
-
-    import multiprocessing as mp
-    p = mp.Pool(processes=8)
-    results = zip(*p.map(refine_paralle_wrapper, arguments))
-
-    b_all = b_all + reduce(list.__add__, results[0])
-    p_all = p_all + reduce(list.__add__, results[1])
-    l_all = l_all + reduce(list.__add__, results[2])
-
-    return b_all, p_all, l_all
+# def refine_paralle_wrapper(args):
+#     return refine(*args)
+# 
+# def refine_parallel(x, y, z, dx, dy, dz, px, py, pz, h, level):
+# 
+#     b_all = [True]
+#     p_all = [([],[],[])]
+#     l_all = [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
+# 
+#     px_pos = px > x
+#     py_pos = py > y
+#     pz_pos = pz > z
+# 
+#     arguments = []
+# 
+#     for xcomp, xsub in ((~px_pos, x - dx * 0.5),(px_pos, x + dx  *0.5)):
+#         for ycomp, ysub in ((~py_pos, y - dy * 0.5),(py_pos, y + dy  *0.5)):
+#             for zcomp, zsub in ((~pz_pos, z - dz * 0.5),(pz_pos, z + dz  *0.5)):
+# 
+#                 keep = xcomp & ycomp & zcomp
+# 
+#                 arguments.append((xsub, ysub, zsub,
+#                                   dx * 0.5, dy * 0.5, dz * 0.5,
+#                                   px[keep], py[keep], pz[keep], h[keep], level + 1))
+# 
+# 
+#     import multiprocessing as mp
+#     p = mp.Pool(processes=8)
+#     results = zip(*p.map(refine_paralle_wrapper, arguments))
+# 
+#     b_all = b_all + reduce(list.__add__, results[0])
+#     p_all = p_all + reduce(list.__add__, results[1])
+#     l_all = l_all + reduce(list.__add__, results[2])
+# 
+#     return b_all, p_all, l_all
 
 def discretize_wrapper(args):
     from ._discretize_sph import _discretize_sph_func
