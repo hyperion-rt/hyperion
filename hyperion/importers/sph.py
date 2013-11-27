@@ -1,11 +1,14 @@
 import random
 import numpy as np
 
-def refine(x, y, z, dx, dy, dz, px, py, pz, h, levels_remaining):
 
-    # if len(px) < 3 and np.all(dx < h / 5.) and np.all(dy < h / 5.) and np.all(dz < h / 5.):
-    # if (level > 3 and len(px) < 3) or level == 10:
-    if len(px) <= 2 or levels_remaining == 0:
+def DEFAULT_STOPPING_CRITERION(x, y, z, dx, dy, dz, px, py, pz, sigma):
+    return len(px) <= 2
+
+
+def refine(x, y, z, dx, dy, dz, px, py, pz, sigma, levels_remaining, stopping_criterion):
+
+    if stopping_criterion(x, y, z, dx, dy, dz, px, py, pz, sigma) or levels_remaining == 0:
         return [False], [(px, py, pz)], [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
 
     b_all = [True]
@@ -24,7 +27,9 @@ def refine(x, y, z, dx, dy, dz, px, py, pz, h, levels_remaining):
 
                 b, p, l = refine(xsub, ysub, zsub,
                                  dx * 0.5, dy * 0.5, dz * 0.5,
-                                 px[keep], py[keep], pz[keep], h[keep], levels_remaining - 1)
+                                 px[keep], py[keep], pz[keep], sigma[keep],
+                                 levels_remaining - 1,
+                                 stopping_criterion)
 
                 b_all += b
                 p_all += p
@@ -74,7 +79,7 @@ def discretize_wrapper(args):
     return _discretize_sph_func(*args)
 
 
-def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None):
+def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None, stopping_criterion=DEFAULT_STOPPING_CRITERION):
     """
     Construct an Octree grid from SPH particles
 
@@ -93,6 +98,10 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None
     n_levels : int, optional
         Maximum number of levels in the octree. If not specified, then the
         octree will keep dividing until all cells contain at most one particle.
+    stopping_criterion : func, optional
+        A function that is used to determine whether to stop refining a cell.
+        If not set, then refinement stops once there are two or fewer particles
+        in a cell.
 
     Returns
     -------
@@ -105,7 +114,7 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None
     if n_levels is None:
         n_levels = np.inf
 
-    refined, particles, limits = refine(x, y, z, dx, dy, dz, px, py, pz, sigma, n_levels)
+    refined, particles, limits = refine(x, y, z, dx, dy, dz, px, py, pz, sigma, n_levels, stopping_criterion)
 
     octree = OctreeGrid(x, y, z, dx, dy, dz, refined)
 
