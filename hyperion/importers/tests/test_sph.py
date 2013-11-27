@@ -1,7 +1,11 @@
+import os
+
 import h5py
 import numpy as np
 
 from ..sph import construct_octree
+
+DATA = os.path.join(os.path.dirname(__file__), 'data')
 
 
 def test_construct_octree():
@@ -26,7 +30,7 @@ def test_construct_octree():
     # f.close()
 
     from hyperion.grid import OctreeGrid
-    f = h5py.File('reference_octree.hdf5', 'r')
+    f = h5py.File(os.path.join(DATA, 'reference_octree.hdf5'), 'r')
     o_ref = OctreeGrid()
     o_ref.read(f)
     f.close()
