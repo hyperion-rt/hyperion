@@ -92,7 +92,7 @@ In practice, we can make use of a recursive function to set up such a grid. The 
 which gives a refined grid with 65 cells and sub-cells. The length of the list should always be one plus a multiple of 8.
 
 Constructing an Octree from a set of SPH particles
---------------------------------------------------
+==================================================
 
 .. note:: This functionality is currently experimental, so use with care!
 
@@ -102,7 +102,7 @@ inside each cell. The function is used as follows::
 
     from hyperion.importers import construct_octree
     octree = construct_octree(x0, y0, z0, dx, dy, dz, px, py, pz, sigma, mass)
-    
+
 The arguments are:
 
 * the center of the octree grid (``x0``, ``y0``, ``z0``, which should be
@@ -116,7 +116,11 @@ The arguments are:
 * the masses of the particles (``mass``, which should be a 1-d Numpy array)
 
 Note that only Gaussian kernels are supported at this time. All values should
-be given in cgs.
+be given in cgs. The function returns an :class:`~hyperion.grid.OctreeGrid`
+object. This can then be used to set the geometry and the density grid::
+
+    m.set_grid(octree)
+    m.add_density_grid(octree['density'][0], dust_file)
 
 A criterion can be specified to halt the refinement of cells. By default, cells
 are no longer refined if they contain two or fewer particles. This can be
@@ -133,3 +137,24 @@ default function can be written as::
 
 In addition, the ``construct_octree`` function can take a ``n_levels`` argument
 to indicate the maximum number of levels of refinement to allow.
+
+Writing and Reading Octree grids to disk
+========================================
+
+Computing an Octree can be a computationally expensive operation, so once it
+has been computed, you can write it out to disk using::
+
+    import h5py
+    f = h5py.File('my_octree_grid.hdf5', 'w')
+    octree.write(f)
+    f.close()
+
+You can then read it into a separate script (e.g. the script setting up the
+actual model) using::
+
+    import h5py
+    from hyperion.grid import OctreeGrid
+    f = h5py.File('my_octree_grid.hdf5', 'r')
+    octree = OctreeGrid()
+    octree.read(f)
+    f.close()
