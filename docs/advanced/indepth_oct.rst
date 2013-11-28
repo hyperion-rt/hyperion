@@ -100,12 +100,12 @@ Hyperion includes a function, ``construct_octree``, which makes it easy to
 produce an Octree for a set of SPH particles, including computing the densities
 inside each cell. The function is used as follows::
 
-    from hyperion.importers import construct_octree
-    octree = construct_octree(x0, y0, z0, dx, dy, dz, px, py, pz, sigma, mass)
+    from hyperion.importers.sph import construct_octree
+    octree = construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass)
 
 The arguments are:
 
-* the center of the octree grid (``x0``, ``y0``, ``z0``, which should be
+* the center of the octree grid (``x``, ``y``, ``z``, which should be
   floating-point values)
 * the half-width of the octree grid (``dx``, ``dy``, ``dz``, which should be
   floating-point values)
