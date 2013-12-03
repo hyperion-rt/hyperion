@@ -241,6 +241,39 @@ class OctreeGrid(FreezableClass):
         else:
             return FreezableClass.__getattribute__(self, attribute)
 
+    @property
+    def volumes(self):
+        """
+        The volumes of all the cells in the octree
+        """
+
+        def get_volumes(current_i, current_volume):
+            volumes = []
+            i = current_i
+            for sub in range(8):
+                volumes += [current_volume]
+                if self.refined[i]:
+                    sub_volumes, i = get_volumes(i+1, current_volume / 8.)
+                    volumes += sub_volumes
+                else:
+                    i += 1
+            return volumes, i
+
+        if self.refined[0]:
+
+            volumes, last_i = get_volumes(1, self.dx * self.dy * self.dz)
+
+            if last_i != len(self.refined):
+                raise ValueError("An error occurred when computing the cell volumes - last index was not expected value")
+
+        else:
+
+            volumes = []
+
+        volumes.insert(0, self.dx * self.dy * self.dz * 8.)
+
+        return volumes
+
     def _check_array_dimensions(self, array=None):
         '''
         Check that a grid's array dimensions agree with this grid's metadata
