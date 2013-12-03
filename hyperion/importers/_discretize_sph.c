@@ -170,6 +170,7 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
     /* Calculate total */
 
     int i, j;
+    double norm;
 
     /* Loop over all cells */
     for (i = 0; i < ncells; i++)
@@ -188,9 +189,10 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
                mu_z[j] < zmax[i] + 3.0 * sigma[j] &&
                mu_z[j] > zmin[i] - 3.0 * sigma[j])
             {
-                total[i] += fabs((erf((xmax[i] - mu_x[j]) / sigma[j]) - erf((xmin[i] - mu_x[j]) / sigma[j])) *
-                                (erf((ymax[i] - mu_y[j]) / mass[j]) - erf((ymin[i] - mu_y[j]) / sigma[j])) *
-                                (erf((zmax[i] - mu_z[j]) / sigma[j]) - erf((zmin[i] - mu_z[j]) / sigma[j]))) * 0.125 * mass[j];
+                norm = 1. / (sigma[j] * sqrt(2.));
+                total[i] += fabs((erf((xmax[i] - mu_x[j]) * norm) - erf((xmin[i] - mu_x[j]) * norm)) *
+                                 (erf((ymax[i] - mu_y[j]) * norm) - erf((ymin[i] - mu_y[j]) * norm)) *
+                                 (erf((zmax[i] - mu_z[j]) * norm) - erf((zmin[i] - mu_z[j]) * norm))) * 0.125 * mass[j];
             }
         }
 

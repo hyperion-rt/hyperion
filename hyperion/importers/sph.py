@@ -40,38 +40,38 @@ def refine(x, y, z, dx, dy, dz, px, py, pz, sigma, levels_remaining, stopping_cr
 
 # def refine_paralle_wrapper(args):
 #     return refine(*args)
-# 
+#
 # def refine_parallel(x, y, z, dx, dy, dz, px, py, pz, h, level):
-# 
+#
 #     b_all = [True]
 #     p_all = [([],[],[])]
 #     l_all = [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
-# 
+#
 #     px_pos = px > x
 #     py_pos = py > y
 #     pz_pos = pz > z
-# 
+#
 #     arguments = []
-# 
+#
 #     for xcomp, xsub in ((~px_pos, x - dx * 0.5),(px_pos, x + dx  *0.5)):
 #         for ycomp, ysub in ((~py_pos, y - dy * 0.5),(py_pos, y + dy  *0.5)):
 #             for zcomp, zsub in ((~pz_pos, z - dz * 0.5),(pz_pos, z + dz  *0.5)):
-# 
+#
 #                 keep = xcomp & ycomp & zcomp
-# 
+#
 #                 arguments.append((xsub, ysub, zsub,
 #                                   dx * 0.5, dy * 0.5, dz * 0.5,
 #                                   px[keep], py[keep], pz[keep], h[keep], level + 1))
-# 
-# 
+#
+#
 #     import multiprocessing as mp
 #     p = mp.Pool(processes=8)
 #     results = zip(*p.map(refine_paralle_wrapper, arguments))
-# 
+#
 #     b_all = b_all + reduce(list.__add__, results[0])
 #     p_all = p_all + reduce(list.__add__, results[1])
 #     l_all = l_all + reduce(list.__add__, results[2])
-# 
+#
 #     return b_all, p_all, l_all
 
 def discretize_wrapper(args):
@@ -141,7 +141,6 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None
     idx_split = [idx[i:i+size] for i in range(0, len(idx), size)]
     assert np.all(np.hstack(idx_split) == idx)
 
-
     # Construct tuple to send to multiprocessing
     arguments = []
     for idx_subset in idx_split:
@@ -153,8 +152,10 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None
 
     density = np.hstack(densities)
 
-    # Reset density to zero in cells that are sub-divided
-    density[refined] = 0
+    # Reset density to zero in cells that are sub-divided. Here we have to use
+    # where because otherwise if refined is an integer array it will not do the
+    # right thing (it will only affect the first two density elements).
+    density[np.where(refined)] = 0.
 
     # Normalize by volume
     density = density / (xmax - xmin) / (ymax - ymin) / (zmax - zmin)
@@ -163,4 +164,3 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None
     octree['density'].append(density)
 
     return octree
-
