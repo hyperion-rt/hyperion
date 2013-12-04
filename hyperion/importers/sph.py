@@ -127,11 +127,19 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None
     zmin = np.array(zmin)
     zmax = np.array(zmax)
 
-    import multiprocessing as mp
-    p = mp.Pool()
+    try:
 
-    # Find number of processes that multiprocessing will use
-    N = mp.cpu_count()
+        import multiprocessing as mp
+        p = mp.Pool()
+        p_map = p.map
+
+        # Find number of processes that multiprocessing will use
+        N = mp.cpu_count()
+
+    except:
+
+        p_map = map
+        N = 1
 
     # Define indices
     idx = np.indices(xmin.shape)[0]
@@ -148,7 +156,7 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None
                           px, py, pz,
                           sigma, mass))
 
-    densities = p.map(discretize_wrapper, arguments)
+    densities = p_map(discretize_wrapper, arguments)
 
     density = np.hstack(densities)
 
