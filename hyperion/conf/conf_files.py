@@ -759,7 +759,7 @@ class ImageConf(FreezableClass):
         group.attrs['ap_min'] = self.ap_min
         group.attrs['ap_max'] = self.ap_max
 
-    def _set_monochromatic(self, monochromatic):
+    def _set_monochromatic(self, monochromatic, frequencies=None):
         """
         Set whether the images are being computed in monochromatic mode.
 
@@ -774,6 +774,7 @@ class ImageConf(FreezableClass):
                 self.n_wav = None
                 self.wav_min = None
                 self.wav_max = None
+            self.set_wavelength_index_range(1, len(frequencies))
         else:
             if self.iwav_min is not None or self.iwav_max is not None:
                 log.warn("Removing monochromatic wavelength_rate settings")

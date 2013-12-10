@@ -104,8 +104,7 @@ class Model(FreezableClass, RunConf):
                 raise Exception("Need to specify wavelengths")
 
             for images in self.peeled_output:
-                images._set_monochromatic(True)
-                images.set_wavelength_index_range(1, len(self._frequencies))
+                images._set_monochromatic(True, frequencies=self._frequencies)
 
             if self.binned_output is not None:
                 raise Exception("Binned images cannot be computed in monochromatic mode")
@@ -838,12 +837,14 @@ class Model(FreezableClass, RunConf):
 
     def add_peeled_images(self, **kwargs):
         self.peeled_output.append(PeeledImageConf(**kwargs))
-        self.peeled_output[-1]._monochromatic = self._monochromatic
+        self.peeled_output[-1]._set_monochromatic(self._monochromatic, frequencies=self._frequencies)
         return self.peeled_output[-1]
 
     def add_binned_images(self, **kwargs):
         if self.binned_output:
             raise Exception("Only one set of binned images can be set at this time")
+        elif self._monochromatic:
+            raise Exception("Binned images cannot be computed in monochromatic mode")
         else:
             self.binned_output = BinnedImageConf(**kwargs)
             return self.binned_output
