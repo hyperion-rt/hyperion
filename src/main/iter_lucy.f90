@@ -43,9 +43,12 @@ module iteration_lucy
   use settings, only : forced_first_scattering, &
        &               kill_on_absorb, &
        &               n_inter_max, &
+       &               n_inter_max_warn, &
        &               mrw_gamma, &
        &               n_mrw_max, &
+       &               n_mrw_max_warn, &
        &               n_reabs_max, &
+       &               n_reabs_max_warn, &
        &               use_mrw, &
        &               use_pda
 
@@ -139,7 +142,7 @@ contains
                    end if
                 end do
                 if(mrw_steps == n_mrw_max + 1) then
-                   call warn("do_lucy","maximum number of MRW steps exceeded - killing")
+                   if(n_mrw_max_warn) call warn("do_lucy","maximum number of MRW steps exceeded - killing")
                    killed_photons_int = killed_photons_int + 1
                    p%killed = .true.
                    exit
@@ -171,7 +174,7 @@ contains
 
                 ! Check that we haven't reached the maximum number of successive reabsorptions
                 if(ia == n_reabs_max + 1) then
-                   call warn('do_lucy', 'maximum number of successive re-absorptions exceeded')
+                   if(n_reabs_max_warn) call warn('do_lucy', 'maximum number of successive re-absorptions exceeded')
                    killed_photons_int = killed_photons_int + 1
                    p%killed = .true.
                    exit
@@ -190,7 +193,7 @@ contains
           end do
 
           if(interactions==n_inter_max+1) then
-             call warn("do_lucy","photon exceeded maximum number of interactions - killing")
+             if(n_inter_max_warn) call warn("do_lucy","photon exceeded maximum number of interactions - killing")
              killed_photons_int = killed_photons_int + 1
              p%killed = .true.
           end if

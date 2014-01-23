@@ -6,8 +6,11 @@ module settings
   save
 
   integer(idp) :: n_inter_max = 0
+  logical :: n_inter_max_warn = .true.
   integer(idp) :: n_mrw_max = 0
+  logical :: n_mrw_max_warn = .true.
   integer(idp) :: n_reabs_max = 0
+  logical :: n_reabs_max_warn = .true.
 
   integer(idp),public :: n_stats
   integer,public :: n_initial_iter
