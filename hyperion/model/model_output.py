@@ -934,13 +934,11 @@ class ModelOutput(FreezableClass):
 
         Returns
         -------
-
         grid : Grid instance
             An object containing information about the geometry and quantities
         '''
 
         from .helpers import find_last_iteration
-
 
         if self.file['Input'].file != self.file.file:
             # Workaround for h5py bug - can't access link directly,
