@@ -1,6 +1,7 @@
 module mpi_core
 
   implicit none
+  save
 
   private
   public :: mp_initialize

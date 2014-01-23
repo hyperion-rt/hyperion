@@ -17,6 +17,7 @@ module peeled_images
   use grid_mrw
 
   implicit none
+  save
 
   private
 

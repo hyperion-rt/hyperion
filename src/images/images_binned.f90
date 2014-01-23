@@ -11,6 +11,7 @@ module binned_images
   use dust_main, only : n_dust
 
   implicit none
+  save
 
   private
 
