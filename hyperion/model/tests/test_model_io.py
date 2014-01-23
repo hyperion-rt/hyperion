@@ -52,3 +52,61 @@ def test_io_monochromatic(value):
     assert m1._monochromatic == m2._monochromatic
     if value:
         assert_equal(m1._frequencies, m2._frequencies)
+
+
+def test_io_monochromatic_full(tmpdir):
+    """
+    Regression for issues described in #77 - namely that when reading and
+    writing out a model with monochromatic settings, images/SEDs would not work
+    properly (raising an exception).
+    """
+
+    filename1 = tmpdir.join(random_id()).strpath
+    filename2 = tmpdir.join(random_id()).strpath
+
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+
+    i = m.add_peeled_images(image=True)
+    i.set_viewing_angles([45.], [45.])
+    i.set_image_size(256, 256)
+    i.set_image_limits(-1., 1., -1., 1.)
+
+    m.set_monochromatic(True, wavelengths=[0.1, 1., 10.])
+
+    m.set_n_photons(initial=1000, imaging_sources=1000, imaging_dust=1000)
+
+    m.write(filename1)
+
+    m2 = Model.read(filename1)
+    m2.write(filename2)
+
+def test_io_monochromatic_full_2(tmpdir):
+    """
+    Regression for issues described in #77 - namely that when reading and
+    writing out a model with monochromatic settings, images/SEDs would not work
+    properly (raising an exception).
+
+    Changing the order to setting before the monochromatic mode is set changes
+    how things are handled internally, hence the similar test.
+    """
+
+    filename1 = tmpdir.join(random_id()).strpath
+    filename2 = tmpdir.join(random_id()).strpath
+
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+
+    m.set_monochromatic(True, wavelengths=[0.1, 1., 10.])
+
+    i = m.add_peeled_images(image=True)
+    i.set_viewing_angles([45.], [45.])
+    i.set_image_size(256, 256)
+    i.set_image_limits(-1., 1., -1., 1.)
+
+    m.set_n_photons(initial=1000, imaging_sources=1000, imaging_dust=1000)
+
+    m.write(filename1)
+
+    m2 = Model.read(filename1)
+    m2.write(filename2)

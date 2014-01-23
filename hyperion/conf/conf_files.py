@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 import numpy as np
+from astropy import log as logger
 
 from ..util.functions import FreezableClass, bool2str, str2bool, is_numpy_array
 
@@ -643,13 +644,19 @@ class ImageConf(FreezableClass):
         if self.image:
             self.n_x = self.n_y = None
             self.xmin = self.xmax = self.ymin = self.ymax = None
-        self.n_wav = self.wav_min = self.wav_max = None
+        self.n_wav = None
+        self.wav_min = None
+        self.wav_max = None
+        self.iwav_min = None
+        self.iwav_max = None
         self.set_output_bytes(8)
         self.set_track_origin('no')
         self.set_uncertainties(False)
         self.set_stokes(False)
-        self._monochromatic = False
+        self._set_monochromatic(False)
         self._freeze()
+
+
 
     def set_output_bytes(self, io_bytes):
         '''
@@ -727,7 +734,7 @@ class ImageConf(FreezableClass):
 
     def set_aperture_range(self, n_ap, ap_min, ap_max):
         '''
-        Set the range of apertures to use for SEDs
+        Set the range of apertures to use for SEDs/Images
 
         Parameters
         ----------
@@ -752,48 +759,98 @@ class ImageConf(FreezableClass):
         group.attrs['ap_min'] = self.ap_min
         group.attrs['ap_max'] = self.ap_max
 
+    def _set_monochromatic(self, monochromatic, frequencies=None):
+        """
+        Set whether the images are being computed in monochromatic mode.
+
+        This is not meant to be used directly by users.
+        """
+
+        self._monochromatic = monochromatic
+
+        if monochromatic:
+            if self.n_wav is not None or self.wav_min is not None or self.wav_max is not None:
+                logger.warn("Removing non-monochromatic wavelength_rate settings")
+                self.n_wav = None
+                self.wav_min = None
+                self.wav_max = None
+            self.set_wavelength_index_range(1, len(frequencies))
+        else:
+            if self.iwav_min is not None or self.iwav_max is not None:
+                log.warn("Removing monochromatic wavelength_rate settings")
+                self.iwav_min = None
+                self.iwav_max = None
+
+    def _read_monochromatic(self, group):
+        self._monochromatic = str2bool(group.attrs['monochromatic'])
+
+    def _write_monochromatic(self, group):
+        group.attrs['monochromatic'] = bool2str(self._monochromatic)
+
     def set_wavelength_range(self, n_wav, wav_min, wav_max):
         '''
-        Set the range of wavelengths to use for SEDs
+        Set the range of wavelengths to use for SEDs/Images
 
         Parameters
         ----------
         n_wav : int
-            The number of wavelengths to compute SEDs for
+            The number of wavelengths to compute SEDs/Images for
         wav_min, wav_max : float
             The smallest and largest wavelength to use, in microns
         '''
         if type(n_wav) is not int:
             raise Exception("n_wav should be an integer")
+        if self._monochromatic:
+            raise Exception("set_wavelength_range cannot be used in monochromatic mode")
         self.n_wav = n_wav
         self.wav_min = wav_min
         self.wav_max = wav_max
 
     def _read_wavelength_range(self, group):
-
         self.n_wav = group.attrs['n_wav']
-
-        if 'inu_min' in group.attrs:
-            self.wav_min = group.attrs['inu_min']
-            self.wav_max = group.attrs['inu_max']
-        else:
-            self.wav_min = group.attrs['wav_min']
-            self.wav_max = group.attrs['wav_max']
+        self.wav_min = group.attrs['wav_min']
+        self.wav_max = group.attrs['wav_max']
 
     def _write_wavelength_range(self, group):
-
         if self.n_wav is None:
             raise Exception("Wavelength range has not been set")
         group.attrs['n_wav'] = self.n_wav
+        if self.wav_min is None:
+            raise Exception("Wavelength minimum has not been set")
+        group.attrs['wav_min'] = self.wav_min
+        if self.wav_max is None:
+            raise Exception("Wavelength maximum has not been set")
+        group.attrs['wav_max'] = self.wav_max
 
-        if self._monochromatic:
-            if not type(self.wav_min) is int or not type(self.wav_max) is int:
-                raise Exception("In monochromatic mode, wavelength range should be given as integers")
-            group.attrs['inu_min'] = self.wav_min
-            group.attrs['inu_max'] = self.wav_max
-        else:
-            group.attrs['wav_min'] = self.wav_min
-            group.attrs['wav_max'] = self.wav_max
+    def set_wavelength_index_range(self, iwav_min, iwav_max):
+        '''
+        Set the range of wavelengths to use for SEDs/Images
+
+        This is intended to be used when the monochromatic option is turned on.
+
+        Parameters
+        ----------
+        iwav_min, iwav_max : int
+            The index of the first and last frequency to compute SEDs/Images
+            for. This is the index in the array of wavelengths used when
+            calling ``set_monochromatic``.
+        '''
+        if not self._monochromatic:
+            raise Exception("set_frequency_index_range cannot be used when not in monochromatic mode")
+        self.iwav_min = iwav_min
+        self.iwav_max = iwav_max
+
+    def _read_wavelength_index_range(self, group):
+        # For backward-compability reasons, the variables are called ``inu``
+        # instead of ``iwav`` in the HDF5 files, but these are variable names
+        # the user will never be exposed to.
+        self.iwav_min = group.attrs['inu_min']
+        self.iwav_max = group.attrs['inu_max']
+
+    def _write_wavelength_index_range(self, group):
+        group.attrs['n_wav'] = self.iwav_max - self.iwav_min + 1
+        group.attrs['inu_min'] = self.iwav_min
+        group.attrs['inu_max'] = self.iwav_max
 
     def set_track_origin(self, track_origin):
         '''
@@ -900,7 +957,11 @@ class ImageConf(FreezableClass):
         if self.image:
             self._read_image_size(group)
             self._read_image_limits(group)
-        self._read_wavelength_range(group)
+        self._read_monochromatic(group)
+        if self._monochromatic:
+            self._read_wavelength_index_range(group)
+        else:
+            self._read_wavelength_range(group)
         self._read_output_bytes(group)
         self._read_track_origin(group)
         self._read_uncertainties(group)
@@ -914,7 +975,11 @@ class ImageConf(FreezableClass):
         if self.image:
             self._write_image_size(group)
             self._write_image_limits(group)
-        self._write_wavelength_range(group)
+        self._write_monochromatic(group)
+        if self._monochromatic:
+            self._write_wavelength_index_range(group)
+        else:
+            self._write_wavelength_range(group)
         self._write_output_bytes(group)
         self._write_track_origin(group)
         self._write_uncertainties(group)

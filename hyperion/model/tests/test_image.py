@@ -565,7 +565,6 @@ class TestImageStokesOption(object):
         img.set_stokes(False)
 
         m.write(os.path.join(self.tmpdir, random_id()))
-        print("HEAR", m.peeled_output[0].stokes)
         self.m2 = m.run()
 
     def teardown_class(self):

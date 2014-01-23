@@ -74,48 +74,47 @@ class Model(FreezableClass, RunConf):
         self.binned_output = None
         self.peeled_output = []
 
-    def set_monochromatic(self, monochromatic, frequencies=None, wavelengths=None):
+    def set_monochromatic(self, monochromatic, wavelengths=None, frequencies=None):
         '''
-        Set whether to do the radiation transfer at specific
-        frequencies/wavelengths.
+        Set whether to do the radiation transfer at specific wavelengths.
 
         Parameters
         ----------
         monochromatic : bool
             Whether to carry out radiation transfer at specific frequencies
             or wavelengths
-        frequencies : iterable of floats, optional
-            The frequencies to compute the radiation transfer for, in Hz
         wavelengths : iterable of floats, optional
             The wavelengths to compute the radiation transfer for, in microns
 
-        If `monochromatic` is True, then one of `frequencies` or
-        `wavelengths` is required
+        If `monochromatic` is True then `wavelengths` is required
         '''
+
+        if frequencies is not None:
+            logger.warn("The frequencies= option will soon be deprecated - please specify wavelengths instead.")
 
         self._monochromatic = monochromatic
 
         if self._monochromatic:
-            if wavelengths is not None and frequencies is not None:
-                raise Exception("Cannot specify both frequencies and wavelengths")
-            elif wavelengths is not None:
-                frequencies = c / (np.array(wavelengths) * 1.e-4)
+
+            if wavelengths is not None:
+                self._frequencies = c / (np.array(wavelengths) * 1.e-4)
             elif frequencies is not None:
-                frequencies = np.array(frequencies)
+                self._frequencies = frequencies
             else:
-                raise Exception("Need to specify frequencies or wavelengths")
+                raise Exception("Need to specify wavelengths")
+
+            for images in self.peeled_output:
+                images._set_monochromatic(True, frequencies=self._frequencies)
+
+            if self.binned_output is not None:
+                raise Exception("Binned images cannot be computed in monochromatic mode")
+
         else:
-            if wavelengths is not None or frequencies is not None:
-                raise Exception("Cannot specify monochromatic frequencies or wavelengths if monochromatic=False")
 
-        self._frequencies = frequencies
+            if wavelengths is not None:
+                raise Exception("Cannot specify monochromatic wavelengths if monochromatic=False")
 
-        for images in self.peeled_output:
-            images._monochromatic = True
-            if type(images.wav_min) != int or type(images.wav_max) != int:
-                images.set_wavelength_range(len(frequencies), 1, len(frequencies))
-        if self.binned_output is not None:
-            raise Exception("Binned images cannot be computed in monochromatic mode")
+            self._frequencies = None
 
     def _read_monochromatic(self, group):
         self._monochromatic = str2bool(group.attrs['monochromatic'])
@@ -838,12 +837,14 @@ class Model(FreezableClass, RunConf):
 
     def add_peeled_images(self, **kwargs):
         self.peeled_output.append(PeeledImageConf(**kwargs))
-        self.peeled_output[-1]._monochromatic = self._monochromatic
+        self.peeled_output[-1]._set_monochromatic(self._monochromatic, frequencies=self._frequencies)
         return self.peeled_output[-1]
 
     def add_binned_images(self, **kwargs):
         if self.binned_output:
             raise Exception("Only one set of binned images can be set at this time")
+        elif self._monochromatic:
+            raise Exception("Binned images cannot be computed in monochromatic mode")
         else:
             self.binned_output = BinnedImageConf(**kwargs)
             return self.binned_output
