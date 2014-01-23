@@ -6,13 +6,13 @@ def DEFAULT_STOPPING_CRITERION(x, y, z, dx, dy, dz, px, py, pz, sigma):
     return len(px) <= 2
 
 
-def refine(x, y, z, dx, dy, dz, px, py, pz, sigma, levels_remaining, stopping_criterion):
+def refine(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, levels_remaining, stopping_criterion):
 
     if stopping_criterion(x, y, z, dx, dy, dz, px, py, pz, sigma) or levels_remaining == 0:
-        return [False], [(px, py, pz)], [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
+        return [False], [(px, py, pz, sigma, mass)], [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
 
     b_all = [True]
-    p_all = [([],[],[])]
+    p_all = [([],[],[],[],[])]
     l_all = [(x-dx, x+dx, y-dy, y+dy, z-dz, z+dz)]
 
     px_pos = px > x
@@ -27,7 +27,7 @@ def refine(x, y, z, dx, dy, dz, px, py, pz, sigma, levels_remaining, stopping_cr
 
                 b, p, l = refine(xsub, ysub, zsub,
                                  dx * 0.5, dy * 0.5, dz * 0.5,
-                                 px[keep], py[keep], pz[keep], sigma[keep],
+                                 px[keep], py[keep], pz[keep], sigma[keep], mass[keep],
                                  levels_remaining - 1,
                                  stopping_criterion)
 
@@ -79,7 +79,7 @@ def discretize_wrapper(args):
     return _discretize_sph_func(*args)
 
 
-def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None, stopping_criterion=DEFAULT_STOPPING_CRITERION):
+def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None, stopping_criterion=DEFAULT_STOPPING_CRITERION, mode='exact'):
     """
     Construct an Octree grid from SPH particles
 
@@ -102,6 +102,9 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None
         A function that is used to determine whether to stop refining a cell.
         If not set, then refinement stops once there are two or fewer particles
         in a cell.
+    mode : { 'fast', 'exact' }
+        Whether to properly compute the integral over the kernel ('exact') or
+        simply count the particles in each cell ('fast')
 
     Returns
     -------
@@ -114,7 +117,7 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None
     if n_levels is None:
         n_levels = np.inf
 
-    refined, particles, limits = refine(x, y, z, dx, dy, dz, px, py, pz, sigma, n_levels, stopping_criterion)
+    refined, particles, limits = refine(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels, stopping_criterion)
 
     octree = OctreeGrid(x, y, z, dx, dy, dz, refined)
 
@@ -127,38 +130,50 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None
     zmin = np.array(zmin)
     zmax = np.array(zmax)
 
-    try:
+    if mode == 'exact':
 
-        import multiprocessing as mp
-        p = mp.Pool()
-        p_map = p.map
+        try:
 
-        # Find number of processes that multiprocessing will use
-        N = mp.cpu_count()
+            import multiprocessing as mp
+            p = mp.Pool()
+            p_map = p.map
 
-    except:
+            # Find number of processes that multiprocessing will use
+            N = mp.cpu_count()
 
-        p_map = map
-        N = 1
+        except:
 
-    # Define indices
-    idx = np.indices(xmin.shape)[0]
+            p_map = map
+            N = 1
 
-    # Split them up for multiprocessing
-    size = int(np.ceil(len(idx) / float(N)))
-    idx_split = [idx[i:i+size] for i in range(0, len(idx), size)]
-    assert np.all(np.hstack(idx_split) == idx)
+        # Define indices
+        idx = np.indices(xmin.shape)[0]
 
-    # Construct tuple to send to multiprocessing
-    arguments = []
-    for idx_subset in idx_split:
-        arguments.append((xmin[idx_subset], xmax[idx_subset], ymin[idx_subset], ymax[idx_subset], zmin[idx_subset], zmax[idx_subset],
-                          px, py, pz,
-                          sigma, mass))
+        # Split them up for multiprocessing
+        size = int(np.ceil(len(idx) / float(N)))
+        idx_split = [idx[i:i+size] for i in range(0, len(idx), size)]
+        assert np.all(np.hstack(idx_split) == idx)
 
-    densities = p_map(discretize_wrapper, arguments)
+        # Construct tuple to send to multiprocessing
+        arguments = []
+        for idx_subset in idx_split:
+            arguments.append((xmin[idx_subset], xmax[idx_subset], ymin[idx_subset], ymax[idx_subset], zmin[idx_subset], zmax[idx_subset],
+                              px, py, pz,
+                              sigma, mass))
 
-    density = np.hstack(densities)
+        densities = p_map(discretize_wrapper, arguments)
+
+        density = np.hstack(densities)
+
+    elif mode == 'fast':
+
+        # need to take into account masses
+        # optimize?
+        density = np.array([np.sum(x[4]) for x in particles])
+
+    else:
+
+        raise ValueError("Unknown mode: {0} - should be one of 'exact' or 'fast'".format(mode))
 
     # Reset density to zero in cells that are sub-divided. Here we have to use
     # where because otherwise if refined is an integer array it will not do the
