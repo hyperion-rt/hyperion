@@ -227,7 +227,7 @@ class ModelOutput(FreezableClass):
         '''
 
         # Check argument types
-        if type(stokes) is not str:
+        if not isinstance(stokes, basestring):
             raise ValueError("stokes argument should be a string")
 
         # Check for inconsistent parameters
@@ -576,7 +576,7 @@ class ModelOutput(FreezableClass):
         '''
 
         # Check argument types
-        if type(stokes) is not str:
+        if not isinstance(stokes, basestring):
             raise ValueError("stokes argument should be a string")
 
         # Check for inconsistent parameters
