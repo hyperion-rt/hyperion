@@ -433,7 +433,7 @@ if INSTALL_HDF5:
         open('config/gnu-fflags', 'w').write(conf)
 
     # SPECIAL CASE - gfortran 4.5 and prior requires patching
-    if is_gfortran and gfortran_version <= version.LooseVersion('4.5.0'):
+    if is_gfortran and gfortran_version < version.LooseVersion('4.6.0'):
         print(" -> SPECIAL CASE: patching for gfortran 4.5 and prior")
         conf = open('fortran/src/H5test_kind_SIZEOF.f90', 'r').read()
         conf = conf.replace('DO i = 1,100', 'DO i = 1,18')
