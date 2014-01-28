@@ -151,7 +151,7 @@ def run(command, logfile):
         par = {}
         par['api_dev_key'] = 'd3b3e1a0b666fbcbe383162be949f81e'
         par['api_option'] = 'paste'
-        par['api_paste_code'] = open(logfile).read()
+        par['api_paste_code'] = open(logfile).read().encode('utf-8')
         par['api_paste_name'] = command
         par['api_paste_format'] = 'bash'
         u = urlopen('http://pastebin.com/api/api_post.php',
@@ -291,6 +291,14 @@ p = subprocess.Popen(shlex.split(fc + ' --version'), stdout=subprocess.PIPE)
 output = (p.communicate()[0]).decode('ascii').strip().splitlines()[0]
 is_ifort = '(IFORT)' in output
 
+# Check whether Fortran compiler is gfortran
+p = subprocess.Popen(shlex.split(fc + ' --version'), stdout=subprocess.PIPE)
+output = (p.communicate()[0]).decode('ascii').strip().splitlines()[0]
+is_gfortran = 'GNU Fortran' in output
+if is_gfortran:
+    p = subprocess.Popen(shlex.split(fc + ' -dumpversion'), stdout=subprocess.PIPE)
+    gfortran_version = version.LooseVersion((p.communicate()[0]).decode('ascii').splitlines()[0].split()[-1])
+
 # Check whether Fortran compiler is g95
 p = subprocess.Popen(shlex.split(fc + ' --version'), stdout=subprocess.PIPE)
 output = (p.communicate()[0]).decode('ascii').strip().splitlines()[0]
@@ -420,9 +428,17 @@ if INSTALL_HDF5:
     # SPECIAL CASE - g95 requires patching
     if is_g95:
         print(" -> SPECIAL CASE: patching for g95")
-        conf = open('config/gnu-fflags', 'rb').read()
+        conf = open('config/gnu-fflags', 'r').read()
         conf = conf.replace('-Wconversion -Wunderflow ', '')
         open('config/gnu-fflags', 'w').write(conf)
+
+    # SPECIAL CASE - gfortran 4.5 and prior requires patching
+    if is_gfortran and gfortran_version <= version.LooseVersion('4.5.0'):
+        print(" -> SPECIAL CASE: patching for gfortran 4.5 and prior")
+        conf = open('fortran/src/H5test_kind_SIZEOF.f90', 'r').read()
+        conf = conf.replace('DO i = 1,100', 'DO i = 1,18')
+        open('fortran/src/H5test_kind_SIZEOF.f90', 'w').write(conf)
+
 
     print(" -> configuring")
     run('./configure FC="{fc}" --enable-fortran --enable-hl --with-zlib={prefix}/include,{prefix}/lib --prefix={prefix}'.format(fc=fc, prefix=prefix), 'log_configure')
