@@ -197,6 +197,7 @@ class TestBasic(object):
         i_p.set_image_size(4, 5)
         i_p.set_image_limits(-0.8 * pc, 0.8 * pc, -pc, pc)
         i_p.set_aperture_range(5, 0.1 * pc, pc)
+        i_p.set_stokes(True)
 
         i_p = m.add_peeled_images()
         i_p.set_wavelength_range(4, 0.05, 200.)
@@ -205,6 +206,7 @@ class TestBasic(object):
         i_p.set_image_limits(-pc, pc, -pc, pc)
         i_p.set_aperture_range(2, 0.5 * pc, pc)
         i_p.set_track_origin('basic')
+        i_p.set_stokes(True)
 
         i_p = m.add_peeled_images()
         i_p.set_wavelength_range(4, 0.05, 200.)
@@ -213,6 +215,7 @@ class TestBasic(object):
         i_p.set_image_limits(-pc, pc, -pc, pc)
         i_p.set_aperture_range(2, 0.5 * pc, pc)
         i_p.set_track_origin('detailed')
+        i_p.set_stokes(True)
 
         m.set_copy_input(False)
         m.write(tmpdir.join(random_id()).strpath, copy=False, absolute_paths=True)
@@ -386,6 +389,7 @@ class TestPascucciBenchmark(object):
         image.set_image_limits(-1500. * au, 1500. * au, -1500. * au, 1500. * au)
         image.set_aperture_range(1, 1500. * au, 1500. * au)
         image.set_wavelength_range(61, 1, 61)
+        image.set_stokes(True)
 
         m.set_raytracing(True)
         m.set_n_initial_iterations(5)
@@ -494,6 +498,7 @@ class TestPinteBenchmark(object):
         image.set_image_limits(-450. * au, 450. * au, -450. * au, 450. * au)
         image.set_aperture_range(1, 450. * au, 450. * au)
         image.set_wavelength_range(2000, 0.01, 5000.)
+        image.set_stokes(True)
 
         m.set_raytracing(True)
 
@@ -596,6 +601,7 @@ class TestPinteBenchmark(object):
         image.set_image_limits(-450. * au, 450. * au, -450. * au, 450. * au)
         image.set_aperture_range(1, 450. * au, 450. * au)
         image.set_wavelength_range(1, 0.9, 1.1)
+        image.set_stokes(True)
 
         m.set_raytracing(True)
 
