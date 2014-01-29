@@ -835,18 +835,68 @@ class Model(FreezableClass, RunConf):
             else:
                 self.grid = deepcopy(grid)
 
-    def add_peeled_images(self, **kwargs):
-        self.peeled_output.append(PeeledImageConf(**kwargs))
+    def add_peeled_images(self, sed=True, image=True):
+        """
+        Define a set of (peeled) images/SEDs.
+
+        This returns a :class:`~hyperion.conf.PeeledImageConf` instance that
+        can be used to set the image/SED parameters.
+
+        Parameters
+        ----------
+        sed : bool, optional
+            Whether to compute a set of SEDs
+        image : bool, optional
+            Whether to compute a set of images
+
+        Returns
+        -------
+        image_conf : :class:`~hyperion.conf.PeeledImageConf` instance
+            Instance that can be used to set the image/SED parameters
+
+        Examples
+        --------
+
+        >>> image = m.add_peeled_images(sed=False, image=True)
+        >>> image.set_wavelength_range(250, 0.01, 1000.)
+        >>> ...
+        """
+        self.peeled_output.append(PeeledImageConf(sed=sed, image=image))
         self.peeled_output[-1]._set_monochromatic(self._monochromatic, frequencies=self._frequencies)
         return self.peeled_output[-1]
 
     def add_binned_images(self, **kwargs):
+        """
+        Define a set of (binned) images/SEDs.
+
+        This returns a :class:`~hyperion.conf.BinnedImageConf` instance that
+        can be used to set the image/SED parameters.
+
+        Parameters
+        ----------
+        sed : bool, optional
+            Whether to compute a set of SEDs
+        image : bool, optional
+            Whether to compute a set of images
+
+        Returns
+        -------
+        image_conf : :class:`~hyperion.conf.BinnedImageConf` instance
+            Instance that can be used to set the image/SED parameters
+
+        Examples
+        --------
+
+        >>> image = m.add_binned_images(sed=False, image=True)
+        >>> image.set_wavelength_range(250, 0.01, 1000.)
+        >>> ...
+        """
         if self.binned_output:
             raise Exception("Only one set of binned images can be set at this time")
         elif self._monochromatic:
             raise Exception("Binned images cannot be computed in monochromatic mode")
         else:
-            self.binned_output = BinnedImageConf(**kwargs)
+            self.binned_output = BinnedImageConf(sed=sed, image=image)
             return self.binned_output
 
     def set_minimum_temperature(self, temperature):
