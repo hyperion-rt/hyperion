@@ -59,6 +59,15 @@ Grid
    hyperion.grid.AMRGrid.rst
    hyperion.grid.OctreeGrid.rst
 
+Images and SED configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   hyperion.conf.PeeledImageConf.rst
+   hyperion.conf.BinnedImageConf.rst
+
 Outputs
 -------
 

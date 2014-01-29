@@ -14,6 +14,25 @@ New features
   `False`, and users have to explicitly set ``set_stokes(True)`` in order to
   save all Stokes components. [#61]
 
+- It is now possible to turn off the warnings that occur when photons are
+  killed due to too many interactions, using the ``warn=True/False`` option for
+  the :meth:`~hyperion.model.Model.set_max_interactions` method (and other
+  similar methods).
+
+Bug fixes
+^^^^^^^^^
+
+- Fix Fortran dependency installer for gfortran 4.5 and earlier
+
+- Fixed a bug that caused models using the monochromatic radiative transfer
+  settings to not be read in correctly by :meth:`~hyperion.model.Model.read`. [#78]
+
+API Changes
+^^^^^^^^^^^
+
+- When using the monochromatic radiative transfer mode, users should now use
+  the :meth:`~hyperion.conf.PeeledImageConf.set_wavelength_index_range`
+  method instead of :meth:`~hyperion.conf.PeeledImageConf.set_wavelength_range`. [#78]
 
 0.9.3 (2013-11-14)
 ------------------

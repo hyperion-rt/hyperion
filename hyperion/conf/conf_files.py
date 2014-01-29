@@ -1068,7 +1068,7 @@ class PeeledImageConf(ImageConf):
             The viewing angles to compute SEDs for.
 
         Examples
-        -------
+        --------
 
         Set viewing angles using lists of well-defined angles:
 
