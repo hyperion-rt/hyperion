@@ -17,7 +17,7 @@ New features
 - It is now possible to turn off the warnings that occur when photons are
   killed due to too many interactions, using the ``warn=True/False`` option for
   the :meth:`~hyperion.model.Model.set_max_interactions` method (and other
-  similar methods).
+  similar methods). [#68]
 
 Bug fixes
 ^^^^^^^^^
