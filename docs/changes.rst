@@ -1,7 +1,7 @@
 Version History
 ===============
 
-0.9.4 (unreleased)
+0.9.4 (2014-01-29)
 ------------------
 
 New features
