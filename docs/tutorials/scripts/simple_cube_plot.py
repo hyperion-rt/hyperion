@@ -40,7 +40,7 @@ for i, wav in enumerate([1, 30, 100, 300]):
     # Finalize the plot
     ax.tick_params(axis='both', which='major', labelsize=10)
     ax.set_xlabel('x (arcmin)')
-    ax.set_xlabel('y (arcmin)')
+    ax.set_ylabel('y (arcmin)')
     ax.set_title(str(wav) + ' microns', y=0.88, x=0.5, color='white')
 
 fig.savefig('simple_cube_plot.png', bbox_inches='tight')
