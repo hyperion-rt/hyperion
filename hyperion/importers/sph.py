@@ -19,9 +19,9 @@ def refine(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, levels_remaining, stopp
     py_pos = py > y
     pz_pos = pz > z
 
-    for zcomp, zsub in ((~pz_pos, z - dz * 0.5),(pz_pos, z + dz  *0.5)):
+    for xcomp, xsub in ((~px_pos, x - dx * 0.5),(px_pos, x + dx  *0.5)):
         for ycomp, ysub in ((~py_pos, y - dy * 0.5),(py_pos, y + dy  *0.5)):
-            for xcomp, xsub in ((~px_pos, x - dx * 0.5),(px_pos, x + dx  *0.5)):
+            for zcomp, zsub in ((~pz_pos, z - dz * 0.5),(pz_pos, z + dz  *0.5)):
 
                 keep = xcomp & ycomp & zcomp
 
@@ -79,7 +79,10 @@ def discretize_wrapper(args):
     return _discretize_sph_func(*args)
 
 
-def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None, stopping_criterion=DEFAULT_STOPPING_CRITERION, mode='exact'):
+def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass,
+                     n_levels=None,
+                     stopping_criterion=DEFAULT_STOPPING_CRITERION,
+                     mode='exact'):
     """
     Construct an Octree grid from SPH particles
 
@@ -117,7 +120,8 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None
     if n_levels is None:
         n_levels = np.inf
 
-    refined, particles, limits = refine(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels, stopping_criterion)
+    refined, particles, limits = refine(x, y, z, dx, dy, dz, px, py, pz, sigma,
+                                        mass, n_levels, stopping_criterion)
 
     octree = OctreeGrid(x, y, z, dx, dy, dz, refined)
 
@@ -157,7 +161,9 @@ def construct_octree(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, n_levels=None
         # Construct tuple to send to multiprocessing
         arguments = []
         for idx_subset in idx_split:
-            arguments.append((xmin[idx_subset], xmax[idx_subset], ymin[idx_subset], ymax[idx_subset], zmin[idx_subset], zmax[idx_subset],
+            arguments.append((xmin[idx_subset], xmax[idx_subset],
+                              ymin[idx_subset], ymax[idx_subset],
+                              zmin[idx_subset], zmax[idx_subset],
                               px, py, pz,
                               sigma, mass))
 
