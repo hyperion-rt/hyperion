@@ -131,7 +131,7 @@ contains
           call emit(p)
 
           ! Propagate photon
-          do interactions=1, n_inter_max
+          do interactions=1, n_inter_max+1
 
              if(use_mrw.and.interactions > 1) then
                 do mrw_steps=1,n_mrw_max
@@ -192,7 +192,7 @@ contains
 
           end do
 
-          if(interactions==n_inter_max+1) then
+          if(interactions==n_inter_max+2) then
              if(n_inter_max_warn) call warn("do_lucy","photon exceeded maximum number of interactions - killing")
              killed_photons_int = killed_photons_int + 1
              p%killed = .true.

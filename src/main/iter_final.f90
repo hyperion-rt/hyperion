@@ -154,7 +154,7 @@ contains
     integer :: ia
 
     ! Propagate photon
-    do interactions=1, n_inter_max
+    do interactions=1, n_inter_max+1
 
        ! Sample a random optical depth and propagate that optical depth
        call random_exp(tau)
@@ -241,7 +241,7 @@ contains
 
     end do
 
-    if(interactions==n_inter_max+1) then
+    if(interactions==n_inter_max+2) then
        if(n_inter_max_warn) call warn("main","photon exceeded maximum number of interactions - killing")
        killed_photons_int = killed_photons_int + 1
        p%killed = .true.
