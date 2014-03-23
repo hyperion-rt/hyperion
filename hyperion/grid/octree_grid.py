@@ -176,6 +176,44 @@ class OctreeGrid(FreezableClass):
 
         self.shape = (len(refined),)
 
+    @property
+    def refined(self):
+        return self._refined
+
+    @refined.setter
+    def refined(self, value):
+
+        if value is None:
+            self._refined = None
+            return
+
+        if not (len(value) - 1) % 8 == 0:
+            raise ValueError("refined should have shape 8 * n + 1")
+
+        def check_recursive(refined, current_i=0, max_level=0):
+            if refined[current_i]:
+                current_i += 1
+                max_levels = []
+                for i in range(8):
+                    current_i, max_level_indiv = check_recursive(refined, current_i, max_level+1)
+                    max_levels.append(max_level_indiv)
+                max_level = max(max_levels)
+            else:
+                current_i += 1
+            return current_i, max_level
+
+        try:
+            final_i, max_level = check_recursive(value)
+        except IndexError:
+            raise ValueError("refined array is not self-consistent")
+
+        logger.info("Setting refined with maximum depth of {0} levels".format(max_level))
+
+        if max_level > 20:
+            logger.warn("Number of levels in octree is high ({0})".format(max_level))
+
+        self._refined = value
+
     def __getattr__(self, attribute):
         if attribute == 'n_dust':
             n_dust = None
