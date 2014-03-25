@@ -190,6 +190,19 @@ class OctreeGrid(FreezableClass):
         if not (len(value) - 1) % 8 == 0:
             raise ValueError("refined should have shape 8 * n + 1")
 
+        # Check that refined array reduces to a single False if removing all
+        # levels of refinement.
+        refined_str = value.tostring()
+        previous = ''
+        while True:
+            refined_str = refined_str.replace('\x01\x00\x00\x00\x00\x00\x00\x00\x00', '\x00')
+            if refined_str == previous:
+                break
+            else:
+                previous = refined_str
+        if refined_str != '\x00':
+            raise ValueError('refined should reduce to a single False value if removing levels in hierarchy')
+
         def check_recursive(refined, current_i=0, max_level=0):
             if refined[current_i]:
                 current_i += 1
