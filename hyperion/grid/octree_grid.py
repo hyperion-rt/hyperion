@@ -195,12 +195,12 @@ class OctreeGrid(FreezableClass):
         refined_str = value.tostring()
         previous = ''
         while True:
-            refined_str = refined_str.replace('\x01\x00\x00\x00\x00\x00\x00\x00\x00', '\x00')
+            refined_str = refined_str.replace(b'\x01\x00\x00\x00\x00\x00\x00\x00\x00', b'\x00')
             if refined_str == previous:
                 break
             else:
                 previous = refined_str
-        if refined_str != '\x00':
+        if refined_str != b'\x00':
             raise ValueError('refined should reduce to a single False value if removing levels in hierarchy')
 
         def check_recursive(refined, current_i=0, max_level=0):
