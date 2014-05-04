@@ -6,15 +6,24 @@
 /* Define docstrings */
 static char module_docstring[] = "Helpers for discretizing SPH particles";
 static char discretize_sph_docstring[] = "Discretize SPH particles onto given cells";
+static char get_positions_widths_docstring[] = "Get positions and widths of all cells";
 
 /* Declare the C functions here. */
 static PyObject *_discretize_sph_func(PyObject *self, PyObject *args);
+static PyObject *_get_positions_widths(PyObject *self, PyObject *args);
 
 /* Define the methods that will be available on the module. */
 static PyMethodDef module_methods[] = {
     {"_discretize_sph_func", _discretize_sph_func, METH_VARARGS, discretize_sph_docstring},
+    {"_get_positions_widths", _get_positions_widths, METH_VARARGS, get_positions_widths_docstring},
     {NULL, NULL, 0, NULL}
 };
+
+int recursive_position_width(int i, long *refined,
+                             double x, double y, double z,
+                             double dx, double dy, double dz,
+                             double *xc, double *yc, double *zc,
+                             double *xw, double *yw, double *zw);
 
 /* This is the function that is called on import. */
 
@@ -215,3 +224,132 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
 
 }
 
+static PyObject *_get_positions_widths(PyObject *self, PyObject *args)
+{
+
+    PyObject *refined_obj;
+    double x0, y0, z0;
+    double dx, dy, dz;
+
+    /* Parse the input tuple */
+    if (!PyArg_ParseTuple(args, "Odddddd", &refined_obj, &x0, &y0, &z0, &dx, &dy, &dz))
+        return NULL;
+
+    /* Interpret the input objects as `numpy` arrays. */
+    PyObject *refined_array = PyArray_FROM_OTF(refined_obj, NPY_LONGLONG, NPY_IN_ARRAY);
+
+    /* If that didn't work, throw an `Exception`. */
+    if (refined_array == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Couldn't parse the input arrays.");
+        Py_XDECREF(refined_array);
+        return NULL;
+    }
+
+    /* How many cells are there? */
+    int ncells = (int)PyArray_DIM(refined_array, 0);
+
+    /* Build the output arrays */
+
+    npy_intp dims[1];
+    dims[0] = ncells;
+
+    PyObject *xc_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (xc_array == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Couldn't build output array");
+        Py_XDECREF(refined_array);
+        return NULL;
+    }
+
+    PyObject *yc_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (yc_array == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Couldn't build output array");
+        Py_XDECREF(refined_array);
+        return NULL;
+    }
+
+    PyObject *zc_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (zc_array == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Couldn't build output array");
+        Py_XDECREF(refined_array);
+        return NULL;
+    }
+
+    PyObject *xw_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (xw_array == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Couldn't build output array");
+        Py_XDECREF(refined_array);
+        return NULL;
+    }
+
+    PyObject *yw_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (yw_array == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Couldn't build output array");
+        Py_XDECREF(refined_array);
+        return NULL;
+    }
+
+    PyObject *zw_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (zw_array == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Couldn't build output array");
+        Py_XDECREF(refined_array);
+        return NULL;
+    }
+
+    /* Get pointers to the data as C-types. */
+    long *refined = (long*)PyArray_DATA(refined_array);
+    double *xc = (double*)PyArray_DATA(xc_array);
+    double *yc = (double*)PyArray_DATA(yc_array);
+    double *zc = (double*)PyArray_DATA(zc_array);
+    double *xw = (double*)PyArray_DATA(xw_array);
+    double *yw = (double*)PyArray_DATA(yw_array);
+    double *zw = (double*)PyArray_DATA(zw_array);
+
+    /* Compute cell properties */
+    int i;
+    i = recursive_position_width(0, refined, x0, y0, z0, dx, dy, dz, xc, yc, zc, xw, yw, zw);
+
+    if(i != ncells - 1) {
+        PyErr_SetString(PyExc_TypeError, "An error occurred when retrieving the cell properties");
+    }
+
+    // return xc_array, yc_array, zc_array;
+    return Py_BuildValue("OOOOOO", xc_array, yc_array, zc_array, xw_array, yw_array, zw_array);
+
+}
+
+
+int recursive_position_width(int i, long *refined,
+                             double x, double y, double z,
+                             double dx, double dy, double dz,
+                             double *xc, double *yc, double *zc,
+                             double *xw, double *yw, double *zw) {
+
+    xc[i] = x;
+    yc[i] = y;
+    zc[i] = z;
+    xw[i] = dx;
+    yw[i] = dy;
+    zw[i] = dz;
+
+    if(refined[i] == 1) {
+
+        dx *= 0.5;
+        dy *= 0.5;
+        dz *= 0.5;
+
+        for(int ix=-1;ix<2;ix+=2) {
+            for(int iy=-1;iy<2;iy+=2) {
+                for(int iz=-1;iz<2;iz+=2) {
+                    i = recursive_position_width(i + 1, refined,
+                                                 x + ix * dx, y + iy * dy, z + iz * dz,
+                                                 dx, dy, dz,
+                                                 xc, yc, zc, xw, yw, zw);
+                }
+            }
+        }
+
+    }
+
+    return i;
+
+}
