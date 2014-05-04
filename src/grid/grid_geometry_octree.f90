@@ -264,6 +264,9 @@ contains
     geo%zmin = geo%cells(1)%z - geo%cells(1)%dz
     geo%zmax = geo%cells(1)%z + geo%cells(1)%dz
 
+    ! Set precision
+    geo%eps = spacing(max(geo%cells(1)%dx, geo%cells(1)%dy, geo%cells(1)%dz)) * 3._dp
+
   end subroutine setup_grid_geometry
 
   subroutine grid_geometry_debug(debug_flag)
@@ -483,9 +486,6 @@ contains
        tz = huge(1._dp)
     end if
 
-    ! Following is potential slowdown, in fact, could just test tmin after
-    if(min(tx,ty,tz) .lt. 0._dp) call error("find_wall","negative t")
-
     ! Find the closest of the three walls. The following effectively
     ! finds the minimum of three values. A lot of code for such a
     ! small thing, but this runs much much faster than using a built
@@ -524,6 +524,15 @@ contains
           end if
           tmin = ty
        end if
+    end if
+
+    if(tmin < 0._dp) then
+        if(tmin > -geo%eps) then
+            ! TODO: there may be a better way to avoid this kind of situation
+            tmin = 0._dp
+        else
+            call error("find_wall","negative t")
+        end if
     end if
 
   end subroutine find_wall
