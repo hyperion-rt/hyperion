@@ -527,7 +527,7 @@ contains
     end if
 
     if(tmin < 0._dp) then
-        if(tmin > -geo%eps) then
+        if(tmin > -10 * geo%eps) then
             ! TODO: there may be a better way to avoid this kind of situation
             tmin = 0._dp
         else
