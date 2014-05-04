@@ -337,9 +337,9 @@ int recursive_position_width(int i, long *refined,
         dy *= 0.5;
         dz *= 0.5;
 
-        for(int ix=-1;ix<2;ix+=2) {
+        for(int iz=-1;iz<2;iz+=2) {
             for(int iy=-1;iy<2;iy+=2) {
-                for(int iz=-1;iz<2;iz+=2) {
+                for(int ix=-1;ix<2;ix+=2) {
                     i = recursive_position_width(i + 1, refined,
                                                  x + ix * dx, y + iy * dy, z + iz * dz,
                                                  dx, dy, dz,

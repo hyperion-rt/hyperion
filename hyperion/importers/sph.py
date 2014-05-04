@@ -16,9 +16,9 @@ def refine(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, levels_remaining, stopp
     py_pos = py > y
     pz_pos = pz > z
 
-    for xcomp, xsub in ((~px_pos, x - dx * 0.5),(px_pos, x + dx  *0.5)):
+    for zcomp, zsub in ((~pz_pos, z - dz * 0.5),(pz_pos, z + dz  *0.5)):
         for ycomp, ysub in ((~py_pos, y - dy * 0.5),(py_pos, y + dy  *0.5)):
-            for zcomp, zsub in ((~pz_pos, z - dz * 0.5),(pz_pos, z + dz  *0.5)):
+            for xcomp, xsub in ((~px_pos, x - dx * 0.5),(px_pos, x + dx  *0.5)):
 
                 keep = xcomp & ycomp & zcomp
 
