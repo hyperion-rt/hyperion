@@ -531,7 +531,8 @@ contains
             ! TODO: there may be a better way to avoid this kind of situation
             tmin = 0._dp
         else
-            call error("find_wall","negative t")
+            call warn("find_wall", "an error occured when searching for the nearest wall (negative t)")
+            id_min = no_wall
         end if
     end if
 
