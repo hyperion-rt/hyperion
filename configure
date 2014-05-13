@@ -1824,7 +1824,7 @@ else
 fi
 
 # gfortran sometimes includes version number, so check whether this is the case
-hdf_compiler_short=`echo $hdf_compiler | cut -c1-8`
+hdf_compiler_short=`echo $hdf_compiler | sed s/'.*gfortran.*'/gfortran/`
 if test "$hdf_compiler_short" == gfortran
 then
   hdf_compiler=gfortran
@@ -1949,7 +1949,7 @@ else
 fi
 
 # gfortran sometimes includes version number, so check whether this is the case
-mpi_compiler_short=`echo $mpi_compiler | cut -c1-8`
+mpi_compiler_short=`echo $mpi_compiler | sed s/'.*gfortran.*'/gfortran/`
 if test "$mpi_compiler_short" == gfortran
 then
   mpi_compiler=gfortran
