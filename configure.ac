@@ -89,8 +89,9 @@ else
   fi
 fi
 
-# gfortran sometimes includes version number, so check whether this is the case
-hdf_compiler_short=`echo $hdf_compiler | cut -c1-8`
+# gfortran sometimes includes version number and/or platform info
+# (e.g., x86_64-pc-linux-gnu-gfortran-4.8.2), so check whether this is the case
+hdf_compiler_short=`echo $hdf_compiler | sed s/'.*gfortran.*'/gfortran/`
 if test "$hdf_compiler_short" == gfortran
 then
   hdf_compiler=gfortran
@@ -155,8 +156,9 @@ else
   AC_ERROR(["h5pfc or mpif90 need to be present"])
 fi
 
-# gfortran sometimes includes version number, so check whether this is the case
-mpi_compiler_short=`echo $mpi_compiler | cut -c1-8`
+# gfortran sometimes includes version number and/or platform info
+# (e.g., x86_64-pc-linux-gnu-gfortran-4.8.2), so check whether this is the case
+mpi_compiler_short=`echo $mpi_compiler | sed s/'.*gfortran.*'/gfortran/`
 if test "$mpi_compiler_short" == gfortran
 then
   mpi_compiler=gfortran
