@@ -10,7 +10,7 @@ import numpy as np
 
 from ..version import __version__
 from ..util.functions import delete_file
-from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid
+from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid, VoronoiGrid
 from ..sources import PointSource, PointSourceCollection, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource, read_source
 from ..conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from ..util.constants import c
@@ -825,6 +825,9 @@ class Model(FreezableClass, RunConf):
 
     def set_amr_grid(self, description):
         self.set_grid(AMRGrid(description))
+
+    def set_voronoi_grid(self, x, y, z):
+        self.set_grid(VoronoiGrid(x, y, z))
 
     def set_grid(self, grid):
         if isinstance(grid, AMRGrid):

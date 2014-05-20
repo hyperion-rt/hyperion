@@ -145,6 +145,42 @@ OBJECTS_OCT_MPI =	src/mpi/mpi_core.f90 \
 			src/mpi/mpi_routines.f90 \
 			$(OBJECTS3)
 
+OBJECTS_VOR_SER =	src/mpi/mpi_core_nompi.f90 \
+			fortranlib/src/@posix_module_serial@.f90 \
+			$(COMMON) \
+			src/extern/kdtree2/kdtree2.f90 \
+			src/core/core_lib.f90 \
+			src/main/counters.f90 \
+			src/mpi/mpi_io_nompi.f90 \
+			src/grid/type_grid_voronoi.f90 \
+			src/core/type_cell_id_octree.f90 \
+			$(OBJECTS1) \
+			src/grid/grid_io_voronoi.f90 \
+			src/grid/grid_geometry_voronoi.f90 \
+			src/grid/grid_geometry_common_3d.f90 \
+			src/grid/grid_pda_disabled.f90 \
+			$(OBJECTS2) \
+			src/mpi/mpi_routines_nompi.f90 \
+			$(OBJECTS3)
+
+OBJECTS_VOR_MPI =	src/mpi/mpi_core.f90 \
+			fortranlib/src/@posix_module_mpi@.f90 \
+			$(COMMON) \
+			src/extern/kdtree2/kdtree2.f90 \
+			src/core/core_lib.f90 \
+			src/main/counters.f90 \
+			src/mpi/mpi_io.f90 \
+			src/grid/type_grid_voronoi.f90 \
+			src/core/type_cell_id_octree.f90 \
+			$(OBJECTS1) \
+			src/grid/grid_io_voronoi.f90 \
+			src/grid/grid_geometry_voronoi.f90 \
+			src/grid/grid_geometry_common_3d.f90 \
+			src/grid/grid_pda_disabled.f90 \
+			$(OBJECTS2) \
+			src/mpi/mpi_routines.f90 \
+			$(OBJECTS3)
+
 OBJECTS_SPH_SER =	src/mpi/mpi_core_nompi.f90 \
 			fortranlib/src/@posix_module_serial@.f90 \
 			$(COMMON) \
@@ -249,6 +285,12 @@ cyl_serial:	$(OBJECTS_CYL_SER)
 cyl_mpi:	$(OBJECTS_CYL_MPI)
 		$(FCMPI) $(OBJECTS_CYL_MPI) -o bin/hyperion_cyl_mpi
 
+vor_serial:	$(OBJECTS_VOR_SER)
+		$(FC) $(OBJECTS_VOR_SER) -o bin/hyperion_vor
+
+vor_mpi:	$(OBJECTS_VOR_MPI)
+		$(FCMPI) $(OBJECTS_VOR_MPI) -o bin/hyperion_vor_mpi
+    
 install:	bin/hyperion_*
 		mkdir -p @prefix@/bin
 		cp bin/hyperion_* @prefix@/bin/
