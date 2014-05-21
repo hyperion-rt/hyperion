@@ -1033,7 +1033,7 @@ contains
     type(kdtree2_result), target :: results(:)
 
 
-    sr%ballsize = huge(1.0)
+    sr%ballsize = huge(1.0_kdkind)
     sr%qv => qv
     sr%nn = nn
     sr%nfound = 0
@@ -1076,7 +1076,7 @@ contains
 
     allocate (sr%qv(tp%dimen))
     sr%qv = tp%the_data(:,idxin) ! copy the vector
-    sr%ballsize = huge(1.0)       ! the largest real(kdkind) number
+    sr%ballsize = huge(1.0_kdkind)       ! the largest real(kdkind) number
     sr%centeridx = idxin
     sr%correltime = correltime
 
@@ -1706,7 +1706,7 @@ contains
     end do
     ! now find 'n' smallest distances
     do i = 1, nn
-       results(i)%dis =  huge(1.0)
+       results(i)%dis =  huge(1.0_kdkind)
        results(i)%idx = -1
     end do
     do i = 1, tp%n

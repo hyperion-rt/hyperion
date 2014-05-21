@@ -131,7 +131,7 @@ class voronoi_grid(object):
         # Establish the maximum number of neighbours.
         max_nn = len(max(self._nl,key = lambda l: len(l)))
         # Create the array of neighbours. Padding will be indicated by the value "-1".
-        n_array = np.array([[-1] * max_nn] * len(self._vor_tess.points))
+        n_array = np.array([[-1] * max_nn] * len(self._vor_tess.points), dtype=np.int32)
         # Fill in the array of neighbours.
         for i in range(len(self._nl)):
             tmp_list = list(self._nl[i])

@@ -300,6 +300,9 @@ class VoronoiGrid(FreezableClass):
         g_geometry.attrs['zmin'] = self.zmin
         g_geometry.attrs['zmax'] = self.zmax
 
+        if self._voronoi_table['neighbours'].dtype != np.int32:
+            raise TypeError("neighbours should be int32")
+
         dset = g_geometry.create_dataset("cells", data=self._voronoi_table, compression=compression)
 
         # Self-consistently check geometry and physical quantities
