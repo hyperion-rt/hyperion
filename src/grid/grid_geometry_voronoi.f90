@@ -91,7 +91,7 @@ contains
     real(dp), allocatable :: x(:), y(:), z(:)
     integer, allocatable :: neighbors(:,:)
     integer :: n_neighbors
-    real(dp),allocatable :: points(:,:)
+    real(dp),allocatable :: points(:,:), bmin(:,:), bmax(:,:)
     type(cell),pointer :: c
 
     ! Read geometry file
@@ -99,14 +99,24 @@ contains
     call mp_read_keyword(group, '.', "grid_type", geo%type)
 
     ! Read in list of cells
-    call mp_table_read_column_auto(group, 'cells', 'x', x)
-    call mp_table_read_column_auto(group, 'cells', 'y', y)
-    call mp_table_read_column_auto(group, 'cells', 'z', z)
-    call mp_table_read_column_auto(group, 'cells', 'neighbors', neighbors)
+    call mp_table_read_column_auto(group, 'cells', 'coordinates', points)
+    call mp_table_read_column_auto(group, 'cells', 'neighbours', neighbors)
+    call mp_table_read_column_auto(group, 'cells', 'bmin', bmin)
+    call mp_table_read_column_auto(group, 'cells', 'bmax', bmax)
+    
+    allocate(x(size(points,2)))
+    allocate(y(size(points,2)))
+    allocate(z(size(points,2)))
+    
+    x = points(1,:)
+    y = points(2,:)
+    z = points(3,:)
 
     ! Find number of cells
     geo%n_cells = size(x)
     geo%n_masked = geo%n_cells
+
+    print *,geo%n_cells
 
     ! Allocate cells
     allocate(geo%cells(geo%n_cells))
@@ -122,10 +132,6 @@ contains
     end do
 
     ! Construct KDTree
-    allocate(points(3, geo%n_cells))
-    points(1,:) = x
-    points(2,:) = y
-    points(3,:) = z
     geo%tree => kdtree2_create(points, rearrange=.true., sort=.true.)
 
     ! Read parameters for top-level cell
@@ -138,23 +144,31 @@ contains
 
     call mp_table_read_column_auto(group, 'cells', 'volume', geo%volume)
 
-    if(any(geo%volume==0._dp)) call error('setup_grid_geometry','all volumes should be greater than zero')
+    geo%masked = .true.
+    allocate(geo%mask(geo%n_cells))
+    geo%mask = geo%volume > 0._dp
+    geo%n_masked = count(geo%mask)
+    allocate(geo%mask_map(geo%n_masked))
+    iv = 0
+    do ic=1,geo%n_cells
+       if(geo%mask(ic)) then
+          iv = iv + 1
+          geo%mask_map(iv) = ic
+       end if
+    end do
+    
+    
+    where(geo%volume < 0._dp) geo%volume = 0._dp
 
     geo%n_dim = 3
 
     ! Determine rough bounding box. Not correct, but will do the trick for now.
-    do ic=1,geo%n_cells
-        c => geo%cells(ic)
-        c%xmin = minval(geo%cells(c%neighbors)%r%x)
-        c%xmax = maxval(geo%cells(c%neighbors)%r%x)
-        c%ymin = minval(geo%cells(c%neighbors)%r%y)
-        c%ymax = maxval(geo%cells(c%neighbors)%r%y)
-        c%zmin = minval(geo%cells(c%neighbors)%r%z)
-        c%zmax = maxval(geo%cells(c%neighbors)%r%z)
-        geo%volume(ic) = (c%xmax - c%xmin) * (c%ymax - c%ymin) * (c%zmax - c%zmin)
-    end do 
-    
-    
+    geo%cells%xmin = bmin(1,:)
+    geo%cells%xmax = bmax(1,:)
+    geo%cells%ymin = bmin(2,:)
+    geo%cells%ymax = bmax(2,:)
+    geo%cells%zmin = bmin(3,:)
+    geo%cells%zmax = bmax(3,:)
 
   end subroutine setup_grid_geometry
 
@@ -249,7 +263,7 @@ contains
     real(dp) :: point(3)
         
     do
-        
+
         ! Sample in bounding box
         call random_uni(pos%x, geo%cells(icell%ic)%xmin, geo%cells(icell%ic)%xmax)
         call random_uni(pos%y, geo%cells(icell%ic)%ymin, geo%cells(icell%ic)%ymax)

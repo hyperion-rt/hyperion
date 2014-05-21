@@ -54,18 +54,14 @@ class VoronoiGrid(FreezableClass):
 
         self.shape = None
 
-        self.x = None
-        self.y = None
-        self.z = None
-        
         self.xmin = None
         self.xmax = None
         self.ymin = None
         self.ymax = None
         self.zmin = None
         self.zmax = None
-        
-        self.neighbors = None
+
+        self._voronoi_table = None
 
         self.quantities = {}
 
@@ -96,34 +92,6 @@ class VoronoiGrid(FreezableClass):
         # Find grid shape
         self.shape = (len(x),)
 
-        # Store point positions
-        self.x = x
-        self.y = y
-        self.z = z
-
-        # Compute Voronoi tesselation
-        from .voronoi import voronoi_grid
-
-        points = np.array([x, y, z]).transpose()
-        print(points)
-
-        mesh = voronoi_grid(points, [None, None, None])
-
-        # Get neighbors - in future get ._nl to directly return a 2D array
-
-        neighbor_list = mesh._nl
-
-        n_neighbors = max([len(n) for n in neighbor_list])
-
-        neighbors = -np.ones((len(x), n_neighbors), dtype=np.int32)
-
-        for i in range(len(x)):
-            nb = np.array(list(neighbor_list[i]))
-            if len(neighbor_list[i]) > 0:
-                neighbors[i,:len(nb)] = nb
-
-        self.neighbors = neighbors
-        
         # For now, define box using points
         self.xmin = x.min()
         self.xmax = x.max()
@@ -132,6 +100,41 @@ class VoronoiGrid(FreezableClass):
         self.zmin = z.min()
         self.zmax = z.max()
 
+        # Compute Voronoi tesselation
+        from .voronoi_helpers import voronoi_grid
+
+        points = np.array([x, y, z]).transpose()
+
+        mesh = voronoi_grid(points, np.array([[self.xmin, self.xmax], [self.ymin, self.ymax], [self.zmin, self.zmax]]))
+
+        self._voronoi_table = mesh.neighbours_table()
+        
+        # Fix for bounding box column
+        self._voronoi_table['bmin'] = self._voronoi_table['bounding_box'][:,:,0]
+        self._voronoi_table['bmax'] = self._voronoi_table['bounding_box'][:,:,1]
+        self._voronoi_table.remove_column('bounding_box')
+
+    @property
+    def x(self):
+        if self._voronoi_table is None:
+            return None
+        else:
+            return self._voronoi_table['coordinates'][:,0]
+
+    @property
+    def y(self):
+        if self._voronoi_table is None:
+            return None
+        else:
+            return self._voronoi_table['coordinates'][:,1]
+
+    @property
+    def z(self):
+        if self._voronoi_table is None:
+            return None
+        else:
+            return self._voronoi_table['coordinates'][:,2]
+        
     def __getattr__(self, attribute):
         if attribute == 'n_dust':
             n_dust = None
@@ -297,15 +300,7 @@ class VoronoiGrid(FreezableClass):
         g_geometry.attrs['zmin'] = self.zmin
         g_geometry.attrs['zmax'] = self.zmax
 
-        from astropy.table import Table
-        t = Table()
-        t['x'] = self.x
-        t['y'] = self.y
-        t['z'] = self.z
-        t['neighbors'] = self.neighbors
-        t['volume'] = np.ones(len(self.x))
-
-        dset = g_geometry.create_dataset("cells", data=t._data, compression=compression)
+        dset = g_geometry.create_dataset("cells", data=self._voronoi_table, compression=compression)
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()

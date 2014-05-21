@@ -154,7 +154,7 @@ class voronoi_grid(object):
         for i in range(len(self._vor_tess.points)):
             ridx = self._sidx_to_ridx(i)
             if ridx in self._protruding_cells:
-                bb_list.append(np.array([]))
+                bb_list.append(np.zeros((3,2)))
             else:
                 cell = self._vor_tess.regions[ridx]
                 vertices = self._vor_tess.vertices[cell]

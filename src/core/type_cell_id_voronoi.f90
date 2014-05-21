@@ -22,7 +22,7 @@ module type_grid_cell
 
   public :: wall_id
   type wall_id
-     integer :: w=0
+     integer :: w1=0, w2
   end type wall_id
 
   type(wall_id), parameter, public :: no_wall = wall_id(0)
