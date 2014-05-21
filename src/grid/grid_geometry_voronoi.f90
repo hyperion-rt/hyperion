@@ -127,7 +127,7 @@ contains
        geo%cells(ic)%r%x = x(ic)
        geo%cells(ic)%r%y = y(ic)
        geo%cells(ic)%r%z = z(ic)
-       n_neighbors = count(neighbors(:, ic) > 0)
+       n_neighbors = count(neighbors(:, ic) > -1)
        allocate(geo%cells(ic)%neighbors(n_neighbors))
        geo%cells(ic)%neighbors(1:n_neighbors) = neighbors(1:n_neighbors, ic) + 1
     end do
@@ -321,24 +321,30 @@ contains
 
     call reset_t()
 
-    if(p%v%x > 0.) then
+    if(p%v%x > 0._dp) then
         tx = ( geo%xmax - p%r%x ) / p%v%x
+    else if(p%v%x < 0._dp) then
+        tx = ( geo%xmin - p%r%x) / p%v%x
     else
-        tx = ( p%r%x - geo%xmin ) / p%v%x
+        tx = huge(1._dp)
     end if
     call insert_t(tx, 1, geo%n_cells + 1, 0._dp)
 
     if(p%v%y > 0.) then
         ty = ( geo%ymax - p%r%y ) / p%v%y
+    else if(p%v%y < 0._dp) then
+        ty = ( geo%ymin - p%r%y ) / p%v%y
     else
-        ty = ( p%r%y - geo%ymin ) / p%v%y
+        ty = huge(1._dp)
     end if
     call insert_t(ty, 1, geo%n_cells + 1, 0._dp)
 
     if(p%v%z > 0.) then
         tz = ( geo%zmax - p%r%z ) / p%v%z
+    else if(p%v%z < 0._dp) then
+        tz = ( geo%zmin - p%r%z ) / p%v%z
     else
-        tz = ( p%r%z - geo%zmin ) / p%v%z
+        tz = huge(1._dp)
     end if
     call insert_t(tz, 1, geo%n_cells + 1, 0._dp)
 
