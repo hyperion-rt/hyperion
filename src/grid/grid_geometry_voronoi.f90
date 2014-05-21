@@ -261,8 +261,9 @@ contains
 
     type(kdtree2_result) :: results(1)
     real(dp) :: point(3)
+    integer :: i
 
-    do
+    do i=1,1000000
 
         ! Sample in bounding box
         call random_uni(pos%x, geo%cells(icell%ic)%xmin, geo%cells(icell%ic)%xmax)
@@ -277,6 +278,8 @@ contains
         if(results(1)%idx == icell%ic) exit
 
     end do
+
+    if(i==1000001) call error("random_position_cell", "too many samples")
 
   end subroutine random_position_cell
 
