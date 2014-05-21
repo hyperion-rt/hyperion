@@ -47,6 +47,9 @@ module grid_geometry_specific
 
   integer :: n_filled = 0
 
+  ! Declare here otherwise pointer becomes corrupt
+  real(dp),allocatable, target :: points(:,:)
+
 contains
 
   real(dp) function cell_width(cell, idir)
@@ -91,7 +94,7 @@ contains
     real(dp), allocatable :: x(:), y(:), z(:)
     integer, allocatable :: neighbors(:,:)
     integer :: n_neighbors
-    real(dp),allocatable :: points(:,:), bmin(:,:), bmax(:,:)
+    real(dp),allocatable :: bmin(:,:), bmax(:,:)
     type(cell),pointer :: c
 
     ! Read geometry file
@@ -103,11 +106,11 @@ contains
     call mp_table_read_column_auto(group, 'cells', 'neighbours', neighbors)
     call mp_table_read_column_auto(group, 'cells', 'bmin', bmin)
     call mp_table_read_column_auto(group, 'cells', 'bmax', bmax)
-    
+
     allocate(x(size(points,2)))
     allocate(y(size(points,2)))
     allocate(z(size(points,2)))
-    
+
     x = points(1,:)
     y = points(2,:)
     z = points(3,:)
@@ -115,8 +118,6 @@ contains
     ! Find number of cells
     geo%n_cells = size(x)
     geo%n_masked = geo%n_cells
-
-    print *,geo%n_cells
 
     ! Allocate cells
     allocate(geo%cells(geo%n_cells))
@@ -156,8 +157,7 @@ contains
           geo%mask_map(iv) = ic
        end if
     end do
-    
-    
+
     where(geo%volume < 0._dp) geo%volume = 0._dp
 
     geo%n_dim = 3
@@ -182,13 +182,13 @@ contains
     implicit none
     type(photon),intent(in) :: p
     integer :: ic
-    type(kdtree2_result) :: results(3)
+    type(kdtree2_result) :: results(1)
     real(dp) :: point(3)
     if(debug) write(*,'(" [debug] find_cell")')
     ! TODO: nearest-neighbor algorithm - potentially going to be the
     ! bottleneck.
     point = [p%r%x, p%r%y, p%r%z]
-    call kdtree2_n_nearest(geo%tree, point, 3, results)
+    call kdtree2_n_nearest(geo%tree, point, 1, results)
     ic = results(1)%idx
     icell = new_grid_cell(ic, geo)
   end function find_cell
@@ -258,26 +258,26 @@ contains
     type(grid_cell),intent(in) :: icell
     type(vector3d_dp), intent(out) :: pos
     type(grid_cell) :: icell_actual
-      
+
     type(kdtree2_result) :: results(1)
     real(dp) :: point(3)
-        
+
     do
 
         ! Sample in bounding box
         call random_uni(pos%x, geo%cells(icell%ic)%xmin, geo%cells(icell%ic)%xmax)
         call random_uni(pos%y, geo%cells(icell%ic)%ymin, geo%cells(icell%ic)%ymax)
         call random_uni(pos%z, geo%cells(icell%ic)%zmin, geo%cells(icell%ic)%zmax)
-    
+
         ! Check if in right cell
         point = [pos%x, pos%y, pos%z]
         call kdtree2_n_nearest(geo%tree, point, 1, results)
-        
+
         ! Break if correct
         if(results(1)%idx == icell%ic) exit
-        
+
     end do
-        
+
   end subroutine random_position_cell
 
   real(dp) function distance_to_closest_wall(p) result(d)
@@ -308,6 +308,7 @@ contains
     integer :: i, n_neighbors
     type(vector3d_dp) :: r0, ri, rmid, n
     real(dp) :: t, tx, ty, tz
+
 
     icell => geo%cells(p%icell%ic)
 
@@ -361,11 +362,6 @@ contains
 
     ! use w2 to store previous cell
     id_min%w2 = p%icell%ic
-
-
-    ! We can also ignore the wall where we come from
-
-    !TODO
 
   end subroutine find_wall
 
