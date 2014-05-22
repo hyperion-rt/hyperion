@@ -3,6 +3,7 @@ class voronoi_grid(object):
         from scipy.spatial import Delaunay, Voronoi
         import numpy as np
         from copy import deepcopy
+
         # Validate input.
         if not isinstance(sites,np.ndarray) or sites.dtype.kind != 'f':
             raise TypeError('input sites list must be a NumPy array of floats')
@@ -27,8 +28,10 @@ class voronoi_grid(object):
             for coord,limit in zip(site,domain):
                 if coord < limit[0] or coord > limit[1]:
                     raise ValueError('a site is outside the domain')
+
         # Store the domain.
         self._domain = deepcopy(domain)
+
         # Build the two tessellations.
         # NOTE: the two tessellations use different types of indexing:
         # - the Delaunay uses the indices of the input sites,
@@ -39,10 +42,13 @@ class voronoi_grid(object):
         # user-facing should be presented in that convention.
         self._del_tess = Delaunay(sites)
         self._vor_tess = Voronoi(sites)
+
         # Build the dict for the mapping from region idx to site idx.
         self._r_to_s_dict = dict([(t[1],t[0]) for t in enumerate(self._vor_tess.point_region)])
+
         # Compute the initial list of neighbours. This is stored in sites indices.
         self._nl = self._compute_neighbours()
+
         # Identify the cells that are protruding from the box (including infinite cells).
         # Here we are using the Voronoi regions, so everything is indexed according to the regions.
         protruding_cells = set()
@@ -53,6 +59,7 @@ class voronoi_grid(object):
                 regions_copy[i] = []
                 protruding_cells.add(i)
         self._protruding_cells = protruding_cells
+
         # The wall cells will be all the neighbours of the protruding ones, excluding the
         # protruding ones themselves.
         wall_cells = set()
@@ -62,13 +69,17 @@ class voronoi_grid(object):
                     wall_cells.add(self._sidx_to_ridx(neighbour))
         self._new_regions = regions_copy
         self._wall_cells = wall_cells
+
     # Convert site idx (i.e., indexing with respect to the input sites, used in the Delaunay tessellation
     # and in the neighbours list) to the indexing of Voronoi regions as resulting from the Voronoi tessellation.
     def _sidx_to_ridx(self,sidx):
         return self._vor_tess.point_region[sidx]
+
     # Opposite of the above.
     def _ridx_to_sidx(self,ridx):
         return self._r_to_s_dict[ridx]
+
+    # Compute neighbours list.
     def _compute_neighbours(self):
         neigh_list = [set() for i in range(0,len(self._del_tess.points))]
         for simplex in self._del_tess.simplices:
@@ -77,6 +88,7 @@ class voronoi_grid(object):
                     if neigh_idx != site_idx:
                         neigh_list[site_idx].add(neigh_idx)
         return neigh_list
+
     # Test if a Voronoi region is entirely within the domain.
     def _region_in_domain(self,region):
         for vertex_idx in region:
@@ -85,22 +97,33 @@ class voronoi_grid(object):
                 if coord < limit[0] or coord > limit[1]:
                     return False
         return True
+
+    # A couple of plotting methods used for debug.
     def _plot_original(self):
         from scipy.spatial import voronoi_plot_2d
         voronoi_plot_2d(self._vor_tess)
+
     def _plot_new(self):
-        if len(self._domain) != 2:
-            raise ValueError('only 2-dimensional plotting is implemented')
         from matplotlib.pylab import plot, figure
         import numpy as np
+
+
+        if len(self._domain) != 2:
+            raise ValueError('only 2-dimensional plotting is implemented')
+
         #fig = figure()
         plotted_lines = set()
+
+
+        # Plot a single region.
         def plot_region(idx):
             region = self._new_regions[idx]
             # Do nothing for empty regions.
             if region == []:
                 return
+
             assert(len(region) >= 3)
+
             cur_vertex = region[0]
             for vertex_idx in region[1:] + [cur_vertex]:
                 line = tuple(sorted([cur_vertex,vertex_idx]))
@@ -112,60 +135,97 @@ class voronoi_grid(object):
                     else:
                         plot(arr[0],arr[1],'b')
                 cur_vertex = vertex_idx
+
+        # Plot all the new regions.
         for i in range(len(self._new_regions)):
             plot_region(i)
+
     # Compute the volume of a simplex.
+    # http://en.wikipedia.org/wiki/Simplex#Volume
     def _simplex_volume(self,simplex):
         from math import gamma
         import numpy as np
+
         n = len(simplex) - 1
+
         matrix = np.zeros((n,n))
         for i in range(0,n):
             matrix[i] = simplex[i + 1] - simplex[0]
+
         det = np.linalg.det(matrix)
+
         return abs(det / gamma(n + 1))
+
+    # Compute and return the neighbours table.
+    @property
     def neighbours_table(self):
         from astropy.table import Table
         import numpy as np
         from scipy.spatial import Delaunay
+        from copy import deepcopy
+
+        # Fetch the cached value, if it exists.
+        if hasattr(self,'__neighbours_table'):
+            return deepcopy(self.__neighbours_table)
+
         # Establish the maximum number of neighbours.
         max_nn = len(max(self._nl,key = lambda l: len(l)))
+
         # Create the array of neighbours. Padding will be indicated by the value "-1".
-        n_array = np.array([[-1] * max_nn] * len(self._vor_tess.points), dtype=np.int32)
+        n_array = np.empty([len(self._vor_tess.points),max_nn],dtype=np.int32)
+        n_array.fill(-1)
+
         # Fill in the array of neighbours.
         for i in range(len(self._nl)):
             tmp_list = list(self._nl[i])
             n_array[i][0:len(tmp_list)] = tmp_list
-        # Now onto the volumes. Protruding cells will have a volume of -1.
-        vol_list = []
+
+        # Now onto the volumes.
+        vol_arr = np.zeros([len(self._vor_tess.points)],dtype=np.dtype(float))
+
         for i in range(len(self._vor_tess.points)):
-            if self._sidx_to_ridx(i) in self._protruding_cells:
-                vol_list.append(-1.)
-            else:
+            # Protruding cells will have a volume of 0.
+            if not self._sidx_to_ridx(i) in self._protruding_cells:
                 cell = self._vor_tess.regions[self._sidx_to_ridx(i)]
                 vertices = self._vor_tess.vertices[cell]
+
+                # Decompose the Voronoi region into simplices.
                 dtess = Delaunay(vertices)
+
+                # Accumulate the volumes of the simplices.
                 volume = 0.
                 for simplex in dtess.simplices:
                     volume += self._simplex_volume(dtess.points[simplex])
-                vol_list.append(volume)
+                vol_arr[i] =volume
+
         # Bounding boxes.
-        bb_list = []
+        ndim = len(self._domain)
+        bb_arr = np.zeros([len(self._vor_tess.points),2 * ndim])
         for i in range(len(self._vor_tess.points)):
             ridx = self._sidx_to_ridx(i)
-            if ridx in self._protruding_cells:
-                bb_list.append(np.zeros((3,2)))
-            else:
+
+            # Do something only if the cell is not protruding. If it protrudes,
+            # the output array has already been inited with zeroes.
+            if not ridx in self._protruding_cells:
                 cell = self._vor_tess.regions[ridx]
                 vertices = self._vor_tess.vertices[cell]
-                bb = [np.array([coord,coord]) for coord in vertices[0]]
+
+                # Initialise min/max with the coordinates of the first vertex.
+                bb_arr[i][0:ndim] = vertices[0]
+                bb_arr[i][ndim:] = vertices[0]
+
+                # Iterate on the remaining vertices and update the minmax values as needed.
                 for vertex in vertices[1:]:
                     for j in range(0,len(vertex)):
-                        if vertex[j] < bb[j][0]:
-                            bb[j][0] = vertex[j]
-                        if vertex[j] > bb[j][1]:
-                            bb[j][1] = vertex[j]
-                bb_list.append(np.array(bb))
-        # Sites coordinates.
-        t = Table([self._vor_tess.points,n_array,np.array(vol_list),np.array(bb_list)],names=('coordinates','neighbours','volume','bounding_box'))
-        return t
+                        if vertex[j] < bb_arr[i][j]:
+                            bb_arr[i][j] = vertex[j]
+                        if vertex[j] > bb_arr[i][ndim + j]:
+                            bb_arr[i][ndim + j] = vertex[j]
+
+        # Build the table, including the sites coordinates.
+        t = Table([self._vor_tess.points,n_array,vol_arr,bb_arr[:,0:ndim],bb_arr[:,ndim:]],names=('coordinates','neighbours','volume','bb_min','bb_max'))
+
+        # Store the table for later use.
+        self.__neighbours_table = t
+
+        return deepcopy(self.__neighbours_table)
