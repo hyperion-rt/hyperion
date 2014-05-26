@@ -107,13 +107,11 @@ class voronoi_grid(object):
         from matplotlib.pylab import plot, figure
         import numpy as np
 
-
         if len(self._domain) != 2:
             raise ValueError('only 2-dimensional plotting is implemented')
 
         #fig = figure()
         plotted_lines = set()
-
 
         # Plot a single region.
         def plot_region(idx):
@@ -147,14 +145,53 @@ class voronoi_grid(object):
         import numpy as np
 
         n = len(simplex) - 1
-
-        matrix = np.zeros((n,n))
+        if not hasattr(self,'_zero_msimplex'):
+            matrix = np.zeros((n,n))
+            self._zero_msimplex = matrix
+        else:
+            matrix = self._zero_msimplex
         for i in range(0,n):
             matrix[i] = simplex[i + 1] - simplex[0]
 
-        det = np.linalg.det(matrix)
+        if n == 3:
+            a,b,c = matrix[0]
+            d,e,f = matrix[1]
+            g,h,i = matrix[2]
 
-        return abs(det / gamma(n + 1))
+            det = a*(e*i-f*h)-b*(d*i-f*g)+c*(d*h-e*g)
+
+            return abs(det / 6.)
+        else:
+            det = np.linalg.det(matrix)
+            return abs(det / gamma(n + 1))
+
+    def _compute_bb(self):
+        import numpy as np
+
+        ndim = len(self._domain)
+        bb_arr = np.zeros([len(self._vor_tess.points),2 * ndim])
+        for i in range(len(self._vor_tess.points)):
+            ridx = self._sidx_to_ridx(i)
+
+            # Do something only if the cell is not protruding. If it protrudes,
+            # the output array has already been inited with zeroes.
+            if not ridx in self._protruding_cells:
+                cell = self._vor_tess.regions[ridx]
+                vertices = self._vor_tess.vertices[cell]
+
+                # Initialise min/max with the coordinates of the first vertex.
+                bb_arr[i][0:ndim] = vertices[0]
+                bb_arr[i][ndim:] = vertices[0]
+
+                # Iterate on the remaining vertices and update the minmax values as needed.
+                for vertex in vertices[1:]:
+                    for j in range(0,len(vertex)):
+                        if vertex[j] < bb_arr[i][j]:
+                            bb_arr[i][j] = vertex[j]
+                        if vertex[j] > bb_arr[i][ndim + j]:
+                            bb_arr[i][ndim + j] = vertex[j]
+
+        return bb_arr
 
     # Compute and return the neighbours table.
     @property
@@ -199,33 +236,12 @@ class voronoi_grid(object):
                 vol_arr[i] =volume
 
         # Bounding boxes.
-        ndim = len(self._domain)
-        bb_arr = np.zeros([len(self._vor_tess.points),2 * ndim])
-        for i in range(len(self._vor_tess.points)):
-            ridx = self._sidx_to_ridx(i)
-
-            # Do something only if the cell is not protruding. If it protrudes,
-            # the output array has already been inited with zeroes.
-            if not ridx in self._protruding_cells:
-                cell = self._vor_tess.regions[ridx]
-                vertices = self._vor_tess.vertices[cell]
-
-                # Initialise min/max with the coordinates of the first vertex.
-                bb_arr[i][0:ndim] = vertices[0]
-                bb_arr[i][ndim:] = vertices[0]
-
-                # Iterate on the remaining vertices and update the minmax values as needed.
-                for vertex in vertices[1:]:
-                    for j in range(0,len(vertex)):
-                        if vertex[j] < bb_arr[i][j]:
-                            bb_arr[i][j] = vertex[j]
-                        if vertex[j] > bb_arr[i][ndim + j]:
-                            bb_arr[i][ndim + j] = vertex[j]
+        bb_arr = self._compute_bb()
 
         # Build the table, including the sites coordinates.
         t = Table([self._vor_tess.points,n_array,vol_arr,bb_arr[:,0:ndim],bb_arr[:,ndim:]],names=('coordinates','neighbours','volume','bb_min','bb_max'))
 
         # Store the table for later use.
-        self.__neighbours_table = t
+        self._neighbours_table = t
 
-        return deepcopy(self.__neighbours_table)
+        return deepcopy(self._neighbours_table)
