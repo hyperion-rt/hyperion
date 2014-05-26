@@ -141,29 +141,28 @@ class voronoi_grid(object):
     # Compute the volume of a simplex.
     # http://en.wikipedia.org/wiki/Simplex#Volume
     def _simplex_volume(self,simplex):
+        n = len(simplex) - 1
+
+        # Special casing for 3d, use the C version.
+        if n == 3:
+            from ._voronoi_core import _simplex3d_volume
+            return _simplex3d_volume(simplex)
+
         from math import gamma
         import numpy as np
 
-        n = len(simplex) - 1
+        # Cache the matrix used for volume computation.
         if not hasattr(self,'_zero_msimplex'):
             matrix = np.zeros((n,n))
             self._zero_msimplex = matrix
         else:
             matrix = self._zero_msimplex
+
         for i in range(0,n):
             matrix[i] = simplex[i + 1] - simplex[0]
 
-        if n == 3:
-            a,b,c = matrix[0]
-            d,e,f = matrix[1]
-            g,h,i = matrix[2]
-
-            det = a*(e*i-f*h)-b*(d*i-f*g)+c*(d*h-e*g)
-
-            return abs(det / 6.)
-        else:
-            det = np.linalg.det(matrix)
-            return abs(det / gamma(n + 1))
+        det = np.linalg.det(matrix)
+        return abs(det / gamma(n + 1))
 
     def _compute_bb(self):
         import numpy as np
@@ -201,9 +200,11 @@ class voronoi_grid(object):
         from scipy.spatial import Delaunay
         from copy import deepcopy
 
+        ndim = len(self._domain)
+
         # Fetch the cached value, if it exists.
-        if hasattr(self,'__neighbours_table'):
-            return deepcopy(self.__neighbours_table)
+        #if hasattr(self,'__neighbours_table'):
+            #return deepcopy(self.__neighbours_table)
 
         # Establish the maximum number of neighbours.
         max_nn = len(max(self._nl,key = lambda l: len(l)))
@@ -218,10 +219,11 @@ class voronoi_grid(object):
             n_array[i][0:len(tmp_list)] = tmp_list
 
         # Now onto the volumes.
-        vol_arr = np.zeros([len(self._vor_tess.points)],dtype=np.dtype(float))
+        vol_arr = np.empty([len(self._vor_tess.points)],dtype=np.dtype(float))
+        vol_arr.fill(-1.)
 
         for i in range(len(self._vor_tess.points)):
-            # Protruding cells will have a volume of 0.
+            # Protruding cells will have a volume of -1.
             if not self._sidx_to_ridx(i) in self._protruding_cells:
                 cell = self._vor_tess.regions[self._sidx_to_ridx(i)]
                 vertices = self._vor_tess.vertices[cell]
