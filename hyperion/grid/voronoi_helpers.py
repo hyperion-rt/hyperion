@@ -1,8 +1,19 @@
+def _do_nothing(signum, frame):
+    pass
+
+def _par_tess(t):
+    import gc, signal
+    signal.signal(signal.SIGINT,_do_nothing)
+    retval = t[0](t[1])
+    print(gc.collect())
+    return retval
+
 class voronoi_grid(object):
     def __init__(self,sites,domain):
         from scipy.spatial import Delaunay, Voronoi
         import numpy as np
         from copy import deepcopy
+        import multiprocessing as mp
 
         # Validate input.
         if not isinstance(sites,np.ndarray) or sites.dtype.kind != 'f':
@@ -29,6 +40,12 @@ class voronoi_grid(object):
                 if coord < limit[0] or coord > limit[1]:
                     raise ValueError('a site is outside the domain')
 
+        # Setup the process pool.
+        ncpus = mp.cpu_count()
+        print('Initing pool with {0} cpus.'.format(ncpus))
+        self._pool = mp.Pool(ncpus)
+        self._ncpus = ncpus
+
         # Store the domain.
         self._domain = deepcopy(domain)
 
@@ -40,8 +57,7 @@ class voronoi_grid(object):
         # We provide below a couple of utility functions to convert between the two indexing schemes.
         # Note that the user of the class cares about the indices of the input sites, so everything
         # user-facing should be presented in that convention.
-        self._del_tess = Delaunay(sites)
-        self._vor_tess = Voronoi(sites)
+        self._del_tess, self._vor_tess = self._pool.map(_par_tess,[(Delaunay,sites),(Voronoi,sites)])
 
         # Build the dict for the mapping from region idx to site idx.
         self._r_to_s_dict = dict([(t[1],t[0]) for t in enumerate(self._vor_tess.point_region)])
@@ -65,10 +81,14 @@ class voronoi_grid(object):
         wall_cells = set()
         for cell in protruding_cells:
             for neighbour in self._nl[self._ridx_to_sidx(cell)]:
-                if not self._sidx_to_ridx(neighbour) in protruding_cells:
+                if neighbour != -1 and not self._sidx_to_ridx(neighbour) in protruding_cells:
                     wall_cells.add(self._sidx_to_ridx(neighbour))
         self._new_regions = regions_copy
         self._wall_cells = wall_cells
+
+        # Close the pool.
+        self._pool.close()
+        self._pool.join()
 
     # Convert site idx (i.e., indexing with respect to the input sites, used in the Delaunay tessellation
     # and in the neighbours list) to the indexing of Voronoi regions as resulting from the Voronoi tessellation.
@@ -81,13 +101,21 @@ class voronoi_grid(object):
 
     # Compute neighbours list.
     def _compute_neighbours(self):
+        import numpy as np
         neigh_list = [set() for i in range(0,len(self._del_tess.points))]
         for simplex in self._del_tess.simplices:
             for site_idx in simplex:
                 for neigh_idx in simplex:
                     if neigh_idx != site_idx:
                         neigh_list[site_idx].add(neigh_idx)
-        return neigh_list
+        # Transform the list into a NumPy array.
+        n, m = len(neigh_list), len(max(neigh_list,key = lambda l: len(l)))
+        # Fill with -1 values.
+        retval = np.empty([n,m],dtype=np.int32)
+        retval.fill(-1)
+        for i in range(n):
+            retval[i][:len(neigh_list[i])] = list(neigh_list[i])
+        return retval
 
     # Test if a Voronoi region is entirely within the domain.
     def _region_in_domain(self,region):
@@ -206,19 +234,7 @@ class voronoi_grid(object):
         #if hasattr(self,'__neighbours_table'):
             #return deepcopy(self.__neighbours_table)
 
-        # Establish the maximum number of neighbours.
-        max_nn = len(max(self._nl,key = lambda l: len(l)))
-
-        # Create the array of neighbours. Padding will be indicated by the value "-1".
-        n_array = np.empty([len(self._vor_tess.points),max_nn],dtype=np.int32)
-        n_array.fill(-1)
-
-        # Fill in the array of neighbours.
-        for i in range(len(self._nl)):
-            tmp_list = list(self._nl[i])
-            n_array[i][0:len(tmp_list)] = tmp_list
-
-        # Now onto the volumes.
+        # Compute the volumes.
         vol_arr = np.empty([len(self._vor_tess.points)],dtype=np.dtype(float))
         vol_arr.fill(-1.)
 
@@ -241,7 +257,7 @@ class voronoi_grid(object):
         bb_arr = self._compute_bb()
 
         # Build the table, including the sites coordinates.
-        t = Table([self._vor_tess.points,n_array,vol_arr,bb_arr[:,0:ndim],bb_arr[:,ndim:]],names=('coordinates','neighbours','volume','bb_min','bb_max'))
+        t = Table([self._vor_tess.points,self._nl,vol_arr,bb_arr[:,0:ndim],bb_arr[:,ndim:]],names=('coordinates','neighbours','volume','bb_min','bb_max'))
 
         # Store the table for later use.
         self._neighbours_table = t
