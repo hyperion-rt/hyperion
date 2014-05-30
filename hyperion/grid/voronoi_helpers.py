@@ -7,7 +7,7 @@ def _do_nothing(signum, frame):
 # Parallel functor for the computation of the initial
 # tessellations.
 def _par_tess(t):
-    import gc, signal
+    import signal
 
     signal.signal(signal.SIGINT,_do_nothing)
 
@@ -18,7 +18,7 @@ def _par_tess(t):
 # Parallel functor for the computation of the volumes
 # and the bounding boxes.
 def _par_vol_bb(t):
-    import gc, signal, numpy as np
+    import signal, numpy as np
     from scipy.spatial import Delaunay
 
     signal.signal(signal.SIGINT,_do_nothing)
@@ -44,7 +44,7 @@ def _par_vol_bb(t):
         ridx = sidx_to_ridx(i)
 
         # Protruding cells will have a volume of -1 and bounding box
-        # of [0 ... 0].
+        # of [[0 ... 0],[0 ... 0]].
         if not ridx in protruding_cells:
             cell = regions[ridx]
             vertices = v_vertices[cell]
@@ -193,15 +193,6 @@ class voronoi_grid(object):
                 protruding_cells.add(i)
         return protruding_cells
 
-    # Test if a Voronoi region is entirely within the domain.
-    def _region_in_domain(self,region):
-        for vertex_idx in region:
-            vertex = self._vor_tess.vertices[vertex_idx]
-            for coord,limit in zip(vertex,self._domain):
-                if coord < limit[0] or coord > limit[1]:
-                    return False
-        return True
-
     # Compute neighbours list.
     def _compute_neighbours(self):
         import numpy as np
@@ -261,7 +252,7 @@ class voronoi_grid(object):
         for i in range(len(self._new_regions)):
             plot_region(i)
 
-    # Compute and return the neighbours table.
+    # Compute and return the neighbours/volume/bb table.
     def _compute_neighbours_table(self):
         from astropy.table import Table
         import numpy as np
@@ -303,6 +294,7 @@ class voronoi_grid(object):
 
         return t
 
+    # Getter for the neighbours/volume/bb table.
     @property
     def neighbours_table(self):
         from copy import deepcopy
