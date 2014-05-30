@@ -42,7 +42,7 @@ def _par_vol_bb(t):
     # Init the array of bounding boxes with zeroes.
     bb_arr = np.zeros([end - start, 2 * ndim])
 
-    # Inite the volmes array with -1s.
+    # Init the volumes array with -1s.
     vol_arr = np.empty([end - start], dtype=np.dtype(float))
     vol_arr.fill(-1.)
 
