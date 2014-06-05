@@ -31,8 +31,19 @@ def _par_vol_bb(t):
     signal.signal(signal.SIGINT, _do_nothing)
 
     # Unpack the arguments from the input tuple.
-    chunk, points, point_region, protruding_cells, regions, v_vertices, domain = t
+    chunk, points, point_region, protruding_cells, regions, v_vertices, domain, idx = t
     start, end = chunk
+
+    try:
+        # Try to pin the process to a processor using the (optional) psutil module.
+        # If anything fails, do nothing.
+        import psutil
+        import os
+
+        p = psutil.Process(os.getpid())
+        p.set_cpu_affinity([idx])
+    except:
+        pass
 
     ndim = len(domain)
 
@@ -140,7 +151,6 @@ class voronoi_grid(object):
                     raise ValueError('a site is outside the domain')
 
         # Setup the process pool.
-        print('Initing pool with {0} cpus.'.format(ncpus))
         self._pool = _mp.Pool(ncpus)
         self._ncpus = ncpus
 
@@ -280,7 +290,6 @@ class voronoi_grid(object):
         from scipy.spatial import Delaunay
 
         # Revive the pool.
-        print('Initing pool with {0} cpus.'.format(self._ncpus))
         self._pool = _mp.Pool(self._ncpus)
 
         ndim = len(self._domain)
@@ -294,7 +303,7 @@ class voronoi_grid(object):
         chunks.append(((self._ncpus - 1) * chunk_size, ntot))
 
         vblists = self._pool.map(_par_vol_bb, [(chunk, self._vor_tess.points, self._vor_tess.point_region,
-                                                self._protruding_cells, self._vor_tess.regions, self._vor_tess.vertices, self._domain) for chunk in chunks])
+                                                self._protruding_cells, self._vor_tess.regions, self._vor_tess.vertices, self._domain, idx) for chunk,idx in zip(chunks,range(self._ncpus))])
 
         self._pool.close()
         self._pool.join()
