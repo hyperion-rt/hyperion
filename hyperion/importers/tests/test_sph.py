@@ -2,6 +2,7 @@ import os
 
 import h5py
 import numpy as np
+from numpy.testing import assert_allclose
 
 from ..sph import construct_octree
 
@@ -36,4 +37,4 @@ def test_construct_octree():
     f.close()
 
     assert np.all(o_ref.refined == o.refined)
-    assert np.all(o_ref['density'][0].array == o['density'][0].array)
+    assert_allclose(o_ref['density'][0].array, o['density'][0].array)
