@@ -1,4 +1,5 @@
 import multiprocessing as _mp
+from astropy import log as logger
 
 # Function used to disable ctrl+c in sub processes.
 
@@ -165,6 +166,7 @@ class voronoi_grid(object):
         # We provide below a couple of utility functions to convert between the two indexing schemes.
         # Note that the user of the class cares about the indices of the input sites, so everything
         # user-facing should be presented in that convention.
+        logger.info("Computing tesselation")
         self._del_tess, self._vor_tess = self._pool.map(
             _par_tess, [(Delaunay, sites), (Voronoi, sites)])
 
@@ -225,6 +227,7 @@ class voronoi_grid(object):
 
     # Compute neighbours list.
     def _compute_neighbours(self):
+        logger.info("Computing neighbors")
         import numpy as np
         from ._voronoi_core import _neighbours_list_loop
         neigh_list = [set() for i in range(0, len(self._del_tess.points))]
@@ -301,6 +304,8 @@ class voronoi_grid(object):
             chunks.append((i * chunk_size, (i + 1) * chunk_size))
         # Last chunk.
         chunks.append(((self._ncpus - 1) * chunk_size, ntot))
+
+        logger.info("Compute volumes and bounding boxes")
 
         vblists = self._pool.map(_par_vol_bb, [(chunk, self._vor_tess.points, self._vor_tess.point_region,
                                                 self._protruding_cells, self._vor_tess.regions, self._vor_tess.vertices, self._domain, idx) for chunk,idx in zip(chunks,range(self._ncpus))])
