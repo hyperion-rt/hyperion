@@ -11,7 +11,7 @@ from ..util.functions import FreezableClass
 from ..dust import SphericalDust
 from astropy import log as logger
 from ..util.decorator import decorator
-from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid
+from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid, VoronoiGrid
 
 STOKESD = {}
 STOKESD['I'] = 0
@@ -977,6 +977,10 @@ class ModelOutput(FreezableClass):
             g = AMRGrid()
         elif coord_type == 'oct':
             g = OctreeGrid()
+        elif coord_type == 'vor':
+            g = VoronoiGrid()
+        else:
+            raise ValueError("Unknown grid type: {0}".format(coord_type))
 
         # Read in geometry and input quantities
         g.read_geometry(g_grid['Geometry'])

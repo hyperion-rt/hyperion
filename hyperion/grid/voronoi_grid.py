@@ -61,7 +61,11 @@ class VoronoiGrid(FreezableClass):
         self.zmin = None
         self.zmax = None
 
-        self._voronoi_table = None
+        self._x = None
+        self._y = None
+        self._z = None
+
+        voronoi_table = None
 
         self.quantities = {}
 
@@ -99,41 +103,22 @@ class VoronoiGrid(FreezableClass):
         self.ymax = y.max()
         self.zmin = z.min()
         self.zmax = z.max()
-
-        # Compute Voronoi tesselation
-        from .voronoi_helpers import voronoi_grid
-
-        points = np.array([x, y, z]).transpose()
-
-        mesh = voronoi_grid(points, np.array([[self.xmin, self.xmax], [self.ymin, self.ymax], [self.zmin, self.zmax]]))
-
-        self._voronoi_table = mesh.neighbours_table()
         
-        # Fix for bounding box column
-        self._voronoi_table['bmin'] = self._voronoi_table['bounding_box'][:,:,0]
-        self._voronoi_table['bmax'] = self._voronoi_table['bounding_box'][:,:,1]
-        self._voronoi_table.remove_column('bounding_box')
+        self._x = x
+        self._y = y
+        self._z = z
 
     @property
     def x(self):
-        if self._voronoi_table is None:
-            return None
-        else:
-            return self._voronoi_table['coordinates'][:,0]
+        return self._x
 
     @property
     def y(self):
-        if self._voronoi_table is None:
-            return None
-        else:
-            return self._voronoi_table['coordinates'][:,1]
-
+        return self._y
+        
     @property
     def z(self):
-        if self._voronoi_table is None:
-            return None
-        else:
-            return self._voronoi_table['coordinates'][:,2]
+        return self._z
         
     def __getattr__(self, attribute):
         if attribute == 'n_dust':
@@ -220,7 +205,9 @@ class VoronoiGrid(FreezableClass):
         if group.attrs['grid_type'].decode('utf-8') != 'vor':
             raise ValueError("Grid is not an voronoi")
 
-        self.set_points(group['cells']['x'], group['cells']['y'], group['cells']['z'])
+        coords = group['cells']['coordinates']
+
+        self.set_points(coords[:,0], coords[:,1], coords[:,2])
 
         # Check that advertised hash matches real hash
         if group.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
@@ -300,10 +287,21 @@ class VoronoiGrid(FreezableClass):
         g_geometry.attrs['zmin'] = self.zmin
         g_geometry.attrs['zmax'] = self.zmax
 
-        if self._voronoi_table['neighbours'].dtype != np.int32:
+        # Compute Voronoi tesselation
+        from .voronoi_helpers import voronoi_grid
+        points = np.array([self._x, self._y, self._z]).transpose()
+        mesh = voronoi_grid(points, np.array([[self.xmin, self.xmax], [self.ymin, self.ymax], [self.zmin, self.zmax]]))
+        voronoi_table = mesh.neighbours_table
+
+        # Fix nan/zero
+        voronoi_table['volume'][voronoi_table['volume'] <= 0.] = -1.
+        voronoi_table['volume'][np.isnan(voronoi_table['volume'])] = -1.
+        voronoi_table['volume'][np.isinf(voronoi_table['volume'])] = -1.
+
+        if voronoi_table['neighbours'].dtype != np.int32:
             raise TypeError("neighbours should be int32")
 
-        dset = g_geometry.create_dataset("cells", data=self._voronoi_table, compression=compression)
+        dset = g_geometry.create_dataset("cells", data=voronoi_table, compression=compression)
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()

@@ -94,7 +94,7 @@ contains
     real(dp), allocatable :: x(:), y(:), z(:)
     integer, allocatable :: neighbors(:,:)
     integer :: n_neighbors
-    real(dp),allocatable :: bmin(:,:), bmax(:,:)
+    real(dp),allocatable :: bb_min(:,:), bb_max(:,:)
     type(cell),pointer :: c
 
     ! Read geometry file
@@ -104,8 +104,8 @@ contains
     ! Read in list of cells
     call mp_table_read_column_auto(group, 'cells', 'coordinates', points)
     call mp_table_read_column_auto(group, 'cells', 'neighbours', neighbors)
-    call mp_table_read_column_auto(group, 'cells', 'bmin', bmin)
-    call mp_table_read_column_auto(group, 'cells', 'bmax', bmax)
+    call mp_table_read_column_auto(group, 'cells', 'bb_min', bb_min)
+    call mp_table_read_column_auto(group, 'cells', 'bb_max', bb_max)
 
     allocate(x(size(points,2)))
     allocate(y(size(points,2)))
@@ -163,12 +163,12 @@ contains
     geo%n_dim = 3
 
     ! Determine rough bounding box. Not correct, but will do the trick for now.
-    geo%cells%xmin = bmin(1,:)
-    geo%cells%xmax = bmax(1,:)
-    geo%cells%ymin = bmin(2,:)
-    geo%cells%ymax = bmax(2,:)
-    geo%cells%zmin = bmin(3,:)
-    geo%cells%zmax = bmax(3,:)
+    geo%cells%xmin = bb_min(1,:)
+    geo%cells%xmax = bb_max(1,:)
+    geo%cells%ymin = bb_min(2,:)
+    geo%cells%ymax = bb_max(2,:)
+    geo%cells%zmin = bb_min(3,:)
+    geo%cells%zmax = bb_max(3,:)
 
   end subroutine setup_grid_geometry
 
