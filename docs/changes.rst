@@ -1,6 +1,15 @@
 Version History
 ===============
 
+0.9.5 (unreleased)
+------------------
+
+New features
+^^^^^^^^^^^^
+
+- Added an importer function, ``construct_octree``, to convert a list of SPH
+  particles into an Octree grid. [#67]
+
 0.9.4 (2014-01-29)
 ------------------
 

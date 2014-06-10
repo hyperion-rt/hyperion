@@ -34,6 +34,9 @@ module type_grid
      logical, allocatable :: mask(:)
      integer, allocatable :: mask_map(:)
 
+     ! Precision
+     real(dp) :: eps
+
   end type grid_geometry_desc
 
 end module type_grid

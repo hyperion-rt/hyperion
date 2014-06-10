@@ -896,7 +896,11 @@ class ModelOutput(FreezableClass):
         else:
             g_sources = self.file['Input/Sources']
 
-        return sorted([s.attrs['name'].decode('utf-8') for s in g_sources.values()])
+        names = []
+        for source in sorted(g_sources.keys()):
+            names.append(g_sources[source].attrs['name'].decode('utf-8'))
+
+        return names
 
     @on_the_fly_hdf5
     def get_available_components(self, iteration=-1):

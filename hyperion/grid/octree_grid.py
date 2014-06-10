@@ -100,6 +100,8 @@ class OctreeGrid(FreezableClass):
     Which is also an :class:`~hyperion.grid.OctreeGridView` object.
     '''
 
+    _validate_cache = {}
+
     def __init__(self, *args):
 
         self.shape = None
@@ -190,6 +192,17 @@ class OctreeGrid(FreezableClass):
         if not (len(value) - 1) % 8 == 0:
             raise ValueError("refined should have shape 8 * n + 1")
 
+        self._refined = self._validate(value)
+
+    def _validate(self, value):
+
+        value_hash = hashlib.md5(value.tostring()).hexdigest()
+
+        if value_hash in self._validate_cache:
+            return value
+
+        logger.info("Checking consistency of refined array")
+
         # Check that refined array reduces to a single False if removing all
         # levels of refinement.
         refined_str = value.tostring()
@@ -225,7 +238,9 @@ class OctreeGrid(FreezableClass):
         if max_level > 20:
             logger.warn("Number of levels in octree is high ({0})".format(max_level))
 
-        self._refined = value
+        self._validate_cache[value_hash] = True
+
+        return value
 
     def __getattr__(self, attribute):
         if attribute == 'n_dust':
@@ -240,6 +255,23 @@ class OctreeGrid(FreezableClass):
             return n_dust
         else:
             return FreezableClass.__getattribute__(self, attribute)
+
+    @property
+    def limits(self):
+        from hyperion.importers._discretize_sph import _get_positions_widths
+        xc, yc, zc, xw, yw, zw = _get_positions_widths(self.refined,
+                                                       self.x, self.y, self.z,
+                                                       self.dx, self.dy, self.dz)
+        return xc - xw, xc + xw, yc - yw, yc + yw, zc - zw, zc + zw
+
+    @property
+    def volumes(self):
+        """
+        The volumes of all the cells in the octree
+        """
+
+        xmin, xmax, ymin, ymax, zmin, zmax = self.limits
+        return (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
 
     def _check_array_dimensions(self, array=None):
         '''
