@@ -175,7 +175,7 @@ def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False,
     if not isinstance(model, AnalyticalYSOModel):
         raise TypeError("Can only run hydrostatic equilibrium for AnalyticalYSOModel instances")
 
-    if not isinstance(model.grid, CylindricalPolarGrid):
+    if model.grid['grid_type'] != 'cylindrical':
         raise TypeError("Can only run hydrostatic equilibrium for models with cylindrical polar grids")
 
     if model.star.mass is None:
