@@ -100,6 +100,8 @@ class OctreeGrid(FreezableClass):
     Which is also an :class:`~hyperion.grid.OctreeGridView` object.
     '''
 
+    _validate_cache = {}
+
     def __init__(self, *args):
 
         self.shape = None
@@ -190,6 +192,17 @@ class OctreeGrid(FreezableClass):
         if not (len(value) - 1) % 8 == 0:
             raise ValueError("refined should have shape 8 * n + 1")
 
+        self._refined = self._validate(value)
+
+    def _validate(self, value):
+
+        value_hash = hashlib.md5(value.tostring()).hexdigest()
+
+        if value_hash in self._validate_cache:
+            return value
+
+        logger.info("Checking consistency of refined array")
+
         # Check that refined array reduces to a single False if removing all
         # levels of refinement.
         refined_str = value.tostring()
@@ -225,7 +238,9 @@ class OctreeGrid(FreezableClass):
         if max_level > 20:
             logger.warn("Number of levels in octree is high ({0})".format(max_level))
 
-        self._refined = value
+        self._validate_cache[value_hash] = True
+
+        return value
 
     def __getattr__(self, attribute):
         if attribute == 'n_dust':
