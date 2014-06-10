@@ -38,3 +38,33 @@ def test_construct_octree():
 
     assert np.all(o_ref.refined == o.refined)
     assert_allclose(o_ref['density'][0].array, o['density'][0].array)
+
+    # Find limits
+    xmin, xmax, ymin, ymax, zmin, zmax = o.limits
+
+    # Find volumes
+    volumes = o.volumes
+
+    # Check that volume computed from limits matches
+    assert_allclose(volumes, (xmax - xmin) * (ymax - ymin) * (zmax - zmin))
+
+    # Now we check that the volumes computed by Hyperion are equivalent to ones
+    # computed using a recursive (and slow) technique. This used to be what
+    # Hyperion used, but it now uses the limits which are computed in C.
+
+    def get_volumes(current_i, current_volume, refined):
+        volumes = []
+        i = current_i
+        for sub in range(8):
+            volumes += [current_volume]
+            if refined[i]:
+                sub_volumes, i = get_volumes(i+1, current_volume / 8., refined)
+                volumes += sub_volumes
+            else:
+                i += 1
+        return volumes, i
+
+    volumes_ref, last_i = get_volumes(1, 6 * 5 * 4, o.refined)
+    volumes_ref.insert(0, 6 * 5 * 4 * 8.)
+
+    assert_allclose(volumes, volumes_ref)
