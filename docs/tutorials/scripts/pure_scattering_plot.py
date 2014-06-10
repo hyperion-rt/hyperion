@@ -34,5 +34,6 @@ ax.set_title("Linear Polarization")
 ax.set_yticklabels('')
 
 axcb = fig.add_axes([0.92, 0.3, 0.02, 0.4])
-plt.colorbar(im, label="%", cax=axcb)
+cb=plt.colorbar(im, cax=axcb)
+cb.set_label('%')
 fig.savefig('pure_scattering_inner_disk.png', bbox_inches='tight')
