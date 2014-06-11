@@ -469,6 +469,7 @@ contains
        ! set nu below to correct one, but use the modified frame of reference
        ! for interpolation.
 
+       p%nu0 = nu
        p%nu = nu
 
        if(src%type==3.and.ispot .le. src%n_spots) then
@@ -504,34 +505,35 @@ contains
        if(src%type==3.and.ispot .le. src%n_spots) then
           select case(src%spot(ispot)%freq_type)
           case(1)
-             p%nu = sample_pdf_log(src%spot(ispot)%spectrum)
+             p%nu0 = sample_pdf_log(src%spot(ispot)%spectrum)
           case(2)
-             call random_planck_frequency(p%nu, src%spot(ispot)%temperature)
+             call random_planck_frequency(p%nu0, src%spot(ispot)%temperature)
           case(3)
              p%dust_id = select_dust_specific_energy_rho(p%icell)
              p%emiss_var_id = jnu_var_id(p%icell%ic, p%dust_id)
              p%emiss_var_frac = jnu_var_frac(p%icell%ic, p%dust_id)
-             call dust_sample_j_nu(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu)
+             call dust_sample_j_nu(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu0)
           end select
        end if
 
        select case(src%freq_type)
        case(1)
-          p%nu = sample_pdf(src%spectrum)
+          p%nu0 = sample_pdf(src%spectrum)
        case(2)
-          call random_planck_frequency(p%nu, src%temperature)
+          call random_planck_frequency(p%nu0, src%temperature)
        case(3)
           p%dust_id = select_dust_specific_energy_rho(p%icell)
           p%emiss_var_id = jnu_var_id(p%icell%ic, p%dust_id)
           p%emiss_var_frac = jnu_var_frac(p%icell%ic, p%dust_id)
-          call dust_sample_j_nu(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu)
+          call dust_sample_j_nu(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu0)
        end select
 
        ! Lorentz shift
        if(src%moving) then
-          p%nu0 = p%nu
           p%nu = doppler_shift(p%nu0, p%a, src%velocity)
           p%last_isotropic = .false.
+       else
+          p%nu = p%nu0
        end if
 
     end if

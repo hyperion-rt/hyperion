@@ -51,7 +51,6 @@ contains
        p%nu0 = p%nu
     end if
 
-
     ! Decide whether to absorb or scatter
     call random(xi)
     if(xi > albedo) then
