@@ -4,7 +4,7 @@ module setup
   use mpi_core
   use mpi_hdf5_io
 
-  use grid_physics, only : setup_grid_physics
+  use grid_physics, only : setup_grid_physics, moving
   use grid_geometry, only : setup_grid_geometry
   use sources
   use dust_main
@@ -32,6 +32,7 @@ contains
     integer :: physics_io_bytes
     type(version) :: python_version
     integer :: idust
+    integer :: i
 
     if(mp_exists_keyword(input_handle, '/', 'python_version')) then
        call mp_read_keyword(input_handle, '/', 'python_version', python_version%string)
@@ -247,6 +248,18 @@ contains
              call error("setup_initial", "version 1 dust files can no longer be used when PDA is computed due to a bug - to fix this, re-generate the dust file using the latest version of Hyperion")
           end if
        end do
+
+    ! VARIOUS SANITY CHECKS
+
+    ! If either sources or dust is moving, we cannot use raytracing (for
+    ! now), so we need to raise an error.
+    if(use_raytracing) then
+       if(n_sources > 0) then
+          do i=1,n_sources
+             if(s(i)%moving) call error("setup_initial", "raytracing cannot be used if any sources are moving")
+          end do
+       end if
+       if(moving) call error("setup_initial", "raytracing cannot be used if any dust is moving")
     end if
 
   end subroutine setup_initial

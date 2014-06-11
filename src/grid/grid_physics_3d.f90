@@ -41,6 +41,7 @@ module grid_physics
   real(dp),allocatable, public :: energy_abs_tot(:)
   real(dp),allocatable, public :: minimum_specific_energy(:)
 
+  logical, public :: moving
   type(vector3d_dp), allocatable, public :: velocity(:,:)
 
   real(dp), allocatable,target, public :: alpha_inv_planck(:)
@@ -222,6 +223,12 @@ contains
           velocity%z = vz
 
           deallocate(vx, vy, vz)
+
+          moving = .true.
+
+       else
+
+          moving = .false.
 
        end if
 
