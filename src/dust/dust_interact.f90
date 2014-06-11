@@ -88,13 +88,6 @@ contains
     type(photon),intent(inout) :: p
     type(angle3d_dp),intent(in)    :: a_req
 
-    ! Transform frequency to frame of reference of dust
-    if(moving) then
-       p%nu0 = doppler_shift(p%nu, p%a, vector3d_dp(0._dp, 0._dp, 0._dp)-velocity(p%icell%ic,p%dust_id))
-    else
-       p%nu0 = p%nu
-    end if
-
     select case(p%last)
     case('ds')
        call dust_scatter_peeloff(d(p%dust_id),p%nu0,p%a,p%s,a_req)

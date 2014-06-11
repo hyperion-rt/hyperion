@@ -64,7 +64,7 @@ module type_source
      ! Collection of positions (used for PointSourceCollection)
      type(pdf_discrete_dp) :: collection_pdf
      type(vector3d_dp),allocatable :: position_collection(:)
-     real(dp),allocatable :: velocity_collection(:,:)
+     type(vector3d_dp),allocatable :: velocity_collection(:)
 
      ! Spot position and size
      integer :: n_spots = 0
@@ -116,7 +116,8 @@ contains
     integer(hid_t) :: g_spot
     real(dp) :: dx, dy, dz
     real(dp) :: theta, phi
-    real(dp),allocatable :: luminosity_collection(:), position_collection(:,:)
+    real(dp),allocatable :: tmp3d(:,:,:)
+    real(dp),allocatable :: luminosity_collection(:), position_collection(:,:), velocity_collection(:,:)
 
     call mp_read_keyword(group, '.', 'type', type)
 
@@ -287,12 +288,16 @@ contains
 
        s%luminosity = sum(luminosity_collection)
        call set_pdf(s%collection_pdf, luminosity_collection)
-       
+
        if(mp_path_exists(group, 'velocity')) then
-           call mp_read_array_auto(group, 'velocity', s%velocity_collection)
-           s%moving = .true.
+          call mp_read_array_auto(group, 'velocity', velocity_collection)
+          allocate(s%velocity_collection(size(velocity_collection, 2)))
+          s%velocity_collection%x = velocity_collection(1,:)
+          s%velocity_collection%y = velocity_collection(2,:)
+          s%velocity_collection%z = velocity_collection(3,:)
+          s%moving = .true.
        else
-           s%moving = .false.
+          s%moving = .false.
        end if
 
        call set_spectrum(group, s%freq_type, s%spectrum, s%temperature)
@@ -530,7 +535,7 @@ contains
 
        ! Lorentz shift
        if(src%moving) then
-          p%nu = doppler_shift(p%nu0, p%a, src%velocity)
+          p%nu = doppler_shift(p%nu0, p%a, p%velo0)
           p%last_isotropic = .false.
        else
           p%nu = p%nu0
@@ -545,6 +550,7 @@ contains
     type(source),intent(in) :: src ! the source to emit from
     type(photon),intent(inout) :: p ! the photon to peeloff
     type(angle3d_dp),intent(in) :: a_req ! requested angle
+
     if(src%peeloff) then
        select case(src%type)
        case(2,3)
@@ -565,7 +571,7 @@ contains
     end if
 
     ! Lorentz shift
-    if(src%moving) p%nu = doppler_shift(p%nu0, p%a, src%velocity)
+    if(src%moving) p%nu = doppler_shift(p%nu0, p%a, p%velo0)
 
   end subroutine source_emit_peeloff
 
@@ -596,6 +602,7 @@ contains
     ! Set Stokes vector
     p%s = stokes_dp(1._dp,0._dp,0._dp,0._dp)
 
+    p%velo0 = src%velocity
     p%last_isotropic = .true.
 
   end subroutine emit_from_point
@@ -630,6 +637,7 @@ contains
     ! Set Stokes vector
     p%s = stokes_dp(1._dp,0._dp,0._dp,0._dp)
 
+    p%velo0 = src%velocity_collection(i_source)
     p%last_isotropic = .true.
 
   end subroutine emit_from_point_collection
@@ -721,6 +729,7 @@ contains
     p%r = p%r * src%radius
     p%r = p%r + src%position
 
+    p%velo0 = src%velocity
     p%last_isotropic = .false.
     p%source_a = a_coord
 
@@ -774,6 +783,7 @@ contains
     ! Set Stokes vector
     p%s = stokes_dp(1._dp,0._dp,0._dp,0._dp)
 
+    p%velo0 = src%velocity
     p%last_isotropic = .true.
 
   end subroutine emit_from_map
@@ -840,6 +850,7 @@ contains
     p%r = p%r * src%radius
     p%r = p%r + src%position
 
+    p%velo0 = src%velocity
     p%last_isotropic = .false.
     p%source_a = -a_coord
 
@@ -937,6 +948,7 @@ contains
 
     ! --- Set positon to stellar position + vector to surface --- !
 
+    p%velo0 = src%velocity
     p%last_isotropic = .false.
 
     p%face_id = face
@@ -1008,6 +1020,7 @@ contains
 
     p%s = stokes_dp(1._dp,0._dp,0._dp,0._dp)
 
+    p%velo0 = src%velocity
     p%last_isotropic = .false.
 
   end subroutine emit_from_plane_parallel

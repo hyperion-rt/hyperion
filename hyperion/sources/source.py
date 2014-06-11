@@ -546,7 +546,7 @@ class PointSourceCollection(Source):
                 if value.shape[1] != 3:
                     raise ValueError("position should be an Nx3 array")
                 if self.luminosity is not None and value.shape[0] != self.luminosity.shape[0]:
-                    raise ValueError("position should be a 1-D array with the same number of rows as luminosity")
+                    raise ValueError("position should be a 2-D array with the same number of rows as luminosity")
             else:
                 raise ValueError("position should be a Numpy array")
         self._position = value
