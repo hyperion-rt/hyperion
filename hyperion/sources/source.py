@@ -130,7 +130,10 @@ class Source(FreezableClass):
         handle.attrs['vz'] = self.velocity[2]
 
     def _read_velocity(self, handle):
-        self.velocity = (handle.attrs['vx'], handle.attrs['vy'], handle.attrs['vz'])
+        if 'vx' in handle.attrs:
+            self.velocity = (handle.attrs['vx'], handle.attrs['vy'], handle.attrs['vz'])
+        else:
+            self.velocity = None
 
     @property
     def temperature(self):
@@ -571,7 +574,10 @@ class PointSourceCollection(Source):
         handle.create_dataset('velocity', data=self.velocity, compression=True)
 
     def _read_velocity(self, handle):
-        self.velocity = handle['velocity']
+        if 'velocity' in handle:
+            self.velocity = handle['velocity']
+        else:
+            self.velocity = None
 
     def _check_all_set(self):
         Source._check_all_set(self)

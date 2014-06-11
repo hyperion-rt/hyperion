@@ -45,7 +45,12 @@ contains
     p%s_prev = p%s
 
     ! Transform frequency to frame of reference of dust
-    if(allocated(velocity)) p%nu0 = doppler_shift(p%nu, p%a, vector3d_dp(0._dp, 0._dp, 0._dp)-velocity(p%icell%ic,id))
+    if(moving) then
+       p%nu0 = doppler_shift(p%nu, p%a, vector3d_dp(0._dp, 0._dp, 0._dp)-velocity(p%icell%ic,id))
+    else
+       p%nu0 = p%nu
+    end if
+
 
     ! Decide whether to absorb or scatter
     call random(xi)
@@ -68,7 +73,11 @@ contains
     end if
 
     ! Lorentz shift into absolute frame of reference
-    if(allocated(velocity)) p%nu = doppler_shift(p%nu0, p%a, velocity(p%icell%ic,id))
+    if(moving) then
+       p%nu = doppler_shift(p%nu0, p%a, velocity(p%icell%ic,id))
+    else
+       p%nu = p%nu0
+    end if
 
     call angle3d_to_vector3d(p%a,p%v)
 
@@ -78,6 +87,7 @@ contains
     implicit none
     type(photon),intent(inout) :: p
     type(angle3d_dp),intent(in)    :: a_req
+
     select case(p%last)
     case('ds')
        call dust_scatter_peeloff(d(p%dust_id),p%nu,p%a,p%s,a_req)
@@ -89,7 +99,11 @@ contains
     call angle3d_to_vector3d(p%a,p%v)
 
     ! Lorentz shift here too
-    if(allocated(velocity)) p%nu = doppler_shift(p%nu0, p%a, velocity(p%icell%ic,p%dust_id))
+    if(moving) then
+       p%nu = doppler_shift(p%nu0, p%a, velocity(p%icell%ic,p%dust_id))
+    else
+       p%nu = p%nu0
+    end if
 
   end subroutine interact_peeloff
 
