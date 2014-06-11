@@ -74,6 +74,7 @@ contains
     ! Lorentz shift into absolute frame of reference
     if(moving) then
        p%nu = doppler_shift(p%nu0, p%a, velocity(p%icell%ic,id))
+       p%last_isotropic = .false.  ! otherwise peeloff doesn't get called
     else
        p%nu = p%nu0
     end if
@@ -87,11 +88,18 @@ contains
     type(photon),intent(inout) :: p
     type(angle3d_dp),intent(in)    :: a_req
 
+    ! Transform frequency to frame of reference of dust
+    if(moving) then
+       p%nu0 = doppler_shift(p%nu, p%a, vector3d_dp(0._dp, 0._dp, 0._dp)-velocity(p%icell%ic,p%dust_id))
+    else
+       p%nu0 = p%nu
+    end if
+
     select case(p%last)
     case('ds')
-       call dust_scatter_peeloff(d(p%dust_id),p%nu,p%a,p%s,a_req)
+       call dust_scatter_peeloff(d(p%dust_id),p%nu0,p%a,p%s,a_req)
     case('de')
-       call dust_emit_peeloff(d(p%dust_id),p%nu,p%a,p%s,a_req)
+       call dust_emit_peeloff(d(p%dust_id),p%nu0,p%a,p%s,a_req)
     case default
        call error("interact_peeloff","unexpected p%last flag: "//p%last)
     end select
