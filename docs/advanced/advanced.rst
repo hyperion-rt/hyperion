@@ -17,6 +17,7 @@ transfer.
    peeloff.rst
    use_grid_from_disk.rst
    voronoi_sampling.rst
+   moving_sources_and_dust.rst
 
 The following features are experimental:
 
