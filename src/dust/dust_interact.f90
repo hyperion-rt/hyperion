@@ -44,25 +44,23 @@ contains
     p%v_prev = p%v
     p%s_prev = p%s
 
-    ! Transform frequency to frame of reference of dust
-    if(moving) then
-       p%nu0 = doppler_shift(p%nu, p%a, vector3d_dp(0._dp, 0._dp, 0._dp)-velocity(p%icell%ic,id))
-    else
-       p%nu0 = p%nu
-    end if
-
     ! Decide whether to absorb or scatter
     call random(xi)
     if(xi > albedo) then
        call dust_emit(d(id),jnu_var_id(p%icell%ic,id),jnu_var_frac(p%icell%ic,id),p%nu0,p%a,p%s,energy_scaling)
        p%energy = p%energy * energy_scaling
-       call update_optconsts(p)
        p%scattered=.false.
        p%reprocessed=.true.
        p%last_isotropic = .true.
        p%dust_id = id
        p%last = 'de'
     else
+       ! Transform frequency to dust frame of reference
+       if(moving) then
+          p%nu0 = doppler_shift(p%nu, p%a, vector3d_dp(0._dp, 0._dp, 0._dp)-velocity(p%icell%ic,id))
+       else
+          p%nu0 = p%nu
+       end if
        call dust_scatter(d(id),p%nu0,p%a,p%s)
        p%scattered=.true.
        p%last_isotropic = .false.
@@ -71,7 +69,7 @@ contains
        p%n_scat = p%n_scat + 1
     end if
 
-    ! Lorentz shift into absolute frame of reference
+    ! Lorentz shift into grid frame of reference
     if(moving) then
        p%nu = doppler_shift(p%nu0, p%a, velocity(p%icell%ic,id))
        p%last_isotropic = .false.  ! otherwise peeloff doesn't get called
@@ -80,6 +78,12 @@ contains
     end if
 
     call angle3d_to_vector3d(p%a,p%v)
+
+    ! Now update the optical constants using the frequency of the photon in the
+    ! grid frame. The strictly correct thing to do is to use the frequency in
+    ! the dust frame, but this should then be updated at each cell crossing, and
+    ! for now we assume that this is not important enough to take into account.
+    if(.not.p%scattered) call update_optconsts(p)
 
   end subroutine interact
 

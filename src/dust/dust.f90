@@ -67,12 +67,12 @@ contains
     integer :: id
     character(len=1000) :: message
     do id=1,n_dust
-       if(p%nu0 < d(id)%nu(1) .or. p%nu0 > d(id)%nu(d(id)%n_nu)) then
-          write(message, '("photon frequency (",ES10.4," Hz) is outside the range defined for the dust optical properties (",ES10.4," to ",ES10.4," Hz)")') p%nu0, d(id)%nu(1), d(id)%nu(d(id)%n_nu)
+       if(p%nu < d(id)%nu(1) .or. p%nu > d(id)%nu(d(id)%n_nu)) then
+          write(message, '("photon frequency (",ES10.4," Hz) is outside the range defined for the dust optical properties (",ES10.4," to ",ES10.4," Hz)")') p%nu, d(id)%nu(1), d(id)%nu(d(id)%n_nu)
           call error("update_optconsts", trim(message))
        else
-          p%current_chi(id)  = interp1d_loglog(d(id)%nu,d(id)%chi_nu,p%nu0)
-          p%current_albedo(id) = interp1d_loglog(d(id)%nu,d(id)%albedo_nu,p%nu0)
+          p%current_chi(id)  = interp1d_loglog(d(id)%nu,d(id)%chi_nu,p%nu)
+          p%current_albedo(id) = interp1d_loglog(d(id)%nu,d(id)%albedo_nu,p%nu)
           p%current_kappa(id) = p%current_chi(id) * (1._dp - p%current_albedo(id))
        end if
     end do
