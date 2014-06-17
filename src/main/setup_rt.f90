@@ -262,6 +262,17 @@ contains
        if(moving) call error("setup_initial", "raytracing cannot be used if any dust is moving")
     end if
 
+    ! If either sources or dust is moving, we cannot use raytracing (for
+    ! now), so we need to raise an error.
+    if(use_exact_nu) then
+       if(n_sources > 0) then
+          do i=1,n_sources
+             if(s(i)%moving) call error("setup_initial", "monochromatic mode cannot be used if any sources are moving")
+          end do
+       end if
+       if(moving) call error("setup_initial", "monochromatic mode cannot be used if any dust is moving")
+    end if
+
   end subroutine setup_initial
 
   subroutine setup_final_iteration(input_handle)

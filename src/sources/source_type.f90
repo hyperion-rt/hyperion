@@ -474,7 +474,6 @@ contains
        ! set nu below to correct one, but use the modified frame of reference
        ! for interpolation.
 
-       p%nu0 = nu
        p%nu = nu
 
        if(src%type==3.and.ispot .le. src%n_spots) then

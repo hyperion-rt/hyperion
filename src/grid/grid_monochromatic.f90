@@ -136,7 +136,6 @@ contains
     if(inu /= inu_current) call error('emit_from_monochromatic_grid_pdf', 'incorrect inu')
 
     p%nu = frequencies(inu)
-    p%nu0 = p%nu  ! SHOULD BE MODIFIED?
     p%inu = inu
 
     call prepare_photon(p)

@@ -537,7 +537,6 @@ contains
     if(present(inu)) then
 
        p%nu = frequencies(inu)
-       p%nu0 = p%nu  ! SHOULD BE MODIFIED?
        p%inu = inu
 
        call prepare_photon(p)
