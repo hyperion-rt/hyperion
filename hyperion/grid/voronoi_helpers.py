@@ -118,10 +118,12 @@ def _simplex_volume(simplex):
 
 class voronoi_grid(object):
 
-    def __init__(self, sites, domain, ncpus=_mp.cpu_count()):
+    def __init__(self, sites, domain, ncpus=_mp.cpu_count(), algorithm = "voro++"):
         from scipy.spatial import Delaunay, Voronoi
         import numpy as np
         from copy import deepcopy
+        from ._voronoi_core import _voropp_wrapper
+        from astropy.table import Table
 
         # Validate input.
         if not isinstance(sites, np.ndarray) or sites.dtype.kind != 'f':
@@ -150,6 +152,21 @@ class voronoi_grid(object):
             for coord, limit in zip(site, domain):
                 if coord < limit[0] or coord > limit[1]:
                     raise ValueError('a site is outside the domain')
+        # Check the value of the algorithm parameter.
+        if not isinstance(algorithm,str) or not algorithm in ['voro++','qhull']:
+            raise ValueError('the \'algorithm\' parameter must be a string equal to \'voro++\' or \'qhull\'')
+
+        if algorithm == 'voro++':
+            tup = _voropp_wrapper(sites,domain)
+            t = Table([sites,tup[0],tup[1],tup[2],tup[3]],
+                       names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max'))
+            self._neighbours_table = t
+            # Neighbour filler value is provided from the C++ routine for voro++.
+            self._n_default = tup[4]
+            return
+
+        # Neighbour filler value is -1 for quickhull.
+        self._n_default = -1
 
         # Setup the process pool.
         self._pool = _mp.Pool(ncpus)
@@ -335,3 +352,9 @@ class voronoi_grid(object):
     def neighbours_table(self):
         from copy import deepcopy
         return deepcopy(self._neighbours_table)
+
+    # Filler value for the neighbours vectors in the return table.
+    @property
+    def n_default(self):
+        from copy import deepcopy
+        return deepcopy(self._n_default)

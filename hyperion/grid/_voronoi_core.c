@@ -1,25 +1,34 @@
 #include <Python.h>
+#include <limits.h>
+#include <math.h>
+#include <string.h>
 #include <numpy/arrayobject.h>
 #include <numpy/npy_math.h>
 
-#include <math.h>
+// Declaration of the voro++ wrapping function.
+const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max,
+                  double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
+                  double const *points, int npoints);
 
 /* Define docstrings */
 static char module_docstring[] = "C implementation of utility functions used in Voronoi grids";
 static char simplex3d_volume_docstring[] = "Compute the volume of a 3d simplex";
 static char neighbours_list_loop_docstring[] = "Inner loop for the computation of the neighbours list";
 static char region_in_domain_docstring[] = "Test if region is in domain";
+static char voropp_wrapper_docstring[] = "voro++ wrapper";
 
 /* Declare the C functions here. */
 static PyObject *_simplex3d_volume(PyObject *self, PyObject *args);
 static PyObject *_neighbours_list_loop(PyObject *self, PyObject *args);
 static PyObject *_region_in_domain(PyObject *self, PyObject *args);
+static PyObject *_voropp_wrapper(PyObject *self, PyObject *args);
 
 /* Define the methods that will be available on the module. */
 static PyMethodDef module_methods[] = {
     {"_simplex3d_volume", _simplex3d_volume, METH_VARARGS, simplex3d_volume_docstring},
     {"_neighbours_list_loop", _neighbours_list_loop, METH_VARARGS, neighbours_list_loop_docstring},
     {"_region_in_domain", _region_in_domain, METH_VARARGS, region_in_domain_docstring},
+    {"_voropp_wrapper", _voropp_wrapper, METH_VARARGS, voropp_wrapper_docstring},
     {NULL, NULL, 0, NULL}
 };
 
@@ -212,4 +221,97 @@ static PyObject *_region_in_domain(PyObject *self, PyObject *args)
     Py_XDECREF(v_array);
     Py_XDECREF(d_array);
     Py_RETURN_TRUE;
+}
+
+static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
+{
+    PyObject *sites_obj, *domain_obj;
+
+    if (!PyArg_ParseTuple(args, "OO", &sites_obj, &domain_obj))
+        return NULL;
+
+    /* Interpret the input objects as `numpy` arrays. */
+    PyObject *s_array = PyArray_FROM_OTF(sites_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+    PyObject *d_array = PyArray_FROM_OTF(domain_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+
+    /* Handle invalid input. */
+    if (s_array == NULL || d_array == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Invalid input objects.");
+        Py_XDECREF(s_array);
+        Py_XDECREF(d_array);
+        return NULL;
+    }
+
+    double *s_data = (double*)PyArray_DATA(s_array);
+    double *d_data = (double*)PyArray_DATA(d_array);
+
+    int nsites = (int)PyArray_DIM(s_array, 0);
+
+    double *volumes = NULL, *bb_min = NULL, *bb_max = NULL;
+    int *neighbours = NULL;
+    int max_nn;
+
+    // Call the wrapper.
+    const char *status = hyperion_voropp_wrap(&neighbours,&max_nn,&volumes,&bb_min,&bb_max,d_data[0],d_data[1],d_data[2],d_data[3],d_data[4],d_data[5],s_data,nsites);
+
+    if (status != NULL) {
+        PyErr_SetString(PyExc_RuntimeError, status);
+        Py_XDECREF(s_array);
+        Py_XDECREF(d_array);
+        return NULL;
+    }
+
+    // Unfortunately, it seemse like there is no easy way to just re-use the memory we allocated in the wrapper to create a numpy array
+    // without copy. See, e.g., here:
+    // http://blog.enthought.com/python/numpy-arrays-with-pre-allocated-memory
+    // We will just create new numpy arrays and return them for now.
+    npy_intp vol_dims[] = {nsites};
+    npy_intp neigh_dims[] = {nsites,max_nn};
+    npy_intp bb_dims[] = {nsites,3};
+
+    PyObject *vol_array = PyArray_SimpleNew(1,vol_dims,NPY_DOUBLE);
+    PyObject *neigh_array = PyArray_SimpleNew(2,neigh_dims,NPY_INT);
+    PyObject *bb_min_array = PyArray_SimpleNew(2,bb_dims,NPY_DOUBLE);
+    PyObject *bb_max_array = PyArray_SimpleNew(2,bb_dims,NPY_DOUBLE);
+    PyObject *max_int = Py_BuildValue("i",INT_MAX);
+
+    if (vol_array == NULL || neigh_array == NULL || bb_min_array == NULL || bb_max_array == NULL || max_int == NULL) {
+        PyErr_SetString(PyExc_MemoryError, "Memory allocation error.");
+        free(neighbours);
+        free(volumes);
+        free(bb_min);
+        free(bb_max);
+        Py_XDECREF(s_array);
+        Py_XDECREF(d_array);
+        Py_XDECREF(vol_array);
+        Py_XDECREF(neigh_array);
+        Py_XDECREF(bb_min_array);
+        Py_XDECREF(bb_max_array);
+        return NULL;
+    }
+
+    // Copy over the data.
+    memcpy((double*)PyArray_DATA(vol_array),volumes,sizeof(double) * nsites);
+    memcpy((int*)PyArray_DATA(neigh_array),neighbours,sizeof(int) * nsites * max_nn);
+    memcpy((double*)PyArray_DATA(bb_min_array),bb_min,sizeof(double) * nsites * 3);
+    memcpy((double*)PyArray_DATA(bb_max_array),bb_max,sizeof(double) * nsites * 3);
+
+    PyObject *retval = PyTuple_Pack(5,neigh_array,vol_array,bb_min_array,bb_max_array,max_int);
+
+    // Final cleanup.
+    free(neighbours);
+    free(volumes);
+    free(bb_min);
+    free(bb_max);
+    Py_XDECREF(s_array);
+    Py_XDECREF(d_array);
+    // NOTE: these need to be cleaned up as PyTuple_Pack will increment the reference count. See:
+    // https://mail.python.org/pipermail/capi-sig/2009-February/000222.html
+    Py_XDECREF(neigh_array);
+    Py_XDECREF(vol_array);
+    Py_XDECREF(bb_min_array);
+    Py_XDECREF(bb_max_array);
+    Py_XDECREF(max_int);
+
+    return retval;
 }
