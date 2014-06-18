@@ -118,7 +118,7 @@ def _simplex_volume(simplex):
 
 class voronoi_grid(object):
 
-    def __init__(self, sites, domain, ncpus=_mp.cpu_count(), algorithm = "voro++"):
+    def __init__(self, sites, domain, ncpus=_mp.cpu_count(), algorithm="voro++"):
         from scipy.spatial import Delaunay, Voronoi
         import numpy as np
         from copy import deepcopy
@@ -153,15 +153,17 @@ class voronoi_grid(object):
                 if coord < limit[0] or coord > limit[1]:
                     raise ValueError('a site is outside the domain')
         # Check the value of the algorithm parameter.
-        if not isinstance(algorithm,str) or not algorithm in ['voro++','qhull']:
-            raise ValueError('the \'algorithm\' parameter must be a string equal to \'voro++\' or \'qhull\'')
+        if not isinstance(algorithm, str) or not algorithm in ['voro++', 'qhull']:
+            raise ValueError(
+                'the \'algorithm\' parameter must be a string equal to \'voro++\' or \'qhull\'')
 
         if algorithm == 'voro++':
-            tup = _voropp_wrapper(sites,domain)
-            t = Table([sites,tup[0],tup[1],tup[2],tup[3]],
-                       names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max'))
+            tup = _voropp_wrapper(sites, domain)
+            t = Table([sites, tup[0], tup[1], tup[2], tup[3]],
+                      names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max'))
             self._neighbours_table = t
-            # Neighbour filler value is provided from the C++ routine for voro++.
+            # Neighbour filler value is provided from the C++ routine for
+            # voro++.
             self._n_default = tup[4]
             return
 
@@ -325,7 +327,7 @@ class voronoi_grid(object):
         logger.info("Compute volumes and bounding boxes")
 
         vblists = self._pool.map(_par_vol_bb, [(chunk, self._vor_tess.points, self._vor_tess.point_region,
-                                                self._protruding_cells, self._vor_tess.regions, self._vor_tess.vertices, self._domain, idx) for chunk,idx in zip(chunks,range(self._ncpus))])
+                                                self._protruding_cells, self._vor_tess.regions, self._vor_tess.vertices, self._domain, idx) for chunk, idx in zip(chunks, range(self._ncpus))])
 
         self._pool.close()
         self._pool.join()
