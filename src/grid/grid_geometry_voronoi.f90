@@ -127,7 +127,7 @@ contains
        geo%cells(ic)%r%x = x(ic)
        geo%cells(ic)%r%y = y(ic)
        geo%cells(ic)%r%z = z(ic)
-       n_neighbors = count(neighbors(:, ic) > -1)
+       n_neighbors = count(neighbors(:, ic) /= -10)
        allocate(geo%cells(ic)%neighbors(n_neighbors))
        geo%cells(ic)%neighbors(1:n_neighbors) = neighbors(1:n_neighbors, ic) + 1
     end do

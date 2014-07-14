@@ -1,8 +1,9 @@
 from astropy import log as logger
 
+
 class voronoi_grid(object):
 
-    def __init__(self, sites, domain, with_vertices = False):
+    def __init__(self, sites, domain, with_vertices=False):
         import numpy as np
         from ._voronoi_core import _voropp_wrapper
         from astropy.table import Table
@@ -34,8 +35,9 @@ class voronoi_grid(object):
             for coord, limit in zip(site, domain):
                 if coord < limit[0] or coord > limit[1]:
                     raise ValueError('a site is outside the domain')
-        if not isinstance(with_vertices,bool):
-            raise TypeError('the \'with_vertices\' parameter must be a boolean')
+        if not isinstance(with_vertices, bool):
+            raise TypeError(
+                'the \'with_vertices\' parameter must be a boolean')
 
         self._with_vertices = with_vertices
 
@@ -43,7 +45,7 @@ class voronoi_grid(object):
         tup = _voropp_wrapper(sites, domain, with_vertices)
         if with_vertices:
             t = Table([sites, tup[0], tup[1], tup[2], tup[3], tup[4]],
-                      names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max','vertices'))
+                      names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max', 'vertices'))
         else:
             t = Table([sites, tup[0], tup[1], tup[2], tup[3]],
                       names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max'))
@@ -65,7 +67,8 @@ class voronoi_grid(object):
 
     def plot(self):
         if not self._with_vertices:
-            raise ValueError('the class must be constructed with \'with_vertices=True\' in order to support plotting')
+            raise ValueError(
+                'the class must be constructed with \'with_vertices=True\' in order to support plotting')
 
         import numpy as np
         try:
@@ -76,7 +79,8 @@ class voronoi_grid(object):
             from mayavi.modules.surface import Surface
             from mayavi.modules.scalar_cut_plane import ScalarCutPlane
         except ImportError:
-            raise ImportError('the plot method requires Mayavi, please make sure it is correctly installed')
+            raise ImportError(
+                'the plot method requires Mayavi, please make sure it is correctly installed')
 
         # Shortcut.
         vertices = self._neighbours_table['vertices']
@@ -102,11 +106,12 @@ class voronoi_grid(object):
             # Drop the empty vertices coordinates, signalled by NaN.
             arr = v[~np.isnan(v)]
             assert(len(arr) % 3 == 0)
-            tmp = np.split(arr,len(arr)/3)
+            tmp = np.split(arr, len(arr) / 3)
             # Append the vertices.
             points = points + tmp
             # Append the cell description.
-            cells = cells + [len(tmp)] + range(cur_cell_idx,cur_cell_idx + len(tmp))
+            cells = cells + \
+                [len(tmp)] + range(cur_cell_idx, cur_cell_idx + len(tmp))
             cur_cell_idx += len(tmp)
             # Append the offset info.
             offset.append(cur_offset)
@@ -120,10 +125,11 @@ class voronoi_grid(object):
         # Setup the Mayavi engine and figure.
         e = Engine()
         e.start()
-        fig = mlab.figure(engine = e)
+        fig = mlab.figure(engine=e)
 
         # Plot the sites.
-        mlab.points3d(sites_arr[:,0],sites_arr[:,1],sites_arr[:,2],figure = fig)
+        mlab.points3d(
+            sites_arr[:, 0], sites_arr[:, 1], sites_arr[:, 2], figure=fig)
 
         # Plot the cells with coloured surfaces.
         # This is just an array of scalars to assign a "temperature" to each cell vertex, which will be
@@ -131,14 +137,14 @@ class voronoi_grid(object):
         temperature = np.arange(0, len(points) * 10, 10, 'd')
         # Initialise the array of cells.
         cell_array = tvtk.CellArray()
-        cell_array.set_cells(len(vertices),np.array(cells))
+        cell_array.set_cells(len(vertices), np.array(cells))
         # Initialise the unstructured grid object.
         ug = tvtk.UnstructuredGrid(points=np.array(points))
         ug.set_cells(np.array(cell_types), np.array(offset), cell_array)
         ug.point_data.scalars = temperature
         ug.point_data.scalars.name = 'temperature'
         # Create a data source from the unstructured grid object.
-        src = VTKDataSource(data = ug)
+        src = VTKDataSource(data=ug)
         # Add the source to the engine.
         e.add_source(src)
         # Create a surface object with opacity 0.5
@@ -154,7 +160,7 @@ class voronoi_grid(object):
         # Rebuild the ug.
         ug = tvtk.UnstructuredGrid(points=np.array(points))
         ug.set_cells(np.array(cell_types), np.array(offset), cell_array)
-        src = VTKDataSource(data = ug)
+        src = VTKDataSource(data=ug)
         e.add_source(src)
         surf = Surface()
         surf.actor.property.representation = 'wireframe'
