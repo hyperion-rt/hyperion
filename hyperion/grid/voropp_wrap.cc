@@ -1,17 +1,18 @@
 #include <algorithm>
-#include <climits>
 #include <cmath>
 #include <cstdlib>
 #include <exception>
+#include <ios>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
 #include "voro++/voro++.hh"
 
-extern "C" const char * hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max,
-                  double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
-                  double const *points, int npoints);
+extern "C" const char * hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
+                                             int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
+                                             double const *points, int npoints, int with_vertices);
 
 using namespace voro;
 
@@ -49,8 +50,9 @@ class ptr_raii
         T *m_ptr;
 };
 
-// Functor to extract the max number of neighbours.
-static inline bool nlist_cmp(const std::vector<int> &a, const std::vector<int> &b)
+// Functor to extract the max number of neighbours/vertices.
+template <typename T>
+static inline bool size_cmp(const std::vector<T> &a, const std::vector<T> &b)
 {
     return a.size() < b.size();
 }
@@ -58,9 +60,9 @@ static inline bool nlist_cmp(const std::vector<int> &a, const std::vector<int> &
 // Global string used for reporting errors back to Python.
 static std::string error_message;
 
-const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max,
-       double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double const *points,
-       int nsites)
+const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
+                                 int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double const *points,
+                                 int nsites, int with_vertices)
 {
     // We need to wrap everything in a try/catch block as exceptions cannot leak out to C.
     try {
@@ -84,10 +86,17 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     std::cout << "Number of sites: " << nsites << '\n';
     std::cout << "Domain: [" << xmin << ',' << xmax << "] [" << ymin << ',' << ymax << "] [" << zmin << ',' << zmax << "]\n";
     std::cout << "Initialising with the following block grid: " << nx << ',' << ny << ',' << nz << '\n';
+    std::cout << std::boolalpha;
+    std::cout << "Vertices: " << bool(with_vertices) << '\n';
 
     // Prepare the output quantities.
     // Neighbour list.
     std::vector<std::vector<int> > n_list(nsites);
+    // List of vertices.
+    std::vector<std::vector<double> > vertices_list;
+    if (with_vertices) {
+        vertices_list.resize(nsites);
+    }
     // Volumes.
     ptr_raii<double> vols(static_cast<double *>(std::malloc(sizeof(double) * nsites)));
     // Bounding boxes.
@@ -105,13 +114,13 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     voronoicell_neighbor c;
     c_loop_all vl(con);
     int idx = 0;
-    // Temporary vector to store vertices information.
-    std::vector<double> tmp_vertices;
     double tmp_min[3],tmp_max[3];
+    std::vector<double> tmp_v;
 
     // Loop over all particles and compute the desired quantities.
     if(vl.start()) {
         do {
+            std::vector<double> *tmp_vertices = with_vertices ? &(vertices_list[idx]) : &tmp_v; 
             // Compute the voronoi cell.
             con.compute_cell(c,vl);
             // Compute the neighbours.
@@ -119,17 +128,17 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
             // Volume.
             vols.get()[idx] = c.volume();
             // Compute bounding box. Start by asking for the vertices.
-            c.vertices(vl.x(),vl.y(),vl.z(),tmp_vertices);
+            c.vertices(vl.x(),vl.y(),vl.z(),*tmp_vertices);
             // Init min/max bb.
-            std::copy(tmp_vertices.begin(),tmp_vertices.begin() + 3,tmp_min);
-            std::copy(tmp_vertices.begin(),tmp_vertices.begin() + 3,tmp_max);
-            for (unsigned long i = 0; i < tmp_vertices.size() / 3u; ++i) {
+            std::copy(tmp_vertices->begin(),tmp_vertices->begin() + 3,tmp_min);
+            std::copy(tmp_vertices->begin(),tmp_vertices->begin() + 3,tmp_max);
+            for (unsigned long i = 1u; i < tmp_vertices->size() / 3u; ++i) {
                 for (unsigned j = 0; j < 3; ++j) {
-                    if (tmp_vertices[i * 3 + j] < tmp_min[j]) {
-                        tmp_min[j] = tmp_vertices[i * 3 + j];
+                    if ((*tmp_vertices)[i * 3 + j] < tmp_min[j]) {
+                        tmp_min[j] = (*tmp_vertices)[i * 3 + j];
                     }
-                    if (tmp_vertices[i * 3 + j] > tmp_max[j]) {
-                        tmp_max[j] = tmp_vertices[i * 3 + j];
+                    if ((*tmp_vertices)[i * 3 + j] > tmp_max[j]) {
+                        tmp_max[j] = (*tmp_vertices)[i * 3 + j];
                     }
                 }
             }
@@ -141,7 +150,7 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     }
 
     // Compute the max number of neighbours.
-    *max_nn = std::max_element(n_list.begin(),n_list.end(),nlist_cmp)->size();
+    *max_nn = std::max_element(n_list.begin(),n_list.end(),size_cmp<int>)->size();
     std::cout << "Max number of neighbours is: " << *max_nn << '\n';
 
     // Allocate space for flat array of neighbours.
@@ -150,8 +159,29 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     for (idx = 0; idx < nsites; ++idx) {
         int *ptr = neighs.get() + (*max_nn) * idx;
         std::copy(n_list[idx].begin(),n_list[idx].end(),ptr);
-        // Fill empty elements with INT_MAX.
-        std::fill(ptr + n_list[idx].size(),ptr + (*max_nn),INT_MAX);
+        // Fill empty elements with -10.
+        std::fill(ptr + n_list[idx].size(),ptr + (*max_nn),-10);
+    }
+
+    if (with_vertices) {
+        // Compute the max number of vertices coordinates.
+        *max_nv = std::max_element(vertices_list.begin(),vertices_list.end(),size_cmp<double>)->size();
+        std::cout << "Max number of vertices coordinates is: " << *max_nv << '\n';
+
+        // Allocate space for flat array of vertices.
+        ptr_raii<double> verts(static_cast<double *>(std::malloc(sizeof(double) * nsites * (*max_nv))));
+        // Fill it in.
+        for (idx = 0; idx < nsites; ++idx) {
+            double *ptr = verts.get() + (*max_nv) * idx;
+            std::copy(vertices_list[idx].begin(),vertices_list[idx].end(),ptr);
+            // Fill empty elements with nan.
+            std::fill(ptr + vertices_list[idx].size(),ptr + (*max_nv),std::numeric_limits<double>::quiet_NaN());
+        }
+
+        // Assign the output quantity.
+        *vertices = verts.release();
+    } else {
+        *max_nv = 0;
     }
 
     // Assign the output quantities.
