@@ -3,7 +3,7 @@ from astropy import log as logger
 
 class voronoi_grid(object):
 
-    def __init__(self, sites, domain, with_vertices=False):
+    def __init__(self, sites, domain, with_vertices=False, wall=None, wall_args=None):
         import numpy as np
         from ._voronoi_core import _voropp_wrapper
         from astropy.table import Table
@@ -38,11 +38,22 @@ class voronoi_grid(object):
         if not isinstance(with_vertices, bool):
             raise TypeError(
                 'the \'with_vertices\' parameter must be a boolean')
+        # Wall checks.
+        allowed_walls = ['sphere','cylinder','cone','plane']
+        if not wall is None and not wall in allowed_walls:
+            raise ValueError('the \'wall\' parameter must be None or one of ' + str(allowed_walls))
+        if not wall_args is None and (not isinstance(wall_args,tuple) or not all([isinstance(_,float) for _ in wall_args])):
+            raise ValueError('the \'wall_args\' parameter must be None or a tuple of floats')
 
+        # Redefine wall params in order to pass it to the C++ routine.
+        wall = "" if wall is None else wall
+        wall_args = () if wall_args is None else wall_args
+
+        # Store the vertices flag.
         self._with_vertices = with_vertices
 
         logger.info("Computing the tessellation via voro++")
-        tup = _voropp_wrapper(sites, domain, with_vertices)
+        tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args)
         if with_vertices:
             t = Table([sites, tup[0], tup[1], tup[2], tup[3], tup[4]],
                       names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max', 'vertices'))

@@ -7,7 +7,7 @@
 // Declaration of the voro++ wrapping function.
 const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices, int *max_nv,
                   double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
-                  double const *points, int npoints, int with_vertices);
+                  double const *points, int npoints, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args);
 
 /* Define docstrings */
 static char module_docstring[] = "C implementation of utility functions used in Voronoi grids";
@@ -52,11 +52,30 @@ MOD_INIT(_voronoi_core)
 
 static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
 {
-    PyObject *sites_obj, *domain_obj;
+    PyObject *sites_obj, *domain_obj, *wall_args_obj;
     int with_vertices;
+    const char *wall_str;
 
-    if (!PyArg_ParseTuple(args, "OOi", &sites_obj, &domain_obj, &with_vertices))
+    if (!PyArg_ParseTuple(args, "OOisO", &sites_obj, &domain_obj, &with_vertices,&wall_str,&wall_args_obj))
         return NULL;
+
+    // Handle the wall-related arguments.
+    // NOTE: at the moment, the walls implemented in voro++ have at most 7 doubles as construction params.
+    double wall_args_arr[7];
+    // The actual number of construction arguments.
+    int n_wall_args = (int)PyTuple_GET_SIZE(wall_args_obj);
+    if (n_wall_args > 7) {
+        PyErr_SetString(PyExc_TypeError, "Too many construction arguments for the wall object.");
+        return NULL;
+    }
+    {
+        // Read the wall construction arguments.
+        int i;
+        for (i = 0; i < n_wall_args; ++i) {
+            // NOTE: PyTuple_GetItem returns a borrowed reference, no need to handle refcount.
+            wall_args_arr[i] = PyFloat_AS_DOUBLE(PyTuple_GetItem(wall_args_obj,(Py_ssize_t)i));
+        }
+    }
 
     /* Interpret the input objects as `numpy` arrays. */
     PyObject *s_array = PyArray_FROM_OTF(sites_obj, NPY_DOUBLE, NPY_IN_ARRAY);
@@ -81,7 +100,9 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
 
     // Call the wrapper.
     const char *status = hyperion_voropp_wrap(&neighbours,&max_nn,&volumes,&bb_min,&bb_max,&vertices,&max_nv,
-                                              d_data[0],d_data[1],d_data[2],d_data[3],d_data[4],d_data[5],s_data,nsites,with_vertices);
+                                              d_data[0],d_data[1],d_data[2],d_data[3],d_data[4],d_data[5],s_data,nsites,with_vertices,
+                                              wall_str,wall_args_arr,n_wall_args
+                                             );
 
     if (status != NULL) {
         PyErr_SetString(PyExc_RuntimeError, status);
