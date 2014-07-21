@@ -127,7 +127,8 @@ contains
        geo%cells(ic)%r%x = x(ic)
        geo%cells(ic)%r%y = y(ic)
        geo%cells(ic)%r%z = z(ic)
-       n_neighbors = count(neighbors(:, ic) /= -10)
+       ! Indices from -1 to -6 included are the walls of the rectangular domain.
+       n_neighbors = count(neighbors(:, ic) >= -6)
        allocate(geo%cells(ic)%neighbors(n_neighbors))
        geo%cells(ic)%neighbors(1:n_neighbors) = neighbors(1:n_neighbors, ic) + 1
     end do
@@ -324,34 +325,32 @@ contains
 
     call reset_t()
 
-    if(p%v%x > 0._dp) then
-        tx = ( geo%xmax - p%r%x ) / p%v%x
-    else if(p%v%x < 0._dp) then
-        tx = ( geo%xmin - p%r%x) / p%v%x
-    else
-        tx = huge(1._dp)
-    end if
-    call insert_t(tx, 1, geo%n_cells + 1, 0._dp)
-
-    if(p%v%y > 0.) then
-        ty = ( geo%ymax - p%r%y ) / p%v%y
-    else if(p%v%y < 0._dp) then
-        ty = ( geo%ymin - p%r%y ) / p%v%y
-    else
-        ty = huge(1._dp)
-    end if
-    call insert_t(ty, 1, geo%n_cells + 1, 0._dp)
-
-    if(p%v%z > 0.) then
-        tz = ( geo%zmax - p%r%z ) / p%v%z
-    else if(p%v%z < 0._dp) then
-        tz = ( geo%zmin - p%r%z ) / p%v%z
-    else
-        tz = huge(1._dp)
-    end if
-    call insert_t(tz, 1, geo%n_cells + 1, 0._dp)
-
     do i = 1,n_neighbors
+        if (icell%neighbors(i) <= 0 .and. icell%neighbors(i) >= -5) then
+            select case (icell%neighbors(i))
+                case (0)
+                    ! Note that here we are checking indices from 0 to -5 (instead of -1 to -6 as in the 
+                    ! original voro++ convention) because of the indexing offset introduced by Fortran notation.
+                    ! xmin wall
+                    if (p%v%x < 0._dp) call insert_t(( geo%xmin - p%r%x ) / p%v%x, 1, geo%n_cells + 1, 0._dp)
+                case (-1)
+                    ! xmax wall
+                    if (p%v%x > 0._dp) call insert_t(( geo%xmax - p%r%x ) / p%v%x, 1, geo%n_cells + 1, 0._dp)
+                case (-2)
+                    ! ymin wall
+                    if (p%v%y < 0._dp) call insert_t(( geo%ymin - p%r%y ) / p%v%y, 1, geo%n_cells + 1, 0._dp)
+                case (-3)
+                    ! ymax wall
+                    if (p%v%y > 0._dp) call insert_t(( geo%ymax - p%r%y ) / p%v%y, 1, geo%n_cells + 1, 0._dp)
+                case (-4)
+                    ! zmin wall
+                    if (p%v%z < 0._dp) call insert_t(( geo%zmin - p%r%z ) / p%v%z, 1, geo%n_cells + 1, 0._dp)
+                case (-5)
+                    ! zmax wall
+                    if (p%v%z > 0._dp) call insert_t(( geo%zmax - p%r%z ) / p%v%z, 1, geo%n_cells + 1, 0._dp)
+            end select
+            cycle
+        end if
 
         if(icell%neighbors(i) == -p%on_wall_id%w2) cycle
 
