@@ -165,13 +165,17 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     // Initialise the looping variables and the temporary cell object used for computation.
     voronoicell_neighbor c;
     c_loop_all vl(con);
-    int idx = 0;
+    int idx;
     double tmp_min[3],tmp_max[3];
     std::vector<double> tmp_v;
+    // Site position and radius (r is unused).
+    double x,y,z,r;
 
     // Loop over all particles and compute the desired quantities.
     if(vl.start()) {
         do {
+            // Get the id and position of the site being considered.
+            vl.pos(idx,x,y,z,r);
             std::vector<double> *tmp_vertices = with_vertices ? &(vertices_list[idx]) : &tmp_v; 
             // Compute the voronoi cell.
             con.compute_cell(c,vl);
@@ -180,7 +184,7 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
             // Volume.
             vols.get()[idx] = c.volume();
             // Compute bounding box. Start by asking for the vertices.
-            c.vertices(vl.x(),vl.y(),vl.z(),*tmp_vertices);
+            c.vertices(x,y,z,*tmp_vertices);
             // Init min/max bb.
             std::copy(tmp_vertices->begin(),tmp_vertices->begin() + 3,tmp_min);
             std::copy(tmp_vertices->begin(),tmp_vertices->begin() + 3,tmp_max);
@@ -197,8 +201,19 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
             // Copy the bounding box into the output array.
             std::copy(tmp_min,tmp_min + 3,bb_m.get() + idx * 3);
             std::copy(tmp_max,tmp_max + 3,bb_M.get() + idx * 3);
-            ++idx;
         } while(vl.inc());   
+    }
+
+    // The voro++ doc say that in case of numerical errors the neighbours list might not be symmetric,
+    // that is, if 'a' is a neighbour of 'b' then 'b' might not be a neighbour of 'a'. We check and fix this
+    // in the loop below.
+    for (idx = 0; idx < nsites; ++idx) {
+        for (unsigned j = 0u; j < n_list[idx].size(); ++j) {
+            // Check only non-wall neighbours.
+            if (n_list[idx][j] >= 0 && std::find(n_list[n_list[idx][j]].begin(),n_list[n_list[idx][j]].end(),idx) == n_list[n_list[idx][j]].end()) {
+                n_list[n_list[idx][j]].push_back(idx);
+            }
+        }
     }
 
     // Compute the max number of neighbours.
