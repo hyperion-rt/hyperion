@@ -97,12 +97,15 @@ class VoronoiGrid(FreezableClass):
         self.shape = (len(x),)
 
         # For now, define box using points
-        self.xmin = x.min()
-        self.xmax = x.max()
-        self.ymin = y.min()
-        self.ymax = y.max()
-        self.zmin = z.min()
-        self.zmax = z.max()
+        delta_x = x.max() - x.min()
+        delta_y = y.max() - y.min()
+        delta_z = z.max() - z.min()
+        self.xmin = x.min() - delta_x / 100.
+        self.xmax = x.max() + delta_x / 100.
+        self.ymin = y.min() - delta_y / 100.
+        self.ymax = y.max() + delta_y / 100.
+        self.zmin = z.min() - delta_z / 100.
+        self.zmax = z.max() + delta_z / 100.
         
         self._x = x
         self._y = y

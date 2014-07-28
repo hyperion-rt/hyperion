@@ -33,7 +33,7 @@ class voronoi_grid(object):
         # Check that the input sites fall within the domain.
         for site in sites:
             for coord, limit in zip(site, domain):
-                if coord < limit[0] or coord > limit[1]:
+                if coord <= limit[0] or coord >= limit[1]:
                     raise ValueError('a site is outside the domain')
         if not isinstance(with_vertices, bool):
             raise TypeError(
