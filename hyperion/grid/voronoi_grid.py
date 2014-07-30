@@ -96,7 +96,8 @@ class VoronoiGrid(FreezableClass):
         # Find grid shape
         self.shape = (len(x),)
 
-        # For now, define box using points
+        # For now, define box using points. Add a 1% padding
+        # to the detected domain walls.
         delta_x = x.max() - x.min()
         delta_y = y.max() - y.min()
         delta_z = z.max() - z.min()

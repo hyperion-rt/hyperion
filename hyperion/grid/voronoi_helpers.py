@@ -2,6 +2,48 @@ from astropy import log as logger
 
 
 class voronoi_grid(object):
+    '''
+    A Voronoi grid.
+
+    This class is used to compute properties of a 3D Voronoi grid useful
+    in RT simulations, such as site neighbours lists, cell volumes, vertices
+    bounding boxes, etc.
+
+    The class needs at least two parameters for initialisation: the sites list
+    and a domain representing a rectangular box containing the sites.
+
+    Additional parameters include a flag to signal whether the vertices of the
+    Voronoi cells should be returned or not, and two arguments defining
+    additional (optional) walls within the domain.
+
+    Internally, the Voronoi tessellation is computed via the voro++ library
+    (http://math.lbl.gov/voro++/). The properties of the Voronoi grid
+    can be retrieved via the ``neighbours_table`` class property.
+
+    Parameters
+    ----------
+    sites : np.ndarray of floats
+        The array of sites, must be a sequence of 3-dimensional vectors
+        representing the position of each site.
+    domain : np.ndarray of floats
+        The domain of the grid, must be a 3x2 array corresponding to the
+        min/max values in the three coordinates.
+    with_vertices : boolean
+        If ``True``, the vertices of the Voronoi cells will be computed.
+        The vertices of the cells are not needed for RT simulations,
+        and they add a considerable overhead in terms of memory requirements.
+        Required for plotting and useful for debugging.
+    wall : a string or ``None``
+        If not ``None``, it must be one of
+        ``['sphere','cylinder','cone','plane']``. It will define an additional
+        wall of the desired shape within the domain.
+    wall_args : a tuple of floats or ``None``
+        Meaningful only if ``wall`` is not None, it represents the parameters
+        to be used to construct the wall (e.g., in case of a spherical wall,
+        the centre position and the radius of the sphere). Different construction
+        arguments are required for different types of wall, see the voro++
+        documentation for more information.
+    '''
 
     def __init__(self, sites, domain, with_vertices=False, wall=None, wall_args=None):
         import numpy as np
@@ -23,9 +65,9 @@ class voronoi_grid(object):
         if domain.shape[1] != 2:
             raise ValueError(
                 'the domain must be an array of [min,max] elements')
-        if sites.shape[1] < 2:
+        if sites.shape[1] != 3:
             raise ValueError(
-                'the sites must be defined in a space at least 2-dimensional')
+                'the sites must be defined in 3-dimensional space')
         # Check that the domain has meaningful values.
         for limit in domain:
             if not limit[0] < limit[1]:
@@ -61,8 +103,6 @@ class voronoi_grid(object):
             t = Table([sites, tup[0], tup[1], tup[2], tup[3]],
                       names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max'))
         self._neighbours_table = t
-        # Neighbour filler value is -10.
-        self._n_default = -10
 
     # Getter for the neighbours/volume/bb table.
     @property
@@ -70,13 +110,27 @@ class voronoi_grid(object):
         from copy import deepcopy
         return deepcopy(self._neighbours_table)
 
-    # Filler value for the neighbours vectors in the return table.
-    @property
-    def n_default(self):
-        from copy import deepcopy
-        return deepcopy(self._n_default)
-
     def plot(self):
+        '''
+        Plot a 3D visualisation of the Voronoi grid using mayavi.
+
+        This method requires mayavi to be installed and also needs the vertices
+        information to be available (see the class constructor).
+
+        Note that in order for this method to work in an interactive IPython session,
+        a series of environment variables and proper switches need to be used
+        depending on your system configuration. For instance, on a Linux machine
+        with PyQt4 and a recent IPython version, the following bash startup
+        command for IPython can be used:
+        ``ETS_TOOLKIT=qt4 QT_API=pyqt ipython --gui=qt4``
+        This sets both the mayavi and the IPython GUI toolkit to qt4, and the ``QT_API``
+        variable is used to specify that we want the ``pyqt`` API (as opposed to the
+        ``pyside`` alternative API - PySide is an alternative implementation of PyQt).
+
+        It should be possible to get this method working on different configurations,
+        but the details will be highly system-dependent.
+        '''
+
         if not self._with_vertices:
             raise ValueError(
                 'the class must be constructed with \'with_vertices=True\' in order to support plotting')
