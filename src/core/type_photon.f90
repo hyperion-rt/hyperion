@@ -56,11 +56,15 @@ module type_photon
      real(dp) :: emiss_var_frac = 0.
      integer :: emiss_var_id = 0
 
-     ! The following flag keeps track of whether the photon has been reprocessed (absorbed and re-emitted) by dust yet
+     ! The following flag keeps track of whether the photon has been
+     ! reprocessed (absorbed and re-emitted) by dust yet
      logical :: reprocessed=.false.
 
-     ! The following flag keeps track of whether the photon has been scattered since being last emitted by dust or sources
-     logical :: scattered=.false.
+     ! The following flag keeps track of whether the photon has been scattered
+     ! since being last emitted by dust or sources, and the total number of 
+     ! scatterings
+     logical :: scattered = .false.
+     integer :: n_scat = 0
 
      integer :: inu
 

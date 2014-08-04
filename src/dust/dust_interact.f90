@@ -58,6 +58,7 @@ contains
        p%last_isotropic = .false.
        p%dust_id = id
        p%last = 'ds'
+       p%n_scat = p%n_scat + 1
     end if
 
     call angle3d_to_vector3d(p%a,p%v)

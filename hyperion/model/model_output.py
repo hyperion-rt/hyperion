@@ -471,7 +471,7 @@ class ModelOutput(FreezableClass):
     def get_image(self, stokes='I', group=0, technique='peeled',
                   distance=None, component='total', inclination='all',
                   uncertainties=False, units=None,
-                  source_id=None, dust_id=None):
+                  source_id=None, dust_id=None, n_scat=None):
         '''
         Retrieve images for a specific image group and Stokes component.
 
@@ -602,6 +602,10 @@ class ModelOutput(FreezableClass):
         if 'track_origin' in g['images'].attrs:
 
             track_origin = g['images'].attrs['track_origin'].decode('utf-8')
+            if 'track_n_scat' in g['images'].attrs:
+                track_n_scat = g['images'].attrs['track_n_scat'].decode('utf-8')
+            else:
+                track_n_scat = 0
 
             if track_origin == 'no' and component != 'total':
                 raise Exception("cannot extract component=%s - file only contains total flux" % component)
@@ -650,6 +654,15 @@ class ModelOutput(FreezableClass):
                             if dust_id < 0 or dust_id >= nd:
                                 raise ValueError("dust_id should be between 0 and %i" % (nd - 1))
                             io = io + dust_id
+
+                elif track_origin == 'scatterings':
+
+                    if n_scat is None:
+                        io = (io, io + track_n_scat)
+                    else:
+                        if io == 3:
+                            io = io + track_n_scat + 1
+                        io += n_scat - 1
 
         # Set up wavelength space
         if 'numin' in g['images'].attrs:
