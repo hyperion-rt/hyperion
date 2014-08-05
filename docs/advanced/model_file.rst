@@ -315,6 +315,12 @@ contain the following attributes:
   * ``detailed``: as for ``basic``, but also keeping the ID of the source or
     dust population last emitted from.
 
+  * ``scatterings``: photons are split into ones emmitted by sources or dust,
+    and split by the number of times they scatter.
+
+* ``track_n_scat``: an integer giving the maximum number of scatterings to
+  record if ``track_origin`` is set to ``scatterings``.
+
 * ``uncertainties``: whether to compute and output uncertainties on the images
   and/or SEDs. This should be specified as a string that can be ``yes`` or
   ``no``.

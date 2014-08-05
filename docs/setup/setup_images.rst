@@ -129,6 +129,12 @@ components in total: five for photons emitted from sources, two for photons
 emitted from dust, five for photons emitted from sources and subsequently
 scattered, and two for photons emitted from dust and subsequently scattered.
 
+Finally, it is also possible to split the photons as a function of how many times they scattered::
+
+    image.set_track_origin('scatterings', n_scat=5)
+
+where ``n_scat`` gives the maxmimum number of scatterings to record.
+
 See :ref:`post-processing` for information on how to extract this information
 from the output files.
 

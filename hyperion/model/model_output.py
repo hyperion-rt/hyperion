@@ -522,6 +522,10 @@ class ModelOutput(FreezableClass):
                 * 'dust_scat': The photons were last emitted from dust and
                   were subsequently scattered
 
+                * 'source': The photons that were last emitted from a source
+
+                * 'dust': The photons that were last emitted from dust
+
         inclination : int, optional
             The index of the viewing angle to plot (zero-based). Use 'all'
             to return all viewing angles.
@@ -551,6 +555,12 @@ class ModelOutput(FreezableClass):
             sources or dust types is returned. For sources, it is also possible
             to specify a source name as a string, if the source name was set
             during the set-up.
+
+        n_scat : int, optional
+            If the output file was made with track_origin='scatterings', the
+            number of scatterings can be specified here. If specified, the
+            image is constructed only from photons that have scattered
+            ``n_scat`` times since being last emitted.
 
         Returns
         -------
