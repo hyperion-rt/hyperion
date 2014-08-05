@@ -879,7 +879,7 @@ class ImageConf(FreezableClass):
         group.attrs['inu_min'] = self.iwav_min
         group.attrs['inu_max'] = self.iwav_max
 
-    def set_track_origin(self, track_origin):
+    def set_track_origin(self, track_origin, n_scat=None):
         '''
         Set whether to track the origin of the photons. The options are:
 
@@ -899,6 +899,10 @@ class ImageConf(FreezableClass):
         'detailed' - as above, but in each category, the origin is further
                      refined into each individual source and dust type.
 
+        'scatterings' - as for 'basic', but splitting the scatterings into the
+                        images for 1, 2, 3, ..., ``n_scat`` scatterings since the last
+                        emission.
+
         Parameters
         ----------
         track_origin : bool
@@ -909,16 +913,22 @@ class ImageConf(FreezableClass):
             track_origin = 'basic'
         elif track_origin is False:
             track_origin = 'no'
-        elif track_origin not in ['no', 'basic', 'detailed']:
-            raise Exception("track_origin should be one of no/basic/detailed")
+        elif track_origin not in ['no', 'basic', 'detailed', 'scatterings']:
+            raise Exception("track_origin should be one of no/basic/detailed/scatterings")
 
         self.track_origin = track_origin
+        self.track_n_scat = n_scat or 0
 
     def _read_track_origin(self, group):
         self.track_origin = group.attrs['track_origin'].decode('ascii')
+        if 'track_n_scat' in group.attrs:
+            self.track_n_scat = group.attrs['track_n_scat']
+        else:
+            self.track_n_scat = 0
 
     def _write_track_origin(self, group):
         group.attrs['track_origin'] = np.string_(self.track_origin.encode('utf-8'))
+        group.attrs['track_n_scat'] = self.track_n_scat
 
     def set_uncertainties(self, uncertainties):
         '''

@@ -96,7 +96,8 @@ module type_image
      real(dp),allocatable :: tmp_spectrum(:)
      real(dp),allocatable :: tmp_stokes(:)
 
-     character(len=10) :: track_origin
+     character(len=11) :: track_origin
+     integer :: track_n_scat
      logical :: uncertainties
 
      integer :: io_type
@@ -206,7 +207,15 @@ contains
 
     call mp_read_keyword(handle, path, 'track_origin',img%track_origin)
 
+    if(mp_exists_keyword(handle, path, 'track_n_scat')) then
+       call mp_read_keyword(handle, path, 'track_n_scat',img%track_n_scat)
+    else
+       img%track_n_scat = 0
+    end if
+
     select case(trim(img%track_origin))
+    case('scatterings')
+       img%n_orig = 2 + 2 * img%track_n_scat
     case('detailed')
        img%n_orig = 2 * (img%n_sources + img%n_dust)
     case('basic', 'yes')
@@ -376,6 +385,7 @@ contains
     integer,intent(in) :: im ! sub-image to bin into
     real(dp) :: log10_nu_image
     integer :: ix,iy,ir,inu,io ! Bins
+    integer :: iorig
 
     if(img%compute_image.and..not.allocated(img%img)) call error('bin_photon','Image not allocated')
     if(img%compute_sed.and..not.allocated(img%sed)) call error('bin_photon','SED not allocated')
@@ -400,12 +410,17 @@ contains
 
     ! Find origin flag
     if(trim(img%track_origin) == 'detailed') then
-       io = ((orig(p) - mod(orig(p),2)) * img%n_sources + (orig(p) - mod(orig(p)+1,2) - 1) * img%n_dust) / 2
-       if(mod(orig(p),2)==0) then
+       iorig = orig(p)
+       io = ((iorig - mod(iorig,2)) * img%n_sources + (iorig - mod(iorig+1,2) - 1) * img%n_dust) / 2
+       if(mod(iorig,2)==0) then
           io = io + p%dust_id
        else
           io = io + p%source_id
        end if
+    else if(trim(img%track_origin) == 'scatterings') then
+       if(p%n_scat > img%track_n_scat) return
+       io = p%n_scat + 1
+       if(p%reprocessed) io = io + (img%track_n_scat + 1)
     else if(trim(img%track_origin) == 'basic') then
        io = orig(p)
     else
@@ -455,6 +470,7 @@ contains
     integer,intent(in) :: im ! sub-image to bin into
     real(dp),intent(in) :: column_density(:)
     integer :: ix,iy,ir,iw,id,io ! Bins
+    integer :: iorig
 
     if(img%compute_image.and..not.allocated(img%img)) call error('bin_photon','Image not allocated')
     if(img%compute_sed.and..not.allocated(img%sed)) call error('bin_photon','SED not allocated')
@@ -471,12 +487,17 @@ contains
 
     ! Find origin flag
     if(trim(img%track_origin) == 'detailed') then
-       io = ((orig(p) - mod(orig(p),2)) * img%n_sources + (orig(p) - mod(orig(p)+1,2) - 1) * img%n_dust) / 2
-       if(mod(orig(p),2)==0) then
+       iorig = orig(p)
+       io = ((iorig - mod(iorig,2)) * img%n_sources + (iorig - mod(iorig+1,2) - 1) * img%n_dust) / 2
+       if(mod(iorig,2)==0) then
           io = io + p%dust_id
        else
           io = io + p%source_id
        end if
+    else if(trim(img%track_origin) == 'scatterings') then
+       if(p%n_scat > img%track_n_scat) return
+       io = p%n_scat + 1
+       if(p%reprocessed) io = io + (img%track_n_scat + 1)
     else if(trim(img%track_origin) == 'basic') then
        io = orig(p)
     else
@@ -633,6 +654,8 @@ contains
        if(trim(img%track_origin) == 'detailed') then
           call mp_write_keyword(group, 'seds', 'n_sources', img%n_sources)
           call mp_write_keyword(group, 'seds', 'n_dust', img%n_dust)
+       else if(trim(img%track_origin) == 'scatterings') then
+          call mp_write_keyword(group, 'seds', 'track_n_scat', img%track_n_scat)
        end if
 
     end if
@@ -688,6 +711,8 @@ contains
        if(trim(img%track_origin) == 'detailed') then
           call mp_write_keyword(group, 'images', 'n_sources', img%n_sources)
           call mp_write_keyword(group, 'images', 'n_dust', img%n_dust)
+       else if(trim(img%track_origin) == 'scatterings') then
+          call mp_write_keyword(group, 'images', 'track_n_scat', img%track_n_scat)
        end if
 
     end if

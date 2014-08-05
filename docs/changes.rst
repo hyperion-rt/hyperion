@@ -10,6 +10,10 @@ New features
 - Added an importer function, ``construct_octree``, to convert a list of SPH
   particles into an Octree grid. [#67]
 
+- Added the ability to make images that split up photons as a function of how
+  many times they were scattered (using ``set_track_origin('scatterings')``).
+  [#99]
+
 0.9.4 (2014-01-29)
 ------------------
 

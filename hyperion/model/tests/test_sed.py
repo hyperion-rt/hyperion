@@ -217,6 +217,89 @@ class TestSEDSimpleModelTrackingDetailed(object):
         assert exc.value.args[0] == 'dust_id should be between 0 and 0'
 
 
+class TestSEDSimpleModelTrackingScatterings(object):
+
+    def setup_class(self):
+
+        m = Model()
+
+        m.set_cartesian_grid([-1., 1.],
+                             [-1., 1.],
+                             [-1., 1.])
+
+        m.add_density_grid(np.array([[[1.e-30]]]), get_test_dust())
+
+        s = m.add_point_source()
+        s.name = 'first'
+        s.luminosity = 1.
+        s.temperature = 6000.
+
+        s = m.add_point_source()
+        s.name = 'second'
+        s.luminosity = 1.
+        s.temperature = 6000.
+
+        i = m.add_peeled_images(sed=True, image=False)
+        i.set_viewing_angles([1., 2.], [1., 2.])
+        i.set_wavelength_range(5, 0.1, 100.)
+        i.set_aperture_range(3, 1., 10.)
+        i.set_track_origin('scatterings', n_scat=5)
+
+        m.set_n_initial_iterations(0)
+
+        m.set_n_photons(imaging=1)
+
+        self.tmpdir = tempfile.mkdtemp()
+        m.write(os.path.join(self.tmpdir, random_id()))
+
+        self.m = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
+
+    def test_sed_invalid_option(self):
+
+        # We can't use source_id and dust_id because tracking mode was not set
+        # to 'detailed'
+
+        with pytest.raises(Exception) as exc:
+            wav, nufnu = self.m.get_sed(source_id='all', component='source_emit')
+        assert exc.value.args[0] == "cannot specify source_id since track_origin was not set to 'detailed'"
+
+        with pytest.raises(Exception) as exc:
+            wav, nufnu = self.m.get_sed(dust_id='all', component='dust_emit')
+        assert exc.value.args[0] == "cannot specify dust_id since track_origin was not set to 'detailed'"
+
+        # The components should be 'source' and 'dust', anything else is invalid
+
+        for component in ['source_emit', 'source_scat', 'dust_emit', 'dust_scat']:
+            with pytest.raises(ValueError) as exc:
+                wav, nufnu = self.m.get_sed(n_scat=1, component=component)
+            assert exc.value.args[0] == "component should be one of total/source/dust since track_origin='scatterings'"
+
+    def test_sed_n_scat_main_components(self):
+        wav, nufnu = self.m.get_sed(component='source')
+        wav, nufnu = self.m.get_sed(component='dust')
+
+    def test_sed_n_scat_n_scat_valid(self):
+        for n_scat in range(6):
+            wav, nufnu = self.m.get_sed(n_scat=n_scat, component='source')
+            wav, nufnu = self.m.get_sed(n_scat=n_scat, component='dust')
+
+    def test_sed_n_scat_invalid(self):
+        for n_scat in [-1, 6]:
+            with pytest.raises(ValueError) as exc:
+                wav, nufnu = self.m.get_sed(n_scat=n_scat, component='source')
+            assert exc.value.args[0] == 'n_scat should be between 0 and 5'
+
+    def test_sed_n_scat_values(self):
+        for n_scat in range(6):
+            sed = self.m.get_sed(n_scat=n_scat, component='source')
+            if n_scat == 0:
+                assert sed.val.sum() > 0
+            else:
+                assert sed.val.sum() == 0.
+
 class TestSimpleModelInside(object):
 
     def setup_class(self):
