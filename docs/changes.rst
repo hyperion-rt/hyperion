@@ -18,7 +18,7 @@ Bug fixes
 ~~~~~~~~~
 
 - Fixed a minor bug in the logic for killing photons that have had too many
-  interactions.
+  interactions. [#100]
 
 0.9.4 (2014-01-29)
 ------------------
