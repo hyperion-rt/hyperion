@@ -599,13 +599,9 @@ class ModelOutput(FreezableClass):
         if uncertainties and not 'images_unc' in g:
             raise Exception("Uncertainties requested but not present in file")
 
-        if 'track_origin' in g['images'].attrs:
+        if 'track_origin' in g['images'].attrs and component != 'total':
 
             track_origin = g['images'].attrs['track_origin'].decode('utf-8')
-            if 'track_n_scat' in g['images'].attrs:
-                track_n_scat = g['images'].attrs['track_n_scat'].decode('utf-8')
-            else:
-                track_n_scat = 0
 
             if track_origin == 'no' and component != 'total':
                 raise Exception("cannot extract component=%s - file only contains total flux" % component)
@@ -616,7 +612,7 @@ class ModelOutput(FreezableClass):
                 if dust_id is not None:
                     raise Exception("cannot specify dust_id, as images were not computed with track_origin='detailed'")
 
-            if component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat']:
+            if track_origin in ['basic', 'detailed']:
 
                 if component == 'source_emit':
                     io = 0
@@ -626,6 +622,9 @@ class ModelOutput(FreezableClass):
                     io = 2
                 elif component == 'dust_scat':
                     io = 3
+                else:
+                    raise ValueError("component should be one of total/source_emit/dust_emit/source_scat/dust_scat since track_origin='{0}'".format(track_origin))
+
 
                 if track_origin == 'detailed':
 
@@ -655,14 +654,28 @@ class ModelOutput(FreezableClass):
                                 raise ValueError("dust_id should be between 0 and %i" % (nd - 1))
                             io = io + dust_id
 
-                elif track_origin == 'scatterings':
+            elif track_origin == 'scatterings':
 
-                    if n_scat is None:
-                        io = (io, io + track_n_scat)
+                if 'track_n_scat' in g['images'].attrs:
+                    track_n_scat = g['images'].attrs['track_n_scat']
+                else:
+                    track_n_scat = 0
+
+                if component == 'source':
+                    io = 0
+                elif component == 'dust':
+                    io = track_n_scat + 1
+                else:
+                    raise ValueError("component should be one of total/source/dust since track_origin='scatterings'")
+
+                if n_scat is None:
+                    io = (io, io + track_n_scat + 1)
+                else:
+                    if n_scat >= 0 and n_scat <= track_n_scat:
+                        io += n_scat
                     else:
-                        if io == 3:
-                            io = io + track_n_scat + 1
-                        io += n_scat - 1
+                        print(track_n_scat)
+                        raise ValueError("n_scat should be between 0 and 5")
 
         # Set up wavelength space
         if 'numin' in g['images'].attrs:
@@ -827,7 +840,7 @@ class ModelOutput(FreezableClass):
             flux = np.sum(flux, axis=1)
             if uncertainties:
                 unc = np.sqrt(np.sum(unc ** 2, axis=1))
-        elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat']:
+        elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat', 'dust', 'source']:
             if type(io) is tuple:
                 start, end = io
                 flux = flux[:, start:end]

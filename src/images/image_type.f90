@@ -419,8 +419,8 @@ contains
        end if
     else if(trim(img%track_origin) == 'scatterings') then
        if(p%n_scat > img%track_n_scat) return
-       io = 2 + p%n_scat
-       if(p%reprocessed) io = io + img%track_n_scat
+       io = p%n_scat
+       if(p%reprocessed) io = io + (img%track_n_scat + 1)
     else if(trim(img%track_origin) == 'basic') then
        io = orig(p)
     else
@@ -496,8 +496,8 @@ contains
        end if
     else if(trim(img%track_origin) == 'scatterings') then
        if(p%n_scat > img%track_n_scat) return
-       io = 2 + p%n_scat
-       if(p%reprocessed) io = io + img%track_n_scat
+       io = p%n_scat
+       if(p%reprocessed) io = io + (img%track_n_scat + 1)
     else if(trim(img%track_origin) == 'basic') then
        io = orig(p)
     else
@@ -655,7 +655,7 @@ contains
           call mp_write_keyword(group, 'seds', 'n_sources', img%n_sources)
           call mp_write_keyword(group, 'seds', 'n_dust', img%n_dust)
        else if(trim(img%track_origin) == 'scatterings') then
-          call mp_write_keyword(group, 'seds', 'n_scat', img%track_n_scat)
+          call mp_write_keyword(group, 'seds', 'track_n_scat', img%track_n_scat)
        end if
 
     end if
@@ -712,7 +712,7 @@ contains
           call mp_write_keyword(group, 'images', 'n_sources', img%n_sources)
           call mp_write_keyword(group, 'images', 'n_dust', img%n_dust)
        else if(trim(img%track_origin) == 'scatterings') then
-          call mp_write_keyword(group, 'images', 'n_scat', img%track_n_scat)
+          call mp_write_keyword(group, 'images', 'track_n_scat', img%track_n_scat)
        end if
 
     end if
