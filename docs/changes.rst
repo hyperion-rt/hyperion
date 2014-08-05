@@ -14,6 +14,12 @@ New features
   many times they were scattered (using ``set_track_origin('scatterings')``).
   [#99]
 
+Bug fixes
+~~~~~~~~~
+
+- Fixed a minor bug in the logic for killing photons that have had too many
+  interactions.
+
 0.9.4 (2014-01-29)
 ------------------
 

@@ -291,6 +291,16 @@ contains
        ! Check whether the photon has escaped the grid or was killed
        if(p%killed.or.escaped(p)) exit
 
+       ! We do the following check here rather than after the loop, because if
+       ! we limit for example to one interaction, we need to allow propagation,
+       ! interaction, propagation.
+       if(interactions==n_inter_max+1) then
+          if(n_inter_max_warn) call warn("do_final","photon exceeded maximum number of interactions - killing")
+          killed_photons_int = killed_photons_int + 1
+          p%killed = .true.
+          exit
+       end if
+
        ! Absorb & re-emit, or scatter
        call interact(p)
        p%killed = .not.p%scattered
@@ -298,12 +308,6 @@ contains
        if(make_peeled_images) call peeloff_photon(p, polychromatic=.false.)
 
     end do
-
-    if(interactions==n_inter_max+2) then
-       if(n_inter_max_warn) call warn("main","photon exceeded maximum number of interactions - killing")
-       killed_photons_int = killed_photons_int + 1
-       p%killed = .true.
-    end if
 
   end subroutine propagate
 
