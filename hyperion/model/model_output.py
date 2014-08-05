@@ -115,11 +115,93 @@ class ModelOutput(FreezableClass):
         self.filename = filename
         self.file = None
 
+    def _get_origin_slice(self, group, component, source_id=None, dust_id=None, n_scat=None):
+
+        track_origin = group.attrs['track_origin'].decode('utf-8')
+
+        if track_origin == 'no' and component != 'total':
+            raise Exception("cannot extract component=%s - file only contains total flux" % component)
+
+        if track_origin != 'detailed':
+            if source_id is not None:
+                raise Exception("cannot specify source_id since track_origin was not set to 'detailed'")
+            if dust_id is not None:
+                raise Exception("cannot specify dust_id since track_origin was not set to 'detailed'")
+
+        if track_origin in ['basic', 'detailed']:
+
+            if component == 'source_emit':
+                io = 0
+            elif component == 'dust_emit':
+                io = 1
+            elif component == 'source_scat':
+                io = 2
+            elif component == 'dust_scat':
+                io = 3
+            else:
+                raise ValueError("component should be one of total/source_emit/dust_emit/source_scat/dust_scat since track_origin='{0}'".format(track_origin))
+
+            if track_origin == 'detailed':
+
+                if isinstance(source_id, basestring) and source_id != 'all':
+                    try:
+                        source_id = self.get_available_sources().index(source_id)
+                    except ValueError:
+                        raise ValueError("No source named {0}".format(source_id))
+
+                ns = group.attrs['n_sources']
+                nd = group.attrs['n_dust']
+
+                io = ((io - (io + 1) % 2 + 1) * ns + (io - io % 2) * nd) / 2
+
+                if component.startswith('source'):
+                    if source_id is None or source_id == 'all':
+                        io = (io, io + ns)
+                    else:
+                        if source_id < 0 or source_id >= ns:
+                            raise ValueError("source_id should be between 0 and %i" % (ns - 1))
+                        io = io + source_id
+                else:
+                    if dust_id is None or dust_id == 'all':
+                        io = (io, io + nd)
+                    else:
+                        if dust_id < 0 or dust_id >= nd:
+                            raise ValueError("dust_id should be between 0 and %i" % (nd - 1))
+                        io = io + dust_id
+
+        elif track_origin == 'scatterings':
+
+            if 'track_n_scat' in group.attrs:
+                track_n_scat = group.attrs['track_n_scat']
+            else:
+                track_n_scat = 0
+
+            if component == 'source':
+                io = 0
+            elif component == 'dust':
+                io = track_n_scat + 1
+            else:
+                raise ValueError("component should be one of total/source/dust since track_origin='scatterings'")
+
+            if n_scat is None:
+                io = (io, io + track_n_scat + 1)
+            else:
+                if n_scat >= 0 and n_scat <= track_n_scat:
+                    io += n_scat
+                else:
+                    raise ValueError("n_scat should be between 0 and {0}".format(track_n_scat))
+
+        else:
+
+            raise ValueError("track_origin should be one of basic/detailed/scatterings")
+
+        return io
+
     @on_the_fly_hdf5
     def get_sed(self, stokes='I', group=0, technique='peeled',
                 distance=None, component='total', inclination='all',
                 aperture='all', uncertainties=False, units=None,
-                source_id=None, dust_id=None):
+                source_id=None, dust_id=None, n_scat=None):
         '''
         Retrieve SEDs for a specific image group and Stokes component.
 
@@ -170,6 +252,10 @@ class ModelOutput(FreezableClass):
                 * 'dust_scat': The photons were last emitted from dust and
                   were subsequently scattered
 
+                * 'source': The photons that were last emitted from a source
+
+                * 'dust': The photons that were last emitted from dust
+
         aperture : int, optional
             The index of the aperture to plot (zero-based). Use 'all' to
             return all apertures, and -1 to show the largest aperture.
@@ -202,6 +288,12 @@ class ModelOutput(FreezableClass):
             sources or dust types is returned. For sources, it is also possible
             to specify a source name as a string, if the source name was set
             during the set-up.
+
+        n_scat : int, optional
+            If the output file was made with track_origin='scatterings', the
+            number of scatterings can be specified here. If specified, the
+            image is constructed only from photons that have scattered
+            ``n_scat`` times since being last emitted.
 
         Returns
         -------
@@ -250,57 +342,9 @@ class ModelOutput(FreezableClass):
         if uncertainties and not 'seds_unc' in g:
             raise Exception("Uncertainties requested but not present in file")
 
-        if 'track_origin' in g['seds'].attrs:
-
-            track_origin = g['seds'].attrs['track_origin'].decode('utf-8')
-
-            if track_origin == 'no' and component != 'total':
-                raise Exception("cannot extract component=%s - file only contains total flux" % component)
-
-            if track_origin != 'detailed':
-                if source_id is not None:
-                    raise Exception("cannot specify source_id, as SEDs were not computed with track_origin='detailed'")
-                if dust_id is not None:
-                    raise Exception("cannot specify dust_id, as SEDs were not computed with track_origin='detailed'")
-
-            if component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat']:
-
-                if component == 'source_emit':
-                    io = 0
-                elif component == 'dust_emit':
-                    io = 1
-                elif component == 'source_scat':
-                    io = 2
-                elif component == 'dust_scat':
-                    io = 3
-
-                if track_origin == 'detailed':
-
-                    if isinstance(source_id, basestring) and source_id != 'all':
-                        try:
-                            source_id = self.get_available_sources().index(source_id)
-                        except ValueError:
-                            raise ValueError("No source named {0}".format(source_id))
-
-                    ns = g['seds'].attrs['n_sources']
-                    nd = g['seds'].attrs['n_dust']
-
-                    io = ((io - (io + 1) % 2 + 1) * ns + (io - io % 2) * nd) / 2
-
-                    if component.startswith('source'):
-                        if source_id is None or source_id == 'all':
-                            io = (io, io + ns)
-                        else:
-                            if source_id < 0 or source_id >= ns:
-                                raise ValueError("source_id should be between 0 and %i" % (ns - 1))
-                            io = io + source_id
-                    else:
-                        if dust_id is None or dust_id == 'all':
-                            io = (io, io + nd)
-                        else:
-                            if dust_id < 0 or dust_id >= nd:
-                                raise ValueError("dust_id should be between 0 and %i" % (nd - 1))
-                            io = io + dust_id
+        if 'track_origin' in g['seds'].attrs and component != 'total':
+            io = self._get_origin_slice(g['seds'], component=component,
+                                       source_id=source_id, dust_id=dust_id, n_scat=n_scat)
 
         # Set up wavelength space
         if 'numin' in g['seds'].attrs:
@@ -408,7 +452,7 @@ class ModelOutput(FreezableClass):
             flux = np.sum(flux, axis=1)
             if uncertainties:
                 unc = np.sqrt(np.sum(unc ** 2, axis=1))
-        elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat']:
+        elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat', 'dust', 'source']:
             if type(io) is tuple:
                 start, end = io
                 flux = flux[:, start:end]
@@ -610,82 +654,9 @@ class ModelOutput(FreezableClass):
             raise Exception("Uncertainties requested but not present in file")
 
         if 'track_origin' in g['images'].attrs and component != 'total':
+            io = self._get_origin_slice(g['images'], component=component,
+                                       source_id=source_id, dust_id=dust_id, n_scat=n_scat)
 
-            track_origin = g['images'].attrs['track_origin'].decode('utf-8')
-
-            if track_origin == 'no' and component != 'total':
-                raise Exception("cannot extract component=%s - file only contains total flux" % component)
-
-            if track_origin != 'detailed':
-                if source_id is not None:
-                    raise Exception("cannot specify source_id, as images were not computed with track_origin='detailed'")
-                if dust_id is not None:
-                    raise Exception("cannot specify dust_id, as images were not computed with track_origin='detailed'")
-
-            if track_origin in ['basic', 'detailed']:
-
-                if component == 'source_emit':
-                    io = 0
-                elif component == 'dust_emit':
-                    io = 1
-                elif component == 'source_scat':
-                    io = 2
-                elif component == 'dust_scat':
-                    io = 3
-                else:
-                    raise ValueError("component should be one of total/source_emit/dust_emit/source_scat/dust_scat since track_origin='{0}'".format(track_origin))
-
-
-                if track_origin == 'detailed':
-
-                    if isinstance(source_id, basestring) and source_id != 'all':
-                        try:
-                            source_id = self.get_available_sources().index(source_id)
-                        except ValueError:
-                            raise ValueError("No source named {0}".format(source_id))
-
-                    ns = g['images'].attrs['n_sources']
-                    nd = g['images'].attrs['n_dust']
-
-                    io = ((io - (io + 1) % 2 + 1) * ns + (io - io % 2) * nd) / 2
-
-                    if component.startswith('source'):
-                        if source_id is None or source_id == 'all':
-                            io = (io, io + ns)
-                        else:
-                            if source_id < 0 or source_id >= ns:
-                                raise ValueError("source_id should be between 0 and %i" % (ns - 1))
-                            io = io + source_id
-                    else:
-                        if dust_id is None or dust_id == 'all':
-                            io = (io, io + nd)
-                        else:
-                            if dust_id < 0 or dust_id >= nd:
-                                raise ValueError("dust_id should be between 0 and %i" % (nd - 1))
-                            io = io + dust_id
-
-            elif track_origin == 'scatterings':
-
-                if 'track_n_scat' in g['images'].attrs:
-                    track_n_scat = g['images'].attrs['track_n_scat']
-                else:
-                    track_n_scat = 0
-
-                if component == 'source':
-                    io = 0
-                elif component == 'dust':
-                    io = track_n_scat + 1
-                else:
-                    raise ValueError("component should be one of total/source/dust since track_origin='scatterings'")
-
-                if n_scat is None:
-                    io = (io, io + track_n_scat + 1)
-                else:
-                    if n_scat >= 0 and n_scat <= track_n_scat:
-                        io += n_scat
-                    else:
-                        print(track_n_scat)
-                        raise ValueError("n_scat should be between 0 and 5")
 
         # Set up wavelength space
         if 'numin' in g['images'].attrs:

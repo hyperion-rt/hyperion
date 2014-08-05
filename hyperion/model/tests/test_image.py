@@ -245,11 +245,11 @@ class TestImageSimpleModelTrackingScatterings(object):
 
         with pytest.raises(Exception) as exc:
             wav, nufnu = self.m.get_image(source_id='all', component='source_emit')
-        assert exc.value.args[0] == "cannot specify source_id, as images were not computed with track_origin='detailed'"
+        assert exc.value.args[0] == "cannot specify source_id since track_origin was not set to 'detailed'"
 
         with pytest.raises(Exception) as exc:
             wav, nufnu = self.m.get_image(dust_id='all', component='dust_emit')
-        assert exc.value.args[0] == "cannot specify dust_id, as images were not computed with track_origin='detailed'"
+        assert exc.value.args[0] == "cannot specify dust_id since track_origin was not set to 'detailed'"
 
         # The components should be 'source' and 'dust', anything else is invalid
 
