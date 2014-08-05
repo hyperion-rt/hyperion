@@ -273,6 +273,14 @@ class TestImageSimpleModelTrackingScatterings(object):
                 wav, nufnu = self.m.get_image(n_scat=n_scat, component='source')
             assert exc.value.args[0] == 'n_scat should be between 0 and 5'
 
+    def test_image_n_scat_values(self):
+        for n_scat in range(6):
+            image = self.m.get_image(n_scat=n_scat, component='source')
+            if n_scat == 0:
+                assert image.val.sum() > 0
+            else:
+                assert image.val.sum() == 0.
+
 
 class TestSimpleModelInside(object):
 

@@ -419,7 +419,7 @@ contains
        end if
     else if(trim(img%track_origin) == 'scatterings') then
        if(p%n_scat > img%track_n_scat) return
-       io = p%n_scat
+       io = p%n_scat + 1
        if(p%reprocessed) io = io + (img%track_n_scat + 1)
     else if(trim(img%track_origin) == 'basic') then
        io = orig(p)
@@ -496,7 +496,7 @@ contains
        end if
     else if(trim(img%track_origin) == 'scatterings') then
        if(p%n_scat > img%track_n_scat) return
-       io = p%n_scat
+       io = p%n_scat + 1
        if(p%reprocessed) io = io + (img%track_n_scat + 1)
     else if(trim(img%track_origin) == 'basic') then
        io = orig(p)

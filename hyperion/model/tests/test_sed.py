@@ -257,7 +257,7 @@ class TestSEDSimpleModelTrackingScatterings(object):
     def teardown_class(self):
         shutil.rmtree(self.tmpdir)
 
-    def test_image_invalid_option(self):
+    def test_sed_invalid_option(self):
 
         # We can't use source_id and dust_id because tracking mode was not set
         # to 'detailed'
@@ -277,21 +277,28 @@ class TestSEDSimpleModelTrackingScatterings(object):
                 wav, nufnu = self.m.get_sed(n_scat=1, component=component)
             assert exc.value.args[0] == "component should be one of total/source/dust since track_origin='scatterings'"
 
-    def test_image_n_scat_main_components(self):
+    def test_sed_n_scat_main_components(self):
         wav, nufnu = self.m.get_sed(component='source')
         wav, nufnu = self.m.get_sed(component='dust')
 
-    def test_image_n_scat_n_scat_valid(self):
+    def test_sed_n_scat_n_scat_valid(self):
         for n_scat in range(6):
             wav, nufnu = self.m.get_sed(n_scat=n_scat, component='source')
             wav, nufnu = self.m.get_sed(n_scat=n_scat, component='dust')
 
-    def test_image_n_scat_invalid(self):
+    def test_sed_n_scat_invalid(self):
         for n_scat in [-1, 6]:
             with pytest.raises(ValueError) as exc:
                 wav, nufnu = self.m.get_sed(n_scat=n_scat, component='source')
             assert exc.value.args[0] == 'n_scat should be between 0 and 5'
 
+    def test_sed_n_scat_values(self):
+        for n_scat in range(6):
+            sed = self.m.get_sed(n_scat=n_scat, component='source')
+            if n_scat == 0:
+                assert sed.val.sum() > 0
+            else:
+                assert sed.val.sum() == 0.
 
 class TestSimpleModelInside(object):
 
