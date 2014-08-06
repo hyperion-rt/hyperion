@@ -215,7 +215,7 @@ contains
 
     select case(trim(img%track_origin))
     case('scatterings')
-       img%n_orig = 2 + 2 * img%track_n_scat
+       img%n_orig = 4 + 2 * img%track_n_scat
     case('detailed')
        img%n_orig = 2 * (img%n_sources + img%n_dust)
     case('basic', 'yes')
@@ -418,9 +418,15 @@ contains
           io = io + p%source_id
        end if
     else if(trim(img%track_origin) == 'scatterings') then
-       if(p%n_scat > img%track_n_scat) return
-       io = p%n_scat + 1
-       if(p%reprocessed) io = io + (img%track_n_scat + 1)
+       ! The first slice stores photons with no scattering, then slice 2, 3,
+       ! etc. store the first scatterings, then a slice is added for the
+       ! remaining flux.
+       if(p%n_scat > img%track_n_scat) then
+          io = img%track_n_scat + 2
+       else
+          io = p%n_scat + 1
+       end if
+       if(p%reprocessed) io = io + (img%track_n_scat + 2)
     else if(trim(img%track_origin) == 'basic') then
        io = orig(p)
     else
@@ -495,9 +501,15 @@ contains
           io = io + p%source_id
        end if
     else if(trim(img%track_origin) == 'scatterings') then
-       if(p%n_scat > img%track_n_scat) return
-       io = p%n_scat + 1
-       if(p%reprocessed) io = io + (img%track_n_scat + 1)
+       ! The first slice stores photons with no scattering, then slice 2, 3,
+       ! etc. store the first scatterings, then a slice is added for the
+       ! remaining flux.
+       if(p%n_scat > img%track_n_scat) then
+          io = img%track_n_scat + 2
+       else
+          io = p%n_scat + 1
+       end if
+       if(p%reprocessed) io = io + (img%track_n_scat + 2)
     else if(trim(img%track_origin) == 'basic') then
        io = orig(p)
     else
