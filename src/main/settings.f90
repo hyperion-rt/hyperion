@@ -21,7 +21,7 @@ module settings
   integer(idp),public :: n_raytracing_photons_sources = 0
   integer(idp),public :: n_raytracing_photons_dust = 0
   logical,public :: use_raytracing, use_mrw, use_pda
-  logical, public :: kill_on_absorb
+  logical, public :: kill_on_absorb, kill_on_scatter
   real(dp),public :: mrw_gamma
   logical, public :: forced_first_scattering
 

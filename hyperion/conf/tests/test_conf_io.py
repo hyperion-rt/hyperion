@@ -280,6 +280,18 @@ def test_io_run_conf_kill_on_absorb(value):
 
 
 @pytest.mark.parametrize(('value'), [True, False])
+def test_io_run_conf_kill_on_scatter(value):
+    r1 = RunConf()
+    r1.set_kill_on_scatter(value)
+    r1.set_n_photons(1, 2)
+    v = virtual_file()
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
+    assert r2.kill_on_scatter == r1.kill_on_scatter
+
+
+@pytest.mark.parametrize(('value'), [True, False])
 def test_io_run_conf_forced_first_scattering(value):
     r1 = RunConf()
     r1.set_forced_first_scattering(value)

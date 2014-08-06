@@ -76,6 +76,12 @@ contains
     end if
 
     call mp_read_keyword(input_handle, '/', 'kill_on_absorb', kill_on_absorb)
+    if(mp_exists_keyword(input_handle, '/', 'kill_on_scatter')) then
+        call mp_read_keyword(input_handle, '/', 'kill_on_scatter', kill_on_scatter)
+    else
+        kill_on_scatter = .false.
+    end if
+
     call mp_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_scattering)
 
     if(mp_exists_keyword(input_handle, '/', 'propagation_check_frequency')) then

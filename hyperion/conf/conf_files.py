@@ -51,6 +51,7 @@ class RunConf(object):
         self.set_mrw(False)
         self.set_convergence(False)
         self.set_kill_on_absorb(False)
+        self.set_kill_on_scatter(False)
         self.set_forced_first_scattering(True)
         self.set_output_bytes(8)
         self.set_sample_sources_evenly(False)
@@ -495,6 +496,26 @@ class RunConf(object):
     def _write_kill_on_absorb(self, group):
         group.attrs['kill_on_absorb'] = bool2str(self.kill_on_absorb)
 
+    def set_kill_on_scatter(self, kill_on_scatter):
+        '''
+        Set whether to kill scattered photons
+
+        Parameters
+        ----------
+        kill_on_scatter : bool
+            Whether to kill scattered photons
+        '''
+        self.kill_on_scatter = kill_on_scatter
+
+    def _read_kill_on_scatter(self, group):
+        if 'kill_on_scatter' in group.attrs:
+            self.kill_on_scatter = str2bool(group.attrs['kill_on_scatter'])
+        else:
+            self.kill_on_scatter = False
+
+    def _write_kill_on_scatter(self, group):
+        group.attrs['kill_on_scatter'] = bool2str(self.kill_on_scatter)
+
     def set_forced_first_scattering(self, forced_first_scattering):
         '''
         Set whether to ensure that photons scatter at least once before
@@ -622,6 +643,7 @@ class RunConf(object):
         self._read_mrw(group)
         self._read_convergence(group)
         self._read_kill_on_absorb(group)
+        self._read_kill_on_scatter(group)
         self._read_forced_first_scattering(group)
         self._read_output_bytes(group)
         self._read_sample_sources_evenly(group)
@@ -648,6 +670,7 @@ class RunConf(object):
         self._write_mrw(group)
         self._write_convergence(group)
         self._write_kill_on_absorb(group)
+        self._write_kill_on_scatter(group)
         self._write_forced_first_scattering(group)
         self._write_output_bytes(group)
         self._write_sample_sources_evenly(group)
