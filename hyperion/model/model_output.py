@@ -179,12 +179,15 @@ class ModelOutput(FreezableClass):
             if component == 'source':
                 io = 0
             elif component == 'dust':
-                io = track_n_scat + 1
+                io = track_n_scat + 2
             else:
                 raise ValueError("component should be one of total/source/dust since track_origin='scatterings'")
 
             if n_scat is None:
-                io = (io, io + track_n_scat + 1)
+                # We need to remember to take into account the additional slice 
+                # that contains the remaining flux. The upper bound of the 
+                # slice is exclusive.
+                io = (io, io + track_n_scat + 2)
             else:
                 if n_scat >= 0 and n_scat <= track_n_scat:
                     io += n_scat
