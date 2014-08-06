@@ -50,7 +50,7 @@ class VoronoiGrid(FreezableClass):
     which is a 1-d array of the requested quantity.
     '''
 
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
 
         self.shape = None
 
@@ -73,11 +73,17 @@ class VoronoiGrid(FreezableClass):
 
         if len(args) > 0:
             if isinstance(args[0], VoronoiGrid):
-                self.set_points(args[0].x, args[0].y, args[0].z)
+                self.set_points(args[0].x, args[0].y, args[0].z,
+                                xmin=args[0].xmin, xmax=args[0].xmax,
+                                ymin=args[0].ymin, ymax=args[0].ymax,
+                                zmin=args[0].zmin, zmax=args[0].zmax)
             else:
-                self.set_points(*args)
+                self.set_points(*args, **kwargs)
 
-    def set_points(self, x, y, z):
+    def set_points(self, x, y, z,
+                   xmin=None, xmax=None,
+                   ymin=None, ymax=None,
+                   zmin=None, zmax=None):
 
         if type(x) in [list, tuple]:
             x = np.array(x)
@@ -96,18 +102,35 @@ class VoronoiGrid(FreezableClass):
         # Find grid shape
         self.shape = (len(x),)
 
-        # For now, define box using points. Add a 1% padding
-        # to the detected domain walls.
-        delta_x = x.max() - x.min()
-        delta_y = y.max() - y.min()
-        delta_z = z.max() - z.min()
-        self.xmin = x.min() - delta_x / 100.
-        self.xmax = x.max() + delta_x / 100.
-        self.ymin = y.min() - delta_y / 100.
-        self.ymax = y.max() + delta_y / 100.
-        self.zmin = z.min() - delta_z / 100.
-        self.zmax = z.max() + delta_z / 100.
-        
+        # If limits were specified, use those
+
+        bounds = [xmin, xmax, ymin, ymax, zmin, zmax]
+
+        if None in bounds:
+
+            if bounds.count(None) != 6:
+                raise ValueError("Either all or no limits should be specified")
+
+            # Add 1% border around points
+            delta_x = x.max() - x.min()
+            delta_y = y.max() - y.min()
+            delta_z = z.max() - z.min()
+            self.xmin = x.min() - delta_x / 100.
+            self.xmax = x.max() + delta_x / 100.
+            self.ymin = y.min() - delta_y / 100.
+            self.ymax = y.max() + delta_y / 100.
+            self.zmin = z.min() - delta_z / 100.
+            self.zmax = z.max() + delta_z / 100.
+
+        else:
+
+            self.xmin = xmin
+            self.xmax = xmax
+            self.ymin = ymin
+            self.ymax = ymax
+            self.zmin = zmin
+            self.zmax = zmax
+
         self._x = x
         self._y = y
         self._z = z
@@ -119,11 +142,11 @@ class VoronoiGrid(FreezableClass):
     @property
     def y(self):
         return self._y
-        
+
     @property
     def z(self):
         return self._z
-        
+
     def __getattr__(self, attribute):
         if attribute == 'n_dust':
             n_dust = None
