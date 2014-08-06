@@ -14,6 +14,10 @@ New features
   many times they were scattered (using ``set_track_origin('scatterings')``).
   [#99]
 
+- Added the ability to kill photons when scattered using
+  ``set_kill_on_scatter``, similarly to the existing ``set_kill_on_absorb``.
+  [#101]
+
 Bug fixes
 ~~~~~~~~~
 

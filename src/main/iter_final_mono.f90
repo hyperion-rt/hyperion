@@ -33,7 +33,8 @@ module iteration_final_mono
        &               n_inter_max_warn, &
        &               n_reabs_max,  &
        &               n_reabs_max_warn,  &
-       &               forced_first_scattering
+       &               forced_first_scattering, &
+       &               kill_on_scatter
 
   use performance, only : perf_header, &
        &                  perf_footer
@@ -303,7 +304,7 @@ contains
 
        ! Absorb & re-emit, or scatter
        call interact(p)
-       p%killed = .not.p%scattered
+       p%killed = (kill_on_scatter .and. p%scattered) .or. .not.p%scattered
        if(p%killed) exit
        if(make_peeled_images) call peeloff_photon(p, polychromatic=.false.)
 

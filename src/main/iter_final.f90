@@ -30,7 +30,7 @@ module iteration_final
   use grid_mrw, only : prepare_mrw, grid_do_mrw_noenergy
 
   use settings, only : forced_first_scattering, &
-       &               kill_on_absorb, &
+       &               kill_on_absorb, kill_on_scatter, &
        &               n_inter_max, &
        &               n_inter_max_warn, &
        &               mrw_gamma, &
@@ -241,7 +241,7 @@ contains
 
        ! Absorb & re-emit, or scatter
        call interact(p)
-       p%killed = kill_on_absorb .and. .not.p%scattered
+       p%killed = (kill_on_scatter .and. p%scattered) .or. (kill_on_absorb .and. .not.p%scattered)
        if(p%killed) exit
 
        ! Peeloff
