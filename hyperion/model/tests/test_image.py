@@ -11,7 +11,7 @@ from numpy.testing import assert_array_almost_equal_nulp
 from .. import Model
 from ..image import Image
 from ...util.functions import random_id
-from .test_helpers import get_test_dust
+from .test_helpers import get_test_dust, get_highly_reflective_dust
 
 
 class TestImageSimpleModel(object):
@@ -619,6 +619,51 @@ class TestInsideImage(object):
         # same area, so this is simple.
         MJy_per_sr = self.m.get_image(group=0, units='MJy/sr', inclination=0)
         assert_array_almost_equal_nulp((ref.val / ref.nu), MJy_per_sr.val * 1.e-17 * MJy_per_sr.pix_area_sr[:, :, np.newaxis], 10)
+
+
+def test_flux_preserved_scatterings(tmpdir):
+    # Regression test for issue #102 to ensure that flux is preserved when in
+    # 'scatterings' mode
+
+    dust = get_highly_reflective_dust()
+
+    m = Model()
+
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+
+    m.add_density_grid(np.array([[[2.e-2]]]), dust)
+
+    s = m.add_point_source()
+    s.luminosity = 1.
+    s.temperature = 5000.
+
+    i = m.add_peeled_images(sed=False, image=True)
+    i.set_wavelength_range(10, 0.1, 1000.)
+    i.set_viewing_angles([32],[33.])
+    i.set_image_limits(-2., 2., -2., 2.)
+    i.set_image_size(256, 256)
+    i.set_track_origin('scatterings', n_scat=2)
+
+    i = m.add_peeled_images(sed=False, image=True)
+    i.set_wavelength_range(10, 0.1, 1000.)
+    i.set_viewing_angles([32],[33.])
+    i.set_image_limits(-2., 2., -2., 2.)
+    i.set_image_size(256, 256)
+
+    m.set_n_photons(initial=10000, imaging=10000)
+
+    m.write(tmpdir.join('test.rtin').strpath)
+    mo = m.run(tmpdir.join('test.rtout').strpath)
+
+    image1 = mo.get_image(group=0, inclination=0)
+    image2 = mo.get_image(group=1, inclination=0)
+
+    np.testing.assert_allclose(image1.val, image2.val)
+
+    source = mo.get_image(group=0, inclination=0, component='source')
+    dust = mo.get_image(group=0, inclination=0, component='dust')
+
+    np.testing.assert_allclose(image1.val, source.val + dust.val)
 
 
 class TestImageStokesOption(object):

@@ -30,6 +30,18 @@ def get_realistic_test_dust():
     return dust
 
 
+def get_highly_reflective_dust():
+
+    nu = [3.e7, 1.e10, 2.e11, 2.e12, 2.e13, 2.e14, 2.e15, 2.e16, 2.e17]
+    chi = np.repeat(100., len(nu))
+    albedo = np.repeat(0.7, len(nu))
+
+    dust = IsotropicDust(nu, albedo, chi)
+    dust.set_lte_emissivities(n_temp=40, temp_min=0.1, temp_max=100000.)
+
+    return dust
+
+
 def get_test_model_noimaging():
 
     model = Model()
