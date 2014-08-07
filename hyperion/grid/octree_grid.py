@@ -559,7 +559,7 @@ class OctreeGridView(OctreeGrid):
                 raise Exception("Can only append a single grid")
             self._check_array_dimensions(grid.quantities[grid.viewed_quantity])
             self.quantities[self.viewed_quantity].append(deepcopy(grid.quantities[grid.viewed_quantity]))
-        elif type(grid) is np.ndarray:
+        elif isinstance(grid, np.ndarray):
             self._check_array_dimensions(grid)
             self.quantities[self.viewed_quantity].append(deepcopy(grid))
         else:
@@ -581,7 +581,7 @@ class OctreeGridView(OctreeGrid):
                 raise Exception("need to first specify the item to add")
             self._check_array_dimensions(grid.quantities[grid.viewed_quantity])
             self.quantities[self.viewed_quantity] += grid.quantities[grid.viewed_quantity]
-        elif type(grid) is np.ndarray:
+        elif isinstance(grid, np.ndarray):
             self._check_array_dimensions(grid)
             self.quantities[self.viewed_quantity] += grid
         else:
