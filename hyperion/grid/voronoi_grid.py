@@ -279,7 +279,7 @@ class VoronoiGrid(FreezableClass):
             raise Exception("Calculated geometry hash does not match hash in file")
 
         # Avoid re-computing Voronoi table
-        self.voronoi_table = Table.read(group['cells'])
+        self.voronoi_table = Table.read(group['cells'], format='hdf5')
 
     def read_quantities(self, group, quantities='all'):
         '''
