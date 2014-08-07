@@ -99,6 +99,12 @@ class VoronoiGrid(FreezableClass):
         if not is_numpy_array(z) or z.ndim != 1:
             raise ValueError("z should be a 1-D sequence")
 
+        # Make sure we cast to 64-bit floating point values otherwise strange
+        # things will happen in the fortran code.
+        x = np.asarray(x, dtype=float)
+        y = np.asarray(y, dtype=float)
+        z = np.asarray(z, dtype=float)
+
         # Find grid shape
         self.shape = (len(x),)
 
@@ -124,12 +130,12 @@ class VoronoiGrid(FreezableClass):
 
         else:
 
-            self.xmin = xmin
-            self.xmax = xmax
-            self.ymin = ymin
-            self.ymax = ymax
-            self.zmin = zmin
-            self.zmax = zmax
+            self.xmin = float(xmin)
+            self.xmax = float(xmax)
+            self.ymin = float(ymin)
+            self.ymax = float(ymax)
+            self.zmin = float(zmin)
+            self.zmax = float(zmax)
 
         self._x = x
         self._y = y
