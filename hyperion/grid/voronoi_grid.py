@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 
+import struct
 import hashlib
 from copy import deepcopy
 
@@ -65,9 +66,9 @@ class VoronoiGrid(FreezableClass):
         self._y = None
         self._z = None
 
-        voronoi_table = None
-
         self.quantities = {}
+
+        self.voronoi_table = None
 
         self._freeze()
 
@@ -140,6 +141,31 @@ class VoronoiGrid(FreezableClass):
         self._x = x
         self._y = y
         self._z = z
+
+    @property
+    def voronoi_table(self):
+
+        if self._voronoi_table is None or self._voronoi_table.meta['geometry_id'] != self.get_geometry_id():
+
+            from .voronoi_helpers import voronoi_grid
+
+            logger.info("Updating Voronoi Tesselation")
+
+            # Compute the Voronoi tesselation
+            points = np.array([self._x, self._y, self._z]).transpose()
+            mesh = voronoi_grid(points, np.array([[self.xmin, self.xmax],
+                                                  [self.ymin, self.ymax],
+                                                  [self.zmin, self.zmax]]))
+            self._voronoi_table = mesh.neighbours_table
+
+        return self._voronoi_table
+
+    @voronoi_table.setter
+    def voronoi_table(self, table):
+        if table is None or table.meta['geometry_id'] == self.get_geometry_id():
+            self._voronoi_table = table
+        else:
+            raise ValueError("geometry_id does not match: expected {0} but got {1}".format(self.get_geometry_id(), table.meta['geometry_id']))
 
     @property
     def x(self):
@@ -272,6 +298,10 @@ class VoronoiGrid(FreezableClass):
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()
 
+    @property
+    def volumes(self):
+        return np.array(self.voronoi_table['volume'])
+
     def write(self, group, quantities='all', copy=True, absolute_paths=False, compression=True, wall_dtype=float, physics_dtype=float):
         '''
         Write out the voronoi grid
@@ -321,10 +351,7 @@ class VoronoiGrid(FreezableClass):
         g_geometry.attrs['zmax'] = self.zmax
 
         # Compute Voronoi tesselation
-        from .voronoi_helpers import voronoi_grid
-        points = np.array([self._x, self._y, self._z]).transpose()
-        mesh = voronoi_grid(points, np.array([[self.xmin, self.xmax], [self.ymin, self.ymax], [self.zmin, self.zmax]]))
-        voronoi_table = mesh.neighbours_table
+        voronoi_table = self.voronoi_table
 
         # Fix nan/zero
         voronoi_table['volume'][voronoi_table['volume'] <= 0.] = -1.
@@ -388,10 +415,17 @@ class VoronoiGrid(FreezableClass):
             dset.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
 
     def get_geometry_id(self):
+        # The grid is uniquely defined by the points and the bounds
         geo_hash = hashlib.md5()
         geo_hash.update(self.x.tostring())
         geo_hash.update(self.y.tostring())
         geo_hash.update(self.z.tostring())
+        geo_hash.update(struct.pack('>d', self.xmin))
+        geo_hash.update(struct.pack('>d', self.xmax))
+        geo_hash.update(struct.pack('>d', self.ymin))
+        geo_hash.update(struct.pack('>d', self.ymax))
+        geo_hash.update(struct.pack('>d', self.zmin))
+        geo_hash.update(struct.pack('>d', self.zmax))
         return geo_hash.hexdigest()
 
     def __getitem__(self, item):
