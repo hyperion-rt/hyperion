@@ -110,3 +110,20 @@ def test_io_monochromatic_full_2(tmpdir):
 
     m2 = Model.read(filename1)
     m2.write(filename2)
+
+
+def test_io_voronoi(tmpdir):
+
+    filename = tmpdir.join(random_id()).strpath
+
+    x = [1., 3., 2., 5., 2.]
+    y = [3., 2., 8., 3., 6.]
+    z = [4., 3., 1., 1., 2.]
+
+    m1 = Model()
+    m1.set_voronoi_grid(x, y, z)
+    m1.set_n_initial_iterations(0)
+    m1.set_n_photons(imaging=10)
+    m1.write(filename)
+
+    m2 = Model.read(filename)
