@@ -7,9 +7,11 @@ from copy import deepcopy
 import h5py
 import numpy as np
 
+from astropy import log as logger
+from astropy.table import Table
+
 from ..util.meshgrid import meshgrid_nd
 from ..util.functions import FreezableClass, is_numpy_array, monotonically_increasing, link_or_copy
-from astropy import log as logger
 from .grid_helpers import single_grid_dims
 
 
@@ -145,7 +147,7 @@ class VoronoiGrid(FreezableClass):
     @property
     def voronoi_table(self):
 
-        if self._voronoi_table is None or self._voronoi_table.meta['geometry_id'] != self.get_geometry_id():
+        if self._voronoi_table is None or self._voronoi_table.meta['geometry'].decode('utf-8') != self.get_geometry_id():
 
             from .voronoi_helpers import voronoi_grid
 
@@ -157,15 +159,16 @@ class VoronoiGrid(FreezableClass):
                                                   [self.ymin, self.ymax],
                                                   [self.zmin, self.zmax]]))
             self._voronoi_table = mesh.neighbours_table
+            self._voronoi_table.meta['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
 
         return self._voronoi_table
 
     @voronoi_table.setter
     def voronoi_table(self, table):
-        if table is None or table.meta['geometry_id'] == self.get_geometry_id():
+        if table is None or table.meta['geometry'].decode('utf-8') == self.get_geometry_id():
             self._voronoi_table = table
         else:
-            raise ValueError("geometry_id does not match: expected {0} but got {1}".format(self.get_geometry_id(), table.meta['geometry_id']))
+            raise ValueError("geometry does not match: expected {0} but got {1}".format(self.get_geometry_id(), table.meta['geometry']))
 
     @property
     def x(self):
@@ -266,11 +269,17 @@ class VoronoiGrid(FreezableClass):
 
         coords = group['cells']['coordinates']
 
-        self.set_points(coords[:,0], coords[:,1], coords[:,2])
+        self.set_points(coords[:,0], coords[:,1], coords[:,2],
+                        xmin=group.attrs['xmin'], xmax=group.attrs['xmax'],
+                        ymin=group.attrs['ymin'], ymax=group.attrs['ymax'],
+                        zmin=group.attrs['zmin'], zmax=group.attrs['zmax'])
 
         # Check that advertised hash matches real hash
         if group.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
             raise Exception("Calculated geometry hash does not match hash in file")
+
+        # Avoid re-computing Voronoi table
+        self.voronoi_table = Table.read(group['cells'])
 
     def read_quantities(self, group, quantities='all'):
         '''
@@ -361,7 +370,7 @@ class VoronoiGrid(FreezableClass):
         if voronoi_table['neighbours'].dtype != np.int32:
             raise TypeError("neighbours should be int32")
 
-        dset = g_geometry.create_dataset("cells", data=voronoi_table, compression=compression)
+        voronoi_table.write(g_geometry, path="cells", compression=True)
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()
