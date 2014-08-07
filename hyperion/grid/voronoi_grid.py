@@ -72,6 +72,11 @@ class VoronoiGrid(FreezableClass):
 
         self.voronoi_table = None
 
+        try:
+            self._verbose = kwargs.pop('verbose')
+        except KeyError:
+            self._verbose = False
+
         self._freeze()
 
         if len(args) > 0:
@@ -157,7 +162,8 @@ class VoronoiGrid(FreezableClass):
             points = np.array([self._x, self._y, self._z]).transpose()
             mesh = voronoi_grid(points, np.array([[self.xmin, self.xmax],
                                                   [self.ymin, self.ymax],
-                                                  [self.zmin, self.zmax]]))
+                                                  [self.zmin, self.zmax]]),
+                                verbose=self._verbose)
             self._voronoi_table = mesh.neighbours_table
             self._voronoi_table.meta['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
 

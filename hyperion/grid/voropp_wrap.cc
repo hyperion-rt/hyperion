@@ -15,7 +15,7 @@
 
 extern "C" const char * hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                              int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
-                                             double const *points, int npoints, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args);
+                                             double const *points, int npoints, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args, int verbose);
 
 using namespace voro;
 
@@ -69,18 +69,21 @@ static std::string error_message;
 static std::auto_ptr<wall> wall_ptr;
 
 // Helper function to add the wall.
-static inline void add_walls(container &con,const char *wall_str,const double *wall_args_arr,int n_wall_args)
+static inline void add_walls(container &con,const char *wall_str,const double *wall_args_arr,int n_wall_args,int verbose)
 {
-    std::cout << "Wall type: " << wall_str << '\n';
-    std::cout << "Wall number of args: " << n_wall_args << '\n';
-    std::cout << "Wall params: [";
-    for (int i = 0; i < n_wall_args; ++i) {
-        std::cout << wall_args_arr[i];
-        if (i != n_wall_args - 1) {
-            std::cout << ',';
+    if (verbose) {
+        std::cout << "Wall type: " << wall_str << '\n';
+        std::cout << "Wall number of args: " << n_wall_args << '\n';
+        std::cout << "Wall params: [";
+        for (int i = 0; i < n_wall_args; ++i) {
+            std::cout << wall_args_arr[i];
+            if (i != n_wall_args - 1) {
+                std::cout << ',';
+            }
         }
+        std::cout << "]\n";
     }
-    std::cout << "]\n";
+
     // Allowed walls: 'sphere','cylinder','cone','plane'.
     if (std::strcmp(wall_str,"sphere") == 0) {
         // Some checks.
@@ -111,7 +114,7 @@ static inline void add_walls(container &con,const char *wall_str,const double *w
 // Main wrapper called from cpython.
 const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                  int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double const *points,
-                                 int nsites, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args)
+                                 int nsites, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args, int verbose)
 {
     // We need to wrap everything in a try/catch block as exceptions cannot leak out to C.
     try {
@@ -132,11 +135,13 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     const int ny = (int)((ymax - ymin) / vol_edge * block_edge) + 1;
     const int nz = (int)((zmax - zmin) / vol_edge * block_edge) + 1;
 
-    std::cout << "Number of sites: " << nsites << '\n';
-    std::cout << "Domain: [" << xmin << ',' << xmax << "] [" << ymin << ',' << ymax << "] [" << zmin << ',' << zmax << "]\n";
-    std::cout << "Initialising with the following block grid: " << nx << ',' << ny << ',' << nz << '\n';
-    std::cout << std::boolalpha;
-    std::cout << "Vertices: " << bool(with_vertices) << '\n';
+    if (verbose) {
+        std::cout << "Number of sites: " << nsites << '\n';
+        std::cout << "Domain: [" << xmin << ',' << xmax << "] [" << ymin << ',' << ymax << "] [" << zmin << ',' << zmax << "]\n";
+        std::cout << "Initialising with the following block grid: " << nx << ',' << ny << ',' << nz << '\n';
+        std::cout << std::boolalpha;
+        std::cout << "Vertices: " << bool(with_vertices) << '\n';
+    }
 
     // Prepare the output quantities.
     // Neighbour list.
@@ -160,7 +165,7 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     }
 
     // Handle the walls.
-    add_walls(con,wall_str,wall_args_arr,n_wall_args);
+    add_walls(con,wall_str,wall_args_arr,n_wall_args,verbose);
 
     // Initialise the looping variables and the temporary cell object used for computation.
     voronoicell_neighbor c;
@@ -218,7 +223,7 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
 
     // Compute the max number of neighbours.
     *max_nn = std::max_element(n_list.begin(),n_list.end(),size_cmp<int>)->size();
-    std::cout << "Max number of neighbours is: " << *max_nn << '\n';
+    if (verbose) std::cout << "Max number of neighbours is: " << *max_nn << '\n';
 
     // Allocate space for flat array of neighbours.
     ptr_raii<int> neighs(static_cast<int *>(std::malloc(sizeof(int) * nsites * (*max_nn))));
@@ -233,7 +238,7 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     if (with_vertices) {
         // Compute the max number of vertices coordinates.
         *max_nv = std::max_element(vertices_list.begin(),vertices_list.end(),size_cmp<double>)->size();
-        std::cout << "Max number of vertices coordinates is: " << *max_nv << '\n';
+        if (verbose) std::cout << "Max number of vertices coordinates is: " << *max_nv << '\n';
 
         // Allocate space for flat array of vertices.
         ptr_raii<double> verts(static_cast<double *>(std::malloc(sizeof(double) * nsites * (*max_nv))));

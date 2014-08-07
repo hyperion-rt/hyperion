@@ -45,7 +45,7 @@ class voronoi_grid(object):
         documentation for more information.
     '''
 
-    def __init__(self, sites, domain, with_vertices=False, wall=None, wall_args=None):
+    def __init__(self, sites, domain, with_vertices=False, wall=None, wall_args=None, verbose=False):
         import numpy as np
         from ._voronoi_core import _voropp_wrapper
         from astropy.table import Table
@@ -95,7 +95,7 @@ class voronoi_grid(object):
         self._with_vertices = with_vertices
 
         logger.info("Computing the tessellation via voro++")
-        tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args)
+        tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, 1 if verbose else 0)
         if with_vertices:
             t = Table([sites, tup[0], tup[1], tup[2], tup[3], tup[4]],
                       names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max', 'vertices'))
