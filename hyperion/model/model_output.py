@@ -954,12 +954,15 @@ class ModelOutput(FreezableClass):
 
         from .helpers import find_last_iteration
 
-        if self.file['Input'].file != self.file.file:
-            # Workaround for h5py bug - can't access link directly,
-            # need to use file attribute
-            g_grid = self.file['Input'].file[self.file['Input'].name]['Grid']
+        if 'Input' in self.file:
+            if self.file['Input'].file != self.file.file:
+                # Workaround for h5py bug - can't access link directly,
+                # need to use file attribute
+                g_grid = self.file['Input'].file[self.file['Input'].name]['Grid']
+            else:
+                g_grid = self.file['Input/Grid']
         else:
-            g_grid = self.file['Input/Grid']
+            g_grid = self.file['Grid']
 
         # Find coordinate grid type
         coord_type = g_grid['Geometry'].attrs['grid_type'].decode('utf-8')
