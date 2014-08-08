@@ -18,11 +18,16 @@ New features
   ``set_kill_on_scatter``, similarly to the existing ``set_kill_on_absorb``.
   [#101]
 
+- Added the ability to use input files in ``ModelOutput.get_quantities``. [#106]
+
 Bug fixes
 ~~~~~~~~~
 
 - Fixed a minor bug in the logic for killing photons that have had too many
   interactions. [#100]
+
+- Fixed a bug that meant that BipolarCavity instances could not be subtracted
+  from AmbientMedium instances. [#106]
 
 0.9.4 (2014-01-29)
 ------------------
