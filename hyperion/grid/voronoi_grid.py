@@ -85,6 +85,7 @@ class VoronoiGrid(FreezableClass):
                                 xmin=args[0].xmin, xmax=args[0].xmax,
                                 ymin=args[0].ymin, ymax=args[0].ymax,
                                 zmin=args[0].zmin, zmax=args[0].zmax)
+                self.voronoi_table = args[0].voronoi_table
             else:
                 self.set_points(*args, **kwargs)
 
@@ -476,7 +477,11 @@ class VoronoiGridView(VoronoiGrid):
     def __init__(self, grid, quantity):
         self.viewed_quantity = quantity
         VoronoiGrid.__init__(self)
-        self.set_points(grid.x, grid.y, grid.z)
+        self.set_points(grid.x, grid.y, grid.z,
+                        xmin=grid.xmin, xmax=grid.xmax,
+                        ymin=grid.ymin, ymax=grid.ymax,
+                        zmin=grid.zmin, zmax=grid.zmax)
+        self.voronoi_table = grid.voronoi_table
         self.quantities = {quantity: grid.quantities[quantity]}
 
     def append(self, grid):
