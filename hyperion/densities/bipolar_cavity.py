@@ -7,9 +7,10 @@ from ..util.functions import FreezableClass
 from ..dust import SphericalDust
 from ..util.validator import validate_scalar
 
-from .core import Envelope
+from .core import Envelope, Density
 
-class BipolarCavity(FreezableClass):
+
+class BipolarCavity(Density):
     r'''
     This class implements the density structure for a bipolar cavity
     in an envelope, with a density given by:

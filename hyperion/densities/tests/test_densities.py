@@ -788,3 +788,48 @@ def test_ambient_densities_3():
     expected = np.clip(10. * g.r ** -2 + 8. * g.r ** -1.5, 2., np.inf)
     assert_array_almost_equal_nulp((a.density(g) + p1.density(g) + p2.density(g))[0,0,:],
                                    expected, 10)
+
+
+def test_ambient_densities_4():
+
+    # Regression test for #106 - could not add a bipolar cavity to the list of
+    # densities to subtract from the ambient medium.
+
+    r = np.linspace(0., 10., 10)
+    t = np.linspace(0., np.pi,10)
+    p = [0., 2 * np.pi]
+    g = SphericalPolarGrid(r, t, p)
+
+    # Set up envelope
+    p1 = PowerLawEnvelope()
+    p1.power = -2
+    p1.r_0 = 1.
+    p1.rho_0 = 10.
+    p1.rmin = 0.1
+    p1.rmax = 10.
+
+    # Set up bipolar cavity
+    c = p1.add_bipolar_cavity()
+    c.power = 2
+    c.rho_0 = 3.
+    c.r_0 = 1.
+    c.theta_0 = 80.
+
+    a = AmbientMedium()
+    a.rho = 2.
+    a.rmin = 0.1
+    a.rmax = 10.
+    a.subtract = [p1, c]
+
+    expected = np.repeat(3., 9)
+    assert_array_almost_equal_nulp((p1.density(g) + c.density(g) + a.density(g))[0,0,:], expected, 10)
+
+    c.rho_0 = 2.
+
+    expected = np.repeat(2., 9)
+    assert_array_almost_equal_nulp((p1.density(g) + c.density(g) + a.density(g))[0,0,:], expected, 10)
+
+    c.rho_0 = 1.
+
+    expected = np.repeat(2., 9)
+    assert_array_almost_equal_nulp((p1.density(g) + c.density(g) + a.density(g))[0,0,:], expected, 10)
