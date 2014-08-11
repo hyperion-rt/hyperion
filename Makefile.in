@@ -249,11 +249,11 @@ OBJECTS_CYL_MPI =	src/mpi/mpi_core.f90 \
 			src/mpi/mpi_routines.f90 \
 			$(OBJECTS3)
 
-all:		car_serial car_mpi sph_serial sph_mpi cyl_serial cyl_mpi oct_serial oct_mpi amr_serial amr_mpi
+all:		car_serial car_mpi sph_serial sph_mpi cyl_serial cyl_mpi oct_serial oct_mpi amr_serial amr_mpi vor_serial vor_mpi
 
-serial:		car_serial sph_serial cyl_serial oct_serial amr_serial
+serial:		car_serial sph_serial cyl_serial oct_serial amr_serial vor_serial
 
-mpi:		car_mpi sph_mpi cyl_mpi oct_mpi amr_mpi
+mpi:		car_mpi sph_mpi cyl_mpi oct_mpi amr_mpi vor_mpi
 
 car_serial:	$(OBJECTS_CAR_SER)
 		$(FC) $(OBJECTS_CAR_SER) -o bin/hyperion_car
