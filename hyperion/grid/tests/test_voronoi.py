@@ -30,12 +30,12 @@ def _bb_check(voro):
 # Test for internal consistency and consistency wrt
 # the qhull version of the code. 
 def test_consistency():
-    import pickle
+    from astropy.table import Table
     import random
     import numpy as np
     from .. import voronoi_helpers as vh
     # Three pickled neighbours tables generated with qhull.
-    l = ['qhull_00.dat', 'qhull_01.dat', 'qhull_02.dat']
+    l = ['qhull_00.hdf5', 'qhull_01.hdf5', 'qhull_02.hdf5']
     for s in l:
         # The three qhull tables have been generated with seeds (0,1,2)
         # and with (10,100,1000) sites respectively.
@@ -45,7 +45,7 @@ def test_consistency():
             0, 1), random.uniform(0, 1)) for i in range(0, 10 ** (idx + 1))])
         vg = vh.voronoi_grid(sites_arr, np.array([[0, 1.], [0, 1], [0, 1]]))
         voro = vg.neighbours_table
-        qhull = pickle.load(open(os.path.join(DATA, s), 'r'))
+        qhull = Table.read(os.path.join(DATA, s),path='data')
         assert _neighbours_check(voro, qhull)
         assert _volume_check(voro)
         assert _bb_check(voro)
