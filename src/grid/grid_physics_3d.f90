@@ -299,6 +299,9 @@ contains
 
     do id=1,n_dust
        specific_energy(:,id) = specific_energy_sum(:,id) * scale / geo%volume
+       where(geo%volume == 0._dp)
+           specific_energy(:,id) = 0._dp
+       end where
     end do
 
     if(count(specific_energy==0.and.density>0.) > 0) then

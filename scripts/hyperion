@@ -54,6 +54,8 @@ elif coord_type == 'amr':
     suffix = 'amr'
 elif coord_type == 'oct':
     suffix = 'oct'
+elif coord_type == 'vor':
+    suffix = 'vor'
 else:
     raise Exception("Unexpected coordinate type: %s" % coord_type)
 

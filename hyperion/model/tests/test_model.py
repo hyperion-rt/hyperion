@@ -299,6 +299,43 @@ def test_dust_mix(tmpdir):
     m.write(tmpdir.join(random_id()).strpath)
     m.run(tmpdir.join(random_id()).strpath)
 
+def test_voronoi_basics(tmpdir):
+    # A test to check the interaction between C++, Fortran and Python,
+    # and to test the internal consistency of the Voronoi gridding.
+
+    from ...util.constants import au
+
+    np.random.seed(12343)
+
+    # Generate random points
+    N = 1000
+    x = np.random.uniform(-100 * au, 100 * au, N)
+    y = np.random.uniform(-100 * au, 100 * au, N)
+    z = np.random.uniform(-100 * au, 100 * au, N)
+
+    # Set up model
+    m = Model()
+    m.set_voronoi_grid(x, y, z)
+    kmh_dust = SphericalDust(os.path.join(DATA, 'kmh_lite.hdf5'))
+    m.add_density_grid(np.repeat(1.e-17, N), kmh_dust)
+
+    # Set up fly-around images
+    i = m.add_peeled_images()
+    i.set_wavelength_range(1, 900., 1000)
+    i.set_viewing_angles(np.repeat(85, 9), np.linspace(0., 60., 10)[:-1])
+    i.set_image_limits(-150 * au, 150 * au, -150 * au, 150 * au)
+    i.set_image_size(512, 512)
+
+    # We are just simulating a cube with a constant temperature of 20K
+    m.set_n_initial_iterations(0)
+    m.set_minimum_temperature(20.)
+
+    # Use raytracing for optimal signal-to-noise
+    m.set_raytracing(True)
+    m.set_n_photons(imaging=0, raytracing_sources=0, raytracing_dust=1e5)
+
+    m.write(tmpdir.join(random_id()).strpath)
+    m.run(tmpdir.join(random_id()).strpath)
 
 def test_dust_changed_nosave(tmpdir):
 

@@ -10,7 +10,7 @@ import numpy as np
 
 from ..version import __version__
 from ..util.functions import delete_file
-from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid
+from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid, VoronoiGrid
 from ..sources import PointSource, PointSourceCollection, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource, read_source
 from ..conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from ..util.constants import c
@@ -199,6 +199,8 @@ class Model(FreezableClass, RunConf):
             grid = AMRGrid()
         elif g_grid['Geometry'].attrs['grid_type'].decode('utf-8') == 'oct':
             grid = OctreeGrid()
+        elif g_grid['Geometry'].attrs['grid_type'].decode('utf-8') == 'vor':
+            grid = VoronoiGrid()
         else:
             raise NotImplemented("Cannot read geometry type %s" % g_grid['Geometry'].attrs['grid_type'].decode('utf-8'))
 
@@ -825,6 +827,15 @@ class Model(FreezableClass, RunConf):
 
     def set_amr_grid(self, description):
         self.set_grid(AMRGrid(description))
+
+    def set_voronoi_grid(self, x, y, z,
+                         xmin=None, xmax=None,
+                         ymin=None, ymax=None,
+                         zmin=None, zmax=None):
+        self.set_grid(VoronoiGrid(x, y, z,
+                                  xmin=xmin, xmax=xmax,
+                                  ymin=ymin, ymax=ymax,
+                                  zmin=zmin, zmax=zmax))
 
     def set_grid(self, grid):
         if isinstance(grid, AMRGrid):

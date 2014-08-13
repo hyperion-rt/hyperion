@@ -7,15 +7,15 @@ python:
 
 env:
     # try all python versions with the latest stable Numpy
-    - NUMPY_VERSION=1.8 SETUP_CMD='test'
+    - NUMPY_VERSION=1.8 ASTROPY_VERSION=0.4 SETUP_CMD='test'
 
 matrix:
     include:
         # try alternate Numpy versions
         - python: 2.7
-          env: NUMPY_VERSION=1.6 SETUP_CMD='test'
+          env: NUMPY_VERSION=1.6 ASTROPY_VERSION=0.4 SETUP_CMD='test'
         - python: 2.7
-          env: NUMPY_VERSION=1.5 SETUP_CMD='test'
+          env: NUMPY_VERSION=1.5 ASTROPY_VERSION=0.4 SETUP_CMD='test'
 
 before_install:
 
@@ -24,6 +24,7 @@ before_install:
 
    # Linux packages
    - sudo apt-get update
+   - sudo apt-get install build-essential g++
    - sudo apt-get install mpich2 libmpich2-dev libhdf5-7 libhdf5-dev gfortran hdf5-tools
 
    # Python packages
@@ -36,7 +37,7 @@ before_install:
 install:
    - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
    - source activate test
-   - conda install --yes numpy=$NUMPY_VERSION h5py astropy
+   - conda install -c astropy-ci-extras --yes numpy=$NUMPY_VERSION h5py astropy=$ASTROPY_VERSION
 
 script:
    - ./configure
