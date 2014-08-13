@@ -263,9 +263,9 @@ Voronoi cells are always guaranteed to be convex polyhedra.
 The number and distribution of the seed points are arbitrary (clearly,
 for best results the values of these two parameters should be chosen following
 some physical intuition or with a specific goal in mind - e.g., seed points
-could be more numerous where higher resultion is needed).
+could be more numerous where higher resolution is needed).
 
-In order to setup a Voronoi grid, the following information is needed:
+In order to set up a Voronoi grid, the following information is needed:
 
 * ``x``, ``y``, ``z`` - three 1-d Numpy arrays of equal size representing the
   coordinates  of the seed points. The size of these arrays implicitly defines
