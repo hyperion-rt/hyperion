@@ -40,13 +40,14 @@ sections below).
           (see :doc:`setup_conf`), otherwise the input specific energy
           will be overwritten with the self-consistently computed one.
 
-Hyperion currently supports five types of 3-d grids:
+Hyperion currently supports six types of 3-d grids:
 
 * Cartesian grids
 * Spherical polar grids
 * Cylindrical polar grids
 * AMR (Adaptive Mesh Refinement) grids
 * Octree grids
+* Voronoi grids
 
 The following sections show how the different kinds of grids should be set up.
 
@@ -245,4 +246,39 @@ the same length as the ``refined`` list, where each density value corresponds
 to the equivalent cell in the ``refined`` list. Density values for cells with
 ``refined`` set to ``True`` will be ignored, and can be set to zero.
 
+Voronoi grids
+-------------
 
+Geometry
+^^^^^^^^
+
+A Voronoi grid is based on the concept of 3D
+`Voronoi diagrams <http://en.wikipedia.org/wiki/Voronoi_diagram>`_. A Voronoi
+grid is created from a set of user-specified seed points. Each seed point
+corresponds to a single grid cell, and the cell in which a seed point is located
+is defined geometrically by the set of all points closer to that seed than
+to any other.
+
+Voronoi cells are always guaranteed to be convex polyhedra.
+The number and distribution of the seed points are arbitrary (clearly,
+for best results the values of these two parameters should be chosen following
+some physical intuition or with a specific goal in mind - e.g., seed points
+could be more numerous where higher resolution is needed).
+
+In order to set up a Voronoi grid, the following information is needed:
+
+* ``x``, ``y``, ``z`` - three 1-d Numpy arrays of equal size representing the
+  coordinates  of the seed points. The size of these arrays implicitly defines
+  the number of seed points.
+
+The geometry can be set with::
+
+    m.set_voronoi_grid(x, y, z)
+
+Density and Specific Energy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Densities (and optionally specific energies) should be specified in the same
+manner as the regular grids, but should be specified as a 1-d Numpy array with
+the same length as the number of seed points. Each density value in the array
+refers to the cell containing the corresponding seed point.
