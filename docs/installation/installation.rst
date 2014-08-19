@@ -140,7 +140,6 @@ or::
 
     FC=h5pfc cmake ../
 
-<<<<<<< HEAD
 .. NOTE::
    Normally in order to change the compiler it will be necessary
    to completely erase the contents of the build directory and start from
@@ -148,11 +147,6 @@ or::
    such as those discussed below.
    The compiler variable is special because CMake uses it as
    a starting point to detect and setup the compilation environment.
-=======
-Note that normally in order to change the compiler it will be necessary
-to completely erase the contents of the build directory and start from
-scratch.
->>>>>>> 18f2bbf... Support for ifort and documentation.
 
 CMake will try to locate Hyperion's dependencies (HDF5, MPI)
 automatically. This usually works fine on Linux systems (where the
