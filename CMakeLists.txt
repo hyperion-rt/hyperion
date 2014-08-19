@@ -38,14 +38,25 @@ message(STATUS "Compiler id: ${CMAKE_Fortran_COMPILER_ID}")
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
     # gfortran.
     set(HYPERION_Fortran_FLAGS "-g -ffree-line-length-none")
+    # There are no special flags for profiling or static compilation when using gfortran.
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${HYPERION_Fortran_FLAGS}")
+    set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${HYPERION_Fortran_FLAGS} -Wall -fbounds-check")
+    # POSIX module setup.
+    set(HYPERION_posix_module_serial "posix_default.f90")
+    set(HYPERION_posix_module_mpi "posix_default.f90")
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+    # ifort.
+    set(HYPERION_Fortran_FLAGS "-heap-arrays -error-limit 1 -fp-model strict -diag-disable 8291")
     if(ENABLE_PROFILING)
-        # No special flags for profiling in gfortran.
+        # Intel profiling flags.
+        set(HYPERION_Fortran_FLAGS "${HYPERION_Fortran_FLAGS} -g -save-temps")
     endif()
     if(ENABLE_STATIC)
-        # No special flags for static compilation either.
+        # Intel static compilation flags.
+        set(HYPERION_Fortran_FLAGS "${HYPERION_Fortran_FLAGS} --static")
     endif()
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${HYPERION_Fortran_FLAGS}")
-    set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${HYPERION_Fortran_FLAGS} -Wall -fbounds-check -g")
+    set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${HYPERION_Fortran_FLAGS} -check all -warn all -warn nodec -warn interfaces -gen_interfaces -traceback -g")
     # POSIX module setup.
     set(HYPERION_posix_module_serial "posix_default.f90")
     set(HYPERION_posix_module_mpi "posix_default.f90")
