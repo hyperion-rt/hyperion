@@ -99,8 +99,8 @@ If you get::
 then something went wrong in the installation, or the directory to which you
 installed the binaries is not in your ``$PATH``. Otherwise, you are all set!
 
-Fortran binaries - alternative CMake build system
--------------------------------------------------
+Alternative CMake build system
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 An experimental build system based on `CMake <http://www.cmake.org/>`_ is
 now available. The two key advantages with respect to the default
@@ -140,9 +140,13 @@ or::
 
     FC=h5pfc cmake ../
 
-Note that normally in order to change the compiler it will be necessary
-to completely erase the contents of the build directory and start from
-scratch.
+.. NOTE::
+   Normally in order to change the compiler it will be necessary
+   to completely erase the contents of the build directory and start from
+   scratch. This is not necessary when changing other CMake variables
+   such as those discussed below.
+   The compiler variable is special because CMake uses it as
+   a starting point to detect and setup the compilation environment.
 
 CMake will try to locate Hyperion's dependencies (HDF5, MPI)
 automatically. This usually works fine on Linux systems (where the
@@ -179,7 +183,7 @@ Note that if you edit an existing Fortran file in the Hyperion source tree,
 you do not need to re-run cmake. Invoking ``make`` as usual will be enough.
 
 Complete CMake command-line examples
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""""""""""""""""
 
 Minimal default configuration::
 
