@@ -10,7 +10,7 @@ import numpy as np
 
 from ..version import __version__
 from ..util.functions import delete_file
-from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid, VoronoiGrid
+from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid, VoronoiGrid, GridOnDisk
 from ..sources import PointSource, PointSourceCollection, SphericalSource, ExternalSphericalSource, ExternalBoxSource, MapSource, PlaneParallelSource, read_source
 from ..conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from ..util.constants import c
@@ -541,7 +541,6 @@ class Model(FreezableClass, RunConf):
         root.attrs['python_version'] = np.string_(__version__.encode('utf-8'))
 
         # Create all the necessary groups and sub-groups
-        g_grid = root.create_group('Grid')
         g_sources = root.create_group('Sources')
         g_output = root.create_group('Output')
         g_peeled = g_output.create_group('Peeled')
@@ -573,11 +572,20 @@ class Model(FreezableClass, RunConf):
         self.write_run_conf(root)
         self.conf.output.write(g_output)
 
-        # Check self-consistency of grid
-        self.grid._check_array_dimensions()
+        if isinstance(self.grid, GridOnDisk):
 
-        # Write the geometry and physical quantity arrays to the input file
-        self.grid.write(g_grid, copy=copy, absolute_paths=absolute_paths, compression=compression, physics_dtype=physics_dtype)
+            g_grid = link_or_copy(root, 'Grid', self.grid.link, copy=copy, absolute_paths=absolute_paths)
+
+        else:
+
+            # Create group
+            g_grid = root.create_group('Grid')
+
+            # Check self-consistency of grid
+            self.grid._check_array_dimensions()
+
+            # Write the geometry and physical quantity arrays to the input file
+            self.grid.write(g_grid, copy=copy, absolute_paths=absolute_paths, compression=compression, physics_dtype=physics_dtype)
 
         if 'density' in self.grid:
 
@@ -673,7 +681,8 @@ class Model(FreezableClass, RunConf):
 
                 _minimum_specific_energy = [0. for i in range(_n_dust)]
 
-            g_grid['Quantities'].attrs["minimum_specific_energy"] = [float(x) for x in _minimum_specific_energy]
+            if not isinstance(self.grid, GridOnDisk):
+                g_grid['Quantities'].attrs["minimum_specific_energy"] = [float(x) for x in _minimum_specific_energy]
 
         else:
 
@@ -845,6 +854,13 @@ class Model(FreezableClass, RunConf):
                 self.grid = grid.__class__(grid)
             else:
                 self.grid = deepcopy(grid)
+
+    def use_grid_from_disk(self, filename, path='/', dust=[]):
+        """
+        Use a grid from disk and don't read it in.
+        """
+        self.grid = GridOnDisk(filename, path=path)
+        self.dust = dust
 
     def add_peeled_images(self, sed=True, image=True):
         """
