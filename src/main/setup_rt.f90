@@ -125,8 +125,14 @@ contains
        if(use_exact_nu) call mp_read_keyword(input_handle, '/', 'n_last_photons_dust', n_last_photons_dust)
        if(use_raytracing) call mp_read_keyword(input_handle, '/', 'n_ray_photons_dust', n_raytracing_photons_dust)
     end if
+    
+    ! Read in minimum specific energy
+    call mp_read_keyword_vector_auto(input_handle, '/', 'minimum_specific_energy', minimum_specific_energy)
 
     ! GRID
+
+    ! Read in specific energy type
+    call mp_read_keyword(input_handle, '/', 'specific_energy_type', specific_energy_type)
 
     g_geometry = mp_open_group(input_handle, '/Grid/Geometry')
     call setup_grid_geometry(g_geometry)

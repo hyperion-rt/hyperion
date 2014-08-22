@@ -673,7 +673,7 @@ class Model(FreezableClass, RunConf):
 
                 _minimum_specific_energy = [0. for i in range(_n_dust)]
 
-            g_grid['Quantities'].attrs["minimum_specific_energy"] = [float(x) for x in _minimum_specific_energy]
+            root.attrs["minimum_specific_energy"] = [float(x) for x in _minimum_specific_energy]
 
         else:
 

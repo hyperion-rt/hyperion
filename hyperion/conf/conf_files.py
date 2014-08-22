@@ -58,6 +58,7 @@ class RunConf(object):
         self.set_enforce_energy_range(True)
         self.set_copy_input(True)
         self._monochromatic = False
+        self.set_specific_energy_type('initial')
         super(RunConf, self).__init__()
 
     def set_propagation_check_frequency(self, frequency):
@@ -623,6 +624,31 @@ class RunConf(object):
     def _write_sample_sources_evenly(self, group):
         group.attrs['sample_sources_evenly'] = bool2str(self.sample_sources_evenly)
 
+    def set_specific_energy_type(self, specific_energy_type):
+        '''
+        Set whether to use the specific specific energy as an initial value or
+        an additional component at each iteration.
+
+        This only has an effect if a specific energy was specified during ``add_density_grid``.
+
+        Parameters
+        ----------
+        specific_energy_type : str
+            Can be ``'initial'`` (use only as initial value) or
+            ``'additional'`` (add at every iteration)
+        '''
+        if specific_energy_type in ['initial', 'additional']:
+            self.specific_energy_type = specific_energy_type
+        else:
+            raise ValueError("specific_energy_type should be one of 'initial' or 'additional'")
+
+    def _read_specific_energy_type(self, group):
+        self.specific_energy_type = group.attrs['specific_energy_type'].decode('ascii')
+
+    def _write_specific_energy_type(self, group):
+        group.attrs['specific_energy_type'] = np.string_(self.specific_energy_type.encode('utf-8'))
+        # TODO: only do this if the specific energy was specified during add_density_grid
+
     def read_run_conf(self, group):  # not a class method because inherited
         '''
         Read the configuation in from an HDF5 group
@@ -649,6 +675,7 @@ class RunConf(object):
         self._read_sample_sources_evenly(group)
         self._read_enforce_energy_range(group)
         self._read_copy_input(group)
+        self._read_specific_energy_type(group)
 
     def write_run_conf(self, group):
         '''
@@ -676,6 +703,7 @@ class RunConf(object):
         self._write_sample_sources_evenly(group)
         self._write_enforce_energy_range(group)
         self._write_copy_input(group)
+        self._write_specific_energy_type(group)
 
 
 class ImageConf(FreezableClass):

@@ -37,8 +37,8 @@ module grid_physics
   integer(idp),allocatable, public :: last_photon_id(:)
   real(dp),allocatable, public :: specific_energy(:,:)
   real(dp),allocatable, public :: specific_energy_sum(:,:)
+  real(dp),allocatable, public :: specific_energy_additional(:,:)
   real(dp),allocatable, public :: energy_abs_tot(:)
-  real(dp),allocatable, public :: minimum_specific_energy(:)
 
   real(dp), allocatable,target, public :: alpha_rosseland(:)
 
@@ -125,11 +125,6 @@ contains
           density_original = density
        end if
 
-       if(main_process()) write(*,'(" [grid_physics] reading minimum_specific_energy")')
-
-       ! Read in minimum specific energy
-       call mp_read_keyword_vector_auto(group, '.', 'minimum_specific_energy', minimum_specific_energy)
-
        if(grid_exists(group, 'specific_energy')) then
 
           if(main_process()) write(*,'(" [grid_physics] reading specific_energy grid")')
@@ -149,8 +144,21 @@ contains
                 end where
              end do
           end if
+          
+          if(trim(specific_energy_type) == 'additional') then
+              allocate(specific_energy_additional(geo%n_cells, n_dust))
+              specific_energy_additional = specific_energy
+              do id=1,n_dust
+                 specific_energy(:,id) = minimum_specific_energy(id)
+              end do
+          end if
+          
 
        else
+
+           if(trim(specific_energy_type) == 'additional') then
+               call error("setup_grid", "cannot specify specific_energy_type since specific_energy was not given")
+           end if
 
           ! Set all specific_energy to minimum requested
           do id=1,n_dust
@@ -306,6 +314,12 @@ contains
 
     if(count(specific_energy==0.and.density>0.) > 0) then
        write(*,'(" [update_energy_abs] ",I0," cells have no energy")') count(specific_energy==0.and.density>0.)
+    end if
+    
+    ! Add in additional source of heating
+    if(trim(specific_energy_type) == 'additional') then
+        if(main_process()) write(*,'(" [grid_physics] adding additional heating source")')
+        specific_energy = specific_energy + specific_energy_additional
     end if
 
     call update_energy_abs_tot()
