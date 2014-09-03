@@ -77,7 +77,7 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
             grid_dict['level'] = ilevel
 
             for field in grid.quantities:
-                grid_dict[('gas', field)] = grid.quantities[field]
+                grid_dict[('gas', field)] = grid.quantities[field][dust_id]
 
             grid_data.append(grid_dict)
 
@@ -101,7 +101,7 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
     dz = (grid0.zmax - grid0.zmin) / float(grid0.nz)
     nz = int(round((zmax - zmin) / dz))
 
-    domain_dimensions = np.array([nx, ny, nz])
+    domain_dimensions = np.array([nz, ny, nx])
 
     bbox = np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])
 
@@ -182,7 +182,7 @@ def cartesian_grid_to_yt_stream(grid, xmin, xmax, ymin, ymax, zmin, zmax, dust_i
     # Load cartesian grid into yt
     from yt.mods import load_uniform_grid
     spf = load_uniform_grid(data=data,
-                            domain_dimensions=np.array(grid.shape[::-1], dtype=np.int32),
+                            domain_dimensions=np.array(grid.shape, dtype=np.int32),
                             bbox=np.array([(xmin, xmax), (ymin, ymax), (zmin, zmax)]))
 
     return spf

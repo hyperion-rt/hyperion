@@ -31,14 +31,14 @@ class TestToYt(object):
         self.grid = {}
 
         self.grid['car'] = CartesianGrid([-1., 1.],
-                                         [-2., 2.],
-                                         [-3., 3.])
+                                         [-2., 0., 2.],
+                                         [-3., -1., 1., 3.])
         self.grid['cyl'] = CylindricalPolarGrid([0., 1.],
-                                                [-1., 1.],
-                                                [0., 2. * np.pi])
-        self.grid['sph'] = SphericalPolarGrid([0., 1.],
+                                                [-1., 0., 1.],
+                                                [0., 0.75 * np.pi, 1.25 * np.pi, 2. * np.pi])
+        self.grid['sph'] = SphericalPolarGrid([0., 0.5, 1.],
                                               [0., np.pi],
-                                              [0., 2. * np.pi])
+                                              [0., 0.75 * np.pi, 1.25 * np.pi, 2. * np.pi])
 
         self.grid['amr'] = AMRGrid()
         level = self.grid['amr'].add_level()
@@ -46,7 +46,7 @@ class TestToYt(object):
         grid.xmin, grid.xmax = -1., 1.
         grid.ymin, grid.ymax = -1., 1.
         grid.zmin, grid.zmax = -1., 1.
-        grid.nx, grid.ny, grid.nz = 8, 8, 8
+        grid.nx, grid.ny, grid.nz = 8, 6, 4
 
         refined = [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                    0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -55,11 +55,11 @@ class TestToYt(object):
 
         # Set up initial densities
         self.density = {}
-        self.density['car'] = np.array([[[1.]]])
-        self.density['cyl'] = np.array([[[1.]]])
-        self.density['sph'] = np.array([[[1.]]])
+        self.density['car'] = np.ones((3, 2, 1))
+        self.density['cyl'] = np.ones((3, 2, 1))
+        self.density['sph'] = np.ones((3, 1, 2))
         amr_q = deepcopy(self.grid['amr'])
-        amr_q.levels[0].grids[0].quantities['density'] = np.ones((8, 8, 8))
+        amr_q.levels[0].grids[0].quantities['density'] = np.ones((4, 6, 8))
         self.density['amr'] = amr_q['density']
         self.density['oct'] = np.ones(len(refined))
 
