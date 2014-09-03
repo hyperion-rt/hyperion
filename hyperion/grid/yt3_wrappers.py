@@ -111,7 +111,37 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
     return spf
 
 
+def find_order(refined):
+    """
+    Find the index array to use to sort the ``refined`` and ``density`` arrays
+    to swap the xyz <-> zyx order.
+    """
+
+    order = np.zeros(refined.shape)
+
+    if not refined[0]:
+        return [0]
+
+    def find_nested(i):
+        cells = [i]
+        for cell in range(8):
+            i += 1
+            if refined[i]:
+                parent = i
+                i, sub_cells = find_nested(i)
+                cells.append(sub_cells)
+            else:
+                cells.append(i)
+        cells = [cells[j] for j in [0,1,5,3,7,2,6,4,8]]
+        return i, np.hstack(cells)
+
+    return find_nested(0)[1]
+
+
 def octree_grid_to_yt_stream(grid, dust_id=0):
+
+    order = find_order(grid.refined)
+    refined = grid.refined[order]
 
     xmin = grid.x - grid.dx
     xmax = grid.x + grid.dx
@@ -124,11 +154,13 @@ def octree_grid_to_yt_stream(grid, dust_id=0):
 
     quantities = {}
     for field in grid.quantities:
-        quantities[('gas', field)] = np.atleast_2d(grid.quantities[field][dust_id]).transpose()
+        quantities[('gas', field)] = np.atleast_2d(grid.quantities[field][dust_id][order][~refined]).transpose()
 
     bbox = np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])
 
-    spf = load_octree(octree_mask=grid.refined.astype(np.uint8),
+    octree_mask = refined.astype(np.uint8) * 8
+
+    spf = load_octree(octree_mask=octree_mask,
                       data=quantities,
                       bbox=bbox,
                       over_refine_factor=0,
