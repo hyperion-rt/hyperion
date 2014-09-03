@@ -48,8 +48,8 @@ install:
    - conda install -c astropy-ci-extras --yes numpy=$NUMPY_VERSION h5py astropy=$ASTROPY_VERSION
    # The following logic is temporary until 3.0.1 is in conda
    - if [[ $YT_VERSION == 2.6 ]]; then conda install --yes numpy=$NUMPY_VERSION yt=$YT_VERSION; fi
-   - if [[ $YT_VERSION == 3.0.1 ]]; then conda install --yes numpy=$NUMPY_VERSION matplotlib h5py cython sympy; fi
-   - if [[ $YT_VERSION == 3.0.1 ]]; then pip install yt==$YT_VERSION; fi
+   - if [[ $YT_VERSION == 3.0.1 ]]; then conda install --yes numpy=$NUMPY_VERSION matplotlib h5py Cython sympy; fi
+   - if [[ $YT_VERSION == 3.0.1 ]]; then pip install Cython yt==$YT_VERSION; fi
 
 script:
    - ./configure
