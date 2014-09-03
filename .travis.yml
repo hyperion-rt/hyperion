@@ -7,23 +7,15 @@ python:
 
 env:
     # try all python versions with the latest stable Numpy
-    - NUMPY_VERSION=1.8 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=None
+    - NUMPY_VERSION=1.8 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=3.0.1
 
 matrix:
 
     include:
 
-        # try alternate Numpy versions
+        # try older Numpy and yt version
         - python: 2.7
-          env: NUMPY_VERSION=1.6 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=None
-        - python: 2.7
-          env: NUMPY_VERSION=1.5 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=None
-
-        # try with yt
-        - python: 2.7
-          env: NUMPY_VERSION=1.8 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=3.0.1
-        - python: 2.7
-          env: NUMPY_VERSION=1.8 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=2.6
+          env: NUMPY_VERSION=1.7 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=2.6
 
 before_install:
 
@@ -45,12 +37,11 @@ before_install:
 install:
    - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
    - source activate test
-   - conda install -c astropy-ci-extras --yes numpy=$NUMPY_VERSION h5py astropy=$ASTROPY_VERSION
+   - conda install -c astropy-ci-extras --yes numpy=$NUMPY_VERSION h5py astropy=$ASTROPY_VERSION pip
    # The following logic is temporary until 3.0.1 is in conda
-   - if [[ $YT_VERSION == 2.6 ]]; then conda install --yes numpy=$NUMPY_VERSION yt=$YT_VERSION; fi
-   - if [[ $YT_VERSION == 3.0.1 ]]; then conda install --yes numpy=$NUMPY_VERSION matplotlib h5py Cython sympy; fi
-   - if [[ $YT_VERSION == 3.0.1 ]]; then pip install Cython; fi
-   - if [[ $YT_VERSION == 3.0.1 ]]; then pip install yt==$YT_VERSION; fi
+   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 && $YT_VERSION == 2.6 ]]; then conda install --yes numpy=$NUMPY_VERSION yt=$YT_VERSION; fi
+   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 && $YT_VERSION == 3.0.1 ]]; then conda install --yes numpy=$NUMPY_VERSION matplotlib h5py Cython sympy; fi
+   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 && $YT_VERSION == 3.0.1 ]]; then pip install yt==$YT_VERSION; fi
 
 script:
    - ./configure

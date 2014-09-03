@@ -16,13 +16,7 @@ ALL_GRID_TYPES = ['car', 'amr', 'oct']
 
 PY27 = sys.version_info[:2] == (2, 7)
 
-try:
-    import yt
-    YT = True
-except ImportError:
-    YT = False
-
-@pytest.mark.skipif("not YT or not PY27")
+@pytest.mark.skipif("not PY27")
 class TestToYt(object):
 
     def setup_method(self, method):
