@@ -124,14 +124,15 @@ def octree_grid_to_yt_stream(grid, dust_id=0):
 
     quantities = {}
     for field in grid.quantities:
-        quantities[field] = grid.quantities[field][dust_id]
+        quantities[('gas', field)] = np.atleast_2d(grid.quantities[field][dust_id]).transpose()
 
     bbox = np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])
 
     spf = load_octree(octree_mask=grid.refined.astype(np.uint8),
                       data=quantities,
                       bbox=bbox,
-                      partial_coverage=1)
+                      over_refine_factor=0,
+                      partial_coverage=0)
 
     return spf
 
