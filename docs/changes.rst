@@ -33,6 +33,12 @@ Bug fixes
 - Fixed a bug that meant that BipolarCavity instances could not be subtracted
   from AmbientMedium instances. [#106]
 
+Other improvements
+~~~~~~~~~~~~~~~~~~
+
+- The ``to_yt()`` methods are now compatible with yt 3.x (3.0.1 and later
+  recommended). [#113]
+
 0.9.4 (2014-01-29)
 ------------------
 
