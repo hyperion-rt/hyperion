@@ -50,13 +50,16 @@ cmdclass['sdist'] = custom_sdist
 
 ext_modules = [Extension("hyperion.util._integrate_core",
                          ['hyperion/util/_integrate_core.c'],
-                         include_dirs=[numpy_includes]),
+                         include_dirs=[numpy_includes],
+                         extra_compile_args=['-Wno-error=declaration-after-statement']),
                Extension("hyperion.util._interpolate_core",
                          ['hyperion/util/_interpolate_core.c'],
-                         include_dirs=[numpy_includes]),
+                         include_dirs=[numpy_includes],
+                         extra_compile_args=['-Wno-error=declaration-after-statement']),
                Extension("hyperion.importers._discretize_sph",
                          ['hyperion/importers/_discretize_sph.c'],
-                         include_dirs=[numpy_includes]),
+                         include_dirs=[numpy_includes],
+                         extra_compile_args=['-Wno-error=declaration-after-statement']),
                Extension("hyperion.grid._voronoi_core",
                          ['hyperion/grid/_voronoi_core.c',
                           'hyperion/grid/voropp_wrap.cc',
@@ -70,7 +73,7 @@ ext_modules = [Extension("hyperion.util._integrate_core",
                           'hyperion/grid/voro++/v_base.cc',
                           'hyperion/grid/voro++/v_compute.cc',
                           'hyperion/grid/voro++/wall.cc'],
-                         extra_compile_args = ['-O2'],
+                         extra_compile_args = ['-O2', '-Wno-error=declaration-after-statement'],
                          include_dirs=[numpy_includes])]
 
 scripts = ['hyperion', 'hyperion2fits']
