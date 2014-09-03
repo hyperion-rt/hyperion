@@ -71,14 +71,13 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
 
             grid_dict = {}
 
-            grid_dict['left_edge'] = [grid.xmin, grid.ymin, grid.zmin]
-            grid_dict['right_edge'] = [grid.xmax, grid.ymax, grid.zmax]
-            grid_dict['dimensions'] = [grid.nx, grid.ny, grid.nz]
+            grid_dict['left_edge'] = [grid.zmin, grid.ymin, grid.xmin]
+            grid_dict['right_edge'] = [grid.zmax, grid.ymax, grid.xmax]
+            grid_dict['dimensions'] = [grid.nz, grid.ny, grid.nx]
             grid_dict['level'] = ilevel
 
             for field in grid.quantities:
-                print(field, type(grid.quantities[field][dust_id]))
-                grid_dict[field] = grid.quantities[field][dust_id]
+                grid_dict[('gas', field)] = grid.quantities[field]
 
             grid_data.append(grid_dict)
 
@@ -91,13 +90,15 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
 
     # Determine domain resolution
 
-    dx = (grid.xmax - grid.xmin) / float(grid.nx)
+    grid0 = levels[0].grids[0]
+
+    dx = (grid0.xmax - grid0.xmin) / float(grid0.nx)
     nx = int(round((xmax - xmin) / dx))
 
-    dy = (grid.ymax - grid.ymin) / float(grid.ny)
+    dy = (grid0.ymax - grid0.ymin) / float(grid0.ny)
     ny = int(round((ymax - ymin) / dy))
 
-    dz = (grid.zmax - grid.zmin) / float(grid.nz)
+    dz = (grid0.zmax - grid0.zmin) / float(grid0.nz)
     nz = int(round((zmax - zmin) / dz))
 
     domain_dimensions = np.array([nx, ny, nz])
