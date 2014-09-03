@@ -21,7 +21,7 @@ matrix:
 
         # try with yt
         - python: 2.7
-          env: NUMPY_VERSION=1.8 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=3.0
+          env: NUMPY_VERSION=1.8 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=3.0.1
         - python: 2.7
           env: NUMPY_VERSION=1.8 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=2.6
 
@@ -46,7 +46,10 @@ install:
    - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
    - source activate test
    - conda install -c astropy-ci-extras --yes numpy=$NUMPY_VERSION h5py astropy=$ASTROPY_VERSION
-   - if [[ $YT_VERSION != None ]]; then conda install --yes numpy=$NUMPY_VERSION yt=$YT_VERSION; fi
+   # The following logic is temporary until 3.0.1 is in conda
+   - if [[ $YT_VERSION == 2.6 ]]; then conda install --yes numpy=$NUMPY_VERSION yt=$YT_VERSION; fi
+   - if [[ $YT_VERSION == 3.0.1 ]]; then conda install --yes numpy=$NUMPY_VERSION matplotlib h5py cython sympy; fi
+   - if [[ $YT_VERSION == 3.0.1 ]]; then pip install yt==$YT_VERSION; fi
 
 script:
    - ./configure
