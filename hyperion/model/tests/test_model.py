@@ -138,7 +138,6 @@ class TestAllGridTypes(object):
             g['density'] = []
             g['density'].append(self.density[grid_type])
         m.set_grid(g)
-        print(g['density'])
         m.add_density_grid(g['density'][0], self.dust)
         m.add_density_grid(g['density'][0], self.dust)
         m.set_n_photons(initial=100, imaging=100)
