@@ -39,6 +39,10 @@ Other improvements
 - The ``to_yt()`` methods are now compatible with yt 3.x (3.0.1 and later
   recommended). [#113]
 
+- The ``uncertainties=True`` mode for ``get_sed`` and ``get_image`` has now
+  been properly vectorized and should be faster by a factor of a few when
+  requesting polarization results. [#114]
+
 0.9.4 (2014-01-29)
 ------------------
 
