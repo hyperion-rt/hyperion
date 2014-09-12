@@ -38,10 +38,7 @@ install:
    - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
    - source activate test
    - conda install -c astropy-ci-extras --yes numpy=$NUMPY_VERSION h5py astropy=$ASTROPY_VERSION pip
-   # The following logic is temporary until 3.0.1 is in conda
-   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 && $YT_VERSION == 2.6 ]]; then conda install --yes numpy=$NUMPY_VERSION yt=$YT_VERSION; fi
-   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 && $YT_VERSION == 3.0.1 ]]; then conda install --yes numpy=$NUMPY_VERSION matplotlib h5py Cython sympy; fi
-   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 && $YT_VERSION == 3.0.1 ]]; then pip install yt==$YT_VERSION; fi
+   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then conda install --yes numpy=$NUMPY_VERSION yt=$YT_VERSION; fi
 
 script:
    - ./configure
