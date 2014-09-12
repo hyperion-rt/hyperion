@@ -36,42 +36,70 @@ UNITS_LABEL['mJy'] = 'mJy'
 UNITS_LABEL['MJy/sr'] = 'MJy/sr'
 
 
-def mc_linear_polarization(I, sigma_I, Q, sigma_Q, U, sigma_U):
-    n = 1000
-    if I > 0.:
-        if sigma_I == 0.:
-            Is = np.repeat(I, n)
-        else:
-            Is = np.random.normal(loc=I, scale=sigma_I, size=n)
-        if sigma_Q == 0.:
-            Qs = np.repeat(Q, n)
-        else:
-            Qs = np.random.normal(loc=Q, scale=sigma_Q, size=n)
-        if sigma_U == 0.:
-            Us = np.repeat(U, n)
-        else:
-            Us = np.random.normal(loc=U, scale=sigma_U, size=n)
-        Ps = np.sqrt((Qs ** 2 + Us ** 2) / Is ** 2)
-        return np.mean(Ps), np.std(Ps)
-    else:
-        return 0., 0.
+def mc_linear_polarization(I, sigma_I, Q, sigma_Q, U, sigma_U, N=1000):
+
+    # This function is written with in-place operations for performance, which
+    # can speed things up by at least a factor of two.
+
+    new_shape =  (N,) + I.shape
+    ones_shape = (N,) + (1,) * I.ndim
+
+    xi1 = np.random.normal(loc=0, scale=1., size=ones_shape)
+    xi2 = np.random.normal(loc=0, scale=1., size=ones_shape)
+    xi3 = np.random.normal(loc=0, scale=1., size=ones_shape)
+
+    Is = np.zeros(new_shape)
+    Qs = np.zeros(new_shape)
+    Us = np.zeros(new_shape)
+
+    Is += sigma_I
+    Qs += sigma_Q
+    Us += sigma_U
+
+    Is *= xi1
+    Qs *= xi2
+    Us *= xi3
+
+    Is += I
+    Qs += Q
+    Us += U
+
+    np.divide(Qs, Is, out=Qs)
+    np.divide(Us, Is, out=Us)
+
+    Ps = np.hypot(Qs, Us)
+
+    return np.mean(Ps, axis=0), np.std(Ps, axis=0)
 
 
-def mc_circular_polarization(I, sigma_I, V, sigma_V):
-    n = 1000
-    if I > 0.:
-        if sigma_I == 0.:
-            Is = np.repeat(I, n)
-        else:
-            Is = np.random.normal(loc=I, scale=sigma_I, size=n)
-        if sigma_V == 0.:
-            Vs = np.repeat(V, n)
-        else:
-            Vs = np.random.normal(loc=V, scale=sigma_V, size=n)
-        Ps = np.abs(Vs) / Is
-        return np.mean(Ps), np.std(Ps)
-    else:
-        return 0., 0.
+def mc_circular_polarization(I, sigma_I, V, sigma_V, N=1000):
+
+    # This function is written with in-place operations for performance, which
+    # can speed things up by at least a factor of two.
+
+    new_shape =  (N,) + I.shape
+    ones_shape = (N,) + (1,) * I.ndim
+
+    xi1 = np.random.normal(loc=0, scale=1., size=ones_shape)
+    xi2 = np.random.normal(loc=0, scale=1., size=ones_shape)
+
+    Is = np.zeros(new_shape)
+    Vs = np.zeros(new_shape)
+
+    Is += sigma_I
+    Vs += sigma_V
+
+    Is *= xi1
+    Vs *= xi2
+
+    Is += I
+    Vs += V
+
+    np.abs(Vs, out=Vs)
+    Ps = np.divide(Vs, Is)
+
+    return np.mean(Ps, axis=0), np.std(Ps, axis=0)
+
 
 # We now define a decorator for methods that needs access to the output HDF5
 # file. This is necessary because h5py has issues with links pointing to
@@ -184,8 +212,8 @@ class ModelOutput(FreezableClass):
                 raise ValueError("component should be one of total/source/dust since track_origin='scatterings'")
 
             if n_scat is None:
-                # We need to remember to take into account the additional slice 
-                # that contains the remaining flux. The upper bound of the 
+                # We need to remember to take into account the additional slice
+                # that contains the remaining flux. The upper bound of the
                 # slice is exclusive.
                 io = (io, io + track_n_scat + 2)
             else:
@@ -484,15 +512,13 @@ class ModelOutput(FreezableClass):
                 unc = unc[STOKESD[stokes]]
         elif stokes == 'linpol':
             if uncertainties:
-                f = np.vectorize(mc_linear_polarization)
-                flux, unc = f(flux[0], unc[0], flux[1], unc[1], flux[2], unc[2])
+                flux, unc = mc_linear_polarization(flux[0], unc[0], flux[1], unc[1], flux[2], unc[2])
             else:
                 flux = np.sqrt((flux[1] ** 2 + flux[2] ** 2) / flux[0] ** 2)
                 flux[np.isnan(flux)] = 0.
         elif stokes == 'circpol':
             if uncertainties:
-                f = np.vectorize(mc_circular_polarization)
-                flux, unc = f(flux[0], unc[0], flux[3], unc[3])
+                flux, unc = mc_circular_polarization(flux[0], unc[0], flux[3], unc[3])
             else:
                 flux = np.abs(flux[3] / flux[0])
                 flux[np.isnan(flux)] = 0.
@@ -853,15 +879,13 @@ class ModelOutput(FreezableClass):
                 unc = unc[STOKESD[stokes]]
         elif stokes == 'linpol':
             if uncertainties:
-                f = np.vectorize(mc_linear_polarization)
-                flux, unc = f(flux[0], unc[0], flux[1], unc[1], flux[2], unc[2])
+                flux, unc = mc_linear_polarization(flux[0], unc[0], flux[1], unc[1], flux[2], unc[2])
             else:
                 flux = np.sqrt((flux[1] ** 2 + flux[2] ** 2) / flux[0] ** 2)
                 flux[np.isnan(flux)] = 0.
         elif stokes == 'circpol':
             if uncertainties:
-                f = np.vectorize(mc_circular_polarization)
-                flux, unc = f(flux[0], unc[0], flux[3], unc[3])
+                flux, unc = mc_circular_polarization(flux[0], unc[0], flux[3], unc[3])
             else:
                 flux = np.abs(flux[3] / flux[0])
                 flux[np.isnan(flux)] = 0.
