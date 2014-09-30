@@ -142,7 +142,7 @@ contains
        if (n_initial_iter == 0) then
           call error("setup_initial", "Cannot use specific_energy_type='additional' if the number of specific energy iterations is 0")
        end if
-    else if (trim(specific_energy_type)=='initial') then
+    else if (trim(specific_energy_type)/='initial') then
        call error("setup_initial", "specific_energy_type should be 'additional' or 'initial'")
     end if
 
