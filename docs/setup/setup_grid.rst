@@ -35,8 +35,8 @@ Optionally, a specific energy distribution can also be specified in
 where ``specific_energy`` is given in the same format as ``density`` (see
 sections below). By default, the specific energy specified is the *initial*
 specific energy used, and if the number of temperature iterations is not zero
-(see :doc:`setup_conf`) this specific energy gets replaced with the
-consistently self-calculated one in later iterations. If instead you want this
+(see :ref:`convergence`) this specific energy gets replaced with the
+self-consistently calculated one in later iterations. If instead you want this
 specific energy to be *added* to the self-consistently computed one after each
 iteration, see :ref:`initial_specific_energy`.
 
