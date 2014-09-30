@@ -15,6 +15,7 @@ transfer.
    indepth_amr.rst
    logger.rst
    peeloff.rst
+   use_grid_from_disk.rst
 
 
 Finally, the two following topics are reserved for coding ninjas! They explain
