@@ -1,6 +1,5 @@
 import h5py
 
-
 from ..util.decorator import decorator
 
 def on_the_fly_hdf5(f):
