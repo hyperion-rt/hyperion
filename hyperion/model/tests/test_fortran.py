@@ -32,8 +32,6 @@ def test_point_source_outside_grid(tmpdir):
 
 def test_unsorted_spectrum(tmpdir):
 
-    dust = get_test_dust()
-
     m = Model()
     m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
     m.set_n_photons(initial=100, imaging=0)

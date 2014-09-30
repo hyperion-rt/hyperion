@@ -127,7 +127,9 @@ contains
     end if
 
     ! Read in minimum specific energy
-    call mp_read_keyword_vector_auto(input_handle, '/', 'minimum_specific_energy', minimum_specific_energy)
+    if(n_dust > 0) then
+       call mp_read_keyword_vector_auto(input_handle, '/', 'minimum_specific_energy', minimum_specific_energy)
+    end if
 
     ! GRID
 
