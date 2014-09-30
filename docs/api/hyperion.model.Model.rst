@@ -51,6 +51,7 @@ hyperion.model.Model
       ~Model.set_monochromatic
       ~Model.set_minimum_temperature
       ~Model.set_minimum_specific_energy
+      ~Model.set_specific_energy_type
       ~Model.set_n_initial_iterations
       ~Model.set_raytracing
       ~Model.set_max_interactions
@@ -111,6 +112,7 @@ hyperion.model.Model
    .. automethod:: Model.set_monochromatic
    .. automethod:: Model.set_minimum_temperature
    .. automethod:: Model.set_minimum_specific_energy
+   .. automethod:: Model.set_specific_energy_type
    .. automethod:: Model.set_n_initial_iterations
    .. automethod:: Model.set_raytracing
    .. automethod:: Model.set_max_interactions

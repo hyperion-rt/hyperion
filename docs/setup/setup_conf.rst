@@ -34,7 +34,7 @@ can read up more about setting sensible values at :doc:`photon_numbers`.
 
 .. _convergence:
 
-Specific energy calculation
+Specific energy convergence
 ---------------------------
 
 To set the number of initial iterations used to compute the dust specific
@@ -61,6 +61,26 @@ detection, you should make sure that the value for
 stop before converging. When running the main Hyperion code, convergence
 statistics are printed out, and it is made clear when the specific energy has
 converged.
+
+.. _initial_specific_energy:
+
+Initial and additional specific energy
+--------------------------------------
+
+Another option that relates to the specific energy is
+:meth:`~hyperion.model.Model.set_specific_energy_type`. This is used to control
+how any specific energy passed to
+:meth:`~hyperion.model.Model.add_density_grid` is used. By default, the
+specific energy specified is the *initial* specific energy used, and if the
+number of temperature iterations is not zero (see :doc:`setup_conf`) this
+specific energy gets replaced with the consistently self-calculated one in
+later iterations. If instead you want this specific energy to be *added* to the
+self-consistently computed one after each iteration, you can set::
+
+    m.set_specific_energy_type('additional')
+
+This can be used for example if you need to take into account an additional
+source of heating that cannot be modelled by Hyperion.
 
 Raytracing
 ----------
