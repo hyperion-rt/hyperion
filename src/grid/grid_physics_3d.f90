@@ -37,6 +37,7 @@ module grid_physics
   integer(idp),allocatable, public :: last_photon_id(:)
   real(dp),allocatable, public :: specific_energy(:,:)
   real(dp),allocatable, public :: specific_energy_sum(:,:)
+  real(dp),allocatable, public :: specific_energy_additional(:,:)
   real(dp),allocatable, public :: energy_abs_tot(:)
   real(dp),allocatable, public :: minimum_specific_energy(:)
 
@@ -150,7 +151,24 @@ contains
              end do
           end if
 
+          if(trim(specific_energy_type) == 'additional') then
+             allocate(specific_energy_additional(geo%n_cells, n_dust))
+             ! We store a copy of the initial specific energy in a separate
+             ! array, and we set the specific energy to the minimum specific
+             ! energy. After the first iteration, specific_energy will get
+             ! re-calculated and we will then add specific_energy_additional
+             specific_energy_additional = specific_energy
+             do id=1,n_dust
+                specific_energy(:,id) = minimum_specific_energy(id)
+             end do
+          end if
+
+
        else
+
+          if(trim(specific_energy_type) == 'additional') then
+             call error("setup_grid", "cannot specify specific_energy_type since specific_energy was not given")
+          end if
 
           ! Set all specific_energy to minimum requested
           do id=1,n_dust
@@ -300,12 +318,18 @@ contains
     do id=1,n_dust
        specific_energy(:,id) = specific_energy_sum(:,id) * scale / geo%volume
        where(geo%volume == 0._dp)
-           specific_energy(:,id) = 0._dp
+          specific_energy(:,id) = 0._dp
        end where
     end do
 
     if(count(specific_energy==0.and.density>0.) > 0) then
        write(*,'(" [update_energy_abs] ",I0," cells have no energy")') count(specific_energy==0.and.density>0.)
+    end if
+
+    ! Add in additional source of heating
+    if(trim(specific_energy_type) == 'additional') then
+       if(main_process()) write(*,'(" [grid_physics] adding additional heating source")')
+       specific_energy = specific_energy + specific_energy_additional
     end if
 
     call update_energy_abs_tot()

@@ -42,9 +42,14 @@ energy, use e.g.::
 
     m.set_n_initial_iterations(5)
 
-Note that this can also be zero, in which case the temperature is not solved, and the radiative transfer calculation proceeds to the image/SED calculation (this is useful for example if one is making images at wavelengths where thermal emission is negligible, or if a specific energy/temperature was specified as input).
+Note that this can also be zero, in which case the temperature is not solved,
+and the radiative transfer calculation proceeds to the image/SED calculation
+(this is useful for example if one is making images at wavelengths where
+thermal emission is negligible, or if a specific energy/temperature was
+specified as input).
 
-It is also possible to tell the radiative transfer algorithm to exit these iterations early if the specific energy has converged. To do this, use::
+It is also possible to tell the radiative transfer algorithm to exit these
+iterations early if the specific energy has converged. To do this, use::
 
     m.set_convergence(True, percentile=100., absolute=0., relative=0.)
 
@@ -61,6 +66,26 @@ detection, you should make sure that the value for
 stop before converging. When running the main Hyperion code, convergence
 statistics are printed out, and it is made clear when the specific energy has
 converged.
+
+.. _initial_specific_energy:
+
+Initial and additional specific energy
+--------------------------------------
+
+Another option that is related to the specific energy is
+:meth:`~hyperion.model.Model.set_specific_energy_type`. This is used to control
+how any specific energy passed to
+:meth:`~hyperion.model.Model.add_density_grid` is used. By default, the
+specific energy specified is the *initial* specific energy used, and if the
+number of temperature iterations is not zero (see :ref:`convergence`) this
+specific energy gets replaced with the self-consistently calculated one in
+later iterations. If instead you want this specific energy to be *added* to the
+self-consistently computed one after each iteration, you can set::
+
+    m.set_specific_energy_type('additional')
+
+This can be used for example if you need to take into account an additional
+source of heating that cannot be modelled by Hyperion.
 
 Raytracing
 ----------

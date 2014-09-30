@@ -44,4 +44,6 @@ module settings
 
   real(dp) :: propagation_check_frequency
 
+  character(len=20) :: specific_energy_type
+
 end module settings

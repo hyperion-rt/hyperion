@@ -33,12 +33,12 @@ Optionally, a specific energy distribution can also be specified in
     m.add_density_grid(density, dust, specific_energy=specific_energy)
 
 where ``specific_energy`` is given in the same format as ``density`` (see
-sections below).
-
-.. note:: Specifying a specific energy distribution is only useful if the
-          number of initial iterations for the RT code is set to zero
-          (see :doc:`setup_conf`), otherwise the input specific energy
-          will be overwritten with the self-consistently computed one.
+sections below). By default, the specific energy specified is the *initial*
+specific energy used, and if the number of temperature iterations is not zero
+(see :ref:`convergence`) this specific energy gets replaced with the
+self-consistently calculated one in later iterations. If instead you want this
+specific energy to be *added* to the self-consistently computed one after each
+iteration, see :ref:`initial_specific_energy`.
 
 Hyperion currently supports six types of 3-d grids:
 

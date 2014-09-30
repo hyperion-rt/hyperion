@@ -77,9 +77,9 @@ contains
 
     call mp_read_keyword(input_handle, '/', 'kill_on_absorb', kill_on_absorb)
     if(mp_exists_keyword(input_handle, '/', 'kill_on_scatter')) then
-        call mp_read_keyword(input_handle, '/', 'kill_on_scatter', kill_on_scatter)
+       call mp_read_keyword(input_handle, '/', 'kill_on_scatter', kill_on_scatter)
     else
-        kill_on_scatter = .false.
+       kill_on_scatter = .false.
     end if
 
     call mp_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_scattering)
@@ -127,6 +127,21 @@ contains
     end if
 
     ! GRID
+
+    ! Read in specific energy type
+    if(mp_exists_keyword(input_handle, '/', 'specific_energy_type')) then
+       call mp_read_keyword(input_handle, '/', 'specific_energy_type', specific_energy_type)
+    else
+       specific_energy_type = 'initial'
+    end if
+
+    if (trim(specific_energy_type) == 'additional') then
+       if (n_initial_iter == 0) then
+          call error("setup_initial", "Cannot use specific_energy_type='additional' if the number of specific energy iterations is 0")
+       end if
+    else if (trim(specific_energy_type)/='initial') then
+       call error("setup_initial", "specific_energy_type should be 'additional' or 'initial'")
+    end if
 
     g_geometry = mp_open_group(input_handle, '/Grid/Geometry')
     call setup_grid_geometry(g_geometry)

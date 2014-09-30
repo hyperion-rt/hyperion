@@ -24,6 +24,9 @@ New features
 
 - Added the ability to use input files in ``ModelOutput.get_quantities``. [#106]
 
+- Added the ability to control the interpretation of the specific energy passed
+  to ``add_density_grid`` using the ``set_specific_energy_type`` argument. [#117]
+
 Bug fixes
 ~~~~~~~~~
 
