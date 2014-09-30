@@ -126,11 +126,6 @@ contains
        if(use_raytracing) call mp_read_keyword(input_handle, '/', 'n_ray_photons_dust', n_raytracing_photons_dust)
     end if
 
-    ! Read in minimum specific energy
-    if(n_dust > 0) then
-       call mp_read_keyword_vector_auto(input_handle, '/', 'minimum_specific_energy', minimum_specific_energy)
-    end if
-
     ! GRID
 
     ! Read in specific energy type

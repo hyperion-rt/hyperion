@@ -44,8 +44,6 @@ module settings
 
   real(dp) :: propagation_check_frequency
 
-  real(dp),allocatable :: minimum_specific_energy(:)
-  
   character(len=20) :: specific_energy_type
 
 end module settings

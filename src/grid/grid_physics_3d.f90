@@ -39,6 +39,7 @@ module grid_physics
   real(dp),allocatable, public :: specific_energy_sum(:,:)
   real(dp),allocatable, public :: specific_energy_additional(:,:)
   real(dp),allocatable, public :: energy_abs_tot(:)
+  real(dp),allocatable, public :: minimum_specific_energy(:)
 
   real(dp), allocatable,target, public :: alpha_rosseland(:)
 
@@ -124,6 +125,11 @@ contains
           allocate(density_original(geo%n_cells, n_dust))
           density_original = density
        end if
+
+       if(main_process()) write(*,'(" [grid_physics] reading minimum_specific_energy")')
+
+       ! Read in minimum specific energy
+       call mp_read_keyword_vector_auto(group, '.', 'minimum_specific_energy', minimum_specific_energy)
 
        if(grid_exists(group, 'specific_energy')) then
 
