@@ -1,5 +1,3 @@
-import h5py
-
 from ..util.otf_hdf5 import on_the_fly_hdf5
 
 

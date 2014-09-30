@@ -2,6 +2,7 @@
 # file. This is necessary because h5py has issues with links pointing to
 # groups that are in open files.
 
+import h5py
 from ..util.decorator import decorator
 
 

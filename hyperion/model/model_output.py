@@ -3,7 +3,6 @@ from __future__ import print_function, division
 import os
 import warnings
 
-import h5py
 import numpy as np
 
 from ..util.constants import c, pi
