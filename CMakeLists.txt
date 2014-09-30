@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 project(hyperion)
 enable_language(Fortran)
 
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
+
 message(STATUS "System name: ${CMAKE_SYSTEM_NAME}")
 
 # Make sure that the default is a Release.
@@ -17,10 +19,10 @@ option(ENABLE_PROFILING "Enable profiling." OFF)
 option(ENABLE_STATIC "Enable static compilation." OFF)
 
 # Find the HDF5 packages.
-find_package(HDF5 REQUIRED COMPONENTS Fortran)
+find_package(HDF5 REQUIRED COMPONENTS Fortran Fortran_HL HL)
 include_directories(${HDF5_INCLUDE_DIRS})
 message(STATUS "HDF5 include dirs: ${HDF5_INCLUDE_DIRS}")
-set(MANDATORY_LIBRARIES ${HDF5_Fortran_LIBRARIES})
+set(MANDATORY_LIBRARIES ${HDF5_LIBRARIES})
 message(STATUS "HDF5 is parallel: ${HDF5_IS_PARALLEL}")
 
 # MPI setup.
