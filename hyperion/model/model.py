@@ -858,7 +858,7 @@ class Model(FreezableClass, RunConf):
             else:
                 self.grid = deepcopy(grid)
 
-    def use_grid_from_disk(self, filename, path='/', dust=[]):
+    def use_grid_from_file(self, filename, path='/', dust=[]):
         """
         Use a grid from disk and don't read it in.
         """
