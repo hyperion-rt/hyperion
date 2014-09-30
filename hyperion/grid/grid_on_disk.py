@@ -1,20 +1,6 @@
 import h5py
 
-from ..util.decorator import decorator
-
-def on_the_fly_hdf5(f):
-    return decorator(_on_the_fly_hdf5, f)
-
-
-def _on_the_fly_hdf5(f, *args, **kwargs):
-    preset = args[0].file is not None
-    if not preset:
-        args[0].file = h5py.File(args[0].filename, 'r')
-    results = f(*args, **kwargs)
-    if not preset:
-        args[0].file.close()
-        args[0].file = None
-    return results
+from ..util.otf_hdf5 import on_the_fly_hdf5
 
 
 class GridOnDisk(object):
