@@ -129,7 +129,7 @@ contains
     ! GRID
 
     ! Read in specific energy type
-    if(mp_exists_keyword(input_handle, '/', 'sample_sources_evenly')) then
+    if(mp_exists_keyword(input_handle, '/', 'specific_energy_type')) then
        call mp_read_keyword(input_handle, '/', 'specific_energy_type', specific_energy_type)
     else
        specific_energy_type = 'initial'
