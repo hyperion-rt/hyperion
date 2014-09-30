@@ -861,6 +861,16 @@ class Model(FreezableClass, RunConf):
     def use_grid_from_file(self, filename, path='/', dust=[]):
         """
         Use a grid from disk and don't read it in.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file to read from
+        path : str, optional
+            The path where the grid is located inside the file
+        dust : list, optional
+            A list containing a dust file or object for each dust index in the
+            grid
         """
         self.grid = GridOnDisk(filename, path=path)
         self.dust = dust

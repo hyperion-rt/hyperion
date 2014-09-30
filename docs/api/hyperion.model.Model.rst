@@ -73,6 +73,12 @@ hyperion.model.Model
       ~Model.write
       ~Model.run
 
+   .. rubric:: Using grids from files
+
+   .. autosummary::
+
+      ~Model.use_grid_from_file
+
    .. rubric:: Re-using previous models
 
    .. autosummary::
@@ -129,6 +135,8 @@ hyperion.model.Model
 
    .. automethod:: Model.write
    .. automethod:: Model.run
+
+   .. automethod:: Model.use_grid_from_file
 
    .. automethod:: Model.read
    .. automethod:: Model.use_geometry

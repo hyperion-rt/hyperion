@@ -3,7 +3,8 @@ Using grids from HDF5 files
 
 In the case of large grids, it may in some cases compute once and for all an
 HDF5 file containing the grid geometry and quantities, and avoid reading it
-when setting up the rest of the model. This can be done using e.g.::
+when setting up the rest of the model. This can be done using
+:meth:`~hyperion.model.Model.use_grid_from_file`, for example::
 
     from hyperion.model import Model
     m = Model()
