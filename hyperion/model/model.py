@@ -679,9 +679,12 @@ class Model(FreezableClass, RunConf):
 
             else:
 
-                _minimum_specific_energy = [0. for i in range(_n_dust)]
+                _minimum_specific_energy = None
 
-            if not isinstance(self.grid, GridOnDisk):
+            if isinstance(self.grid, GridOnDisk):
+                if _minimum_specific_energy is not None:
+                    raise ValueError("Cannot set minimum specific energy or temperature when using grid from disk")
+            elif _minimum_specific_energy is not None:
                 g_grid['Quantities'].attrs["minimum_specific_energy"] = [float(x) for x in _minimum_specific_energy]
 
         else:
