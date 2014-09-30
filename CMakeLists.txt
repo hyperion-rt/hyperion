@@ -38,11 +38,11 @@ message(STATUS "Compiler id: ${CMAKE_Fortran_COMPILER_ID}")
 
 # Flags setup.
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
-    # gfortran.
-    set(HYPERION_Fortran_FLAGS "-g -ffree-line-length-none")
     # There are no special flags for profiling or static compilation when using gfortran.
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${HYPERION_Fortran_FLAGS}")
-    set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${HYPERION_Fortran_FLAGS} -Wall -fbounds-check")
+    # Base flags used in Debug and Release.
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -g -ffree-line-length-none")
+    # Debug-specific flags.
+    set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -Wall -fbounds-check")
     # POSIX module setup.
     set(HYPERION_posix_module_serial "posix_default.f90")
     set(HYPERION_posix_module_mpi "posix_default.f90")
@@ -58,7 +58,7 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
         set(HYPERION_Fortran_FLAGS "${HYPERION_Fortran_FLAGS} --static")
     endif()
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${HYPERION_Fortran_FLAGS}")
-    set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${HYPERION_Fortran_FLAGS} -check all -warn all -warn nodec -warn interfaces -gen_interfaces -traceback -g")
+    set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -check all -warn all -warn nodec -warn interfaces -gen_interfaces -traceback -g")
     # POSIX module setup.
     set(HYPERION_posix_module_serial "posix_default.f90")
     set(HYPERION_posix_module_mpi "posix_default.f90")
@@ -66,8 +66,11 @@ else()
     message(FATAL_ERROR "Could not determine the compiler, or compiler is unsupported.")
 endif()
 
-message(STATUS "Compiler flags: ${CMAKE_Fortran_FLAGS}")
-message(STATUS "Debug compiler flags: ${CMAKE_Fortran_FLAGS_DEBUG}")
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    message(STATUS "Release compiler flags: ${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_RELEASE}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "Debug compiler flags: ${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_DEBUG}")
+endif()
 
 set(COMMON_FILES
     fortranlib/src/base_types.f90
