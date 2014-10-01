@@ -129,7 +129,12 @@ contains
        if(main_process()) write(*,'(" [grid_physics] reading minimum_specific_energy")')
 
        ! Read in minimum specific energy
-       call mp_read_keyword_vector_auto(group, '.', 'minimum_specific_energy', minimum_specific_energy)
+       if(mp_exists_keyword(group, '.', 'minimum_specific_energy')) then
+          call mp_read_keyword_vector_auto(group, '.', 'minimum_specific_energy', minimum_specific_energy)
+       else
+          allocate(minimum_specific_energy(n_dust))
+          minimum_specific_energy = 0.
+       end if
 
        if(grid_exists(group, 'specific_energy')) then
 

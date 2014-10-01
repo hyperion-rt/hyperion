@@ -27,6 +27,9 @@ New features
 - Added the ability to control the interpretation of the specific energy passed
   to ``add_density_grid`` using the ``set_specific_energy_type`` argument. [#117]
 
+- Added the ability to use a grid from an HDF5 file on disk without reading it
+  into the Python code, using ``use_grid_from_file``. [#116]
+
 Bug fixes
 ~~~~~~~~~
 
