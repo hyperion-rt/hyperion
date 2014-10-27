@@ -14,8 +14,9 @@ def _on_the_fly_hdf5(f, *args, **kwargs):
     preset = args[0].file is not None
     if not preset:
         args[0].file = h5py.File(args[0].filename, 'r')
-    results = f(*args, **kwargs)
-    if not preset:
-        args[0].file.close()
-        args[0].file = None
-    return results
+    try:
+        return f(*args, **kwargs)
+    finally:
+        if not preset:
+            args[0].file.close()
+            args[0].file = None
