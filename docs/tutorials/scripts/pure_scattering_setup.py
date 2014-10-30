@@ -42,6 +42,7 @@ i.set_image_limits(-13 * rsun, 13 * rsun, -13. * rsun, 13 * rsun)
 i.set_image_size(256, 256)
 i.set_viewing_angles([60.], [20.])
 i.set_wavelength_index_range(1, 1)
+i.set_stokes(True)
 
 # Set number of photons
 m.set_n_photons(imaging_sources=10000000, imaging_dust=0,
