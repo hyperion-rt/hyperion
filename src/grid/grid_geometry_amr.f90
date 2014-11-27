@@ -187,7 +187,7 @@ contains
     real(dp) :: r
     r = mod(abs(x1 - x2), dx)
     if(r > 0.5_dp * dx) r = dx - r
-    aligned = abs(r / dx) < 1.e-10
+    aligned = abs(r / dx) < 1.e-8
   end function aligned
 
   subroutine setup_grid_geometry(group)

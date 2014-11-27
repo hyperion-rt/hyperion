@@ -38,7 +38,7 @@ class OrionGrid(Grid):
         f = open(filename, 'rb')
         f.seek(offset)
 
-        header = f.readline().strip()
+        header = f.readline().strip().decode('utf-8')
 
         p1 = header.find('((') + 2
         p2 = header.find(',', p1)
@@ -96,7 +96,7 @@ class OrionAMRGrid(AMRGrid):
         AMRGrid.__init__(self)
 
         # Open file
-        f = open('%s/Header' % dirname, 'rb')
+        f = open('%s/Header' % dirname, 'r')
 
         # Read version number
         version = f.readline().strip()
@@ -148,7 +148,7 @@ class OrionAMRGrid(AMRGrid):
 
         # Split into groups of ndim values
         elements = line.replace(' ', '').replace('((', '(').replace('))', ')')[1:-1].split(')(')
-        for level in self.levels:
+        for i, level in enumerate(self.levels):
             level.idxlo = [int(x) for x in elements[3 * i].split(',')]
             level.idxhi = [int(x) for x in elements[3 * i + 1].split(',')]
             level.periodicity = [int(x) for x in elements[3 * i + 2].split(',')]
@@ -247,7 +247,7 @@ def parse_orion(dirname, quantities='density', verbose=False, max_level=None):
     amr_grid = OrionAMRGrid(dirname, quantities=quantities, verbose=verbose, max_level=max_level)
 
     # Read in star particles
-    fs = open('%s/StarParticles' % dirname, 'rb')
+    fs = open('%s/StarParticles' % dirname, 'r')
     fs.readline()
     stars = []
     for line in fs.readlines():
