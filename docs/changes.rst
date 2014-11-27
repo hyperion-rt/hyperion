@@ -30,6 +30,8 @@ New features
 - Added the ability to use a grid from an HDF5 file on disk without reading it
   into the Python code, using ``use_grid_from_file``. [#116]
 
+- Added support for cmake. [#112]
+
 Bug fixes
 ~~~~~~~~~
 
