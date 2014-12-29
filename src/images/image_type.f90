@@ -31,6 +31,13 @@ module type_image
      real(dp), allocatable :: log10_emissivity(:,:)
   end type dust_helper
 
+  type filter
+
+     real(dp) :: n_wav
+     real(dp), allocatable :: nu(:), tr(:)
+
+  end type filter
+
   type image
 
      ! IMAGE PARAMETERS
@@ -98,6 +105,9 @@ module type_image
      integer :: n_dust
 
      integer :: group_id = 999
+
+     logical :: use_filters
+     type(filter), allocatable :: filters(:)
 
   end type image
 
@@ -289,6 +299,19 @@ contains
        call error("image_setup", "unexpected value of io_bytes (should be 4 or 8)")
     end select
 
+    ! Set up filters
+    if(mp_exists_keyword(handle, path, 'use_filters')) then
+       call mp_read_keyword(handle, path, 'use_filters',img%use_filters)
+       if(img%use_filters) then
+          if(img%use_exact_nu) call error("image_setup", "cannot use filters in monochromatic mode")
+          ! TODO: also don't allow if using raytracing
+          ! TODO: set up filters here
+       end if
+    else
+       img%use_filters = .false.
+    end if
+
+
   end subroutine image_setup
 
   subroutine find_sed_bin(img,x_image,y_image,ir)
@@ -371,8 +394,9 @@ contains
     real(dp),intent(in) :: x_image, y_image
     integer,intent(in) :: im ! sub-image to bin into
     real(dp) :: log10_nu_image
-    integer :: ix,iy,ir,inu,io ! Bins
-    integer :: iorig
+    integer :: inu,io ! Bins
+    integer :: iorig, ifilt
+    real(dp) :: transmission
 
     if(img%compute_image.and..not.allocated(img%img)) call error('bin_photon','Image not allocated')
     if(img%compute_sed.and..not.allocated(img%sed)) call error('bin_photon','SED not allocated')
@@ -420,6 +444,32 @@ contains
        io = 1
     end if
 
+    if(img%use_filters) then
+       do ifilt=1,size(img%filters)
+          transmission = interp1d_loglog(img%filters(ifilt)%nu,&
+               &                         img%filters(ifilt)%tr,&
+               &                         p%nu,bounds_error=.false., fill_value=0._dp)
+          if(transmission > 0._dp) then
+             call image_bin_single(img, p, x_image, y_image, im, ifilt, io, transmission)
+          end if
+       end do
+    else
+       call image_bin_single(img, p, x_image, y_image, im, inu, io, 1._dp)
+    end if
+
+  end subroutine image_bin
+
+  subroutine image_bin_single(img,p,x_image,y_image,im,inu,io, transmission)
+
+    implicit none
+
+    type(image),intent(inout)    :: img  ! Image
+    type(photon),intent(in) :: p
+    real(dp),intent(in) :: x_image, y_image
+    integer,intent(in) :: im, inu, io
+    integer :: ix,iy,ir ! Bins
+    real(dp) :: transmission
+
     if(img%n_stokes == 4) then
        img%tmp_stokes = [p%s%i,p%s%q,p%s%u,p%s%v]
     else
@@ -431,9 +481,9 @@ contains
           call find_image_bin(img,x_image,y_image,ix,iy)
           if(ix >= 1 .and. ix <= img%n_x) then
              if(iy >= 1 .and. iy <= img%n_y) then
-                img%img(inu,ix,iy,im,io,:) = img%img(inu,ix,iy,im,io,:) + img%tmp_stokes * p%energy
+                img%img(inu,ix,iy,im,io,:) = img%img(inu,ix,iy,im,io,:) + img%tmp_stokes * p%energy * transmission
                 if(img%uncertainties) then
-                   img%img2(inu,ix,iy,im,io,:) = img%img2(inu,ix,iy,im,io,:) + img%tmp_stokes**2._dp * p%energy**2._dp
+                   img%img2(inu,ix,iy,im,io,:) = img%img2(inu,ix,iy,im,io,:) + (img%tmp_stokes * p%energy * transmission) ** 2._dp
                    img%imgn(inu,ix,iy,im,io,:) = img%imgn(inu,ix,iy,im,io,:) + 1._dp
                 end if
              end if
@@ -442,16 +492,16 @@ contains
        if(img%compute_sed) then
           call find_sed_bin(img,x_image,y_image,ir)
           if(ir >= 1 .and. ir <= img%n_ap) then
-             img%sed(inu,ir,im,io,:) = img%sed(inu,ir,im,io,:) + img%tmp_stokes * p%energy
+             img%sed(inu,ir,im,io,:) = img%sed(inu,ir,im,io,:) + img%tmp_stokes * p%energy * transmission
              if(img%uncertainties) then
-                img%sed2(inu,ir,im,io,:) = img%sed2(inu,ir,im,io,:) + img%tmp_stokes**2._dp * p%energy**2._dp
+                img%sed2(inu,ir,im,io,:) = img%sed2(inu,ir,im,io,:) + (img%tmp_stokes * p%energy * transmission) ** 2._dp
                 img%sedn(inu,ir,im,io,:) = img%sedn(inu,ir,im,io,:) + 1._dp
              end if
           end if
        end if
     end if
 
-  end subroutine image_bin
+  end subroutine image_bin_single
 
   subroutine image_bin_raytraced(img,p,x_image,y_image,im,spectrum)
 
