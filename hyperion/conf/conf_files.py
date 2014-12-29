@@ -735,9 +735,46 @@ class ImageConf(FreezableClass):
         self.set_uncertainties(False)
         self.set_stokes(False)
         self._set_monochromatic(False)
+        self.set_filters(None)
         self._freeze()
 
+    def set_filters(self, filters):
+        """
+        Internally convolve images or SED fluxes with transmission curves.
 
+        Parameters
+        ----------
+        filters : iterable
+            Iterable containing tuples of ``(nu, transmission)`` where ``nu``
+            is an array of frequencies for which the filter is defined, and
+            ``transmission`` indicates the fraction of the energy that is
+            transmitted at each frequency (where 1 indicates that all the
+            radiation is transmitted and 0 indicates that no radiation is
+            transmitted).
+        """
+        self._filters = filters
+
+    def _read_filters(self, group):
+        if 'use_filters' in group.attrs and str2bool(group.attrs['use_filters']):
+            self._filters = []
+            n_filt = group.attrs['n_filt']
+            for ifilter in range(n_filt):
+                filter_data = group['filter_{0:05d}'.format(ifilter)]
+                nu = filter_data['nu']
+                tr = filter_data['tr']
+                self._filters.append((nu, tr))
+        else:
+            self._filters = None
+
+    def _write_filters(self, group):
+        group.attrs['use_filters'] = bool2str(self._filters is not None)
+        if self._filters is not None:
+            group.attrs['n_filt'] = len(self._filters)
+            for ifilter in range(len(self._filters)):
+                print(self._filters[ifilter])
+                group.create_dataset('filter_{0:05d}'.format(ifilter),
+                                     data=np.array(list(zip(*self._filters[ifilter])),
+                                                   dtype=[('nu', float), ('tr', float)]))
 
     def set_output_bytes(self, io_bytes):
         '''
@@ -1057,6 +1094,7 @@ class ImageConf(FreezableClass):
         self._read_track_origin(group)
         self._read_uncertainties(group)
         self._read_stokes(group)
+        self._read_filters(group)
 
     def _write_main_info(self, group):
         group.attrs['compute_sed'] = bool2str(self.sed)
@@ -1075,6 +1113,7 @@ class ImageConf(FreezableClass):
         self._write_track_origin(group)
         self._write_uncertainties(group)
         self._write_stokes(group)
+        self._write_filters(group)
 
 
 class BinnedImageConf(ImageConf):
