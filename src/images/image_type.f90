@@ -173,7 +173,7 @@ contains
     if(mp_exists_keyword(handle, path, 'use_filters')) then
        call mp_read_keyword(handle, path, 'use_filters',img%use_filters)
        if(img%use_filters) then
-          if(img%use_exact_nu) call error("image_setup", "cannot use filters in monochromatic mode")
+          if(use_exact_nu) call error("image_setup", "cannot use filters in monochromatic mode")
           ! TODO: also don't allow if using raytracing
        end if
        call mp_read_keyword(handle, path, 'n_filt',img%n_nu)
