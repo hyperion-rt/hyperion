@@ -42,7 +42,7 @@ class Filter(object):
     @name.setter
     def name(self, value):
         if value is None or isinstance(value, six.string_types):
-            self._name = None
+            self._name = value
         else:
             raise TypeError("name should be a string")
 
@@ -91,6 +91,6 @@ class Filter(object):
         self = cls()
         self.spectral_coord = group[name]['nu'] * u.Hz
         self.transmission = group[name]['tr'] * u.one
-        self.name = group[name].attrs['name']
+        self.name = group[name].attrs['name'].decode('utf-8')
 
         return self

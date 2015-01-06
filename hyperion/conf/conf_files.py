@@ -760,6 +760,8 @@ class ImageConf(FreezableClass):
             self._filters = None
 
     def _write_filters(self, group):
+        if self.n_wav is not None:
+            raise ValueError("Cannot specify both filters and wavelength range")
         group.attrs['use_filters'] = bool2str(len(self._filters) > 0)
         if self._filters is not None:
             group.attrs['n_filt'] = len(self._filters)
