@@ -2,9 +2,9 @@ from __future__ import print_function, division
 
 import numpy as np
 from astropy import log as logger
-from astropy import units as u
 
 from ..util.functions import FreezableClass, bool2str, str2bool, is_numpy_array
+from ..filters import Filter
 
 
 class OutputConf(FreezableClass):
@@ -736,42 +736,26 @@ class ImageConf(FreezableClass):
         self.set_uncertainties(False)
         self.set_stokes(False)
         self._set_monochromatic(False)
-        self.set_filters(None)
+        self._filters = []
         self._freeze()
 
-    def set_filters(self, filters):
+    def add_filter(self, **kwargs):
         """
-        Internally convolve images or SED fluxes with transmission curves.
+        Add a filter to internally convolve images or SED fluxes with
+        transmission curves.
 
-        Parameters
-        ----------
-        filters : iterable
-            Iterable containing tuples of ``(nu, transmission)`` where ``nu``
-            is an array of frequencies for which the filter is defined, and
-            ``transmission`` indicates the fraction of the energy that is
-            transmitted at each frequency (where 1 indicates that all the
-            radiation is transmitted and 0 indicates that no radiation is
-            transmitted).
+        Any keyword arguments are passed to :class:`hyperion.filters.Filter`.
         """
-
-        self._filters = []
-
-        if filters is None:
-            return
-
-        for nu, tr in filters:
-            self._filters.append((nu.to(u.Hz, u.spectral()).value,
-                                  tr.to(u.one).value))
+        filt = Filter(**kwargs)
+        self._filters.append(filt)
+        return filt
 
     def _read_filters(self, group):
         if 'use_filters' in group.attrs and str2bool(group.attrs['use_filters']):
             self._filters = []
             n_filt = group.attrs['n_filt']
             for ifilter in range(n_filt):
-                filter_data = group['filter_{0:05d}'.format(ifilter + 1)]
-                nu = filter_data['nu']
-                tr = filter_data['tr']
-                self._filters.append((nu, tr))
+                self._filters.append(Filter.read(group, 'filter_{0:05d}'.format(ifilter + 1)))
         else:
             self._filters = None
 
@@ -779,10 +763,8 @@ class ImageConf(FreezableClass):
         group.attrs['use_filters'] = bool2str(self._filters is not None)
         if self._filters is not None:
             group.attrs['n_filt'] = len(self._filters)
-            for ifilter in range(len(self._filters)):
-                group.create_dataset('filter_{0:05d}'.format(ifilter + 1),
-                                     data=np.array(list(zip(*self._filters[ifilter])),
-                                                   dtype=[('nu', float), ('tr', float)]))
+            for ifilter, filt in enumerate(self._filters):
+                filt.write(group, 'filter_{0:05d}'.format(ifilter + 1))
 
     def set_output_bytes(self, io_bytes):
         '''

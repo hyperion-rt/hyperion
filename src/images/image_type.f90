@@ -685,7 +685,9 @@ contains
        end select
 
        if(.not.img%use_exact_nu) then
+          call mp_write_keyword(group, 'seds','use_filters',img%use_filters)
           if(img%use_filters) then
+             call mp_write_keyword(group, 'seds','n_filt',size(img%filters))
           else
              call mp_write_keyword(group, 'seds','numin',img%nu_min)
              call mp_write_keyword(group, 'seds','numax',img%nu_max)
@@ -743,7 +745,9 @@ contains
        end select
 
        if(.not.img%use_exact_nu) then
+          call mp_write_keyword(group, 'images','use_filters',img%use_filters)
           if(img%use_filters) then
+             call mp_write_keyword(group, 'images','n_filt',size(img%filters))
           else
              call mp_write_keyword(group, 'images','numin',img%nu_min)
              call mp_write_keyword(group, 'images','numax',img%nu_max)

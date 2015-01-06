@@ -38,17 +38,20 @@ class TestFilters(object):
         s.luminosity = 1.
         s.temperature = 6000.
 
-        filters = []
-        filters.append(([1, 1.1, 1.2, 1.3] * u.micron,
-                        [0., 100., 50, 0.] * u.percent))
-        filters.append(([2, 2.1, 2.2, 2.3, 2.4] * u.micron,
-                        [0., 50, 100, 60, 0.] * u.percent))
-
         i = m.add_peeled_images(sed=True, image=True)
         i.set_viewing_angles([1., 2., 3.], [1., 2., 3.])
         i.set_image_limits(-1., 1., -1., 1.)
         i.set_image_size(10, 20)
-        i.set_filters(filters)
+        
+        f1 = i.add_filter()
+        f1.name = 'F1'
+        f1.spectral_coord = [1, 1.1, 1.2, 1.3] * u.micron
+        f1.transmission = [0., 100., 50, 0.] * u.percent
+        
+        f2 = i.add_filter()
+        f2.name = 'F2'
+        f2.spectral_coord = [2, 2.1, 2.2, 2.3, 2.4] * u.micron
+        f2.transmission = [0., 50, 100, 60, 0.] * u.percent
 
         m.set_n_initial_iterations(0)
 
@@ -64,7 +67,13 @@ class TestFilters(object):
 
     def test_image_wav(self):
         image = self.m.get_image()
-        assert image.wav == ()
+        assert image.nu is None
+        assert image.wav is None
+
+    def test_sed_wav(self):
+        sed = self.m.get_sed()
+        assert sed.nu is None
+        assert sed.wav is None
         
     def test_image_shape(self):
         image = self.m.get_image()
