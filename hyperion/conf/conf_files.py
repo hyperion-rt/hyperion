@@ -760,7 +760,7 @@ class ImageConf(FreezableClass):
             self._filters = None
 
     def _write_filters(self, group):
-        group.attrs['use_filters'] = bool2str(self._filters is not None)
+        group.attrs['use_filters'] = bool2str(len(self._filters) > 0)
         if self._filters is not None:
             group.attrs['n_filt'] = len(self._filters)
             for ifilter, filt in enumerate(self._filters):
