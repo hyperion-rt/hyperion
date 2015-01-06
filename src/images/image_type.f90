@@ -162,6 +162,8 @@ contains
     real(dp) :: wav_min, wav_max
     integer :: io_bytes
     logical :: compute_stokes
+    integer :: ig, n_filt
+    character(len=100) :: group_name
 
     img%n_view = n_view
     img%n_sources = n_sources
@@ -305,7 +307,13 @@ contains
        if(img%use_filters) then
           if(img%use_exact_nu) call error("image_setup", "cannot use filters in monochromatic mode")
           ! TODO: also don't allow if using raytracing
-          ! TODO: set up filters here
+          call mp_read_keyword(handle, path, 'n_filt',n_filt)
+          allocate(img%filters(n_filt))
+          do ig=1,n_filt
+            write(group_name, '("filter_",I5.5)') ig
+            call mp_table_read_column_auto(handle, group_name, 'nu', img%filters(ig)%nu)
+            call mp_table_read_column_auto(handle, group_name, 'tr', img%filters(ig)%tr)
+          end do
        end if
     else
        img%use_filters = .false.

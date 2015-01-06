@@ -759,7 +759,7 @@ class ImageConf(FreezableClass):
             self._filters = []
             n_filt = group.attrs['n_filt']
             for ifilter in range(n_filt):
-                filter_data = group['filter_{0:05d}'.format(ifilter)]
+                filter_data = group['filter_{0:05d}'.format(ifilter + 1)]
                 nu = filter_data['nu']
                 tr = filter_data['tr']
                 self._filters.append((nu, tr))
@@ -772,7 +772,7 @@ class ImageConf(FreezableClass):
             group.attrs['n_filt'] = len(self._filters)
             for ifilter in range(len(self._filters)):
                 print(self._filters[ifilter])
-                group.create_dataset('filter_{0:05d}'.format(ifilter),
+                group.create_dataset('filter_{0:05d}'.format(ifilter + 1),
                                      data=np.array(list(zip(*self._filters[ifilter])),
                                                    dtype=[('nu', float), ('tr', float)]))
 
