@@ -11,3 +11,4 @@ config.status
 htmlcov
 *.rtin
 *.rtout
+build_cmake

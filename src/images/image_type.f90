@@ -169,7 +169,20 @@ contains
     img%n_sources = n_sources
     img%n_dust = n_dust
 
-    call mp_read_keyword(handle, path, 'n_wav',img%n_nu)
+    ! Set up filters
+    if(mp_exists_keyword(handle, path, 'use_filters')) then
+       call mp_read_keyword(handle, path, 'use_filters',img%use_filters)
+       if(img%use_filters) then
+          if(img%use_exact_nu) call error("image_setup", "cannot use filters in monochromatic mode")
+          ! TODO: also don't allow if using raytracing
+       end if
+       call mp_read_keyword(handle, path, 'n_filt',img%n_nu)
+    else
+       img%use_filters = .false.
+       call mp_read_keyword(handle, path, 'n_wav',img%n_nu)
+    end if
+
+    if(img%n_nu < 1) call error("image_setup", "n_nu should be >= 1")
 
     if(mp_exists_keyword(handle, path, 'compute_stokes')) then
        call mp_read_keyword(handle, path, 'compute_stokes',compute_stokes)
@@ -243,14 +256,26 @@ contains
 
        img%use_exact_nu = .false.
 
-       call mp_read_keyword(handle, path, 'wav_min',wav_min)
-       call mp_read_keyword(handle, path, 'wav_max',wav_max)
+       if(.not.img%use_filters) then
 
-       img%nu_min = c_cgs / (wav_max * 1.e-4)
-       img%nu_max = c_cgs / (wav_min * 1.e-4)
+          call mp_read_keyword(handle, path, 'wav_min',wav_min)
+          call mp_read_keyword(handle, path, 'wav_max',wav_max)
 
-       img%log10_nu_min = log10(img%nu_min)
-       img%log10_nu_max = log10(img%nu_max)
+          img%nu_min = c_cgs / (wav_max * 1.e-4)
+          img%nu_max = c_cgs / (wav_min * 1.e-4)
+
+          img%log10_nu_min = log10(img%nu_min)
+          img%log10_nu_max = log10(img%nu_max)
+
+       else
+
+          allocate(img%filters(img%n_nu))
+          do ig=1,img%n_nu
+             write(group_name, '("filter_",I5.5)') ig
+             call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'nu', img%filters(ig)%nu)
+             call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'tr', img%filters(ig)%tr)
+          end do
+       end if
 
     end if
 
@@ -300,25 +325,6 @@ contains
     case default
        call error("image_setup", "unexpected value of io_bytes (should be 4 or 8)")
     end select
-
-    ! Set up filters
-    if(mp_exists_keyword(handle, path, 'use_filters')) then
-       call mp_read_keyword(handle, path, 'use_filters',img%use_filters)
-       if(img%use_filters) then
-          if(img%use_exact_nu) call error("image_setup", "cannot use filters in monochromatic mode")
-          ! TODO: also don't allow if using raytracing
-          call mp_read_keyword(handle, path, 'n_filt',n_filt)
-          allocate(img%filters(n_filt))
-          do ig=1,n_filt
-            write(group_name, '("filter_",I5.5)') ig
-            call mp_table_read_column_auto(handle, group_name, 'nu', img%filters(ig)%nu)
-            call mp_table_read_column_auto(handle, group_name, 'tr', img%filters(ig)%tr)
-          end do
-       end if
-    else
-       img%use_filters = .false.
-    end if
-
 
   end subroutine image_setup
 
@@ -679,8 +685,11 @@ contains
        end select
 
        if(.not.img%use_exact_nu) then
-          call mp_write_keyword(group, 'seds','numin',img%nu_min)
-          call mp_write_keyword(group, 'seds','numax',img%nu_max)
+          if(img%use_filters) then
+          else
+             call mp_write_keyword(group, 'seds','numin',img%nu_min)
+             call mp_write_keyword(group, 'seds','numax',img%nu_max)
+          end if
        end if
        call mp_write_keyword(group, 'seds','apmin',img%ap_min)
        call mp_write_keyword(group, 'seds','apmax',img%ap_max)
@@ -734,8 +743,11 @@ contains
        end select
 
        if(.not.img%use_exact_nu) then
-          call mp_write_keyword(group, 'images','numin',img%nu_min)
-          call mp_write_keyword(group, 'images','numax',img%nu_max)
+          if(img%use_filters) then
+          else
+             call mp_write_keyword(group, 'images','numin',img%nu_min)
+             call mp_write_keyword(group, 'images','numax',img%nu_max)
+          end if
        end if
        call mp_write_keyword(group, 'images','xmin',img%x_min)
        call mp_write_keyword(group, 'images','xmax',img%x_max)

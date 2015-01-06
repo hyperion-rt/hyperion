@@ -2,6 +2,7 @@ from __future__ import print_function, division
 
 import numpy as np
 from astropy import log as logger
+from astropy import units as u
 
 from ..util.functions import FreezableClass, bool2str, str2bool, is_numpy_array
 
@@ -752,7 +753,15 @@ class ImageConf(FreezableClass):
             radiation is transmitted and 0 indicates that no radiation is
             transmitted).
         """
-        self._filters = filters
+
+        self._filters = []
+
+        if filters is None:
+            return
+
+        for nu, tr in filters:
+            self._filters.append((nu.to(u.Hz, u.spectral()).value,
+                                  tr.to(u.one).value))
 
     def _read_filters(self, group):
         if 'use_filters' in group.attrs and str2bool(group.attrs['use_filters']):
@@ -771,7 +780,6 @@ class ImageConf(FreezableClass):
         if self._filters is not None:
             group.attrs['n_filt'] = len(self._filters)
             for ifilter in range(len(self._filters)):
-                print(self._filters[ifilter])
                 group.create_dataset('filter_{0:05d}'.format(ifilter + 1),
                                      data=np.array(list(zip(*self._filters[ifilter])),
                                                    dtype=[('nu', float), ('tr', float)]))
@@ -1074,6 +1082,9 @@ class ImageConf(FreezableClass):
     def _read_viewing_info(self, group):
         pass
 
+    def _validate_viewing_info(self):
+        pass
+
     def _write_viewing_info(self, group):
         pass
 
@@ -1085,16 +1096,21 @@ class ImageConf(FreezableClass):
         if self.image:
             self._read_image_size(group)
             self._read_image_limits(group)
+
         self._read_monochromatic(group)
+
         if self._monochromatic:
             self._read_wavelength_index_range(group)
         else:
-            self._read_wavelength_range(group)
+            if 'use_filters' in group.attrs and group.attrs['use_filters']:
+                self._read_filters(group)
+            else:
+                self._read_wavelength_range(group)
+
         self._read_output_bytes(group)
         self._read_track_origin(group)
         self._read_uncertainties(group)
         self._read_stokes(group)
-        self._read_filters(group)
 
     def _write_main_info(self, group):
         group.attrs['compute_sed'] = bool2str(self.sed)
@@ -1104,16 +1120,21 @@ class ImageConf(FreezableClass):
         if self.image:
             self._write_image_size(group)
             self._write_image_limits(group)
+
         self._write_monochromatic(group)
+
         if self._monochromatic:
             self._write_wavelength_index_range(group)
         else:
-            self._write_wavelength_range(group)
+            if len(self._filters) > 0:
+                self._write_filters(group)
+            else:
+                self._write_wavelength_range(group)
+
         self._write_output_bytes(group)
         self._write_track_origin(group)
         self._write_uncertainties(group)
         self._write_stokes(group)
-        self._write_filters(group)
 
 
 class BinnedImageConf(ImageConf):
