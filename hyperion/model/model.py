@@ -422,6 +422,9 @@ class Model(FreezableClass, RunConf):
         # Read in runtime configuration
         self.read_run_conf(g_par)
 
+        # Close the file
+        f.close()
+
     def use_image_config(self, filename):
         '''
         Use image configuration from an existing output or input file
@@ -455,6 +458,9 @@ class Model(FreezableClass, RunConf):
         for peeled in g_image['Peeled']:
             self.peeled_output.append(PeeledImageConf.read(g_image['Peeled'][peeled]))
 
+        # Close the file
+        f.close()
+
     def use_output_config(self, filename):
         '''
         Use output configuration from an existing output or input file
@@ -479,6 +485,9 @@ class Model(FreezableClass, RunConf):
 
         # Read in output configuration
         self.conf.output.read(g_output)
+
+        # Close the file
+        f.close()
 
     def write(self, filename=None, compression=True, copy=True,
               absolute_paths=False, wall_dtype=float,
