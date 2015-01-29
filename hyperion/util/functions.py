@@ -182,10 +182,10 @@ def B_nu(nu, T):
     x = h * nu / k / T
     f = np.zeros(nu.shape)
 
-    main = (1.e-14 <= x) & (x < MAX_FLOAT)
+    main = (1.e-8 <= x) & (x < MAX_FLOAT)
     f[main] = 2. * h * nu[main] ** 3. / c ** 2. / (np.exp(x[main]) - 1.)
 
-    small = x < 1.e-14
+    small = x < 1.e-8
     f[small] = 2. * h * nu[small] ** 3. / c ** 2. / x[small]
 
     return f
