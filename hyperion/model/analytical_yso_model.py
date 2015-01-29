@@ -423,8 +423,11 @@ class AnalyticalYSOModel(Model):
                         [envelope.rmax for envelope in self.envelopes] +
                         [ambient.rmax for ambient in self.ambients])
         rmax = _max_none(*rmax_values)
-
-        return rmin, rmax
+        
+        if rmax >= rmin:
+            return rmin, rmax
+        else:  # No dust
+            return self.star.radius, self.star.radius
 
     def set_cylindrical_polar_grid_auto(self, n_w, n_z, n_phi,
                                         wmax=None, zmax=None, min_spacing=1.e-8):
