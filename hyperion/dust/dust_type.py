@@ -1,3 +1,14 @@
+##############################################################################
+#
+#  File format versions:
+#
+#  1: initial version
+#
+#  2: now contains reciprocal planck opacity and rosseland opacity
+#     previous rosseland opacity was actually reciprocal planck opacity
+#
+##############################################################################
+
 from __future__ import print_function, division
 
 import os
@@ -5,13 +16,15 @@ import hashlib
 
 import h5py
 import numpy as np
+from astropy import log as logger
+from astropy.extern import six
 
 from ..version import __version__
 
 from ..util.constants import c
 from ..util.functions import FreezableClass
 from ..util.interpolate import interp1d_fast_loglog
-from astropy import log as logger
+from ..util.integrate import integrate_loglog
 
 from .optical_properties import OpticalProperties
 from .emissivities import Emissivities
@@ -49,8 +62,8 @@ class SphericalDust(FreezableClass):
         self.md5 = None
 
         self.optical_properties = OpticalProperties()
-        self.emissivities = Emissivities()
         self.mean_opacities = MeanOpacities()
+        self.emissivities = Emissivities()
 
         self.set_sublimation_specific_energy('no', 0.)
 
@@ -101,8 +114,9 @@ class SphericalDust(FreezableClass):
         temp_max : float, optional
             The maximum temperature to calculate the emissivities for
         '''
-        self.emissivities.set_lte(self.optical_properties, n_temp=n_temp,
-                                  temp_min=temp_min, temp_max=temp_max)
+        self.mean_opacities.compute(self.optical_properties, n_temp=n_temp,
+                                    temp_min=temp_min, temp_max=temp_max)
+        self.emissivities.set_lte(self.optical_properties, self.mean_opacities)
 
     def plot(self, filename):
 
@@ -124,15 +138,13 @@ class SphericalDust(FreezableClass):
         plt.rc('axes', linewidth=0.5)
         plt.rc('patch', linewidth=0.5)
 
+        # Compute mean opacities if not already existent
+        self._compute_mean_opacities()
+
         # Check that emissivities are set (before computing mean opacities)
         if not self.emissivities.all_set():
             logger.info("Computing emissivities assuming LTE")
-            self.emissivities.set_lte(self.optical_properties)
-
-        # Compute mean opacities if not already existent
-        if not self.mean_opacities.all_set():
-            logger.info("Computing mean opacities")
-            self.mean_opacities.compute(self.emissivities, self.optical_properties)
+            self.emissivities.set_lte(self.optical_properties, self.mean_opacities)
 
         # Initialize figure
         fig = plt.figure(figsize=(10, 12))
@@ -140,11 +152,11 @@ class SphericalDust(FreezableClass):
         # Plot optical properties
         fig = self.optical_properties.plot(fig, [421, 423, 424, 425, 426])
 
-        # Plot emissivities
-        fig = self.emissivities.plot(fig, 427)
-
         # Plot mean opacities
-        fig = self.mean_opacities.plot(fig, 428)
+        fig = self.mean_opacities.plot(fig, 427)
+
+        # Plot emissivities
+        fig = self.emissivities.plot(fig, 428)
 
         # Adjust spacing between subplots
         fig.subplots_adjust(left=0.08, right=0.92, wspace=0.22, hspace=0.30)
@@ -223,6 +235,10 @@ class SphericalDust(FreezableClass):
         if self.sublimation_mode in ['slow', 'fast', 'cap']:
             group.attrs['sublimation_specific_energy'] = self.sublimation_energy
 
+    def _compute_mean_opacities(self):
+        if not self.mean_opacities.all_set():
+            self.mean_opacities.compute(self.optical_properties)
+
     def write(self, filename, compression=True):
         '''
         Write out to a standard dust file, including calculations of the mean
@@ -232,23 +248,22 @@ class SphericalDust(FreezableClass):
         # Check that the optical properties have been set
         self.optical_properties.ensure_all_set()
 
+        # Compute mean opacities if not already existent
+        self._compute_mean_opacities()
+
         # Check that emissivities are set (before computing mean opacities)
         if not self.emissivities.all_set():
             logger.info("Computing emissivities assuming LTE")
-            self.emissivities.set_lte(self.optical_properties)
-
-        # Compute mean opacities if not already existent
-        if not self.mean_opacities.all_set():
-            self.mean_opacities.compute(self.emissivities, self.optical_properties)
+            self.emissivities.set_lte(self.optical_properties, self.mean_opacities)
 
         # Create dust table set
-        if isinstance(filename, basestring):
+        if isinstance(filename, six.string_types):
             dt = h5py.File(filename, 'w')
         else:
             dt = filename
 
         # Add standard keywords to header
-        dt.attrs['version'] = 1
+        dt.attrs['version'] = 2
         dt.attrs['type'] = 1
         dt.attrs['python_version'] = np.string_(__version__)
         if self.md5:
@@ -279,7 +294,7 @@ class SphericalDust(FreezableClass):
 
         from ..util.functions import asstr
 
-        if isinstance(filename, basestring):
+        if isinstance(filename, six.string_types):
 
             # Check file exists
             if not os.path.exists(filename):
@@ -296,8 +311,8 @@ class SphericalDust(FreezableClass):
             close = False
 
         # Check version and type
-        if dt.attrs['version'] != 1:
-            raise Exception("Version should be 1")
+        if dt.attrs['version'] not in [1, 2]:
+            raise Exception("Version should be 1 or 2")
         if dt.attrs['type'] != 1:
             raise Exception("Type should be 1")
         if 'asciimd5' in dt.attrs:
@@ -309,7 +324,11 @@ class SphericalDust(FreezableClass):
         self.optical_properties.from_hdf5_group(dt)
 
         # Read in the planck and rosseland mean opacities
-        self.mean_opacities.from_hdf5_group(dt)
+        if dt.attrs['version'] == 1:
+            logger.warn("Version 1 dust file detected - discarding mean opacities and recomputing them")
+            self.mean_opacities.compute()
+        else:
+            self.mean_opacities.from_hdf5_group(dt)
 
         # Read in emissivities
         self.emissivities.from_hdf5_group(dt)
@@ -318,6 +337,80 @@ class SphericalDust(FreezableClass):
         if close:
             dt.close()
             self._file = (filename, self.hash())
+
+    def chi_nu_temperature(self, temperature):
+        self._compute_mean_opacities()
+        return interp1d_fast_loglog(self.mean_opacities.temperature,
+                                    self.mean_opacities.chi_planck,
+                                    temperature,
+                                    bounds_error=True)
+
+    def kappa_nu_temperature(self, temperature):
+        self._compute_mean_opacities()
+        return interp1d_fast_loglog(self.mean_opacities.temperature,
+                                    self.mean_opacities.kappa_planck,
+                                    temperature,
+                                    bounds_error=True)
+
+    def chi_nu_spectrum(self, nu, fnu):
+        "Find the mean opacity to extinction for a spectrum"
+        if nu.max() > self.optical_properties.nu.max() or nu.min() < self.optical_properties.nu.min():
+            raise Exception("Opacity to extinction is not defined at all "
+                            "spectrum frequencies")
+        chi_nu = self.optical_properties.interp_chi_nu(nu)
+        return (integrate_loglog(nu, fnu * chi_nu) /
+                integrate_loglog(nu, fnu))
+
+    def kappa_nu_spectrum(self, nu, fnu):
+        "Find the mean opacity to absorption for a spectrum"
+        if nu.max() > self.optical_properties.nu.max() or nu.min() < self.optical_properties.nu.min():
+            raise Exception("Opacity to absorption is not defined at all "
+                            "spectrum frequencies")
+        kappa_nu = self.optical_properties.interp_kappa_nu(nu)
+        return (integrate_loglog(nu, fnu * kappa_nu) /
+                integrate_loglog(nu, fnu))
+
+    def temperature2specific_energy(self, temperature):
+
+        self._compute_mean_opacities()
+
+        specific_energy = interp1d_fast_loglog(self.mean_opacities.temperature,
+                                               self.mean_opacities.specific_energy,
+                                               temperature,
+                                               bounds_error=False,
+                                               fill_value=np.nan)
+
+        if np.isscalar(temperature):
+            if temperature < self.mean_opacities.temperature[0]:
+                specific_energy = self.mean_opacities.specific_energy[0]
+            elif temperature > self.mean_opacities.temperature[-1]:
+                specific_energy = self.mean_opacities.specific_energy[-1]
+        else:
+            specific_energy[temperature < self.mean_opacities.temperature[0]] = self.mean_opacities.specific_energy[0]
+            specific_energy[temperature > self.mean_opacities.temperature[-1]] = self.mean_opacities.specific_energy[-1]
+
+        return specific_energy
+
+    def specific_energy2temperature(self, specific_energy):
+
+        self._compute_mean_opacities()
+
+        temperature = interp1d_fast_loglog(self.mean_opacities.specific_energy,
+                                           self.mean_opacities.temperature,
+                                           specific_energy,
+                                           bounds_error=False,
+                                           fill_value=np.nan)
+
+        if np.isscalar(specific_energy):
+            if specific_energy < self.mean_opacities.specific_energy[0]:
+                temperature = self.mean_opacities.temperature[0]
+            elif specific_energy > self.mean_opacities.specific_energy[-1]:
+                temperature = self.mean_opacities.temperature[-1]
+        else:
+            temperature[specific_energy < self.mean_opacities.specific_energy[0]] = self.mean_opacities.temperature[0]
+            temperature[specific_energy > self.mean_opacities.specific_energy[-1]] = self.mean_opacities.temperature[-1]
+
+        return temperature
 
 
 class IsotropicDust(SphericalDust):

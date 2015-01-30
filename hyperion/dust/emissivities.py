@@ -9,7 +9,6 @@ from ..util.integrate import integrate_loglog
 from ..util.interpolate import interp1d_fast_loglog
 from ..util.functions import B_nu, FreezableClass, nu_common, \
                                     planck_nu_range, bool2str, is_numpy_array, monotonically_increasing
-from ..util.constants import sigma
 from astropy import log as logger
 
 
@@ -30,17 +29,17 @@ class Emissivities(FreezableClass):
             norm = integrate_loglog(self.nu, self.jnu[:, ivar] / self.nu)
             self.jnu[:, ivar] /= norm
 
-    def set_lte(self, optical_properties, n_temp=1200, temp_min=0.1, temp_max=100000.):
-
-        # Set temperatures to compute LTE emissivities for
-        temperatures = np.logspace(np.log10(temp_min),
-                                   np.log10(temp_max), n_temp)
+    def set_lte(self, optical_properties, mean_opacities):
 
         # Specify that emissivities are LTE
         self.is_lte = True
 
+        # Get temperatures from mean opacities
+        temperature = mean_opacities.temperature
+        specific_energy = mean_opacities.specific_energy
+
         # Set frequency scale
-        planck_nu = planck_nu_range(temp_min, temp_max)
+        planck_nu = planck_nu_range(temperature[0], temperature[-1])
         self.nu = nu_common(planck_nu, optical_properties.nu)
 
         if planck_nu.min() < optical_properties.nu.min():
@@ -57,23 +56,12 @@ class Emissivities(FreezableClass):
 
         # Compute LTE emissivities
         self.var_name = 'specific_energy'
+        self.var = specific_energy
+        self.jnu = np.zeros((len(self.nu), len(temperature)))
 
-        var = np.zeros(temperatures.shape)
-        jnu = np.zeros((len(self.nu), n_temp))
-
-        for it, T in enumerate(temperatures):
-
-            # Find LTE emissivity
-            jnu[:, it] = kappa_nu * B_nu(self.nu, T)
-
-            # Find Planck mean opacity
-            kappa_planck = optical_properties.kappa_planck_spectrum(self.nu, B_nu(self.nu, T))
-
-            # Compute specific energy absorbed
-            var[it] = 4. * sigma * T ** 4. * kappa_planck
-
-        self.var = var
-        self.jnu = jnu
+        # Find LTE emissivities
+        for it, T in enumerate(temperature):
+            self.jnu[:, it] = kappa_nu * B_nu(self.nu, T)
 
     def to_hdf5_group(self, group):
 

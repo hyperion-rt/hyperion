@@ -1,11 +1,15 @@
 from __future__ import print_function, division
 
-from astropy.tests.helper import pytest
+import matplotlib.pyplot as plt
+
 import numpy as np
-from numpy.testing import assert_array_almost_equal_nulp
+from numpy.testing import assert_allclose, assert_array_almost_equal_nulp
+
+from astropy.tests.helper import pytest
 
 from ..optical_properties import OpticalProperties
 from ...util.constants import c
+from ...util.functions import virtual_file
 
 
 def test_init():
@@ -274,3 +278,56 @@ def test_extrapolate_wav():
     o.extrapolate_wav(1., 1.e20)
     assert_array_almost_equal_nulp(o.nu[0], c / 1.e16, 2)
     assert_array_almost_equal_nulp(o.nu[-1], c / 1.e-4, 2)
+
+
+
+def test_io():
+
+    o = OpticalProperties()
+    o.nu = np.logspace(8., 10., 100)
+    o.albedo = np.repeat(0.5, 100)
+    o.chi = np.ones(100)
+    o.mu = [-1., 1.]
+    o.initialize_scattering_matrix()
+
+    f = virtual_file()
+    o.to_hdf5_group(f)
+    o_new = OpticalProperties()
+    o_new.from_hdf5_group(f)
+
+    assert_allclose(o.nu, o_new.nu)
+    assert_allclose(o.chi, o_new.chi)
+    assert_allclose(o.albedo, o_new.albedo)
+    assert_allclose(o.mu, o_new.mu)
+    assert_allclose(o.P1, o_new.P1)
+    assert_allclose(o.P2, o_new.P2)
+    assert_allclose(o.P3, o_new.P3)
+    assert_allclose(o.P4, o_new.P4)
+
+
+def test_plot():
+
+    # Just check that plot runs without crashing
+
+    fig = plt.figure()
+
+    o = OpticalProperties()
+    o.nu = np.logspace(8., 10., 100)
+    o.albedo = np.repeat(0.5, 100)
+    o.chi = np.ones(100)
+    o.mu = [-1., 1.]
+    o.initialize_scattering_matrix()
+    o.plot(fig, [321,322,323,324,325,326])
+
+    plt.close(fig)
+
+def test_hash():
+    
+    o = OpticalProperties()
+    o.nu = np.logspace(8., 10., 100)
+    o.albedo = np.repeat(0.5, 100)
+    o.chi = np.ones(100)
+    o.mu = [-1., 1.]
+    o.initialize_scattering_matrix()
+    
+    assert o.hash() == '649ea51666936e97fbe5d4f2314518d3'
