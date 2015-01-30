@@ -206,7 +206,7 @@ class TestMerge(object):
 
         # The following dust file does not have emissivities and mean
         # opacities since it has never been written to a file
-        self.dust4 = get_test_dust()
+        self.dust4 = get_test_dust(set_emissivities=False)
 
     def teardown_class(self):
         shutil.rmtree(self.tmpdir)

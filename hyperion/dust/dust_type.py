@@ -198,7 +198,7 @@ class SphericalDust(FreezableClass):
             raise Exception("Need to specify a sublimation temperature")
 
         self.sublimation_mode = mode
-        self.sublimation_energy = self.optical_properties._temperature2specific_energy(temperature)
+        self.sublimation_energy = self.temperature2specific_energy(temperature)
 
     def set_sublimation_specific_energy(self, mode, specific_energy=0.):
         '''
@@ -326,7 +326,7 @@ class SphericalDust(FreezableClass):
         # Read in the planck and rosseland mean opacities
         if dt.attrs['version'] == 1:
             logger.warn("Version 1 dust file detected - discarding mean opacities and recomputing them")
-            self.mean_opacities.compute()
+            self.mean_opacities.compute(self.optical_properties)
         else:
             self.mean_opacities.from_hdf5_group(dt)
 

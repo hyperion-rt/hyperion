@@ -17,6 +17,8 @@ module dust_main
   public :: update_optconsts
   public :: chi_planck
   public :: kappa_planck
+  public :: chi_inv_planck
+  public :: kappa_inv_planck
   public :: chi_rosseland
   public :: kappa_rosseland
 
@@ -89,6 +91,20 @@ contains
     real(dp),intent(in) :: specific_energy ! specific energy
     kappa_planck = interp1d_loglog(d(id)%specific_energy,d(id)%kappa_planck,specific_energy)
   end function kappa_planck
+
+  real(dp) function chi_inv_planck(id,specific_energy)
+    implicit none
+    integer,intent(in)  :: id ! dust type
+    real(dp),intent(in) :: specific_energy ! specific energy
+    chi_inv_planck = interp1d_loglog(d(id)%specific_energy,d(id)%chi_inv_planck,specific_energy)
+  end function chi_inv_planck
+
+  real(dp) function kappa_inv_planck(id,specific_energy)
+    implicit none
+    integer,intent(in)  :: id ! dust type
+    real(dp),intent(in) :: specific_energy ! specific energy
+    kappa_inv_planck = interp1d_loglog(d(id)%specific_energy,d(id)%kappa_inv_planck,specific_energy)
+  end function kappa_inv_planck
 
   real(dp) function chi_rosseland(id,specific_energy)
     implicit none

@@ -45,6 +45,8 @@ module type_dust
      real(dp),allocatable :: log10_specific_energy(:) ! Energy absorbed per unit mass [Log10]
      real(dp),allocatable :: chi_planck(:)       ! Planck mean opacity
      real(dp),allocatable :: kappa_planck(:)     ! Planck mean absoptive opacity
+     real(dp),allocatable :: chi_inv_planck(:)    ! Rosseland mean opacity
+     real(dp),allocatable :: kappa_inv_planck(:)  ! Rosseland mean opacity
      real(dp),allocatable :: chi_rosseland(:)    ! Rosseland mean opacity
      real(dp),allocatable :: kappa_rosseland(:)  ! Rosseland mean opacity
 
@@ -205,6 +207,8 @@ contains
     call mp_table_read_column_auto(group,path,'specific_energy',d%specific_energy)
     call mp_table_read_column_auto(group,path,'chi_planck',d%chi_planck)
     call mp_table_read_column_auto(group,path,'kappa_planck',d%kappa_planck)
+    call mp_table_read_column_auto(group,path,'chi_inv_planck',d%chi_inv_planck)
+    call mp_table_read_column_auto(group,path,'kappa_inv_planck',d%kappa_inv_planck)
     call mp_table_read_column_auto(group,path,'chi_rosseland',d%chi_rosseland)
     call mp_table_read_column_auto(group,path,'kappa_rosseland',d%kappa_rosseland)
 
@@ -212,6 +216,8 @@ contains
     if(any(is_nan(d%specific_energy))) call error("dust_setup","specific_energy array contains NaN values")
     if(any(is_nan(d%chi_planck))) call error("dust_setup","chi_planck array contains NaN values")
     if(any(is_nan(d%kappa_planck))) call error("dust_setup","kappa_planck array contains NaN values")
+    if(any(is_nan(d%chi_inv_planck))) call error("dust_setup","chi_inv_planck array contains NaN values")
+    if(any(is_nan(d%kappa_inv_planck))) call error("dust_setup","kappa_inv_planck array contains NaN values")
     if(any(is_nan(d%chi_rosseland))) call error("dust_setup","chi_planck array contains NaN values")
     if(any(is_nan(d%kappa_rosseland))) call error("dust_setup","kappa_rosseland array contains NaN values")
 
