@@ -140,6 +140,7 @@ class TestSphericalDust(object):
         assert_allclose(self.dust.mean_opacities.chi_rosseland, dust2.mean_opacities.chi_rosseland)
         assert_allclose(self.dust.mean_opacities.kappa_rosseland, dust2.mean_opacities.kappa_rosseland)
 
+        assert self.dust.emissivities.is_lte == dust2.emissivities.is_lte
         assert self.dust.emissivities.var_name == dust2.emissivities.var_name
         assert_allclose(self.dust.emissivities.nu, dust2.emissivities.nu)
         assert_allclose(self.dust.emissivities.var, dust2.emissivities.var)

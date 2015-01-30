@@ -232,6 +232,7 @@ class TestEmissivities(object):
         e.to_hdf5_group(f)
         e_new = Emissivities()
         e_new.from_hdf5_group(f)
+        assert e.is_lte == e_new.is_lte
         assert e.var_name == e_new.var_name
         assert_allclose(e.nu, e_new.nu)
         assert_allclose(e.var, e_new.var)

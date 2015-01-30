@@ -6,8 +6,8 @@ module grid_mrw
   use type_photon
   use grid_geometry
   use grid_physics
-  use dust_main
-  use type_dust, only : chi_inv_planck, dust_sample_b_nu
+  use dust_main, only : kappa_planck, chi_inv_planck, n_dust, d
+  use type_dust, only : dust_sample_b_nu
 
   implicit none
   save
