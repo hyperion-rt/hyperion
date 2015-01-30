@@ -120,7 +120,7 @@ class Emissivities(FreezableClass):
         temiss = Table.read(group, path='emissivities')
         self.nu = temiss['nu']
         self.jnu = temiss['jnu']
-        self.is_lte = group.attrs['lte'] == 'yes'
+        self.is_lte = group.attrs['lte'].decode('utf-8').lower() == 'yes'
 
     def all_set(self):
         return self.var_name is not None and \
