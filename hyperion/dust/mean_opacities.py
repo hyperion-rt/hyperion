@@ -39,6 +39,13 @@ class MeanOpacities(FreezableClass):
         temperatures = np.logspace(np.log10(temp_min),
                                    np.log10(temp_max), n_temp)
 
+        # To avoid issues that may be confusing to users if they ask for
+        # temperatures at exactly the min max, we reset the temperature min/max
+        # manually (otherwise the np.log10 and subsequent 10** cause a loss in
+        # precision)
+        temperatures[0] = temp_min
+        temperatures[-1] = temp_max
+
         # Find common frequency scale
         planck_nu = planck_nu_range(temp_min, temp_max)
         nu = nu_common(planck_nu, optical_properties.nu)
