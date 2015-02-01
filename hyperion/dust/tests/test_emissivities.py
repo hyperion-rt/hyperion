@@ -237,6 +237,7 @@ class TestEmissivities(object):
         assert_allclose(e.nu, e_new.nu)
         assert_allclose(e.var, e_new.var)
         assert_allclose(e.jnu, e_new.jnu)
+        assert e.hash() == e_new.hash()
 
     def test_plot(self):
 
@@ -250,10 +251,3 @@ class TestEmissivities(object):
         e.plot(fig, 111)
 
         plt.close(fig)
-
-    def test_hash(self):
-
-        e = Emissivities()
-        e.set_lte(self.o, self.m)
-
-        assert e.hash() == '1dc5219653d9c902abb9303d83093362'

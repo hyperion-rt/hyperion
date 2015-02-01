@@ -303,6 +303,7 @@ def test_io():
     assert_allclose(o.P2, o_new.P2)
     assert_allclose(o.P3, o_new.P3)
     assert_allclose(o.P4, o_new.P4)
+    assert o.hash() == o_new.hash()
 
 
 def test_plot():
@@ -320,14 +321,3 @@ def test_plot():
     o.plot(fig, [321,322,323,324,325,326])
 
     plt.close(fig)
-
-def test_hash():
-    
-    o = OpticalProperties()
-    o.nu = np.logspace(8., 10., 100)
-    o.albedo = np.repeat(0.5, 100)
-    o.chi = np.ones(100)
-    o.mu = [-1., 1.]
-    o.initialize_scattering_matrix()
-    
-    assert o.hash() == '649ea51666936e97fbe5d4f2314518d3'

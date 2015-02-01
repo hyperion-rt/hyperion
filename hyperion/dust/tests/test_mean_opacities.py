@@ -52,6 +52,7 @@ class TestMeanOpacities(object):
         assert_allclose(m.kappa_inv_planck, m_new.kappa_inv_planck)
         assert_allclose(m.chi_rosseland, m_new.chi_rosseland)
         assert_allclose(m.kappa_rosseland, m_new.kappa_rosseland)
+        assert m.hash() == m_new.hash()
 
     def test_plot(self):
 
@@ -64,9 +65,3 @@ class TestMeanOpacities(object):
         m.plot(fig, 111)
 
         plt.close(fig)
-        
-    def test_hash(self):
-        m = MeanOpacities()
-        m.compute(self.o, n_temp=10, temp_min=1., temp_max=1000.)
-        assert m.hash() == '03f112beb0d92f409d31d261853ad80e'
-        
