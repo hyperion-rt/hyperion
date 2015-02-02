@@ -339,6 +339,19 @@ class SphericalDust(FreezableClass):
             self._file = (filename, self.hash())
 
     def chi_nu_temperature(self, temperature):
+        """
+        Compute the mean opacity to extinction for a blackbody at a given temperature.
+
+        Parameters
+        ----------
+        temperature : float
+            The temperature of the blackbody to use
+
+        Returns
+        -------
+        chi_nu_mean : float
+            The mean opacity to extinction
+        """
         self._compute_mean_opacities()
         return interp1d_fast_loglog(self.mean_opacities.temperature,
                                     self.mean_opacities.chi_planck,
@@ -346,6 +359,19 @@ class SphericalDust(FreezableClass):
                                     bounds_error=True)
 
     def kappa_nu_temperature(self, temperature):
+        """
+        Compute the mean opacity to absorption for a blackbody at a given temperature.
+
+        Parameters
+        ----------
+        temperature : float
+            The temperature of the blackbody to use
+
+        Returns
+        -------
+        kappa_nu_mean : float
+            The mean opacity to absorption
+        """
         self._compute_mean_opacities()
         return interp1d_fast_loglog(self.mean_opacities.temperature,
                                     self.mean_opacities.kappa_planck,
@@ -353,7 +379,23 @@ class SphericalDust(FreezableClass):
                                     bounds_error=True)
 
     def chi_nu_spectrum(self, nu, fnu):
-        "Find the mean opacity to extinction for a spectrum"
+        """
+        Compute the mean opacity to extinction for a given spectrum.
+
+        Parameters
+        ----------
+        nu : array_like
+            The frequencies, in Hz
+        fnu : array_like
+            The monochromatic fluxes per unit frequency. Units are unimportant
+            since proportionality constants are cancelled out in the
+            computation.
+
+        Returns
+        -------
+        chi_nu_mean : float
+            The mean opacity to extinction
+        """
         if nu.max() > self.optical_properties.nu.max() or nu.min() < self.optical_properties.nu.min():
             raise Exception("Opacity to extinction is not defined at all "
                             "spectrum frequencies")
@@ -362,7 +404,23 @@ class SphericalDust(FreezableClass):
                 integrate_loglog(nu, fnu))
 
     def kappa_nu_spectrum(self, nu, fnu):
-        "Find the mean opacity to absorption for a spectrum"
+        """
+        Compute the mean opacity to absorption for a given spectrum.
+
+        Parameters
+        ----------
+        nu : array_like
+            The frequencies, in Hz
+        fnu : array_like
+            The monochromatic fluxes per unit frequency. Units are unimportant
+            since proportionality constants are cancelled out in the
+            computation.
+
+        Returns
+        -------
+        kappa_nu_mean : float
+            The mean opacity to absorption
+        """
         if nu.max() > self.optical_properties.nu.max() or nu.min() < self.optical_properties.nu.min():
             raise Exception("Opacity to absorption is not defined at all "
                             "spectrum frequencies")
@@ -371,6 +429,19 @@ class SphericalDust(FreezableClass):
                 integrate_loglog(nu, fnu))
 
     def temperature2specific_energy(self, temperature):
+        """
+        Convert a temperature to its corresponding specific energy value.
+
+        Parameters
+        ----------
+        temperature : float or array_like
+            The temperature to convert
+
+        Returns
+        -------
+        specific_energy : float or array_like
+            The specific energy corresponding to the input temperature
+        """
 
         self._compute_mean_opacities()
 
@@ -392,6 +463,19 @@ class SphericalDust(FreezableClass):
         return specific_energy
 
     def specific_energy2temperature(self, specific_energy):
+        """
+        Convert a specific energy value to its corresponding temperature.
+
+        Parameters
+        ----------
+        specific_energy : float or array_like
+            The specific energy to convert
+
+        Returns
+        -------
+        temperature : float or array_like
+            The temperature corresponding to the input specific energy
+        """
 
         self._compute_mean_opacities()
 
