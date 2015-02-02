@@ -20,6 +20,9 @@ module type_dust
 
   type dust
 
+     ! Metadata
+     integer :: version
+
      ! Sublimation
      integer :: sublimation_mode = 0 ! 0=no, 1=fast, 2=slow, 3=capped
      real(dp) :: sublimation_specific_energy
@@ -79,6 +82,7 @@ contains
     character(len=100) :: path
     character(len=4) :: sublimation
     type(version) :: python_version
+    integer :: dust_version
 
     ! Read dust file
 
@@ -90,6 +94,8 @@ contains
     else
        call error("setup_initial", "cannot read dust files made with the Python module before version 0.8.7")
     end if
+
+    call mp_read_keyword(group, '.', 'version', d%version)
 
     call mp_read_keyword(group, '.', 'emissvar', d%emiss_var)
 
@@ -207,10 +213,24 @@ contains
     call mp_table_read_column_auto(group,path,'specific_energy',d%specific_energy)
     call mp_table_read_column_auto(group,path,'chi_planck',d%chi_planck)
     call mp_table_read_column_auto(group,path,'kappa_planck',d%kappa_planck)
-    call mp_table_read_column_auto(group,path,'chi_inv_planck',d%chi_inv_planck)
-    call mp_table_read_column_auto(group,path,'kappa_inv_planck',d%kappa_inv_planck)
     call mp_table_read_column_auto(group,path,'chi_rosseland',d%chi_rosseland)
     call mp_table_read_column_auto(group,path,'kappa_rosseland',d%kappa_rosseland)
+
+    ! In version 1 there was a bug that caused the Rosseland mean opacity to
+    ! be mis-computed (it was in fact computing the Planck inverse opacity).
+    ! However, this only affects models that use the PDA, so we only need to
+    ! raise an error for these. For the MRW, what was needed was *actually*
+    ! the reciprocal Planck opacity so models using this are fine. So we
+    ! don't raise an error here but we keep track of the version in the dust
+    ! object and can raise an error in the setup part of the code.
+
+    if(d%version == 1) then
+       call mp_table_read_column_auto(group,path,'chi_rosseland',d%chi_inv_planck)
+       call mp_table_read_column_auto(group,path,'kappa_rosseland',d%kappa_inv_planck)
+    else
+       call mp_table_read_column_auto(group,path,'chi_inv_planck',d%chi_inv_planck)
+       call mp_table_read_column_auto(group,path,'kappa_inv_planck',d%kappa_inv_planck)
+    end if
 
     ! Check for NaN values
     if(any(is_nan(d%specific_energy))) call error("dust_setup","specific_energy array contains NaN values")
