@@ -22,9 +22,16 @@ GRID_TYPES = ['car', 'cyl', 'sph', 'amr', 'oct']
 
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
-generate_reference = pytest.mark.generate_reference
-
 bit_level = pytest.mark.enable_bit_level_tests
+
+
+@pytest.fixture(scope="module")
+def generate(request):
+    generate_reference = request.config.getvalue("generate_reference")
+    if generate_reference is None:
+        return False
+    else:
+        return generate_reference
 
 
 def setup_all_grid_types(self, u, d):
@@ -128,9 +135,8 @@ class TestBasic(object):
         self.dust_file = os.path.join(DATA, 'kmh_lite.hdf5')
 
     @bit_level
-    @generate_reference
     @pytest.mark.parametrize(('grid_type', 'sample_sources_evenly', 'multiple_densities'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
-    def test_specific_energy(self, tmpdir, grid_type, sample_sources_evenly, multiple_densities, generate=False):
+    def test_specific_energy(self, tmpdir, grid_type, sample_sources_evenly, multiple_densities, generate):
 
         np.random.seed(12345)
 
@@ -167,9 +173,8 @@ class TestBasic(object):
             assert_identical_results(output_file, reference_file)
 
     @bit_level
-    @generate_reference
     @pytest.mark.parametrize(('grid_type', 'raytracing', 'sample_sources_evenly'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
-    def test_peeloff(self, tmpdir, grid_type, raytracing, sample_sources_evenly, generate=False):
+    def test_peeloff(self, tmpdir, grid_type, raytracing, sample_sources_evenly, generate):
 
         np.random.seed(12345)
 
@@ -333,9 +338,10 @@ class TestPascucciBenchmark(object):
         shutil.rmtree(self.tmpdir)
 
     @bit_level
-    @generate_reference
     @pytest.mark.parametrize(('tau'), [0.1, 1, 10, 100])
-    def test_pascucci(self, tmpdir, tau, generate=False):
+    def test_pascucci(self, tmpdir, tau, generate):
+
+        print(generate)
 
         m = AnalyticalYSOModel()
 
@@ -438,9 +444,8 @@ class TestPinteBenchmark(object):
     '''
 
     @bit_level
-    @generate_reference
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
-    def test_pinte_seds(self, tmpdir, tau, generate=False):
+    def test_pinte_seds(self, tmpdir, tau, generate):
 
         m = AnalyticalYSOModel()
 
@@ -541,9 +546,8 @@ class TestPinteBenchmark(object):
             assert_identical_results(output_file, reference_file)
 
     @bit_level
-    @generate_reference
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
-    def test_pinte_images(self, tmpdir, tau, generate=False):
+    def test_pinte_images(self, tmpdir, tau, generate):
 
         m = AnalyticalYSOModel()
 
@@ -633,9 +637,8 @@ class TestPinteBenchmark(object):
             assert_identical_results(output_file, reference_file)
 
     @bit_level
-    @generate_reference
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
-    def test_pinte_specific_energy(self, tmpdir, tau, generate=False):
+    def test_pinte_specific_energy(self, tmpdir, tau, generate):
 
         m = AnalyticalYSOModel()
 

@@ -153,10 +153,10 @@ class SphericalDust(FreezableClass):
         fig = self.optical_properties.plot(fig, [421, 423, 424, 425, 426])
 
         # Plot mean opacities
-        fig = self.mean_opacities.plot(fig, 427)
+        fig = self.mean_opacities.plot(fig, 428)
 
         # Plot emissivities
-        fig = self.emissivities.plot(fig, 428)
+        fig = self.emissivities.plot(fig, 427)
 
         # Adjust spacing between subplots
         fig.subplots_adjust(left=0.08, right=0.92, wspace=0.22, hspace=0.30)
