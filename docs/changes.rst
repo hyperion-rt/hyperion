@@ -32,6 +32,10 @@ New features
 
 - Added support for cmake. [#112]
 
+- ``Image`` and ``SED`` objects now include attributes ``d_min`` and ``d_max``
+  that indicate the depth of the region used to contruct the image or SED.
+  [#121]
+
 - Fixed a bug in the computation of the Rosseland mean opacity (it was in fact
   the Planck reciprocal mean opacity). Dust files have now been updated to
   version 2 to include both the Rosseland mean opacity and the Planck

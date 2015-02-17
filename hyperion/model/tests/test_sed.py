@@ -355,6 +355,7 @@ class TestSED(object):
         sed.set_viewing_angles([1., 2.], [1., 2.])
         sed.set_wavelength_range(5, 0.1, 100.)
         sed.set_aperture_range(4, 2., 5.)
+        sed.set_depth(-2., 3.)
 
         m.set_n_initial_iterations(0)
 
@@ -378,6 +379,9 @@ class TestSED(object):
 
         assert sed.ap_min == 2.
         assert sed.ap_max == 5.
+
+        assert sed.d_min == -2.
+        assert sed.d_max == 3.
 
         assert sed.distance is None
 

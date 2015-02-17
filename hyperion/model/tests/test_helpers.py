@@ -60,7 +60,7 @@ def get_test_model_noimaging():
 def assert_identical_results(file1, file2):
 
     # List of attributes to exclude from checking (time-dependent)
-    EXCLUDE_ATTR = ['date_started', 'date_ended', 'cpu_time', 'python_version', 'fortran_version']
+    EXCLUDE_ATTR = ['date_started', 'date_ended', 'cpu_time', 'python_version', 'fortran_version', 'd_min', 'd_max']
 
     # TODO
     # For now, also exclude 'killed' attributes because they have been moved

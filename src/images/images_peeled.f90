@@ -323,11 +323,18 @@ contains
     character(len=100) :: group_name
 
     do ig=1,n_groups
+
        write(group_name, '("group_",I5.5)') ig
+
        g_indiv = mp_create_group(group, group_name)
        call image_write(peeled_image(ig),g_indiv)
        call mp_write_keyword(g_indiv, '.', 'inside_observer', inside_observer(ig))
+
+       call mp_write_keyword(g_indiv, '.', 'd_min', d_min(ig))
+       call mp_write_keyword(g_indiv, '.', 'd_max', d_max(ig))
+
        call mp_close_group(g_indiv)
+
     end do
 
   end subroutine peeled_images_write

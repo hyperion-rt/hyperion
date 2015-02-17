@@ -511,6 +511,10 @@ class ModelOutput(FreezableClass):
         sed.ap_min = g['seds'].attrs['apmin']
         sed.ap_max = g['seds'].attrs['apmax']
 
+        # Add depth information
+        sed.d_min = g.attrs['d_min']
+        sed.d_max = g.attrs['d_max']
+
         # Add distance
         sed.distance = distance
 
@@ -879,6 +883,10 @@ class ModelOutput(FreezableClass):
         image.x_max = x_max
         image.y_min = y_min
         image.y_max = y_max
+
+        # Add depth information
+        image.d_min = g.attrs['d_min']
+        image.d_max = g.attrs['d_max']
 
         # Add angular extent
         image.lon_min = lon_min

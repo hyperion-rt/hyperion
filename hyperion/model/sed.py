@@ -32,6 +32,9 @@ class SED(FreezableClass):
         self.ap_min = None
         self.ap_max = None
 
+        self.d_min = None
+        self.d_max = None
+
         self.distance = None
 
         self.inside_observer = False
@@ -158,6 +161,34 @@ class SED(FreezableClass):
             self._ap_max = value
         else:
             raise ValueError("ap_max should be a real scalar value")
+
+    @property
+    def d_min(self):
+        """
+        Minimum depth used to define the SEDs (in cm).
+        """
+        return self._d_min
+
+    @d_min.setter
+    def d_min(self, value):
+        if value is None or (np.isscalar(value) and np.isreal(value)):
+            self._d_min = value
+        else:
+            raise ValueError("d_min should be a real scalar value")
+
+    @property
+    def d_max(self):
+        """
+        Maximum depth used to define the SEDs (in cm).
+        """
+        return self._d_max
+
+    @d_max.setter
+    def d_max(self, value):
+        if value is None or (np.isscalar(value) and np.isreal(value)):
+            self._d_max = value
+        else:
+            raise ValueError("d_max should be a real scalar value")
 
     @property
     def distance(self):
