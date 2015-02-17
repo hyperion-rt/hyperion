@@ -56,6 +56,9 @@ contains
     implicit none
     type(grid_cell),intent(in) :: cell
     integer,intent(in) :: idir
+
+    call error("cell_width", "not implemented for Voronoi grid")
+
     select case(idir)
     case(1)
        cell_width = 0.  ! TODO
@@ -64,12 +67,16 @@ contains
     case(3)
        cell_width = 0.  ! TODO
     end select
+
   end function cell_width
 
   real(dp) function cell_area(cell, iface)
     implicit none
     type(grid_cell),intent(in) :: cell
     integer,intent(in) :: iface
+
+    call error("cell_area", "not implemented for Voronoi grid")
+
     select case(iface)
     case(1,2)
        cell_area = 0.  ! TODO
@@ -78,6 +85,7 @@ contains
     case(5,6)
        cell_area = 0.  ! TODO
     end select
+
   end function cell_area
 
   ! Standard Routines
@@ -288,7 +296,8 @@ contains
     implicit none
     type(photon),intent(in) :: p
     real(dp) :: d1,d2,d3,d4,d5,d6
-    ! Is this the second nearest neighbor?
+    call error("distance_to_closest_wall", "not implemented for Voronoi grid")
+    ! TODO: is this the second nearest neighbor?
   end function distance_to_closest_wall
 
   subroutine find_wall(p,radial,tmin,id_min)
