@@ -643,7 +643,10 @@ class RunConf(object):
             raise ValueError("specific_energy_type should be one of 'initial' or 'additional'")
 
     def _read_specific_energy_type(self, group):
-        self.specific_energy_type = group.attrs['specific_energy_type'].decode('ascii')
+        if 'specific_energy_type' in group.attrs:
+            self.specific_energy_type = group.attrs['specific_energy_type'].decode('ascii')
+        else:
+            self.specific_energy_type = 'initial'
 
     def _write_specific_energy_type(self, group):
         group.attrs['specific_energy_type'] = np.string_(self.specific_energy_type.encode('utf-8'))
