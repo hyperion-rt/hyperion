@@ -1,7 +1,12 @@
 Version History
 ===============
 
-0.9.5 (unreleased)
+1.0.0 (unreleased)
+------------------
+
+- No changes yet
+
+0.9.5 (2015-02-17)
 ------------------
 
 New features
