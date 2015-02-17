@@ -396,6 +396,7 @@ class TestImage(object):
         i.set_image_limits(-1., 2., -3., 4.)
         i.set_image_size(10, 20)
         i.set_wavelength_range(5, 0.1, 100.)
+        i.set_depth(-2., 3.)
 
         m.set_n_initial_iterations(0)
 
@@ -426,6 +427,9 @@ class TestImage(object):
         assert image.lon_max is None
         assert image.lat_min is None
         assert image.lat_max is None
+
+        assert image.d_min == -2.
+        assert image.d_max == 3.
 
         assert image.pix_area_sr is None
 
