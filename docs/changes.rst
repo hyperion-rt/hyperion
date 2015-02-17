@@ -32,6 +32,11 @@ New features
 
 - Added support for cmake. [#112]
 
+- Fixed a bug in the computation of the Rosseland mean opacity (it was in fact
+  the Planck reciprocal mean opacity). Dust files have now been updated to
+  version 2 to include both the Rosseland mean opacity and the Planck
+  reciprocal mean opacity. [#123]
+
 Bug fixes
 ~~~~~~~~~
 
