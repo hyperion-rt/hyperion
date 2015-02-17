@@ -31,6 +31,7 @@ contains
     integer(hid_t) :: g_dust, g_geometry, g_physics, g_sources, g_output
     integer :: physics_io_bytes
     type(version) :: python_version
+    integer :: idust
 
     if(mp_exists_keyword(input_handle, '/', 'python_version')) then
        call mp_read_keyword(input_handle, '/', 'python_version', python_version%string)
@@ -234,6 +235,18 @@ contains
           call mp_read_keyword(input_handle, '/', 'convergence_relative', convergence_relative)
           call mp_read_keyword(input_handle, '/', 'convergence_percentile', convergence_percentile)
        end if
+    end if
+
+    ! In version 1 dust files there was a bug that caused the Rosseland mean
+    ! opacity to be mis-computed (it was in fact computing the Planck inverse
+    ! opacity). However, this only affects models that use the PDA, so we only
+    ! need to raise an error for these.
+    if(use_pda .and. n_dust > 0) then
+       do idust=1,n_dust
+          if(d(idust)%version == 1) then
+             call error("setup_initial", "version 1 dust files can no longer be used when PDA is computed due to a bug - to fix this, re-generate the dust file using the latest version of Hyperion")
+          end if
+       end do
     end if
 
   end subroutine setup_initial

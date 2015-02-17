@@ -1,9 +1,13 @@
 from __future__ import print_function, division
 
-from astropy.tests.helper import pytest
+import matplotlib.pyplot as plt
+
 import numpy as np
+from numpy.testing import assert_allclose
+from astropy.tests.helper import pytest
 
 from ..optical_properties import OpticalProperties
+from ..mean_opacities import MeanOpacities
 from ..emissivities import Emissivities
 from ...util.functions import virtual_file
 
@@ -202,31 +206,48 @@ def test_set_jnu_invalid1():
     assert exc.value.args[0] == 'jnu should be positive'
 
 
-def test_lte_emissivities():
-    o = OpticalProperties()
-    o.nu = np.array([1.e8, 1.e16])
-    o.chi = np.array([1.e-2, 1])
-    o.albedo = np.array([0., 0.5])
-    e = Emissivities()
-    e.nu = [0.1, 0.2, 0.3]
-    e.var = [0.1, 1.]
-    e.set_lte(o, n_temp=10, temp_min=1., temp_max=1000.)
+class TestEmissivities(object):
 
+    def setup_class(self):
 
-def test_io():
-    o = OpticalProperties()
-    o.nu = np.array([1.e8, 1.e16])
-    o.chi = np.array([1.e-2, 1])
-    o.albedo = np.array([0., 0.5])
-    e = Emissivities()
-    e.nu = [0.1, 0.2, 0.3]
-    e.var = [0.1, 1.]
-    e.set_lte(o, n_temp=10, temp_min=1., temp_max=1000.)
-    f = virtual_file()
-    e.to_hdf5_group(f)
-    e_new = Emissivities()
-    e_new.from_hdf5_group(f)
-    assert e.var_name == e_new.var_name
-    assert np.all(e.nu == e_new.nu)
-    assert np.all(e.var == e_new.var)
-    assert np.all(e.jnu == e_new.jnu)
+        self.o = OpticalProperties()
+        self.o.nu = np.array([1.e8, 1.e16])
+        self.o.chi = np.array([1.e-2, 1])
+        self.o.albedo = np.array([0., 0.5])
+
+        self.m = MeanOpacities()
+        self.m.compute(self.o, n_temp=10, temp_min=1., temp_max=1000.)
+
+    def test_lte_emissivities(self):
+
+        e = Emissivities()
+        e.set_lte(self.o, self.m)
+
+    def test_io(self):
+
+        e = Emissivities()
+        e.set_lte(self.o, self.m)
+
+        f = virtual_file()
+        e.to_hdf5_group(f)
+        e_new = Emissivities()
+        e_new.from_hdf5_group(f)
+        assert e.is_lte == e_new.is_lte
+        assert e.var_name == e_new.var_name
+        assert_allclose(e.nu, e_new.nu)
+        assert_allclose(e.var, e_new.var)
+        assert_allclose(e.jnu, e_new.jnu)
+        assert e.hash() == e_new.hash()
+
+    def test_plot(self):
+
+        # Just check that plot runs without crashing
+
+        fig = plt.figure()
+
+        e = Emissivities()
+        e.set_lte(self.o, self.m)
+
+        e.plot(fig, 111)
+
+        plt.close(fig)

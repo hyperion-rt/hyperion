@@ -26,9 +26,9 @@ module iteration_lucy
 
   use grid_generic, only : grid_reset_energy
 
-  use grid_physics, only : tau_rosseland_to_closest_wall, &
+  use grid_physics, only : tau_inv_planck_to_closest_wall, &
        &                   precompute_jnu_var, &
-       &                   update_alpha_rosseland, &
+       &                   update_alpha_inv_planck, &
        &                   update_energy_abs, &
        &                   sublimate_dust
 
@@ -108,7 +108,7 @@ contains
     call precompute_jnu_var()
 
     if(use_mrw) then
-       call update_alpha_rosseland()
+       call update_alpha_inv_planck()
        call prepare_mrw()
     end if
 
@@ -135,7 +135,7 @@ contains
 
              if(use_mrw.and.interactions > 1) then
                 do mrw_steps=1,n_mrw_max
-                   if(tau_rosseland_to_closest_wall(p) > mrw_gamma) then
+                   if(tau_inv_planck_to_closest_wall(p) > mrw_gamma) then
                       call grid_do_mrw(p)
                    else
                       exit

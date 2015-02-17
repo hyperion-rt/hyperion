@@ -6,8 +6,8 @@ module grid_mrw
   use type_photon
   use grid_geometry
   use grid_physics
-  use dust_main
-  use type_dust
+  use dust_main, only : kappa_planck, chi_inv_planck, n_dust, d
+  use type_dust, only : dust_sample_b_nu
 
   implicit none
   save
@@ -33,7 +33,7 @@ contains
 
     integer :: ic, id
 
-    real(dp) :: total_alpha_rosseland
+    real(dp) :: total_alpha_inv_planck
     ! eta_nu values have been read into dust type
 
     call initialize_cumulative()
@@ -44,12 +44,12 @@ contains
 
     ! loop over cells
     do ic=1,geo%n_cells
-       total_alpha_rosseland = 0._dp
+       total_alpha_inv_planck = 0._dp
        do id=1,n_dust
-          total_alpha_rosseland = total_alpha_rosseland + &
-               &density(ic, id) * chi_rosseland(id, specific_energy(ic, id))
+          total_alpha_inv_planck = total_alpha_inv_planck + &
+               &density(ic, id) * chi_inv_planck(id, specific_energy(ic, id))
        end do
-       diff_coeff(ic) = 1._dp/3._dp/total_alpha_rosseland
+       diff_coeff(ic) = 1._dp / 3._dp / total_alpha_inv_planck
     end do
 
   end subroutine prepare_mrw

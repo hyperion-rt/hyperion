@@ -376,7 +376,7 @@ class AnalyticalYSOModel(Model):
                 nu, fnu = self.star.total_spectrum(bnu_range=[nu_min, nu_max])
                 if np.any(fnu > 0.):
                     tau_midplane += (disk.midplane_cumulative_density(r)
-                                     * disk.dust.optical_properties.chi_planck_spectrum(nu, fnu))
+                                     * disk.dust.chi_nu_spectrum(nu, fnu))
 
         for i, envelope in enumerate(self.envelopes):
             if envelope.exists():
@@ -387,7 +387,7 @@ class AnalyticalYSOModel(Model):
                 nu, fnu = self.star.total_spectrum(bnu_range=[nu_min, nu_max])
                 if np.any(fnu > 0.):
                     tau_midplane += (envelope.midplane_cumulative_density(r)
-                                     * envelope.dust.optical_properties.chi_planck_spectrum(nu, fnu))
+                                     * envelope.dust.chi_nu_spectrum(nu, fnu))
 
         return tau_midplane
 

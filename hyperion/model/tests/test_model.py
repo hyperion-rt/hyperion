@@ -201,12 +201,12 @@ class TestMerge(object):
 
         self.dust3_filename = os.path.join(self.tmpdir, random_id())
         self.dust3 = IsotropicDust([3.e9, 3.e16], [0.5, 0.5], [1., 0.5])
-        self.dust3.emissivities.set_lte(self.dust3.optical_properties, n_temp=10, temp_min=0.1, temp_max=1600.)
+        self.dust3.set_lte_emissivities(n_temp=10, temp_min=0.1, temp_max=1600.)
         self.dust3.write(self.dust3_filename)
 
         # The following dust file does not have emissivities and mean
         # opacities since it has never been written to a file
-        self.dust4 = get_test_dust()
+        self.dust4 = get_test_dust(set_emissivities=False)
 
     def teardown_class(self):
         shutil.rmtree(self.tmpdir)

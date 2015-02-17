@@ -17,7 +17,7 @@ module grid_physics
   private
   public :: setup_grid_physics
   public :: sublimate_dust
-  public :: update_alpha_rosseland
+  public :: update_alpha_inv_planck
   public :: check_energy_abs
   public :: update_energy_abs
   public :: update_energy_abs_tot
@@ -25,7 +25,7 @@ module grid_physics
   public :: select_dust_specific_energy_rho
   public :: emit_from_grid
   public :: precompute_jnu_var
-  public :: tau_rosseland_to_closest_wall
+  public :: tau_inv_planck_to_closest_wall
   public :: specific_energy_converged
 
   ! Density (immutable)
@@ -41,7 +41,7 @@ module grid_physics
   real(dp),allocatable, public :: energy_abs_tot(:)
   real(dp),allocatable, public :: minimum_specific_energy(:)
 
-  real(dp), allocatable,target, public :: alpha_rosseland(:)
+  real(dp), allocatable,target, public :: alpha_inv_planck(:)
 
   integer, allocatable, public :: jnu_var_id(:,:)
   real(dp), allocatable, public :: jnu_var_frac(:,:)
@@ -59,11 +59,11 @@ module grid_physics
 
 contains
 
-  real(dp) function tau_rosseland_to_closest_wall(p) result(tau)
+  real(dp) function tau_inv_planck_to_closest_wall(p) result(tau)
     implicit none
     type(photon),intent(in) :: p
-    tau = alpha_rosseland(p%icell%ic) * distance_to_closest_wall(p)
-  end function tau_rosseland_to_closest_wall
+    tau = alpha_inv_planck(p%icell%ic) * distance_to_closest_wall(p)
+  end function tau_inv_planck_to_closest_wall
 
   integer function select_dust_chi_rho(p) result(id_select)
     implicit none
@@ -206,8 +206,8 @@ contains
     if(use_mrw) then
 
        ! Rosseland extinction coefficient
-       allocate(alpha_rosseland(geo%n_cells))
-       alpha_rosseland = 0._dp
+       allocate(alpha_inv_planck(geo%n_cells))
+       alpha_inv_planck = 0._dp
 
     end if
 
@@ -229,28 +229,28 @@ contains
 
   end subroutine setup_grid_physics
 
-  subroutine update_alpha_rosseland()
+  subroutine update_alpha_inv_planck()
 
-    ! Optimization: could pre-compute alpha_rosseland just for masked (valid) cells
+    ! Optimization: could pre-compute alpha_inv_planck just for masked (valid) cells
 
     implicit none
 
     integer :: ic
 
     if(main_process()) write(*,'(" [grid_physics] pre-computing Rosseland absorption coefficient")')
-    alpha_rosseland = 0._dp
+    alpha_inv_planck = 0._dp
 
     do ic=1,geo%n_cells
        do id=1,n_dust
           if(density(ic, id) > 0._dp) then
-             alpha_rosseland(ic) = alpha_rosseland(ic) &
+             alpha_inv_planck(ic) = alpha_inv_planck(ic) &
                   & + density(ic,id) &
-                  & * chi_rosseland(id, specific_energy(ic,id))
+                  & * chi_inv_planck(id, specific_energy(ic,id))
           end if
        end do
     end do
 
-  end subroutine update_alpha_rosseland
+  end subroutine update_alpha_inv_planck
 
   subroutine sublimate_dust()
 

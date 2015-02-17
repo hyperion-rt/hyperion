@@ -4,10 +4,11 @@ import hashlib
 
 import numpy as np
 from astropy.table import Table, Column
+from astropy import log as logger
 
 from ..util.integrate import integrate_loglog
 from ..util.interpolate import interp1d_fast_loglog
-from ..util.functions import FreezableClass, nu_common
+from ..util.functions import FreezableClass, nu_common, B_nu, dB_nu_dT, planck_nu_range
 from ..util.constants import sigma
 
 
@@ -15,18 +16,48 @@ class MeanOpacities(FreezableClass):
 
     def __init__(self):
 
-        self.var_name = None
-        self.var = None
+        self.specific_energy = None
+        self.temperature = None
         self.chi_planck = None
         self.kappa_planck = None
+        self.chi_inv_planck = None
+        self.kappa_inv_planck = None
         self.chi_rosseland = None
         self.kappa_rosseland = None
         self._freeze()
 
-    def compute(self, emissivities, optical_properties):
+    def compute(self, optical_properties, n_temp=1200, temp_min=0.1, temp_max=100000.):
+        """
+        Compute various mean opacities:
+
+            * Planck mean opacity
+            * Reciprocal Planck mean opacity
+            * Rosseland mean opacity
+        """
+
+        # Set temperatures to compute the mean opacities for
+        temperatures = np.logspace(np.log10(temp_min),
+                                   np.log10(temp_max), n_temp)
+
+        # To avoid issues that may be confusing to users if they ask for
+        # temperatures at exactly the min max, we reset the temperature min/max
+        # manually (otherwise the np.log10 and subsequent 10** cause a loss in
+        # precision)
+        temperatures[0] = temp_min
+        temperatures[-1] = temp_max
 
         # Find common frequency scale
-        nu = nu_common(emissivities.nu, optical_properties.nu)
+        planck_nu = planck_nu_range(temp_min, temp_max)
+        nu = nu_common(planck_nu, optical_properties.nu)
+
+
+        if planck_nu.min() < optical_properties.nu.min():
+            logger.warn("Planck function for lowest temperature not completely covered by opacity function")
+            nu = nu[nu >= optical_properties.nu.min()]
+
+        if planck_nu.max() > optical_properties.nu.max():
+            logger.warn("Planck function for highest temperature not completely covered by opacity function")
+            nu = nu[nu <= optical_properties.nu.max()]
 
         # Interpolate opacity to new frequency grid
         chi_nu = interp1d_fast_loglog(optical_properties.nu,
@@ -34,73 +65,50 @@ class MeanOpacities(FreezableClass):
         kappa_nu = interp1d_fast_loglog(optical_properties.nu,
                                         optical_properties.kappa, nu)
 
-        # Find number of emissivities to compute mean opacities for
-        n_emiss = len(emissivities.var)
-
         # Set mean opacity variable
         self.var_name = 'specific_energy'
-        self.var = emissivities.var
 
         # Initialize mean opacity arrays
-        self.chi_planck = np.zeros(n_emiss)
-        self.kappa_planck = np.zeros(n_emiss)
-        self.chi_rosseland = np.zeros(n_emiss)
-        self.kappa_rosseland = np.zeros(n_emiss)
+        self.chi_planck = np.zeros(n_temp)
+        self.kappa_planck = np.zeros(n_temp)
+        self.chi_inv_planck = np.zeros(n_temp)
+        self.kappa_inv_planck = np.zeros(n_temp)
+        self.chi_rosseland = np.zeros(n_temp)
+        self.kappa_rosseland = np.zeros(n_temp)
 
         # Loop through the emissivities and compute mean opacities
-        for ivar in range(n_emiss):
+        for it, T in enumerate(temperatures):
 
-            # Extract emissivity and interpolate to common frequency array
-            jnu = interp1d_fast_loglog(emissivities.nu,
-                                       emissivities.jnu[:, ivar], nu,
-                                       bounds_error=False, fill_value=0.)
-
-            # Define I_nu = J_nu / kappa_nu
-            inu = jnu / kappa_nu
+            # Compute Planck function and derivative with respect to temperature
+            b_nu = B_nu(nu, T)
+            db_nu_dt = dB_nu_dT(nu, T)
 
             # Compute planck mean opacity
-            self.chi_planck[ivar] = integrate_loglog(nu, inu * chi_nu) \
-                                  / integrate_loglog(nu, inu)
+            self.chi_planck[it] = (integrate_loglog(nu, b_nu * chi_nu) /
+                                   integrate_loglog(nu, b_nu))
 
             # Compute planck mean absoptive opacity
-            self.kappa_planck[ivar] = integrate_loglog(nu, inu * kappa_nu) \
-                                    / integrate_loglog(nu, inu)
+            self.kappa_planck[it] = (integrate_loglog(nu, b_nu * kappa_nu) /
+                                     integrate_loglog(nu, b_nu))
 
-            # Compute Rosseland mean opacity
-            self.chi_rosseland[ivar] = integrate_loglog(nu, inu) \
-                                     / integrate_loglog(nu, inu / chi_nu)
+            # Compute reciprocal planck mean opacity
+            self.chi_inv_planck[it] = (integrate_loglog(nu, b_nu) /
+                                       integrate_loglog(nu, b_nu / chi_nu))
 
-            # Compute Rosseland mean opacity
-            self.kappa_rosseland[ivar] = integrate_loglog(nu, inu) \
-                                       / integrate_loglog(nu, inu / kappa_nu)
+            # Compute reciprocal planck mean aborptive opacity
+            self.kappa_inv_planck[it] = (integrate_loglog(nu, b_nu) /
+                                         integrate_loglog(nu, b_nu / kappa_nu))
 
-    def _temperature2specific_energy(self, temperature):
-        temperatures = np.sqrt(np.sqrt((self.var / (4. * sigma * self.kappa_planck))))
-        specific_energy = interp1d_fast_loglog(temperatures, self.var, temperature,
-                                               bounds_error=False, fill_value=np.nan)
-        if np.isscalar(temperature):
-            if temperature < temperatures[0]:
-                specific_energy = self.var[0]
-            elif temperature > temperatures[-1]:
-                specific_energy = self.var[-1]
-        else:
-            specific_energy[temperature < temperatures[0]] = self.var[0]
-            specific_energy[temperature > temperatures[-1]] = self.var[-1]
-        return specific_energy
+            # Compute rosseland mean opacity
+            self.chi_rosseland[it] = (integrate_loglog(nu, db_nu_dt) /
+                                      integrate_loglog(nu, db_nu_dt / chi_nu))
 
-    def _specific_energy2temperature(self, specific_energy):
-        temperatures = np.sqrt(np.sqrt((self.var / (4. * sigma * self.kappa_planck))))
-        temperature = interp1d_fast_loglog(self.var, temperatures, specific_energy,
-                                           bounds_error=False, fill_value=np.nan)
-        if np.isscalar(specific_energy):
-            if specific_energy < self.var[0]:
-                temperature = temperatures[0]
-            elif specific_energy > self.var[-1]:
-                temperature = temperatures[-1]
-        else:
-            temperature[specific_energy < self.var[0]] = temperatures[0]
-            temperature[specific_energy > self.var[-1]] = temperatures[-1]
-        return temperature
+            # Compute rosseland mean aborptive opacity
+            self.kappa_rosseland[it] = (integrate_loglog(nu, db_nu_dt) /
+                                        integrate_loglog(nu, db_nu_dt / kappa_nu))
+
+        self.temperature = temperatures
+        self.specific_energy = 4. * sigma * temperatures ** 4. * self.kappa_planck
 
     def to_hdf5_group(self, group):
 
@@ -109,10 +117,12 @@ class MeanOpacities(FreezableClass):
 
         # Create mean opacities table
         tmean = Table()
-        tmean.meta['var_name'] = np.string_(self.var_name)
-        tmean.add_column(Column(data=self.var, name=self.var_name,))
+        tmean.add_column(Column(data=self.temperature, name='temperature'))
+        tmean.add_column(Column(data=self.specific_energy, name='specific_energy'))
         tmean.add_column(Column(data=self.chi_planck, name='chi_planck'))
         tmean.add_column(Column(data=self.kappa_planck, name='kappa_planck'))
+        tmean.add_column(Column(data=self.chi_inv_planck, name='chi_inv_planck'))
+        tmean.add_column(Column(data=self.kappa_inv_planck, name='kappa_inv_planck'))
         tmean.add_column(Column(data=self.chi_rosseland, name='chi_rosseland'))
         tmean.add_column(Column(data=self.kappa_rosseland, name='kappa_rosseland'))
 
@@ -121,23 +131,25 @@ class MeanOpacities(FreezableClass):
 
     def from_hdf5_group(self, group):
 
-        from ..util.functions import asstr
-
         tmean = Table.read(group, path='mean_opacities')
-        self.var_name = asstr(tmean.meta['var_name'])
-        self.var = tmean[self.var_name]
+        self.temperature = tmean['temperature']
+        self.specific_energy = tmean['specific_energy']
         self.chi_planck = tmean['chi_planck']
         self.kappa_planck = tmean['kappa_planck']
+        self.chi_inv_planck = tmean['chi_inv_planck']
+        self.kappa_inv_planck = tmean['kappa_inv_planck']
         self.chi_rosseland = tmean['chi_rosseland']
         self.kappa_rosseland = tmean['kappa_rosseland']
 
     def all_set(self):
-        return self.var_name is not None and \
-               self.var is not None and \
-               self.chi_planck is not None and \
-               self.kappa_planck is not None and \
-               self.chi_rosseland is not None and \
-               self.kappa_rosseland is not None
+        return (self.temperature is not None and
+                self.specific_energy is not None and
+                self.chi_planck is not None and
+                self.kappa_planck is not None and
+                self.chi_inv_planck is not None and
+                self.kappa_inv_planck is not None and
+                self.chi_rosseland is not None and
+                self.kappa_rosseland is not None)
 
     def plot(self, figure, subplot):
 
@@ -146,23 +158,27 @@ class MeanOpacities(FreezableClass):
 
         ax = figure.add_subplot(subplot)
 
-        ax.loglog(self.var, self.chi_planck, color='red', label='Planck Extinction')
-        ax.loglog(self.var, self.kappa_planck, color='orange', label='Planck Absorption')
-        ax.loglog(self.var, self.chi_rosseland, color='blue', label='Rosseland Extinction')
-        ax.loglog(self.var, self.kappa_rosseland, color='lightblue', label='Rosseland Absorption')
+        ax.loglog(self.specific_energy, self.chi_planck, color='red', label='Planck Extinction')
+        ax.loglog(self.specific_energy, self.kappa_planck, color='orange', label='Planck Absorption')
+        ax.loglog(self.specific_energy, self.chi_inv_planck, color='blue', label='Reciprocal Planck Extinction')
+        ax.loglog(self.specific_energy, self.kappa_inv_planck, color='lightblue', label='Reciprocal Planck Absorption')
+        ax.loglog(self.specific_energy, self.chi_rosseland, color='green', label='Rosseland Extinction')
+        ax.loglog(self.specific_energy, self.kappa_rosseland, color='lightgreen', label='Rosseland Absorption')
         ax.legend(loc=2)
         ax.set_xlabel("Specific energy (ergs/s/g)")
         ax.set_ylabel("Mean opacity (cm^2/g)")
-        ax.set_xlim(self.var.min(), self.var.max())
+        ax.set_xlim(self.specific_energy.min(), self.specific_energy.max())
 
         return figure
 
     def hash(self):
         h = hashlib.md5()
-        h.update(self.var_name.encode('utf-8'))
-        h.update(self.var.tostring())
+        h.update(self.temperature.tostring())
+        h.update(self.specific_energy.tostring())
         h.update(self.chi_planck.tostring())
         h.update(self.kappa_planck.tostring())
+        h.update(self.chi_inv_planck.tostring())
+        h.update(self.kappa_inv_planck.tostring())
         h.update(self.chi_rosseland.tostring())
         h.update(self.kappa_rosseland.tostring())
         return h.hexdigest()

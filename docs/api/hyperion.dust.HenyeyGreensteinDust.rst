@@ -16,6 +16,12 @@ hyperion.dust.HenyeyGreensteinDust
       ~HenyeyGreensteinDust.plot
       ~HenyeyGreensteinDust.read
       ~HenyeyGreensteinDust.write
+      ~HenyeyGreensteinDust.temperature2specific_energy
+      ~HenyeyGreensteinDust.specific_energy2temperature
+      ~HenyeyGreensteinDust.chi_nu_temperature
+      ~HenyeyGreensteinDust.kappa_nu_temperature
+      ~HenyeyGreensteinDust.chi_nu_spectrum
+      ~HenyeyGreensteinDust.kappa_nu_spectrum
 
    .. rubric:: Methods (detail)
 
@@ -25,4 +31,10 @@ hyperion.dust.HenyeyGreensteinDust
    .. automethod:: HenyeyGreensteinDust.plot
    .. automethod:: HenyeyGreensteinDust.read
    .. automethod:: HenyeyGreensteinDust.write
+   .. automethod:: HenyeyGreensteinDust.temperature2specific_energy
+   .. automethod:: HenyeyGreensteinDust.specific_energy2temperature
+   .. automethod:: HenyeyGreensteinDust.chi_nu_temperature
+   .. automethod:: HenyeyGreensteinDust.kappa_nu_temperature
+   .. automethod:: HenyeyGreensteinDust.chi_nu_spectrum
+   .. automethod:: HenyeyGreensteinDust.kappa_nu_spectrum
 

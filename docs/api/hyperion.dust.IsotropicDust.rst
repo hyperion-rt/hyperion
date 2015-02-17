@@ -16,6 +16,12 @@ hyperion.dust.IsotropicDust
       ~IsotropicDust.plot
       ~IsotropicDust.read
       ~IsotropicDust.write
+      ~IsotropicDust.temperature2specific_energy
+      ~IsotropicDust.specific_energy2temperature
+      ~IsotropicDust.chi_nu_temperature
+      ~IsotropicDust.kappa_nu_temperature
+      ~IsotropicDust.chi_nu_spectrum
+      ~IsotropicDust.kappa_nu_spectrum
 
    .. rubric:: Methods (detail)
 
@@ -25,4 +31,10 @@ hyperion.dust.IsotropicDust
    .. automethod:: IsotropicDust.plot
    .. automethod:: IsotropicDust.read
    .. automethod:: IsotropicDust.write
+   .. automethod:: IsotropicDust.temperature2specific_energy
+   .. automethod:: IsotropicDust.specific_energy2temperature
+   .. automethod:: IsotropicDust.chi_nu_temperature
+   .. automethod:: IsotropicDust.kappa_nu_temperature
+   .. automethod:: IsotropicDust.chi_nu_spectrum
+   .. automethod:: IsotropicDust.kappa_nu_spectrum
 

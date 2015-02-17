@@ -16,6 +16,12 @@ hyperion.dust.BHDust
       ~BHDust.plot
       ~BHDust.read
       ~BHDust.write
+      ~BHDust.temperature2specific_energy
+      ~BHDust.specific_energy2temperature
+      ~BHDust.chi_nu_temperature
+      ~BHDust.kappa_nu_temperature
+      ~BHDust.chi_nu_spectrum
+      ~BHDust.kappa_nu_spectrum
 
    .. rubric:: Methods (detail)
 
@@ -25,4 +31,10 @@ hyperion.dust.BHDust
    .. automethod:: BHDust.plot
    .. automethod:: BHDust.read
    .. automethod:: BHDust.write
+   .. automethod:: BHDust.temperature2specific_energy
+   .. automethod:: BHDust.specific_energy2temperature
+   .. automethod:: BHDust.chi_nu_temperature
+   .. automethod:: BHDust.kappa_nu_temperature
+   .. automethod:: BHDust.chi_nu_spectrum
+   .. automethod:: BHDust.kappa_nu_spectrum
 

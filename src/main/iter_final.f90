@@ -20,9 +20,9 @@ module iteration_final
 
   use grid_geometry, only : escaped
 
-  use grid_physics, only : tau_rosseland_to_closest_wall, &
+  use grid_physics, only : tau_inv_planck_to_closest_wall, &
        &                   precompute_jnu_var, &
-       &                   update_alpha_rosseland
+       &                   update_alpha_inv_planck
 
   use grid_propagate, only : grid_escape_tau, &
        &                     grid_integrate_noenergy
@@ -86,7 +86,7 @@ contains
     call mp_reset_first()
 
     if(use_mrw) then
-       call update_alpha_rosseland()
+       call update_alpha_inv_planck()
        call prepare_mrw()
     end if
 
@@ -172,7 +172,7 @@ contains
        else
           if(use_mrw) then
              do mrw_steps=1,n_mrw_max
-                if(tau_rosseland_to_closest_wall(p) > mrw_gamma) then
+                if(tau_inv_planck_to_closest_wall(p) > mrw_gamma) then
                    call grid_do_mrw_noenergy(p)
                    if(make_peeled_images) then
                       if(.not.peeloff_scattering_only) call peeloff_photon(p, polychromatic=.false.)

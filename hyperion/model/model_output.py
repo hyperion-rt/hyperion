@@ -1018,7 +1018,7 @@ class ModelOutput(FreezableClass):
                 d = SphericalDust(dust)
 
                 # Add to conversion function list
-                convert_func.append(d.mean_opacities._specific_energy2temperature)
+                convert_func.append(d.specific_energy2temperature)
 
             # Define function to convert different specific energy to
             # temperature for different dust types
@@ -1097,7 +1097,7 @@ class ModelOutput(FreezableClass):
             for i in range(array.shape[0]):
                 dust = g_dust['dust_%03i' % (i + 1)]
                 d = SphericalDust(dust)
-                array[i, :, :, :] = d.mean_opacities._specific_energy2temperature(array[i, :, :, :])
+                array[i, :, :, :] = d.specific_energy2temperature(array[i, :, :, :])
         else:
             array = np.array(self.file['iteration_%05i' % iteration][name])
 
