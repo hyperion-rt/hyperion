@@ -22,7 +22,7 @@ GRID_TYPES = ['car', 'cyl', 'sph', 'amr', 'oct']
 
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
-bit_level = pytest.mark.enable_bit_level_tests
+bit_level = pytest.mark.skipif(str(not pytest.config.getoption('enable_bit_level_tests')))
 
 
 @pytest.fixture(scope="module")
