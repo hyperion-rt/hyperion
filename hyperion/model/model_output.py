@@ -512,8 +512,12 @@ class ModelOutput(FreezableClass):
         sed.ap_max = g['seds'].attrs['apmax']
 
         # Add depth information
-        sed.d_min = g.attrs['d_min']
-        sed.d_max = g.attrs['d_max']
+        try:
+            sed.d_min = g.attrs['d_min']
+            sed.d_max = g.attrs['d_max']
+        except KeyError:  # Older versions of Hyperion
+            sed.d_min = None
+            sed.d_max = None
 
         # Add distance
         sed.distance = distance
@@ -885,8 +889,12 @@ class ModelOutput(FreezableClass):
         image.y_max = y_max
 
         # Add depth information
-        image.d_min = g.attrs['d_min']
-        image.d_max = g.attrs['d_max']
+        try:
+            image.d_min = g.attrs['d_min']
+            image.d_max = g.attrs['d_max']
+        except KeyError:  # Older versions of Hyperion
+            image.d_min = None
+            image.d_max = None
 
         # Add angular extent
         image.lon_min = lon_min
