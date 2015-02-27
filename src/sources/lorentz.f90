@@ -55,6 +55,8 @@ contains
 
   subroutine lorentz_boost(nu, a, v)
 
+    ! Note: this is currently not used in Hyperion
+
     ! Parameters
     ! ----------
     ! nu : real(dp)
