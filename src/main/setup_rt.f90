@@ -248,6 +248,7 @@ contains
              call error("setup_initial", "version 1 dust files can no longer be used when PDA is computed due to a bug - to fix this, re-generate the dust file using the latest version of Hyperion")
           end if
        end do
+    end if
 
     ! VARIOUS SANITY CHECKS
 
