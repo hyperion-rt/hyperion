@@ -1,11 +1,11 @@
 About
-=====
+-----
 
 Hyperion is a 3D Monte-Carlo radiation transfer code - see http://www.hyperion-rt.org
 for more details.
 
 Downloading
-===========
+-----------
 
 Stable releases can be found at:
 
@@ -19,7 +19,7 @@ To download from the git repository, use:
     git submodule update
 
 Documentation
-=============
+-------------
 
 To build the HTML documentation:
 
@@ -30,10 +30,14 @@ The documentation will then be available at `docs/build/html`. Note that <a
 href="http://sphinx-doc.org/">Sphinx</a> is required to build the documentation
 
 Updating
-========
+--------
 
 To update your clone of the git repository, use:
 
     git pull
     git submodule update
 
+Status
+------
+
+[![Build Status](https://travis-ci.org/hyperion-rt/hyperion.png)](https://travis-ci.org/hyperion-rt/hyperion?branch=master)
