@@ -6,6 +6,14 @@ Version History
 
 - No changes yet
 
+0.9.6 (2015-02-27)
+------------------
+
+Bug fixes
+^^^^^^^^^
+
+- Fixed backward compatibility with files that don't include d_min/d_max
+
 0.9.5 (2015-02-17)
 ------------------
 
