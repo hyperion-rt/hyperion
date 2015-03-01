@@ -27,11 +27,11 @@ s.spectrum = (nu, jnu)
 s.luminosity = np.pi * pc * pc * FOUR_PI_JNU
 
 # Add an inside observer with an all-sky camera
-sed = m.add_peeled_images(sed=False, image=True)
-sed.set_inside_observer((0., 0., 0.))
-sed.set_image_limits(180., -180., -90., 90.)
-sed.set_image_size(256, 128)
-sed.set_wavelength_range(100, 0.01, 1000.)
+image = m.add_peeled_images(sed=False, image=True)
+image.set_inside_observer((0., 0., 0.))
+image.set_image_limits(180., -180., -90., 90.)
+image.set_image_size(256, 128)
+image.set_wavelength_range(100, 0.01, 1000.)
 
 # Use raytracing for high signal-to-noise
 m.set_raytracing(True)
