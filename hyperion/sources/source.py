@@ -783,8 +783,8 @@ class ExternalBoxSource(Source):
     @property
     def bounds(self):
         '''
-        The cartesian boundaries of the rectangular box specified as
-        ``[[xmin, xmax], [ymin, ymax], [zmin, zmax]]`` (cm)
+        The cartesian boundaries of the rectangular box specified
+        as ``[[xmin, xmax], [ymin, ymax], [zmin, zmax]]`` (cm).
         '''
         return self._bounds
 
