@@ -157,9 +157,6 @@ contains
        allocate(nu(s(source_id)%spectrum%n))
        allocate(fnu(s(source_id)%spectrum%n))
 
-       log10_nu_min = log10(settings(grid_id)%nu_min)
-       log10_nu_max = log10(settings(grid_id)%nu_max)
-
        nu = s(source_id)%spectrum%x
        fnu = s(source_id)%spectrum%pdf
 
@@ -178,6 +175,9 @@ contains
         fnu = normalized_B_nu(nu,s(source_id)%temperature)
 
     end select
+
+    log10_nu_min = log10(settings(grid_id)%nu_min)
+    log10_nu_max = log10(settings(grid_id)%nu_max)
 
     do inu=1,settings(grid_id)%n_nu
 
