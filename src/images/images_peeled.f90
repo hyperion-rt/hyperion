@@ -11,6 +11,7 @@ module peeled_images
   use type_photon
 
   use sources
+  use spectrum_gridding, only : set_n_spectral_grids, set_spectral_grid
   use dust_main
   use dust_interact
 
@@ -251,6 +252,8 @@ contains
 
     ip = 0
 
+    if(use_raytracing) call set_n_spectral_grids(n_groups)
+
     do ig=1,n_groups
 
        if(inside_observer(ig)) then
@@ -268,6 +271,8 @@ contains
        call mp_table_read_column_auto(handle, trim(paths(ig))//'/angles', 'phi', phi)
 
        call image_setup(handle,paths(ig),peeled_image(ig),n_view,n_sources,n_dust,use_exact_nu,frequencies)
+
+       peeled_image(ig)%group_id = ig
 
        ! If an inside observer, check that the longitudes are inverted
        if(inside_observer(ig)) then
@@ -289,16 +294,11 @@ contains
 
           call image_raytracing_initialize(peeled_image(ig),n_sources,n_dust)
 
-          do is=1,n_sources
-             select case(s(is)%freq_type)
-             case(1)
-                call image_raytracing_set_spectrum(peeled_image(ig),is,s(is)%spectrum)
-             case(2)
-                call image_raytracing_set_blackbody(peeled_image(ig),is,s(is)%temperature)
-             case default
-                print *,"Don't need to set up spectrum for source = ",is
-             end select
-          end do
+          if(peeled_image(ig)%use_exact_nu) then
+            call set_spectral_grid(ig, peeled_image(ig)%nu)
+          else
+            call set_spectral_grid(ig, peeled_image(ig)%n_nu, peeled_image(ig)%nu_min, peeled_image(ig)%nu_max)
+          end if
 
           do id=1,n_dust
              call image_raytracing_set_opacity(peeled_image(ig),id,d(id)%nu,d(id)%chi_nu)

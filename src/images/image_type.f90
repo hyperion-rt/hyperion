@@ -5,6 +5,7 @@ module type_image
   use core_lib
   use mpi_hdf5_io
   use type_photon
+  use spectrum_gridding
 
   implicit none
   save
@@ -19,8 +20,6 @@ module type_image
   public :: in_image
 
   public :: image_raytracing_initialize
-  public :: image_raytracing_set_spectrum
-  public :: image_raytracing_set_blackbody
   public :: image_raytracing_set_emissivity
   public :: image_raytracing_set_opacity
 
@@ -87,9 +86,6 @@ module type_image
 
      ! RAYTRACING
 
-     type(source_helper),allocatable :: sources(:)
-     ! spectra of the sources, binned to the image spectral resolution
-
      type(dust_helper),allocatable :: dust(:)
      ! emissivity of the dust types, binned to the image spectral resolution
 
@@ -107,12 +103,9 @@ module type_image
      integer :: n_sources
      integer :: n_dust
 
-  end type image
+     integer :: group_id = 999
 
-  interface image_raytracing_set_spectrum
-     module procedure image_raytracing_set_spectrum_pdf
-     module procedure image_raytracing_set_spectrum_nu_fnu
-  end interface image_raytracing_set_spectrum
+  end type image
 
 contains
 
@@ -519,7 +512,7 @@ contains
     ! Now the fun begins
     select case(p%emiss_type)
     case(1,2)
-       img%tmp_spectrum = img%sources(p%source_id)%spectrum
+       call get_spectrum(p%source_id, img%group_id, img%tmp_spectrum)
     case(3)
        img%tmp_spectrum = (img%dust(p%dust_id)%log10_emissivity(:,p%emiss_var_id+1) - &
             &                   img%dust(p%dust_id)%log10_emissivity(:,p%emiss_var_id)) * p%emiss_var_frac + &
@@ -744,107 +737,9 @@ contains
     implicit none
     type(image), intent(inout) :: img
     integer,intent(in) :: n_sources, n_dust
-    allocate(img%sources(n_sources))
     allocate(img%dust(n_dust))
     allocate(img%tmp_spectrum(img%n_nu))
   end subroutine image_raytracing_initialize
-
-  subroutine image_raytracing_set_spectrum_pdf(img,source_id,spectrum)
-
-    implicit none
-
-    type(image), intent(inout) :: img
-    integer,intent(in) :: source_id
-    type(pdf_dp),intent(in) :: spectrum
-
-    call image_raytracing_set_spectrum(img,source_id,spectrum%x,spectrum%pdf)
-
-  end subroutine image_raytracing_set_spectrum_pdf
-
-  subroutine image_raytracing_set_spectrum_nu_fnu(img,source_id,nu,fnu)
-
-    implicit none
-
-    type(image), intent(inout) :: img
-    integer,intent(in) :: source_id
-    real(dp),intent(in) :: nu(:), fnu(:)
-    real(dp), dimension(img%n_nu) :: nu_new, e_new
-    real(dp) :: numin, numax
-    integer :: inu
-
-
-    allocate(img%sources(source_id)%spectrum(img%n_nu))
-
-    if(img%use_exact_nu) then
-
-       img%sources(source_id)%spectrum = interp1d_loglog(nu, fnu, img%nu, bounds_error=.false., fill_value=0._dp)
-
-    else
-
-       do inu=1,img%n_nu
-
-          numin = 10._dp**(img%log10_nu_min + (img%log10_nu_max - img%log10_nu_min) * real(inu-1, dp) / real(img%n_nu, dp))
-          numax = 10._dp**(img%log10_nu_min + (img%log10_nu_max - img%log10_nu_min) * real(inu, dp) / real(img%n_nu, dp))
-
-          nu_new(inu) = 10._dp**(0.5_dp * (log10(numin) + log10(numax)))
-          e_new(inu) = integral_loglog(nu, fnu, numin, numax)
-
-       end do
-
-       e_new = e_new / integral_loglog(nu, fnu)
-
-       img%sources(source_id)%spectrum = e_new
-
-    end if
-
-  end subroutine image_raytracing_set_spectrum_nu_fnu
-
-  subroutine image_raytracing_set_blackbody(img,source_id,temperature)
-
-    implicit none
-
-    type(image), intent(inout) :: img
-    integer,intent(in) :: source_id
-    real(dp),intent(in) :: temperature
-    integer :: inu
-
-    integer :: n_nu
-    real(dp),allocatable :: nu(:)
-
-    real(dp) :: log10_nu_min, log10_nu_max
-
-    if(img%use_exact_nu) then
-
-       call image_raytracing_set_spectrum(img,source_id,img%nu,normalized_B_nu(img%nu,temperature))
-
-    else
-
-       log10_nu_min = log10(3.e9_dp)  ! 10 cm (0.05K)
-       log10_nu_max = log10(3.e16_dp) ! 10 nm (1/2 million K)
-
-       n_nu = ceiling((log10_nu_max - log10_nu_min) * 100000)
-       allocate(nu(n_nu))
-       do inu=1,n_nu
-          nu(inu) = 10._dp**(real(inu-1,dp)/real(n_nu-1,dp)*(log10_nu_max - log10_nu_min) + log10_nu_min)
-       end do
-
-       call image_raytracing_set_spectrum(img,source_id,nu,normalized_B_nu(nu,temperature))
-
-    end if
-
-  contains
-
-    elemental real(dp) function normalized_B_nu(nu,T)
-      implicit none
-      real(dp),intent(in) :: nu,T
-      real(dp),parameter :: a = two * h_cgs / c_cgs / c_cgs / stef_boltz * pi
-      real(dp),parameter :: b = h_cgs / k_cgs
-      real(dp) :: T4
-      T4 = T*T*T*T
-      normalized_B_nu = a * nu * nu * nu / ( exp(b*nu/T) - one) / T4
-    end function normalized_B_nu
-
-  end subroutine image_raytracing_set_blackbody
 
   subroutine image_raytracing_set_emissivity(img,dust_id,emissivity_var,emissivity)
 
