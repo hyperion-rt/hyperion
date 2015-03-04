@@ -29,6 +29,7 @@ OBJECTS2 =	src/grid/grid_physics_3d.f90 \
 		src/sources/source_type.f90 \
 		src/sources/source.f90 \
 		src/sources/spectrum_gridding.f90 \
+		src/dust/emissivity_gridding.f90 \
 		src/images/image_type.f90 \
 		src/grid/grid_propagate_3d.f90 \
 		src/grid/grid_mrw_3d.f90 \
