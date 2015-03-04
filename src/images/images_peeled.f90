@@ -12,9 +12,7 @@ module peeled_images
   use type_source
   use type_dust
 
-
   use sources
-  !   use spectrum_gridding, only : set_n_spectral_grids, set_spectral_grid
   use dust_main
   use dust_interact
 
@@ -70,6 +68,19 @@ module peeled_images
 
   type(cached_dust_emissivity), allocatable, target :: cached_dust_emissivities(:,:)
 
+  type cached_dust_extinction
+     real(dp),allocatable :: chi_nu(:)
+  end type cached_dust_extinction
+
+  type(cached_dust_extinction), allocatable, target :: cached_dust_extinctions(:,:)
+
+  type spectrum
+     real(dp),allocatable :: spectrum(:)
+     real(dp),allocatable :: chi_nu(:)
+  end type spectrum
+
+  type(spectrum),allocatable :: tmp(:)
+
 contains
 
   subroutine peeled_images_adjust_scale(scale)
@@ -88,7 +99,7 @@ contains
     type(photon),intent(in) :: p_orig
     type(photon) :: p
     real(dp) :: tau
-    integer :: ip,ig,iv
+    integer :: ip,ig,iv,id
     type(angle3d_dp) :: a_req, a_sky, a_diff
     type(vector3d_dp) :: v_req
     logical,intent(in) :: polychromatic
@@ -206,24 +217,26 @@ contains
                 ! Now the fun begins
                 select case(p%emiss_type)
                 case(1,2)
-                   call get_source_spectrum(p%source_id, ig, peeled_image(ig)%tmp_spectrum)
+                   call get_source_spectrum(p%source_id, ig, tmp(ig)%spectrum)
                 case(3)
-                   call get_dust_emissivity(p%dust_id, ig, p%emiss_var_id, p%emiss_var_frac, peeled_image(ig)%tmp_spectrum)
+                   call get_dust_emissivity(p%dust_id, ig, p%emiss_var_id, p%emiss_var_frac, tmp(ig)%spectrum)
                 case default
                    stop "unknown emiss_type"
                 end select
 
-                peeled_image(ig)%tmp_spectrum = peeled_image(ig)%tmp_spectrum * p%s%i * p%energy
+                call get_dust_extinction(p%dust_id, ig, tmp(ig)%chi_nu)
 
-                do id=1,size(column_density)
-                   peeled_image(ig)%tmp_spectrum = peeled_image(ig)%tmp_spectrum * exp(- column_density(id) * img%dust(id)%chi)
+                tmp(ig)%spectrum = tmp(ig)%spectrum * p%s%i * p%energy
+
+                do id=1,n_dust
+                   tmp(ig)%spectrum = tmp(ig)%spectrum * exp(- column_density(id) * tmp(ig)%chi_nu)
                 end do
 
-                call image_bin_raytraced(peeled_image(ig),p,x_image,y_image,iv, peeled_image(ig)%tmp_spectrum)
+                call image_bin_raytraced(peeled_image(ig),p,x_image,y_image,iv, tmp(ig)%spectrum)
 
              else
                 p%s = p%s * exp(-tau)
-                call image_bin(peeled_image(ig),p,x_image,y_image,iv,peeled_image(ig)%tmp_spectrum)
+                call image_bin(peeled_image(ig),p,x_image,y_image,iv)
              end if
 
           end if
@@ -323,22 +336,14 @@ contains
           viewing_angles(ip) = angle3d_deg(theta(iv), phi(iv))
        end do
 
-       ! Set up raytracing spectra
-
-       if(use_raytracing) then
-
-          call image_raytracing_initialize(peeled_image(ig),n_sources,n_dust)
-
-          do id=1,n_dust
-             call image_raytracing_set_opacity(peeled_image(ig),id,d(id)%nu,d(id)%chi_nu)
-             call image_raytracing_set_emissivity(peeled_image(ig),id,d(id)%j_nu_var,d(id)%j_nu)
-          end do
-
-       end if
-
     end do
 
     allocate(column_density(n_dust))
+
+    allocate(tmp(n_groups))
+    do ig=1,n_groups
+       allocate(tmp(ig)%spectrum(peeled_image(ig)%n_nu))
+    end do
 
   end subroutine peeled_images_setup
 
@@ -460,5 +465,35 @@ contains
     end where
 
   end subroutine get_dust_emissivity
+
+  subroutine get_dust_extinction(dust_id, group_id, extinction)
+
+    implicit none
+
+    integer,intent(in) :: dust_id, group_id
+    real(dp), intent(out) :: extinction(:)
+
+    ! For now, if the cache is set then we can just use that.
+
+    if(.not.allocated(cached_dust_extinctions(group_id, dust_id)%chi_nu)) then
+
+       allocate(cached_dust_extinctions(group_id,dust_id)%chi_nu(peeled_image(group_id)%n_nu))
+
+       if(peeled_image(group_id)%use_exact_nu) then
+          extinction = get_chi_nu_interp(d(dust_id), peeled_image(group_id)%nu)
+       else         
+          extinction = get_chi_nu_binned(d(dust_id), peeled_image(group_id)%n_nu, &
+               & peeled_image(group_id)%nu_min, peeled_image(group_id)%nu_max)
+
+       end if
+
+       ! Store the cached extinction
+       cached_dust_extinctions(group_id,dust_id)%chi_nu = extinction
+
+    end if
+
+    extinction = cached_dust_extinctions(group_id, dust_id)%chi_nu
+
+  end subroutine get_dust_extinction
 
 end module peeled_images

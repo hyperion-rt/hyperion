@@ -17,8 +17,11 @@ module type_dust
   public :: dust_sample_j_nu
   public :: dust_sample_b_nu
   public :: dust_jnu_var_pos_frac
+
   public :: get_j_nu_interp
   public :: get_j_nu_binned
+  public :: get_chi_nu_interp
+  public :: get_chi_nu_binned
 
   type dust
 
@@ -711,8 +714,8 @@ contains
     integer,intent(in) :: jnu_var_id
     real(dp) :: j_nu(size(nu))
 
-     j_nu = interp1d_loglog(d%j_nu(jnu_var_id)%x, d%j_nu(jnu_var_id)%pdf, &
-              &             nu, bounds_error=.false., fill_value=0._dp)
+    j_nu = interp1d_loglog(d%j_nu(jnu_var_id)%x, d%j_nu(jnu_var_id)%pdf, &
+         &             nu, bounds_error=.false., fill_value=0._dp)
 
   end function get_j_nu_interp
 
@@ -747,5 +750,47 @@ contains
     j_nu = j_nu / integral_loglog(d%j_nu(jnu_var_id)%x, d%j_nu(jnu_var_id)%pdf)
 
   end function get_j_nu_binned
+
+  function get_chi_nu_interp(d, nu) result(chi_nu)
+
+    implicit none
+
+    type(dust),intent(in) :: d
+    real(dp),intent(in) :: nu(:)
+    real(dp) :: chi_nu(size(nu))
+
+    chi_nu = interp1d_loglog(d%nu, d%chi_nu,&
+         &             nu, bounds_error=.false., fill_value=0._dp)
+
+  end function get_chi_nu_interp
+
+  function get_chi_nu_binned(d, n_nu, nu_min, nu_max) result(chi_nu)
+
+    implicit none
+
+    type(dust),intent(in) :: d
+    integer,intent(in) :: n_nu
+    real(dp),intent(in) :: nu_min, nu_max
+    real(dp) :: chi_nu(n_nu)
+
+    real(dp),allocatable :: nu(:), fnu(:)
+    integer :: inu, n_nu_bb
+    real(dp) :: numin, numax
+    real(dp) :: log10_nu_min_bb, log10_nu_max_bb
+    real(dp) :: log10_nu_min, log10_nu_max
+
+    log10_nu_min = log10(nu_min)
+    log10_nu_max = log10(nu_max)
+
+    do inu=1, n_nu
+
+       numin = 10._dp**(log10_nu_min + (log10_nu_max - log10_nu_min) * real(inu - 1, dp) / real(n_nu, dp))
+       numax = 10._dp**(log10_nu_min + (log10_nu_max - log10_nu_min) * real(inu, dp) / real(n_nu, dp))
+
+       chi_nu(inu) = integral_loglog(d%nu, d%chi_nu, numin, numax) / (numax - numin)
+
+    end do
+
+  end function get_chi_nu_binned
 
 end module type_dust
