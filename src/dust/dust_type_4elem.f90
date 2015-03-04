@@ -17,6 +17,8 @@ module type_dust
   public :: dust_sample_j_nu
   public :: dust_sample_b_nu
   public :: dust_jnu_var_pos_frac
+  public :: get_j_nu_interp
+  public :: get_j_nu_binned
 
   type dust
 
@@ -699,5 +701,51 @@ contains
     real(dp),parameter :: b = h_cgs / k_cgs
     dB_nu_over_dT = a * nu * nu * nu * nu * exp(b*nu/T) / (exp(b*nu/T) - one)**2.
   end function dB_nu_over_dT
+
+  function get_j_nu_interp(d, nu, jnu_var_id) result(j_nu)
+
+    implicit none
+
+    type(dust),intent(in) :: d
+    real(dp),intent(in) :: nu(:)
+    integer,intent(in) :: jnu_var_id
+    real(dp) :: j_nu(size(nu))
+
+     j_nu = interp1d_loglog(d%j_nu(jnu_var_id)%x, d%j_nu(jnu_var_id)%pdf, &
+              &             nu, bounds_error=.false., fill_value=0._dp)
+
+  end function get_j_nu_interp
+
+  function get_j_nu_binned(d, n_nu, nu_min, nu_max, jnu_var_id) result(j_nu)
+
+    implicit none
+
+    type(dust),intent(in) :: d
+    integer,intent(in) :: n_nu
+    real(dp),intent(in) :: nu_min, nu_max
+    integer,intent(in) :: jnu_var_id
+    real(dp) :: j_nu(n_nu)
+
+    real(dp),allocatable :: nu(:), fnu(:)
+    integer :: inu, n_nu_bb
+    real(dp) :: numin, numax
+    real(dp) :: log10_nu_min_bb, log10_nu_max_bb
+    real(dp) :: log10_nu_min, log10_nu_max
+
+    log10_nu_min = log10(nu_min)
+    log10_nu_max = log10(nu_max)
+
+    do inu=1, n_nu
+
+       numin = 10._dp**(log10_nu_min + (log10_nu_max - log10_nu_min) * real(inu - 1, dp) / real(n_nu, dp))
+       numax = 10._dp**(log10_nu_min + (log10_nu_max - log10_nu_min) * real(inu, dp) / real(n_nu, dp))
+
+       j_nu(inu) = integral_loglog(d%j_nu(jnu_var_id)%x, d%j_nu(jnu_var_id)%pdf, numin, numax)
+
+    end do
+
+    j_nu = j_nu / integral_loglog(d%j_nu(jnu_var_id)%x, d%j_nu(jnu_var_id)%pdf)
+
+  end function get_j_nu_binned
 
 end module type_dust
