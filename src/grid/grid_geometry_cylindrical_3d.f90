@@ -215,19 +215,19 @@ contains
     ! dimensions.
 
     if(i1<1.or.i1>geo%n1) then
-       call warn("find_cell","photon not in cell (in r direction)")
+       call warn("find_cell","photon not in grid (in r direction)")
        icell = invalid_cell
        return
     end if
 
     if(i2<1.or.i2>geo%n2) then
-       call warn("find_cell","photon not in cell (in z direction)")
+       call warn("find_cell","photon not in grid (in z direction)")
        icell = invalid_cell
        return
     end if
 
     if(i3<1.or.i3>geo%n3) then
-       call warn("find_cell","photon not in cell (in phi direction)")
+       call warn("find_cell","photon not in grid (in phi direction)")
        icell = invalid_cell
        return
     end if

@@ -149,17 +149,17 @@ contains
     i2 = locate(geo%w2,p%r%y)
     i3 = locate(geo%w3,p%r%z)
     if(i1<1.or.i1>geo%n1) then
-       call warn("find_cell","photon not in cell (in x direction)")
+       call warn("find_cell","photon not in grid (in x direction)")
        icell = invalid_cell
        return
     end if
     if(i2<1.or.i2>geo%n2) then
-       call warn("find_cell","photon not in cell (in y direction)")
+       call warn("find_cell","photon not in grid (in y direction)")
        icell = invalid_cell
        return
     end if
     if(i3<1.or.i3>geo%n3) then
-       call warn("find_cell","photon not in cell (in z direction)")
+       call warn("find_cell","photon not in grid (in z direction)")
        icell = invalid_cell
        return
     end if
