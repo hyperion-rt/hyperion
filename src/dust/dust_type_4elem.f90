@@ -729,10 +729,8 @@ contains
     integer,intent(in) :: jnu_var_id
     real(dp) :: j_nu(n_nu)
 
-    real(dp),allocatable :: nu(:), fnu(:)
     integer :: inu
     real(dp) :: numin, numax
-    real(dp) :: log10_nu_min_bb, log10_nu_max_bb
     real(dp) :: log10_nu_min, log10_nu_max
 
     log10_nu_min = log10(nu_min)
@@ -773,10 +771,8 @@ contains
     real(dp),intent(in) :: nu_min, nu_max
     real(dp) :: chi_nu(n_nu)
 
-    real(dp),allocatable :: nu(:), fnu(:)
-    integer :: inu, n_nu_bb
+    integer :: inu
     real(dp) :: numin, numax
-    real(dp) :: log10_nu_min_bb, log10_nu_max_bb
     real(dp) :: log10_nu_min, log10_nu_max
 
     log10_nu_min = log10(nu_min)

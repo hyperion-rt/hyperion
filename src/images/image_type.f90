@@ -462,7 +462,7 @@ contains
     real(dp),intent(in) :: x_image, y_image
     integer,intent(in) :: im ! sub-image to bin into
     real(dp),intent(in) :: spectrum(:)
-    integer :: ix,iy,ir,iw,id,io ! Bins
+    integer :: ix,iy,ir,iw,io ! Bins
     integer :: iorig
 
     if(img%compute_image.and..not.allocated(img%img)) call error('bin_photon','Image not allocated')

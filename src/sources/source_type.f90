@@ -110,7 +110,6 @@ contains
     integer(hid_t) :: g_spot
     real(dp) :: dx, dy, dz
     real(dp) :: theta, phi
-    real(dp),allocatable :: tmp3d(:,:,:)
     real(dp),allocatable :: luminosity_collection(:), position_collection(:,:)
 
     call mp_read_keyword(group, '.', 'type', type)

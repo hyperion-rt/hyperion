@@ -257,7 +257,7 @@ contains
 
     logical,intent(in) :: use_raytracing, use_exact_nu
 
-    integer :: ig,id,iv,is,ip = 0
+    integer :: ig,iv,ip = 0
 
     integer :: n_view
 
