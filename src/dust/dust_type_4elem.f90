@@ -715,7 +715,7 @@ contains
     real(dp) :: j_nu(size(nu))
 
     j_nu = interp1d_loglog(d%j_nu(jnu_var_id)%x, d%j_nu(jnu_var_id)%pdf, &
-         &             nu, bounds_error=.false., fill_value=0._dp)
+         &                 nu, bounds_error=.false., fill_value=0._dp)
 
   end function get_j_nu_interp
 
@@ -757,8 +757,8 @@ contains
     real(dp),intent(in) :: nu(:)
     real(dp) :: chi_nu(size(nu))
 
-    chi_nu = interp1d_loglog(d%nu, d%chi_nu,&
-         &             nu, bounds_error=.false., fill_value=0._dp)
+    chi_nu = interp1d_loglog(d%nu, d%chi_nu, &
+         &                   nu, bounds_error=.false., fill_value=0._dp)
 
   end function get_chi_nu_interp
 
