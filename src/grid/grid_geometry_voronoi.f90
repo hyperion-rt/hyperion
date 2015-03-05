@@ -188,18 +188,38 @@ contains
   end subroutine grid_geometry_debug
 
   type(grid_cell) function find_cell(p) result(icell)
+
     implicit none
+
     type(photon),intent(in) :: p
     integer :: ic
     type(kdtree2_result) :: results(1)
     real(dp) :: point(3)
     if(debug) write(*,'(" [debug] find_cell")')
+
+    if(p%r%x<geo%xmin.or.p%r%x>geo%xmax) then
+       call warn("find_cell","photon not in grid (in x direction)")
+       icell = invalid_cell
+       return
+    end if
+    if(p%r%y<geo%ymin.or.p%r%y>geo%ymax) then
+       call warn("find_cell","photon not in grid (in y direction)")
+       icell = invalid_cell
+       return
+    end if
+    if(p%r%z<geo%zmin.or.p%r%z>geo%zmax) then
+       call warn("find_cell","photon not in grid (in z direction)")
+       icell = invalid_cell
+       return
+    end if
+
     ! TODO: nearest-neighbor algorithm - potentially going to be the
     ! bottleneck.
     point = [p%r%x, p%r%y, p%r%z]
     call kdtree2_n_nearest(geo%tree, point, 1, results)
     ic = results(1)%idx
     icell = new_grid_cell(ic, geo)
+
   end function find_cell
 
   subroutine place_in_cell(p)
