@@ -450,7 +450,7 @@ contains
           end if
 
           ! Assign to cache
-          cached_dust_emissivities(group_id,dust_id)%log10_emissivity(:,ijnu) = spectrum
+          cached_dust_emissivities(group_id,dust_id)%log10_emissivity(:,ijnu) = log10(spectrum)
 
        end do
 
