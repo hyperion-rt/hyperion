@@ -20,6 +20,7 @@ COMMON = 	fortranlib/src/base_types.f90 \
 OBJECTS1 = 	src/core/type_photon.f90 \
 		src/main/settings.f90 \
 		src/main/performance.f90 \
+		src/images/image_type.f90 \
 		src/dust/dust_type_4elem.f90 \
 		src/dust/dust.f90 \
 
@@ -28,7 +29,6 @@ OBJECTS2 =	src/grid/grid_physics_3d.f90 \
 		src/dust/dust_interact.f90 \
 		src/sources/source_type.f90 \
 		src/sources/source.f90 \
-		src/images/image_type.f90 \
 		src/grid/grid_propagate_3d.f90 \
 		src/grid/grid_mrw_3d.f90 \
 		src/grid/grid_pda_3d.f90 \
