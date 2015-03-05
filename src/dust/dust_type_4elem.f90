@@ -730,7 +730,7 @@ contains
     real(dp) :: j_nu(n_nu)
 
     real(dp),allocatable :: nu(:), fnu(:)
-    integer :: inu, n_nu_bb
+    integer :: inu
     real(dp) :: numin, numax
     real(dp) :: log10_nu_min_bb, log10_nu_max_bb
     real(dp) :: log10_nu_min, log10_nu_max

@@ -1101,11 +1101,11 @@ contains
     select case(src%freq_type)
     case(1)
        spectrum = interp1d_loglog(src%spectrum%x, src%spectrum%pdf, &
-                &                 nu, bounds_error=.false., fill_value=0._dp)
+            &                 nu, bounds_error=.false., fill_value=0._dp)
     case(2)
        spectrum = normalized_B_nu(nu, src%temperature)
     case default
-      call error("get_spectrum_interp", "cannot get spectrum")
+       call error("get_spectrum_interp", "cannot get spectrum")
     end select
 
   end function get_spectrum_interp
@@ -1134,19 +1134,19 @@ contains
        nu = src%spectrum%x
        fnu = src%spectrum%pdf
 
-     case(2)
+    case(2)
 
-        log10_nu_min_bb = log10(3.e9_dp)  ! 10 cm (0.05K)
-        log10_nu_max_bb = log10(3.e16_dp) ! 10 nm (1/2 million K)
+       log10_nu_min_bb = log10(3.e9_dp)  ! 10 cm (0.05K)
+       log10_nu_max_bb = log10(3.e16_dp) ! 10 nm (1/2 million K)
 
-        n_nu_bb = ceiling((log10_nu_max_bb - log10_nu_min_bb) * 100000)
-        allocate(nu(n_nu_bb))
-        allocate(fnu(n_nu_bb))
-        do inu=1,n_nu_bb
-           nu(inu) = 10._dp ** (real(inu-1,dp) / real(n_nu-1,dp)*(log10_nu_max_bb - log10_nu_min_bb) + log10_nu_min_bb)
-        end do
+       n_nu_bb = ceiling((log10_nu_max_bb - log10_nu_min_bb) * 100000)
+       allocate(nu(n_nu_bb))
+       allocate(fnu(n_nu_bb))
+       do inu=1,n_nu_bb
+          nu(inu) = 10._dp ** (real(inu-1,dp) / real(n_nu_bb-1,dp)*(log10_nu_max_bb - log10_nu_min_bb) + log10_nu_min_bb)
+       end do
 
-        fnu = normalized_B_nu(nu, src%temperature)
+       fnu = normalized_B_nu(nu, src%temperature)
 
     end select
 

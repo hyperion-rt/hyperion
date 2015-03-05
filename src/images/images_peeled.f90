@@ -224,11 +224,10 @@ contains
                    stop "unknown emiss_type"
                 end select
 
-                call get_dust_extinction(p%dust_id, ig, tmp(ig)%chi_nu)
-
                 tmp(ig)%spectrum = tmp(ig)%spectrum * p%s%i * p%energy
 
                 do id=1,n_dust
+                   call get_dust_extinction(id, ig, tmp(ig)%chi_nu)
                    tmp(ig)%spectrum = tmp(ig)%spectrum * exp(- column_density(id) * tmp(ig)%chi_nu)
                 end do
 
@@ -300,7 +299,11 @@ contains
 
     ip = 0
 
-    if(use_raytracing) allocate(cached_source_spectra(n_groups, n_sources))
+    if(use_raytracing) then
+       allocate(cached_source_spectra(n_groups, n_sources))
+       allocate(cached_dust_emissivities(n_groups, n_dust))
+       allocate(cached_dust_extinctions(n_groups, n_dust))
+    end if
 
     do ig=1,n_groups
 
@@ -343,6 +346,7 @@ contains
     allocate(tmp(n_groups))
     do ig=1,n_groups
        allocate(tmp(ig)%spectrum(peeled_image(ig)%n_nu))
+       allocate(tmp(ig)%chi_nu(peeled_image(ig)%n_nu))
     end do
 
   end subroutine peeled_images_setup
@@ -406,7 +410,6 @@ contains
        else         
           spectrum = get_spectrum_binned(s(source_id), peeled_image(group_id)%n_nu, &
                & peeled_image(group_id)%nu_min, peeled_image(group_id)%nu_max)
-
        end if
 
        ! Store the cached spectrum
