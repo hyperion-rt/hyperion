@@ -19,6 +19,8 @@ module type_source
   public :: source_emit_peeloff
   public :: source_intersect
   public :: source_distance
+  public :: get_spectrum_interp
+  public :: get_spectrum_binned
 
   public :: spot
 
@@ -108,7 +110,6 @@ contains
     integer(hid_t) :: g_spot
     real(dp) :: dx, dy, dz
     real(dp) :: theta, phi
-    real(dp),allocatable :: tmp3d(:,:,:)
     real(dp),allocatable :: luminosity_collection(:), position_collection(:,:)
 
     call mp_read_keyword(group, '.', 'type', type)
@@ -1087,5 +1088,81 @@ contains
     T4 = T*T*T*T
     normalized_B_nu = a * nu * nu * nu / ( exp(b*nu/T) - one) / T4
   end function normalized_B_nu
+
+  function get_spectrum_interp(src, nu) result(spectrum)
+
+    implicit none
+
+    type(source),intent(in) :: src
+    real(dp),intent(in) :: nu(:)
+    real(dp) :: spectrum(size(nu))
+
+    select case(src%freq_type)
+    case(1)
+       spectrum = interp1d_loglog(src%spectrum%x, src%spectrum%pdf, &
+            &                 nu, bounds_error=.false., fill_value=0._dp)
+    case(2)
+       spectrum = normalized_B_nu(nu, src%temperature)
+    case default
+       call error("get_spectrum_interp", "cannot get spectrum")
+    end select
+
+  end function get_spectrum_interp
+
+  function get_spectrum_binned(src, n_nu, nu_min, nu_max) result(spectrum)
+
+    implicit none
+
+    type(source),intent(in) :: src
+    integer,intent(in) :: n_nu
+    real(dp),intent(in) :: nu_min, nu_max
+    real(dp) :: spectrum(n_nu)
+
+    real(dp),allocatable :: nu(:), fnu(:)
+    integer :: inu, n_nu_bb
+    real(dp) :: numin, numax
+    real(dp) :: log10_nu_min_bb, log10_nu_max_bb
+    real(dp) :: log10_nu_min, log10_nu_max
+
+    select case(src%freq_type)
+    case(1)
+
+       allocate(nu(src%spectrum%n))
+       allocate(fnu(src%spectrum%n))
+
+       nu = src%spectrum%x
+       fnu = src%spectrum%pdf
+
+    case(2)
+
+       log10_nu_min_bb = log10(3.e9_dp)  ! 10 cm (0.05K)
+       log10_nu_max_bb = log10(3.e16_dp) ! 10 nm (1/2 million K)
+
+       n_nu_bb = ceiling((log10_nu_max_bb - log10_nu_min_bb) * 100000)
+       allocate(nu(n_nu_bb))
+       allocate(fnu(n_nu_bb))
+       do inu=1,n_nu_bb
+          nu(inu) = 10._dp ** (real(inu-1,dp) / real(n_nu_bb-1,dp)*(log10_nu_max_bb - log10_nu_min_bb) + log10_nu_min_bb)
+       end do
+
+       fnu = normalized_B_nu(nu, src%temperature)
+
+    end select
+
+    log10_nu_min = log10(nu_min)
+    log10_nu_max = log10(nu_max)
+
+    do inu=1, n_nu
+
+       numin = 10._dp ** (log10_nu_min + (log10_nu_max - log10_nu_min) * real(inu-1, dp) / real(n_nu, dp))
+       numax = 10._dp ** (log10_nu_min + (log10_nu_max - log10_nu_min) * real(inu, dp) / real(n_nu, dp))
+
+       spectrum(inu) = integral_loglog(nu, fnu, numin, numax)
+
+    end do
+
+    spectrum = spectrum / integral_loglog(nu, fnu)
+
+  end function get_spectrum_binned
 
 end module type_source

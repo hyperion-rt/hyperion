@@ -18,12 +18,6 @@ module type_image
   public :: image_write
   public :: in_image
 
-  public :: image_raytracing_initialize
-  public :: image_raytracing_set_spectrum
-  public :: image_raytracing_set_blackbody
-  public :: image_raytracing_set_emissivity
-  public :: image_raytracing_set_opacity
-
   public :: source_helper
   public :: dust_helper
 
@@ -87,13 +81,9 @@ module type_image
 
      ! RAYTRACING
 
-     type(source_helper),allocatable :: sources(:)
-     ! spectra of the sources, binned to the image spectral resolution
-
      type(dust_helper),allocatable :: dust(:)
      ! emissivity of the dust types, binned to the image spectral resolution
 
-     real(dp),allocatable :: tmp_spectrum(:)
      real(dp),allocatable :: tmp_stokes(:)
 
      character(len=11) :: track_origin
@@ -107,12 +97,9 @@ module type_image
      integer :: n_sources
      integer :: n_dust
 
-  end type image
+     integer :: group_id = 999
 
-  interface image_raytracing_set_spectrum
-     module procedure image_raytracing_set_spectrum_pdf
-     module procedure image_raytracing_set_spectrum_nu_fnu
-  end interface image_raytracing_set_spectrum
+  end type image
 
 contains
 
@@ -466,7 +453,7 @@ contains
 
   end subroutine image_bin
 
-  subroutine image_bin_raytraced(img,p,x_image,y_image,im,column_density)
+  subroutine image_bin_raytraced(img,p,x_image,y_image,im,spectrum)
 
     implicit none
 
@@ -474,8 +461,8 @@ contains
     type(photon),intent(in) :: p
     real(dp),intent(in) :: x_image, y_image
     integer,intent(in) :: im ! sub-image to bin into
-    real(dp),intent(in) :: column_density(:)
-    integer :: ix,iy,ir,iw,id,io ! Bins
+    real(dp),intent(in) :: spectrum(:)
+    integer :: ix,iy,ir,iw,io ! Bins
     integer :: iorig
 
     if(img%compute_image.and..not.allocated(img%img)) call error('bin_photon','Image not allocated')
@@ -516,36 +503,14 @@ contains
        io = 1
     end if
 
-    ! Now the fun begins
-    select case(p%emiss_type)
-    case(1,2)
-       img%tmp_spectrum = img%sources(p%source_id)%spectrum
-    case(3)
-       img%tmp_spectrum = (img%dust(p%dust_id)%log10_emissivity(:,p%emiss_var_id+1) - &
-            &                   img%dust(p%dust_id)%log10_emissivity(:,p%emiss_var_id)) * p%emiss_var_frac + &
-            &                   img%dust(p%dust_id)%log10_emissivity(:,p%emiss_var_id)
-       img%tmp_spectrum = 10._dp**(img%tmp_spectrum)
-       where(is_nan(img%tmp_spectrum))
-          img%tmp_spectrum = 0.
-       end where
-    case default
-       stop "unknown emiss_type"
-    end select
-
-    img%tmp_spectrum = img%tmp_spectrum * p%s%i * p%energy
-
-    do id=1,size(column_density)
-       img%tmp_spectrum = img%tmp_spectrum * exp(- column_density(id) * img%dust(id)%chi)
-    end do
-
     if(img%compute_image) then
        call find_image_bin(img,x_image,y_image,ix,iy)
        if(ix >= 1 .and. ix <= img%n_x) then
           if(iy >= 1 .and. iy <= img%n_y) then
              do iw=1,img%n_nu
-                img%img(iw,ix,iy,im,io,1) = img%img(iw,ix,iy,im,io,1) + img%tmp_spectrum(iw)
+                img%img(iw,ix,iy,im,io,1) = img%img(iw,ix,iy,im,io,1) + spectrum(iw)
                 if(img%uncertainties) then
-                   img%img2(iw,ix,iy,im,io,1) = img%img2(iw,ix,iy,im,io,1) + img%tmp_spectrum(iw)**2._dp
+                   img%img2(iw,ix,iy,im,io,1) = img%img2(iw,ix,iy,im,io,1) + spectrum(iw)**2._dp
                    img%imgn(iw,ix,iy,im,io,1) = img%imgn(iw,ix,iy,im,io,1) + 1._dp
                 end if
              end do
@@ -557,9 +522,9 @@ contains
        call find_sed_bin(img,x_image,y_image,ir)
        if(ir >= 1 .and. ir <= img%n_ap) then
           do iw=1,img%n_nu
-             img%sed(iw,ir,im,io,1) = img%sed(iw,ir,im,io,1) + img%tmp_spectrum(iw)
+             img%sed(iw,ir,im,io,1) = img%sed(iw,ir,im,io,1) + spectrum(iw)
              if(img%uncertainties) then
-                img%sed2(iw,ir,im,io,1) = img%sed2(iw,ir,im,io,1) + img%tmp_spectrum(iw)**2._dp
+                img%sed2(iw,ir,im,io,1) = img%sed2(iw,ir,im,io,1) + spectrum(iw)**2._dp
                 img%sedn(iw,ir,im,io,1) = img%sedn(iw,ir,im,io,1) + 1._dp
              end if
           end do
@@ -737,197 +702,5 @@ contains
     write(*,'(" [image_write] done")')
 
   end subroutine image_write
-
-  ! RAYTRACING
-
-  subroutine image_raytracing_initialize(img,n_sources,n_dust)
-    implicit none
-    type(image), intent(inout) :: img
-    integer,intent(in) :: n_sources, n_dust
-    allocate(img%sources(n_sources))
-    allocate(img%dust(n_dust))
-    allocate(img%tmp_spectrum(img%n_nu))
-  end subroutine image_raytracing_initialize
-
-  subroutine image_raytracing_set_spectrum_pdf(img,source_id,spectrum)
-
-    implicit none
-
-    type(image), intent(inout) :: img
-    integer,intent(in) :: source_id
-    type(pdf_dp),intent(in) :: spectrum
-
-    call image_raytracing_set_spectrum(img,source_id,spectrum%x,spectrum%pdf)
-
-  end subroutine image_raytracing_set_spectrum_pdf
-
-  subroutine image_raytracing_set_spectrum_nu_fnu(img,source_id,nu,fnu)
-
-    implicit none
-
-    type(image), intent(inout) :: img
-    integer,intent(in) :: source_id
-    real(dp),intent(in) :: nu(:), fnu(:)
-    real(dp), dimension(img%n_nu) :: nu_new, e_new
-    real(dp) :: numin, numax
-    integer :: inu
-
-
-    allocate(img%sources(source_id)%spectrum(img%n_nu))
-
-    if(img%use_exact_nu) then
-
-       img%sources(source_id)%spectrum = interp1d_loglog(nu, fnu, img%nu, bounds_error=.false., fill_value=0._dp)
-
-    else
-
-       do inu=1,img%n_nu
-
-          numin = 10._dp**(img%log10_nu_min + (img%log10_nu_max - img%log10_nu_min) * real(inu-1, dp) / real(img%n_nu, dp))
-          numax = 10._dp**(img%log10_nu_min + (img%log10_nu_max - img%log10_nu_min) * real(inu, dp) / real(img%n_nu, dp))
-
-          nu_new(inu) = 10._dp**(0.5_dp * (log10(numin) + log10(numax)))
-          e_new(inu) = integral_loglog(nu, fnu, numin, numax)
-
-       end do
-
-       e_new = e_new / integral_loglog(nu, fnu)
-
-       img%sources(source_id)%spectrum = e_new
-
-    end if
-
-  end subroutine image_raytracing_set_spectrum_nu_fnu
-
-  subroutine image_raytracing_set_blackbody(img,source_id,temperature)
-
-    implicit none
-
-    type(image), intent(inout) :: img
-    integer,intent(in) :: source_id
-    real(dp),intent(in) :: temperature
-    integer :: inu
-
-    integer :: n_nu
-    real(dp),allocatable :: nu(:)
-
-    real(dp) :: log10_nu_min, log10_nu_max
-
-    if(img%use_exact_nu) then
-
-       call image_raytracing_set_spectrum(img,source_id,img%nu,normalized_B_nu(img%nu,temperature))
-
-    else
-
-       log10_nu_min = log10(3.e9_dp)  ! 10 cm (0.05K)
-       log10_nu_max = log10(3.e16_dp) ! 10 nm (1/2 million K)
-
-       n_nu = ceiling((log10_nu_max - log10_nu_min) * 100000)
-       allocate(nu(n_nu))
-       do inu=1,n_nu
-          nu(inu) = 10._dp**(real(inu-1,dp)/real(n_nu-1,dp)*(log10_nu_max - log10_nu_min) + log10_nu_min)
-       end do
-
-       call image_raytracing_set_spectrum(img,source_id,nu,normalized_B_nu(nu,temperature))
-
-    end if
-
-  contains
-
-    elemental real(dp) function normalized_B_nu(nu,T)
-      implicit none
-      real(dp),intent(in) :: nu,T
-      real(dp),parameter :: a = two * h_cgs / c_cgs / c_cgs / stef_boltz * pi
-      real(dp),parameter :: b = h_cgs / k_cgs
-      real(dp) :: T4
-      T4 = T*T*T*T
-      normalized_B_nu = a * nu * nu * nu / ( exp(b*nu/T) - one) / T4
-    end function normalized_B_nu
-
-  end subroutine image_raytracing_set_blackbody
-
-  subroutine image_raytracing_set_emissivity(img,dust_id,emissivity_var,emissivity)
-
-    implicit none
-
-    type(image),intent(inout) :: img
-    integer,intent(in) :: dust_id
-    real(dp),intent(in) :: emissivity_var(:)
-    type(pdf_dp),intent(in) :: emissivity(:)
-    real(dp), dimension(img%n_nu) :: nu_new
-    real(dp), dimension(img%n_nu, size(emissivity_var)) :: e_new
-    real(dp) :: numin, numax
-    integer :: inu
-    integer :: j
-
-    if(img%use_exact_nu) then
-
-       do j=1,size(emissivity_var)
-          e_new(:,j) = interp1d_loglog(emissivity(j)%x, emissivity(j)%pdf, img%nu, bounds_error=.false., fill_value=0._dp)
-       end do
-
-    else
-
-       do j=1,size(emissivity_var)
-
-          do inu=1,img%n_nu
-
-             numin = 10._dp**(img%log10_nu_min + (img%log10_nu_max - img%log10_nu_min) * real(inu-1, dp) / real(img%n_nu, dp))
-             numax = 10._dp**(img%log10_nu_min + (img%log10_nu_max - img%log10_nu_min) * real(inu, dp) / real(img%n_nu, dp))
-
-             nu_new(inu) = 10._dp**(0.5_dp * (log10(numin) + log10(numax)))
-             e_new(inu,j) = integral_loglog(emissivity(j)%x, emissivity(j)%pdf, numin, numax)
-
-          end do
-
-          e_new(:,j) = e_new(:,j) / integral_loglog(emissivity(j)%x, emissivity(j)%pdf)
-
-       end do
-
-    end if
-
-    allocate(img%dust(dust_id)%emissivity_var(size(emissivity_var)))
-    img%dust(dust_id)%emissivity_var = emissivity_var
-
-    allocate(img%dust(dust_id)%log10_emissivity(img%n_nu,size(emissivity_var)))
-    do j=1,size(emissivity_var)
-       img%dust(dust_id)%log10_emissivity(:,j) = log10(e_new(:,j))
-    end do
-
-  end subroutine image_raytracing_set_emissivity
-
-  subroutine image_raytracing_set_opacity(img,dust_id,nu,chi_nu)
-
-    implicit none
-
-    type(image),intent(inout) :: img
-    integer,intent(in) :: dust_id
-    real(dp),intent(in) :: nu(:), chi_nu(:)
-    real(dp), dimension(img%n_nu) :: nu_new, chi_nu_new
-    real(dp) :: numin, numax
-    integer :: inu
-
-    if(img%use_exact_nu) then
-
-       chi_nu_new = interp1d_loglog(nu, chi_nu, img%nu, bounds_error=.false., fill_value=0._dp)
-
-    else
-
-       do inu=1,img%n_nu
-
-          numin = 10._dp**(img%log10_nu_min + (img%log10_nu_max - img%log10_nu_min) * real(inu-1, dp) / real(img%n_nu, dp))
-          numax = 10._dp**(img%log10_nu_min + (img%log10_nu_max - img%log10_nu_min) * real(inu, dp) / real(img%n_nu, dp))
-
-          nu_new(inu) = 10._dp**(0.5_dp * (log10(numin) + log10(numax)))
-          chi_nu_new(inu) = integral_loglog(nu, chi_nu, numin, numax) / (numax - numin)
-
-       end do
-
-    end if
-
-    allocate(img%dust(dust_id)%chi(img%n_nu))
-    img%dust(dust_id)%chi = chi_nu_new
-
-  end subroutine image_raytracing_set_opacity
 
 end module type_image
