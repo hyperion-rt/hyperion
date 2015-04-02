@@ -4,7 +4,7 @@ import numpy as np
 from astropy import log as logger
 
 from ..util.functions import FreezableClass, bool2str, str2bool, is_numpy_array
-from ..filters import Filter
+from ..filter import Filter
 
 
 class OutputConf(FreezableClass):
