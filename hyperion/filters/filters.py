@@ -44,7 +44,7 @@ class Filter(object):
         if value is None or isinstance(value, six.string_types):
             self._name = value
         else:
-            raise TypeError("name should be a string")
+            raise TypeError("name should be given as a string")
 
     @property
     def spectral_coord(self):
@@ -78,7 +78,7 @@ class Filter(object):
                                                 shape=None if self.spectral_coord is None else (len(self.spectral_coord),),
                                                 physical_type=('dimensionless'))
 
-    def write(self, group, name):
+    def to_hdf5_group(self, group, name):
         dset = group.create_dataset(name,
                                     data=np.array(list(zip(self.spectral_coord.to(u.Hz, equivalencies=u.spectral()).value,
                                                            self.transmission.to(u.one).value)),
@@ -86,7 +86,7 @@ class Filter(object):
         dset.attrs['name'] = np.string_(self.name)
 
     @classmethod
-    def read(cls, group, name):
+    def from_hdf5_group(cls, group, name):
 
         self = cls()
         self.spectral_coord = group[name]['nu'] * u.Hz
