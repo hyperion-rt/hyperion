@@ -755,7 +755,7 @@ class ImageConf(FreezableClass):
             self._filters = []
             n_filt = group.attrs['n_filt']
             for ifilter in range(n_filt):
-                self._filters.append(Filter.read(group, 'filter_{0:05d}'.format(ifilter + 1)))
+                self._filters.append(Filter.from_hdf5_group(group, 'filter_{0:05d}'.format(ifilter + 1)))
         else:
             self._filters = None
 
@@ -766,7 +766,7 @@ class ImageConf(FreezableClass):
         if self._filters is not None:
             group.attrs['n_filt'] = len(self._filters)
             for ifilter, filt in enumerate(self._filters):
-                filt.write(group, 'filter_{0:05d}'.format(ifilter + 1))
+                filt.to_hdf5_group(group, 'filter_{0:05d}'.format(ifilter + 1))
 
     def set_output_bytes(self, io_bytes):
         '''
