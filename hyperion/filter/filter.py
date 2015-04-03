@@ -5,7 +5,7 @@ import numpy as np
 from astropy.extern import six
 from astropy import units as u
 
-from ..util.validator import validate_array
+from ..util.validator import validate_scalar, validate_array
 
 
 class Filter(object):
@@ -94,3 +94,40 @@ class Filter(object):
         self.name = group[name].attrs['name'].decode('utf-8')
 
         return self
+
+    @property
+    def detector_type(self):
+        return "energy" if self._beta == -1 else "photons"
+
+    @detector_type.setter
+    def detector_type(self, value):
+        if value == 'energy':
+            self._beta = -1
+        elif value == 'photons':
+            self._beta = 0
+        else:
+            raise ValueError("detector_type should be one of energy/photons")
+
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @alpha.setter
+    def alpha(self, value):
+        self._alpha = value
+
+    @property
+    def central_spectral_coord(self):
+        """
+        The central spectral coordinate (e.g. wavelength, frequency, photon energy) at
+        which the monochromatic flux should be measured.
+        """
+        return self._central_spectral_coord
+
+    @central_spectral_coord.setter
+    def central_spectral_coord(self, value):
+        if value is None:
+            self._central_spectral_coord = None
+        else:
+            self._central_spectral_coord = validate_scalar('spectral_coord', value, domain='strictly-positive',
+                                                           physical_type=('frequency', 'length', 'energy'))

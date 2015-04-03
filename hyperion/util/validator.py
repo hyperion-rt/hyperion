@@ -54,7 +54,7 @@ def validate_scalar(name, value, domain=None, extra='', physical_type=None):
             raise ValueError("{0:s} should be a numerical value{1:s}".format(name, extra))
 
     else:
-        
+
         validate_physical_type(name, value, physical_type)
 
     if domain == 'positive':
@@ -72,3 +72,5 @@ def validate_scalar(name, value, domain=None, extra='', physical_type=None):
     elif type(domain) in [tuple, list] and len(domain) == 2:
         if value < domain[0] or value > domain[-1]:
             raise ValueError("{0:s} should be in the range [{1:g}:{2:g}]".format(name, domain[0], domain[-1]))
+
+    return value

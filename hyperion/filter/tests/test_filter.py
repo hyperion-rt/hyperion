@@ -23,11 +23,16 @@ def test_basic():
     f.name = "2J"
     f.spectral_coord = [1,2,3] * u.Hz
     f.transmission = [4, 5, 6] * u.percent
+    f.central_spectral_coord = 1.5 * u.Hz
+    f.detector_type = 'photons'
+    f.alpha = -1.
 
     assert f.name == "2J"
     np.testing.assert_allclose(f.spectral_coord.to(u.Hz).value, [1., 2., 3.])
     np.testing.assert_allclose(f.transmission.to(u.percent).value, [4., 5., 6.])
-
+    np.testing.assert_allclose(f.central_spectral_coord.to(u.Hz).value, 1.5)
+    assert f.detector_type == 'photons'
+    assert f.alpha == -1.
 
 @pytest.mark.parametrize('value', [object(), 1., [1,2,3]])
 def test_name_invalid_type(value):
@@ -59,6 +64,23 @@ def test_spectral_coord_invalid_unit(unit):
     with pytest.raises(TypeError) as exc:
         f.spectral_coord = [1., 2., 3.] * unit
     assert exc.value.args[0] == 'spectral_coord should be given in units of frequency, length, energy'
+
+
+@pytest.mark.parametrize('value', ['string', object(), 1., [1,2,3]])
+def test_central_spectral_coord_invalid_type(value):
+    f = Filter()
+    with pytest.raises(TypeError) as exc:
+        f.central_spectral_coord = value
+    assert exc.value.args[0] == 'spectral_coord should be given as a Quantity object'
+
+
+@pytest.mark.parametrize('unit', [u.arcsec, u.kg, u.Jy])
+def test_central_spectral_coord_invalid_unit(unit):
+    f = Filter()
+    with pytest.raises(TypeError) as exc:
+        f.central_spectral_coord = [1., 2., 3.] * unit
+    assert exc.value.args[0] == 'spectral_coord should be given in units of frequency, length, energy'
+
 
 
 def test_roundtrip():
