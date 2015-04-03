@@ -82,3 +82,6 @@ The attributes to set are the following:
 
 Once the filters have been set up, Hyperion runs as usual. The output SEDs and
 images will be defined at the central wavelengths of the filters.
+
+Note that filter convolution cannot be used in conjunction with raytracing, nor
+with monochromatic radiative transfer.

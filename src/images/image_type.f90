@@ -175,7 +175,6 @@ contains
        call mp_read_keyword(handle, path, 'use_filters',img%use_filters)
        if(img%use_filters) then
           if(use_exact_nu) call error("image_setup", "cannot use filters in monochromatic mode")
-          ! TODO: also don't allow if using raytracing
        end if
        call mp_read_keyword(handle, path, 'n_filt',img%n_nu)
     else
@@ -531,8 +530,10 @@ contains
     integer :: ix,iy,ir,iw,io ! Bins
     integer :: iorig
 
-    if(img%compute_image.and..not.allocated(img%img)) call error('bin_photon','Image not allocated')
-    if(img%compute_sed.and..not.allocated(img%sed)) call error('bin_photon','SED not allocated')
+    if(img%compute_image.and..not.allocated(img%img)) call error('image_bin_raytraced','Image not allocated')
+    if(img%compute_sed.and..not.allocated(img%sed)) call error('image_bin_raytraced','SED not allocated')
+
+    if(img%use_filters) call error("image_bin_raytraced", "filter convolution cannot be used with raytracing")
 
     if(is_nan(p%energy)) then
        call warn("image_bin_raytraced","photon has NaN energy - ignoring")

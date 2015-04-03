@@ -323,6 +323,10 @@ contains
 
        call image_setup(handle,paths(ig),peeled_image(ig),n_view,n_sources,n_dust,use_exact_nu,frequencies)
 
+       if(peeled_image(ig)%use_filters.and.use_raytracing) then
+          call error("peeled_images_setup", "filter convolution cannot be used with raytracing")
+       end if
+
        peeled_image(ig)%group_id = ig
 
        ! If an inside observer, check that the longitudes are inverted
