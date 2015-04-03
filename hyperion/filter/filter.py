@@ -5,6 +5,7 @@ import numpy as np
 from astropy.extern import six
 from astropy import units as u
 
+from ..util.integrate import integrate
 from ..util.validator import validate_scalar, validate_array
 
 
@@ -91,15 +92,28 @@ class Filter(object):
 
         self.check_all_set()
 
-        dset = group.create_dataset(name,
-                                    data=np.array(list(zip(self.spectral_coord.to(u.Hz, equivalencies=u.spectral()).value,
-                                                           self.transmission.to(u.one).value)),
-                                                  dtype=[('nu', float), ('tr', float)]))
+        # Get spectral coordinate in Hz and transmision in fractional terms
+        nu = self.spectral_coord.to(u.Hz, equivalencies=u.spectral()).value
+        tr = self.transmission.to(u.one).value
+
+        # Get other parameters for the normalization
+        nu0 = self.central_spectral_coord.to(u.Hz, equivalencies=u.spectral()).value
+        alpha = self.alpha
+        beta = self._beta
+
+        # Here we normalize the filter before passing it to Hyperion
+        tr_norm = tr / nu ** (1 + beta) \
+                     / nu0 ** alpha \
+                     / integrate(nu, tr / nu ** (1. + alpha + beta))
+
+        dset = group.create_dataset(name, data=np.array(list(zip(nu, tr, tr_norm)),
+                                                        dtype=[('nu', float), ('tr', float), ('tr_norm', float)]))
+
         dset.attrs['name'] = np.string_(self.name)
+
         dset.attrs['alpha'] = self.alpha
         dset.attrs['beta'] = self._beta
         dset.attrs['nu0'] = self.central_spectral_coord.to(u.Hz, equivalencies=u.spectral()).value
-
 
     @classmethod
     def from_hdf5_group(cls, group, name):

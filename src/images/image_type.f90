@@ -273,7 +273,7 @@ contains
           do ig=1,img%n_nu
              write(group_name, '("filter_",I5.5)') ig
              call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'nu', img%filters(ig)%nu)
-             call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'tr', img%filters(ig)%tr)
+             call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'tr_norm', img%filters(ig)%tr)
           end do
        end if
 
@@ -460,7 +460,7 @@ contains
 
     if(img%use_filters) then
        do ifilt=1,size(img%filters)
-          transmission = interp1d_loglog(img%filters(ifilt)%nu,&
+          transmission = interp1d_linlin(img%filters(ifilt)%nu,&
                &                         img%filters(ifilt)%tr,&
                &                         p%nu,bounds_error=.false., fill_value=0._dp)
           if(transmission > 0._dp) then
@@ -637,9 +637,16 @@ contains
     ! dnunorm = dnu(j) / nu(j)
     ! dnunorm = (nu_max / nu_min) ** (+0.5 / n_nu)
     !         - (nu_max / nu_min) ** (-0.5 / n_nu)
+    !
+    ! If using filters, we want to keep the flux in F_nu * dnu for now since
+    ! the filter already included the correct normalization.
 
-    dnunorm = (img%nu_max / img%nu_min) ** (+0.5_dp / real(img%n_nu, dp)) &
-         - (img%nu_max / img%nu_min) ** (-0.5_dp / real(img%n_nu, dp))
+    if(img%use_filters) then
+      dnunorm = 1._dp
+    else
+      dnunorm = (img%nu_max / img%nu_min) ** (+0.5_dp / real(img%n_nu, dp)) &
+           &  - (img%nu_max / img%nu_min) ** (-0.5_dp / real(img%n_nu, dp))
+    end if
 
     if(img%compute_sed) then
 
