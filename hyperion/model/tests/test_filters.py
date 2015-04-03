@@ -47,11 +47,17 @@ class TestFilters(object):
         f1.name = 'F1'
         f1.spectral_coord = [1, 1.1, 1.2, 1.3] * u.micron
         f1.transmission = [0., 100., 50, 0.] * u.percent
+        f1.detector_type = 'photons'
+        f1.alpha = 0.
+        f1.central_spectral_coord = 1.15 * u.micron
         
         f2 = i.add_filter()
         f2.name = 'F2'
         f2.spectral_coord = [2, 2.1, 2.2, 2.3, 2.4] * u.micron
         f2.transmission = [0., 50, 100, 60, 0.] * u.percent
+        f2.detector_type = 'energy'
+        f2.alpha = 1.
+        f2.central_spectral_coord = 2.15 * u.micron
 
         m.set_n_initial_iterations(0)
 
