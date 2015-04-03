@@ -96,6 +96,11 @@ class Filter(object):
         nu = self.spectral_coord.to(u.Hz, equivalencies=u.spectral()).value
         tr = self.transmission.to(u.one).value
 
+        # Sort in order of increasing Hz
+        order = np.argsort(nu)
+        nu = nu[order]
+        tr = tr[order]
+
         # Get other parameters for the normalization
         nu0 = self.central_spectral_coord.to(u.Hz, equivalencies=u.spectral()).value
         alpha = self.alpha
@@ -105,6 +110,9 @@ class Filter(object):
         tr_norm = tr / nu ** (1 + beta) \
                      / nu0 ** alpha \
                      / integrate(nu, tr / nu ** (1. + alpha + beta))
+
+        # Now multiply by nu so that Hyperion returns nu * Fnu
+        tr_norm *= nu
 
         dset = group.create_dataset(name, data=np.array(list(zip(nu, tr, tr_norm)),
                                                         dtype=[('nu', float), ('tr', float), ('tr_norm', float)]))

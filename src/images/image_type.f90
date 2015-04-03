@@ -460,9 +460,9 @@ contains
 
     if(img%use_filters) then
        do ifilt=1,size(img%filters)
-          transmission = interp1d_linlin(img%filters(ifilt)%nu,&
-               &                         img%filters(ifilt)%tr,&
-               &                         p%nu,bounds_error=.false., fill_value=0._dp)
+          transmission = interp1d(img%filters(ifilt)%nu,&
+               &                  img%filters(ifilt)%tr,&
+               &                  p%nu,bounds_error=.false., fill_value=0._dp)
           if(transmission > 0._dp) then
              call image_bin_single(img, p, x_image, y_image, im, ifilt, io, transmission)
           end if
