@@ -35,6 +35,7 @@ module type_image
 
      real(dp) :: n_wav
      real(dp), allocatable :: nu(:), tr(:)
+     real(dp) :: nu0
 
   end type filter
 
@@ -274,6 +275,7 @@ contains
              write(group_name, '("filter_",I5.5)') ig
              call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'nu', img%filters(ig)%nu)
              call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'tr_norm', img%filters(ig)%tr)
+             call mp_read_keyword(handle, trim(path)//"/"//group_name, 'nu0', img%filters(ig)%nu0)
           end do
        end if
 
@@ -692,10 +694,7 @@ contains
        end select
 
        if(.not.img%use_exact_nu) then
-          call mp_write_keyword(group, 'seds','use_filters',img%use_filters)
-          if(img%use_filters) then
-             call mp_write_keyword(group, 'seds','n_filt',size(img%filters))
-          else
+          if(.not.img%use_filters) then
              call mp_write_keyword(group, 'seds','numin',img%nu_min)
              call mp_write_keyword(group, 'seds','numax',img%nu_max)
           end if
@@ -752,10 +751,7 @@ contains
        end select
 
        if(.not.img%use_exact_nu) then
-          call mp_write_keyword(group, 'images','use_filters',img%use_filters)
-          if(img%use_filters) then
-             call mp_write_keyword(group, 'images','n_filt',size(img%filters))
-          else
+          if(.not.img%use_filters) then
              call mp_write_keyword(group, 'images','numin',img%nu_min)
              call mp_write_keyword(group, 'images','numax',img%nu_max)
           end if
@@ -773,6 +769,12 @@ contains
           call mp_write_keyword(group, 'images', 'track_n_scat', img%track_n_scat)
        end if
 
+    end if
+
+    if(img%use_filters) then
+      call mp_write_keyword(group, '.', 'use_filters',img%use_filters)
+      call mp_write_keyword(group, '.', 'n_filt',size(img%filters))
+      call mp_write_array(group, 'filt_nu0', img%filters(:)%nu0)
     end if
 
     if(img%use_exact_nu) then

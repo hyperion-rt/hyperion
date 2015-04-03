@@ -357,9 +357,9 @@ class ModelOutput(FreezableClass):
                                        source_id=source_id, dust_id=dust_id, n_scat=n_scat)
 
         # Set up wavelength space
-        if 'use_filters' in g['seds'].attrs and g['seds'].attrs['use_filters'].decode('utf-8').lower() == 'yes':
-            wav = None
-            nu = None
+        if 'use_filters' in g.attrs and g.attrs['use_filters'].decode('utf-8').lower() == 'yes':
+            nu = g['filt_nu0'].value
+            wav = c / nu * 1.e4
         elif 'numin' in g['seds'].attrs:
             numin = g['seds'].attrs['numin']
             numax = g['seds'].attrs['numax']
@@ -678,9 +678,9 @@ class ModelOutput(FreezableClass):
 
 
         # Set up wavelength space
-        if 'use_filters' in g['images'].attrs and g['images'].attrs['use_filters'].decode('utf-8').lower() == 'yes':
-            wav = None
-            nu = None
+        if 'use_filters' in g.attrs and g.attrs['use_filters'].decode('utf-8').lower() == 'yes':
+            nu = g['filt_nu0'].value
+            wav = c / nu * 1.e4
         elif 'numin' in g['images'].attrs:
             numin = g['images'].attrs['numin']
             numax = g['images'].attrs['numax']
