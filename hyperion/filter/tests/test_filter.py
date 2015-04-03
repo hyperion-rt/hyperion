@@ -82,7 +82,6 @@ def test_central_spectral_coord_invalid_unit(unit):
     assert exc.value.args[0] == 'spectral_coord should be given in units of frequency, length, energy'
 
 
-
 def test_roundtrip():
 
     f = Filter()
@@ -90,6 +89,9 @@ def test_roundtrip():
     f.name = "2J"
     f.spectral_coord = [1,2,3] * u.Hz
     f.transmission = [4, 5, 6] * u.percent
+    f.central_spectral_coord = 1.5 * u.Hz
+    f.detector_type = 'photons'
+    f.alpha = -1.
 
     v = virtual_file()
 

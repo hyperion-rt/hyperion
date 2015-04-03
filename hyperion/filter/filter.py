@@ -31,6 +31,9 @@ class Filter(object):
         self.name = name
         self.spectral_coord = spectral_coord
         self.transmission = transmission
+        self._alpha = None
+        self._beta = None
+        self.central_spectral_coord = None
 
     @property
     def name(self):
@@ -78,12 +81,25 @@ class Filter(object):
                                                 shape=None if self.spectral_coord is None else (len(self.spectral_coord),),
                                                 physical_type=('dimensionless'))
 
+    def check_all_set(self):
+        for attr in ['spectral_coord', 'transmission', 'name', 'alpha',
+                     'detector_type', 'central_spectral_coord']:
+            if getattr(self, attr) is None:
+                raise ValueError("{0} has not been set".format(attr))
+
     def to_hdf5_group(self, group, name):
+
+        self.check_all_set()
+
         dset = group.create_dataset(name,
                                     data=np.array(list(zip(self.spectral_coord.to(u.Hz, equivalencies=u.spectral()).value,
                                                            self.transmission.to(u.one).value)),
                                                   dtype=[('nu', float), ('tr', float)]))
         dset.attrs['name'] = np.string_(self.name)
+        dset.attrs['alpha'] = self.alpha
+        dset.attrs['beta'] = self._beta
+        dset.attrs['nu0'] = self.central_spectral_coord.to(u.Hz, equivalencies=u.spectral()).value
+
 
     @classmethod
     def from_hdf5_group(cls, group, name):
@@ -92,6 +108,10 @@ class Filter(object):
         self.spectral_coord = group[name]['nu'] * u.Hz
         self.transmission = group[name]['tr'] * u.one
         self.name = group[name].attrs['name'].decode('utf-8')
+
+        self.alpha = group[name].attrs['alpha']
+        self._beta = group[name].attrs['beta']
+        self.central_spectral_coords = group[name].attrs['nu0'] * u.Hz
 
         return self
 
