@@ -104,6 +104,62 @@ class voronoi_grid(object):
                       names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max'))
         self._neighbours_table = t
 
+    @staticmethod
+    def sample_tetra(tetra):
+        import random
+
+        s,t,u = [random.uniform(0,1) for _ in range(3)]
+        print(s,t,u)
+
+        if s+t>1.0:
+            print("a")
+            s = 1.0 - s
+            t = 1.0 - t
+
+        if t+u>1.0:
+            print("b")
+            tmp = u
+            u = 1.0 - s - t
+            t = 1.0 - tmp
+        elif s+t+u>1.0:
+            print("c")
+            tmp = u
+            u = s + t + u - 1.0
+            s = 1 - t - tmp
+
+        a=1-s-t-u
+
+        print("fsdfs")
+        print(tetra[0]*a + tetra[1]*s + tetra[2]*t + tetra[3]*u)
+
+        return tetra[0]*a + tetra[1]*s + tetra[2]*t + tetra[3]*u
+
+    @staticmethod
+    def point_in_tetra(p,tetra):
+        import numpy as np
+        from numpy.linalg import det
+
+        D0,D1,D2,D3,D4 = [np.ones((4,4)) for _ in range(5)]
+
+        D0[:,:-1] = tetra
+        D1[:,:-1] = tetra
+        D2[:,:-1] = tetra
+        D3[:,:-1] = tetra
+        D4[:,:-1] = tetra
+
+        D1[0,:-1] = p
+        D2[1,:-1] = p
+        D3[2,:-1] = p
+        D4[3,:-1] = p
+
+        dets = [det(_) for _ in [D0,D1,D2,D3,D4]]
+        dets_signs = [cmp(_,0) for _ in dets]
+        print(D0,D1,D2,D3)
+        print(dets_signs)
+        print(sum(dets[1:]),dets[0])
+        print(dets)
+        return len(set(dets_signs)) == 1
+
     # Getter for the neighbours/volume/bb table.
     @property
     def neighbours_table(self):
