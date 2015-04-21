@@ -12,6 +12,7 @@ hyperion.densities.PowerLawEnvelope
 
       ~PowerLawEnvelope.mass
       ~PowerLawEnvelope.rho_0
+      ~PowerLawEnvelope.r_0
       ~PowerLawEnvelope.rmax
       ~PowerLawEnvelope.rmin
       ~PowerLawEnvelope.power
