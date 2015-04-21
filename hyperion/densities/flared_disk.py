@@ -35,6 +35,7 @@ class FlaredDisk(Disk):
     attributes::
 
         >>> from hyperion.util.constants import msun, au
+        >>> from hyperion.densities.flared_disk import FlaredDisk
         >>> disk = FlaredDisk()
         >>> disk.mass = 2. * msun
         >>> disk.rmin = 0.1 * au

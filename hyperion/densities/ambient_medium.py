@@ -21,6 +21,7 @@ class AmbientMedium(Density):
     attributes::
 
         >>> from hyperion.util.constants import au, pc
+        >>> from hyperion.densities.ambient_medium import AmbientMedium
         >>> ambient = AmbientMedium()
         >>> ambient.rho = 1.e-20  # cgs
         >>> ambient.rmin = 0.1 * au  # cm

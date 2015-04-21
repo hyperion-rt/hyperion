@@ -26,6 +26,7 @@ class PowerLawEnvelope(Envelope):
     attributes::
 
         >>> from hyperion.util.constants import msun, au, pc
+        >>> from hyperion.densities.power_law_envelope import PowerLawEnvelope
         >>> envelope = PowerLawEnvelope()
         >>> envelope.mass = msun
         >>> envelope.rmin = 0.1 * au

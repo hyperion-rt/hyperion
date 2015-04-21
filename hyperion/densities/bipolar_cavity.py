@@ -24,6 +24,7 @@ class BipolarCavity(Density):
     instantiated, the parameters for the density structure can be set via
     attributes::
 
+        >>> from hyperion.densities.bipolar_cavity import BipolarCavity
         >>> cavity = BipolarCavity()
         >>> cavity.theta_0 = 10.
         >>> cavity.power = 0.
