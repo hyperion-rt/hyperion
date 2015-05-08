@@ -5,11 +5,14 @@
 #include <exception>
 #include <ios>
 #include <iostream>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+#include <iomanip>
 
 #include "voro++/voro++.hh"
 
@@ -111,13 +114,66 @@ static inline void add_walls(container &con,const char *wall_str,const double *w
     }
 }
 
+// Compute the volume of a tetrahedron.
+template <typename It>
+static inline double tetra_volume(It v0, It v1, It v2, It v3)
+{
+    double mat[9];
+    for (int i = 0; i < 3; ++i) {
+        mat[i] = v1[i]-v0[i];
+    }
+    for (int i = 0; i < 3; ++i) {
+        mat[3+i] = v2[i]-v0[i];
+    }
+    for (int i = 0; i < 3; ++i) {
+        mat[6+i] = v3[i]-v0[i];
+    }
+    double a = mat[0], b = mat[1], c = mat[2];
+    double d = mat[3], e = mat[4], f = mat[5];
+    double g = mat[6], h = mat[7], i = mat[8];
+    return std::abs(a*(e*i-f*h)-b*(d*i-f*g)+c*(d*h-e*g)) / 6.;
+}
+
+template <typename Ptr, typename It>
+static inline void sample_point_in_tetra(Ptr res,It p0, It p1, It p2, It p3)
+{
+    double s = std::rand()/(RAND_MAX + 1.0);
+    double t = std::rand()/(RAND_MAX + 1.0);
+    double u = std::rand()/(RAND_MAX + 1.0);
+
+    if (s + t > 1.0) {
+        s = 1.0 - s;
+        t = 1.0 - t;
+    }
+
+    if (t + u > 1.0) {
+        double tmp = u;
+        u = 1.0 - s - t;
+        t = 1.0 - tmp;
+    } else if (s + t + u > 1.0) {
+        double tmp = u;
+        u = s + t + u - 1.0;
+        s = 1 - t - tmp;
+    }
+
+    const double a = 1.0 - s - t - u;
+
+    for (int i = 0; i < 3; ++i) {
+        res[i] = p0[i]*a+p1[i]*s+p2[i]*t+p3[i]*u;
+    }
+}
+
 // Main wrapper called from cpython.
 const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                  int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double const *points,
                                  int nsites, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args, int verbose)
 {
+std::cout << std::setprecision(16);
     // We need to wrap everything in a try/catch block as exceptions cannot leak out to C.
     try {
+
+    bool with_sampling = true;
+    int n_samples = 10;
 
     // Total number of blocks we want.
     const double nblocks = nsites / particle_block;
@@ -156,7 +212,9 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     // Bounding boxes.
     ptr_raii<double> bb_m(static_cast<double *>(std::malloc(sizeof(double) * nsites * 3)));
     ptr_raii<double> bb_M(static_cast<double *>(std::malloc(sizeof(double) * nsites * 3)));
-    
+    // Sampling points.
+    ptr_raii<double> spoints(with_sampling ? static_cast<double *>(std::malloc(sizeof(double) * nsites * n_samples * 3)) : NULL);
+
     // Initialise the voro++ container.
     container con(xmin,xmax,ymin,ymax,zmin,zmax,nx,ny,nz,
                   false,false,false,8);
@@ -172,7 +230,16 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     c_loop_all vl(con);
     int idx;
     double tmp_min[3],tmp_max[3];
+    // Vector to store temporarily the list of vertices coordinates triplets. Used only if vertices
+    // are not requested (otherwise, the vertices are stored directly in the output array).
     std::vector<double> tmp_v;
+    // List of faces for each cell. Format described here:
+    // http://math.lbl.gov/voro++/examples/polygons/
+    std::vector<int> f_vert;
+    // List of tetrahedra vertices indices: 4 elements per tet.
+    std::vector<int> t_vert;
+    // Cumulative volumes of the tetrahedra.
+    std::vector<double> c_vol;
     // Site position and radius (r is unused).
     double x,y,z,r;
 
@@ -181,7 +248,7 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
         do {
             // Get the id and position of the site being considered.
             vl.pos(idx,x,y,z,r);
-            std::vector<double> *tmp_vertices = with_vertices ? &(vertices_list[idx]) : &tmp_v; 
+            std::vector<double> *tmp_vertices = with_vertices ? &(vertices_list[idx]) : &tmp_v;
             // Compute the voronoi cell.
             con.compute_cell(c,vl);
             // Compute the neighbours.
@@ -206,7 +273,68 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
             // Copy the bounding box into the output array.
             std::copy(tmp_min,tmp_min + 3,bb_m.get() + idx * 3);
             std::copy(tmp_max,tmp_max + 3,bb_M.get() + idx * 3);
-        } while(vl.inc());   
+            // Computation of the sampling array, only if requested.
+            if (!with_sampling) {
+                continue;
+            }
+            // Clear the list of vertices indices of the tetras in which the cell
+            // will be decomposed.
+            t_vert.clear();
+            c_vol.clear();
+            double vol = 0;
+            // Compute the faces of the cell.
+            c.face_vertices(f_vert);
+            int j = 0;
+            while (j < f_vert.size()) {
+                // Number of vertices for each face.
+                const int nfv = f_vert[j];
+                // We need to establish if the vertex with index 0 in the cell is
+                // part of the current face. If that is the case, we skip
+                // the face.
+                if (std::find(f_vert.begin() + j + 1,f_vert.begin() + j + 1 + nfv,0) != f_vert.begin() + j + 1 + nfv) {
+                    // Don't forget to update the counter...
+                    j += nfv + 1;
+                    continue;
+                }
+                // Now we need to build the list of tetrahedra vertices. The procedure:
+                // - the first vertex is always the 0 vertex of the cell,
+                // - the second vertex is always the first vertex of the current face.
+                // - the other two vertices are taken as the k-th and k+1-th vertices of
+                //   the face.
+                for (int k = j + 2; k < j + nfv; ++k) {
+                    t_vert.push_back(0);
+                    t_vert.push_back(f_vert[j+1]);
+                    t_vert.push_back(f_vert[k]);
+                    t_vert.push_back(f_vert[k+1]);
+                    // Volume of the tetrahedron.
+                    double t_vol = tetra_volume(tmp_vertices->begin(),tmp_vertices->begin() + f_vert[j+1]*3,tmp_vertices->begin() + f_vert[k]*3,
+                                                tmp_vertices->begin() + f_vert[k+1]*3);
+                    // Update the cumulative volume and add it.
+                    vol += t_vol;
+                    c_vol.push_back(vol);
+                }
+                // Update the counter.
+                j += nfv + 1;
+            }
+            // Now we need to select randomly tetras (with a probability proportional to their volume) and sample
+            // uniformly inside them.
+            const double c_factor = c_vol.back()/(RAND_MAX + 1.0);
+            for (int i = 0; i < n_samples;) {
+                const double r_vol = std::rand()*c_factor;
+                std::vector<double>::iterator it = std::upper_bound(c_vol.begin(),c_vol.end(),r_vol);
+                // It might be possible due to floating point madness that this actually goes past the end,
+                // in such a case we just repeat the sampling.
+                if (it == c_vol.end()) {
+                    continue;
+                }
+                int t_idx = std::distance(c_vol.begin(),it);
+                // Now we can go sample inside the selected tetrahedron.
+                std::vector<int>::iterator t_it = t_vert.begin() + t_idx*4;
+                sample_point_in_tetra(spoints.get()+idx*n_samples*3+i*3,tmp_vertices->begin()+(*t_it)*3,tmp_vertices->begin()+(*(t_it + 1))*3,
+                                      tmp_vertices->begin()+(*(t_it + 2))*3,tmp_vertices->begin()+(*(t_it + 3))*3);
+                ++i;
+            }
+        } while(vl.inc());
     }
 
     // The voro++ doc say that in case of numerical errors the neighbours list might not be symmetric,
