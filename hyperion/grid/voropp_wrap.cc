@@ -18,7 +18,8 @@
 
 extern "C" const char * hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                              int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
-                                             double const *points, int npoints, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args, int verbose);
+                                             double const *points, int npoints, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args,
+                                             int with_sampling, int n_samples, double **sample_points, int verbose);
 
 using namespace voro;
 
@@ -166,14 +167,12 @@ static inline void sample_point_in_tetra(Ptr res,It p0, It p1, It p2, It p3)
 // Main wrapper called from cpython.
 const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                  int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double const *points,
-                                 int nsites, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args, int verbose)
+                                 int nsites, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args, int with_sampling, int n_samples,
+                                 double **sample_points, int verbose)
 {
 std::cout << std::setprecision(16);
     // We need to wrap everything in a try/catch block as exceptions cannot leak out to C.
     try {
-
-    bool with_sampling = true;
-    int n_samples = 10;
 
     // Total number of blocks we want.
     const double nblocks = nsites / particle_block;
@@ -277,8 +276,7 @@ std::cout << std::setprecision(16);
             if (!with_sampling) {
                 continue;
             }
-            // Clear the list of vertices indices of the tetras in which the cell
-            // will be decomposed.
+            // Clear tmp variables.
             t_vert.clear();
             c_vol.clear();
             double vol = 0;
@@ -389,6 +387,7 @@ std::cout << std::setprecision(16);
     *bb_min = bb_m.release();
     *bb_max = bb_M.release();
     *neighbours = neighs.release();
+    *sample_points = spoints.release();
 
     return NULL;
 

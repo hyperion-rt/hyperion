@@ -95,13 +95,23 @@ class voronoi_grid(object):
         self._with_vertices = with_vertices
 
         logger.info("Computing the tessellation via voro++")
-        tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, 1 if verbose else 0)
+        with_sampling = True
+        n_samples = 100
+        tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, 1 if with_sampling else 0, n_samples, 1 if verbose else 0)
+        names = ['coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max']
         if with_vertices:
-            t = Table([sites, tup[0], tup[1], tup[2], tup[3], tup[4]],
-                      names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max', 'vertices'))
-        else:
-            t = Table([sites, tup[0], tup[1], tup[2], tup[3]],
-                      names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max'))
+            names.append('vertices')
+        if with_sampling:
+            names.append('sample_points')
+        
+        t = Table([sites] + list(filter(lambda _: not _ is None,tup)),names=tuple(names))
+        
+        #if with_vertices:
+            #t = Table([sites, tup[0], tup[1], tup[2], tup[3], tup[4]],
+                      #names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max', 'vertices'))
+        #else:
+            #t = Table([sites, tup[0], tup[1], tup[2], tup[3]],
+                      #names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max'))
         self._neighbours_table = t
 
     @staticmethod
