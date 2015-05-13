@@ -12,8 +12,6 @@
 #include <string>
 #include <vector>
 
-#include <iomanip>
-
 #include "voro++/voro++.hh"
 
 extern "C" const char * hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
@@ -170,7 +168,6 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
                                  int nsites, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args, int with_sampling, int n_samples,
                                  double **sample_points, int verbose)
 {
-std::cout << std::setprecision(16);
     // We need to wrap everything in a try/catch block as exceptions cannot leak out to C.
     try {
 

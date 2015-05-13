@@ -128,6 +128,7 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
     PyObject *neigh_array = PyArray_SimpleNew(2,neigh_dims,NPY_INT);
     PyObject *bb_min_array = PyArray_SimpleNew(2,bb_dims,NPY_DOUBLE);
     PyObject *bb_max_array = PyArray_SimpleNew(2,bb_dims,NPY_DOUBLE);
+    // NOTE: Py_BuildValue("") is just a way to construct None in a safe way.
     PyObject *vert_array = with_vertices ? PyArray_SimpleNew(2,vert_dims,NPY_DOUBLE) : Py_BuildValue("");
     PyObject *spoints_array = with_sampling ? PyArray_SimpleNew(2,spoints_dims,NPY_DOUBLE) : Py_BuildValue("");
 
@@ -164,12 +165,6 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
         memcpy((double*)PyArray_DATA(spoints_array),sample_points,sizeof(double) * nsites * n_samples * 3);
     }
 
-//     PyObject *retval;
-//     if (with_vertices) {
-//         retval = PyTuple_Pack(5,neigh_array,vol_array,bb_min_array,bb_max_array,vert_array);
-//     } else {
-//         retval = PyTuple_Pack(4,neigh_array,vol_array,bb_min_array,bb_max_array);
-//     }
     PyObject *retval = PyTuple_Pack(6,neigh_array,vol_array,bb_min_array,bb_max_array,vert_array,spoints_array);
 
     // Final cleanup.
