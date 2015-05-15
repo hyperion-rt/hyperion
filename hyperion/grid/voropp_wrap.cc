@@ -17,7 +17,7 @@
 extern "C" const char * hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                              int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
                                              double const *points, int npoints, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args,
-                                             int with_sampling, int n_samples, double **sample_points, int verbose);
+                                             int with_sampling, int n_samples, double **sample_points, int **sampling_idx, int *tot_samples, int verbose);
 
 using namespace voro;
 
@@ -133,9 +133,12 @@ static inline double tetra_volume(It v0, It v1, It v2, It v3)
     return std::abs(a*(e*i-f*h)-b*(d*i-f*g)+c*(d*h-e*g)) / 6.;
 }
 
+// http://vcg.isti.cnr.it/activities/geometryegraphics/pointintetraedro.html
+// http://dl.acm.org/citation.cfm?id=378603
 template <typename Ptr, typename It>
 static inline void sample_point_in_tetra(Ptr res,It p0, It p1, It p2, It p3)
 {
+    // Three random numbers between zero and 1.
     double s = std::rand()/(RAND_MAX + 1.0);
     double t = std::rand()/(RAND_MAX + 1.0);
     double u = std::rand()/(RAND_MAX + 1.0);
@@ -166,10 +169,13 @@ static inline void sample_point_in_tetra(Ptr res,It p0, It p1, It p2, It p3)
 const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                  int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double const *points,
                                  int nsites, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args, int with_sampling, int n_samples,
-                                 double **sample_points, int verbose)
+                                 double **sample_points, int **sampling_idx, int *tot_samples, int verbose)
 {
     // We need to wrap everything in a try/catch block as exceptions cannot leak out to C.
     try {
+
+    // Volume of the domain.
+    const double dom_vol = (xmax - xmin) * (ymax - ymin) * (zmax - zmin);
 
     // Total number of blocks we want.
     const double nblocks = nsites / particle_block;
@@ -193,6 +199,7 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
         std::cout << "Initialising with the following block grid: " << nx << ',' << ny << ',' << nz << '\n';
         std::cout << std::boolalpha;
         std::cout << "Vertices: " << bool(with_vertices) << '\n';
+        std::cout << "With sampling: " << bool(with_sampling) << '\n';
     }
 
     // Prepare the output quantities.
@@ -208,8 +215,6 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     // Bounding boxes.
     ptr_raii<double> bb_m(static_cast<double *>(std::malloc(sizeof(double) * nsites * 3)));
     ptr_raii<double> bb_M(static_cast<double *>(std::malloc(sizeof(double) * nsites * 3)));
-    // Sampling points.
-    ptr_raii<double> spoints(with_sampling ? static_cast<double *>(std::malloc(sizeof(double) * nsites * n_samples * 3)) : NULL);
 
     // Initialise the voro++ container.
     container con(xmin,xmax,ymin,ymax,zmin,zmax,nx,ny,nz,
@@ -229,6 +234,9 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     // Vector to store temporarily the list of vertices coordinates triplets. Used only if vertices
     // are not requested (otherwise, the vertices are stored directly in the output array).
     std::vector<double> tmp_v;
+    // Site position and radius (r is unused).
+    double x,y,z,r;
+    // These quantities are sampling-related.
     // List of faces for each cell. Format described here:
     // http://math.lbl.gov/voro++/examples/polygons/
     std::vector<int> f_vert;
@@ -236,8 +244,14 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     std::vector<int> t_vert;
     // Cumulative volumes of the tetrahedra.
     std::vector<double> c_vol;
-    // Site position and radius (r is unused).
-    double x,y,z,r;
+    // Vector of vectors of sampling points for each cell.
+    std::vector<std::vector<double> > vs_points;
+    vs_points.resize(nsites);
+    // Vectors of the indices of the sampling points.
+    std::vector<int> vs_points_idx;
+    vs_points_idx.push_back(0);
+    // Init the total number of samples.
+    *tot_samples = 0;
 
     // Loop over all particles and compute the desired quantities.
     if(vl.start()) {
@@ -314,7 +328,10 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
             // Now we need to select randomly tetras (with a probability proportional to their volume) and sample
             // uniformly inside them.
             const double c_factor = c_vol.back()/(RAND_MAX + 1.0);
-            for (int i = 0; i < n_samples;) {
+            // Number of samples for this cell, proportional to the volume of the cell
+            // but always at least 10.
+            const int nc_samples = std::max(int((c_vol.back() / dom_vol) * n_samples),10);
+            for (int i = 0; i < nc_samples;) {
                 const double r_vol = std::rand()*c_factor;
                 std::vector<double>::iterator it = std::upper_bound(c_vol.begin(),c_vol.end(),r_vol);
                 // It might be possible due to floating point madness that this actually goes past the end,
@@ -322,14 +339,38 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
                 if (it == c_vol.end()) {
                     continue;
                 }
+                // Make space for the new point.
+                vs_points[idx].push_back(0);
+                vs_points[idx].push_back(0);
+                vs_points[idx].push_back(0);
+                // Get the index of the tetra that was selected.
                 int t_idx = std::distance(c_vol.begin(),it);
                 // Now we can go sample inside the selected tetrahedron.
                 std::vector<int>::iterator t_it = t_vert.begin() + t_idx*4;
-                sample_point_in_tetra(spoints.get()+idx*n_samples*3+i*3,tmp_vertices->begin()+(*t_it)*3,tmp_vertices->begin()+(*(t_it + 1))*3,
+                sample_point_in_tetra(&vs_points[idx].back() - 2,tmp_vertices->begin()+(*t_it)*3,tmp_vertices->begin()+(*(t_it + 1))*3,
                                       tmp_vertices->begin()+(*(t_it + 2))*3,tmp_vertices->begin()+(*(t_it + 3))*3);
                 ++i;
+                // Update the total number of samples.
+                ++(*tot_samples);
             }
         } while(vl.inc());
+    }
+
+    // Copy the sampling points in the final array, if requested.
+    ptr_raii<double> spoints(with_sampling ? static_cast<double *>(std::malloc(sizeof(double) * (*tot_samples) * 3)) : NULL);
+    ptr_raii<int> spoints_idx(with_sampling ? static_cast<int *>(std::malloc(sizeof(int) * (nsites + 1))) : NULL);
+    if (with_sampling) {
+        double *cur_sample = spoints.get();
+        *(spoints_idx.get()) = 0;
+        int acc = 0;
+        for (int i = 0; i < nsites; ++i) {
+            std::copy(vs_points[i].begin(),vs_points[i].end(),cur_sample);
+            cur_sample += vs_points[i].size();
+            acc += vs_points[i].size() / 3;
+            *(spoints_idx.get() + i + 1) = acc;
+        }
+        // Free the vector.
+        vs_points = std::vector<std::vector<double> >();
     }
 
     // The voro++ doc say that in case of numerical errors the neighbours list might not be symmetric,
@@ -385,6 +426,7 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     *bb_max = bb_M.release();
     *neighbours = neighs.release();
     *sample_points = spoints.release();
+    *sampling_idx = spoints_idx.release();
 
     return NULL;
 

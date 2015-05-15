@@ -28,6 +28,8 @@ class voronoi_grid(object):
     domain : np.ndarray of floats
         The domain of the grid, must be a 3x2 array corresponding to the
         min/max values in the three coordinates.
+    n_samples: an integer
+        The total number of points to sample within the domain.
     with_vertices : boolean
         If ``True``, the vertices of the Voronoi cells will be computed.
         The vertices of the cells are not needed for RT simulations,
@@ -45,7 +47,7 @@ class voronoi_grid(object):
         documentation for more information.
     '''
 
-    def __init__(self, sites, domain, with_vertices=False, wall=None, wall_args=None, verbose=False):
+    def __init__(self, sites, domain, n_samples=0, with_vertices=False, wall=None, wall_args=None, verbose=False):
         import numpy as np
         from ._voronoi_core import _voropp_wrapper
         from astropy.table import Table
@@ -80,6 +82,9 @@ class voronoi_grid(object):
         if not isinstance(with_vertices, bool):
             raise TypeError(
                 'the \'with_vertices\' parameter must be a boolean')
+        if not isinstance(n_samples, int):
+            raise TypeError(
+                'the \'n_samples\' parameter must be an int')
         # Wall checks.
         allowed_walls = ['sphere','cylinder','cone','plane']
         if not wall is None and not wall in allowed_walls:
@@ -95,23 +100,17 @@ class voronoi_grid(object):
         self._with_vertices = with_vertices
 
         logger.info("Computing the tessellation via voro++")
-        with_sampling = True
-        n_samples = 100
-        tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, 1 if with_sampling else 0, n_samples, 1 if verbose else 0)
+        with_sampling = 1 if n_samples > 0 else 0
+        tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, with_sampling, n_samples, 1 if verbose else 0)
         names = ['coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max']
         if with_vertices:
             names.append('vertices')
         if with_sampling:
-            names.append('sample_points')
-        
+            self.samples = tup[-2]
+            self.samples_idx = tup[-1]
+            tup = tup[0:-2]
         t = Table([sites] + list(filter(lambda _: not _ is None,tup)),names=tuple(names))
-        
-        #if with_vertices:
-            #t = Table([sites, tup[0], tup[1], tup[2], tup[3], tup[4]],
-                      #names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max', 'vertices'))
-        #else:
-            #t = Table([sites, tup[0], tup[1], tup[2], tup[3]],
-                      #names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max'))
+
         self._neighbours_table = t
 
     @staticmethod

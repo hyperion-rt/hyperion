@@ -8,7 +8,7 @@
 const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices, int *max_nv,
                   double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
                   double const *points, int npoints, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args, int with_sampling,
-                  int n_samples, double **sample_points, int verbose);
+                  int n_samples, double **sample_points, int **sampling_idx, int *tot_samples, int verbose);
 
 /* Define docstrings */
 static char module_docstring[] = "C implementation of utility functions used in Voronoi grids";
@@ -98,13 +98,14 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
     int nsites = (int)PyArray_DIM(s_array, 0);
 
     double *volumes = NULL, *bb_min = NULL, *bb_max = NULL, *vertices = NULL, *sample_points = NULL;
-    int *neighbours = NULL;
-    int max_nn, max_nv;
+    int *neighbours = NULL, *sampling_idx = NULL;
+    int max_nn, max_nv, tot_samples;
 
     // Call the wrapper.
     const char *status = hyperion_voropp_wrap(&neighbours,&max_nn,&volumes,&bb_min,&bb_max,&vertices,&max_nv,
                                               d_data[0],d_data[1],d_data[2],d_data[3],d_data[4],d_data[5],s_data,nsites,with_vertices,
-                                              wall_str,wall_args_arr,n_wall_args,with_sampling,n_samples,&sample_points,verbose
+                                              wall_str,wall_args_arr,n_wall_args,with_sampling,n_samples,&sample_points,&sampling_idx,
+                                              &tot_samples,verbose
                                              );
 
     if (status != NULL) {
@@ -122,18 +123,20 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
     npy_intp neigh_dims[] = {nsites,max_nn};
     npy_intp bb_dims[] = {nsites,3};
     npy_intp vert_dims[] = {nsites,max_nv};
-    npy_intp spoints_dims[] = {nsites,n_samples*3};
+    npy_intp spoints_dims[] = {tot_samples,3};
+    npy_intp spoints_idx_dims[] = {nsites+1};
 
     PyObject *vol_array = PyArray_SimpleNew(1,vol_dims,NPY_DOUBLE);
     PyObject *neigh_array = PyArray_SimpleNew(2,neigh_dims,NPY_INT);
     PyObject *bb_min_array = PyArray_SimpleNew(2,bb_dims,NPY_DOUBLE);
     PyObject *bb_max_array = PyArray_SimpleNew(2,bb_dims,NPY_DOUBLE);
-    // NOTE: Py_BuildValue("") is just a way to construct None in a safe way.
+    // NOTE: Py_BuildValue("") is just a safe way to construct None.
     PyObject *vert_array = with_vertices ? PyArray_SimpleNew(2,vert_dims,NPY_DOUBLE) : Py_BuildValue("");
     PyObject *spoints_array = with_sampling ? PyArray_SimpleNew(2,spoints_dims,NPY_DOUBLE) : Py_BuildValue("");
+    PyObject *spoints_idx_array = with_sampling ? PyArray_SimpleNew(1,spoints_idx_dims,NPY_INT) : Py_BuildValue("");
 
     if (vol_array == NULL || neigh_array == NULL || bb_min_array == NULL || bb_max_array == NULL ||
-        vert_array == NULL || spoints_array == NULL)
+        vert_array == NULL || spoints_array == NULL || spoints_idx_array == NULL)
     {
         PyErr_SetString(PyExc_MemoryError, "Memory allocation error.");
         free(neighbours);
@@ -142,6 +145,7 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
         free(bb_max);
         free(vertices);
         free(sample_points);
+        free(sampling_idx);
         Py_XDECREF(s_array);
         Py_XDECREF(d_array);
         Py_XDECREF(vol_array);
@@ -150,6 +154,7 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
         Py_XDECREF(bb_max_array);
         Py_XDECREF(vert_array);
         Py_XDECREF(spoints_array);
+        Py_XDECREF(spoints_idx_array);
         return NULL;
     }
 
@@ -162,10 +167,11 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
         memcpy((double*)PyArray_DATA(vert_array),vertices,sizeof(double) * nsites * max_nv);
     }
     if (with_sampling) {
-        memcpy((double*)PyArray_DATA(spoints_array),sample_points,sizeof(double) * nsites * n_samples * 3);
+        memcpy((double*)PyArray_DATA(spoints_array),sample_points,sizeof(double) * tot_samples * 3);
+        memcpy((int*)PyArray_DATA(spoints_idx_array),sampling_idx,sizeof(int) * (nsites + 1));
     }
 
-    PyObject *retval = PyTuple_Pack(6,neigh_array,vol_array,bb_min_array,bb_max_array,vert_array,spoints_array);
+    PyObject *retval = PyTuple_Pack(7,neigh_array,vol_array,bb_min_array,bb_max_array,vert_array,spoints_array,spoints_idx_array);
 
     // Final cleanup.
     free(neighbours);
@@ -174,6 +180,7 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
     free(bb_max);
     free(vertices);
     free(sample_points);
+    free(sampling_idx);
     Py_XDECREF(s_array);
     Py_XDECREF(d_array);
     // NOTE: these need to be cleaned up as PyTuple_Pack will increment the reference count. See:
@@ -184,6 +191,7 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
     Py_XDECREF(bb_max_array);
     Py_XDECREF(vert_array);
     Py_XDECREF(spoints_array);
+    Py_XDECREF(spoints_idx_array);
 
     return retval;
 }
