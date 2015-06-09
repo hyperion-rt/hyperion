@@ -29,7 +29,15 @@ class voronoi_grid(object):
         The domain of the grid, must be a 3x2 array corresponding to the
         min/max values in the three coordinates.
     n_samples: an integer
-        The total number of points to sample within the domain.
+        The total number of points to sample within the domain. If zero,
+        no sampling will take place. If positive, points will be uniformly sampled
+        in each Voronoi cell so that at least ``n_samples`` total points will be
+        produced. Each cell will contain a number of samples proportional to its
+        volume (but at least 10 points will always be sampled in each cell).
+        The coordinates of the sampling points are stored in the ``samples``
+        property of the class in sparse format. The indices of the sampling points
+        with respect to the Voronoi cells are stored in the ``samples_idx``
+        class property.
     with_vertices : boolean
         If ``True``, the vertices of the Voronoi cells will be computed.
         The vertices of the cells are not needed for RT simulations,
@@ -106,68 +114,26 @@ class voronoi_grid(object):
         if with_vertices:
             names.append('vertices')
         if with_sampling:
-            self.samples = tup[-2]
-            self.samples_idx = tup[-1]
+            self._samples = tup[-2]
+            self._samples_idx = tup[-1]
             tup = tup[0:-2]
         t = Table([sites] + list(filter(lambda _: not _ is None,tup)),names=tuple(names))
 
         self._neighbours_table = t
 
-    @staticmethod
-    def sample_tetra(tetra):
-        import random
+    @property
+    def samples(self):
+        from copy import deepcopy
+        if not hasattr(self,'_samples'):
+            raise ValueError('no sampling was requested upon object construction')
+        return deepcopy(self._samples)
 
-        s,t,u = [random.uniform(0,1) for _ in range(3)]
-        print(s,t,u)
-
-        if s+t>1.0:
-            print("a")
-            s = 1.0 - s
-            t = 1.0 - t
-
-        if t+u>1.0:
-            print("b")
-            tmp = u
-            u = 1.0 - s - t
-            t = 1.0 - tmp
-        elif s+t+u>1.0:
-            print("c")
-            tmp = u
-            u = s + t + u - 1.0
-            s = 1 - t - tmp
-
-        a=1-s-t-u
-
-        print("fsdfs")
-        print(tetra[0]*a + tetra[1]*s + tetra[2]*t + tetra[3]*u)
-
-        return tetra[0]*a + tetra[1]*s + tetra[2]*t + tetra[3]*u
-
-    @staticmethod
-    def point_in_tetra(p,tetra):
-        import numpy as np
-        from numpy.linalg import det
-
-        D0,D1,D2,D3,D4 = [np.ones((4,4)) for _ in range(5)]
-
-        D0[:,:-1] = tetra
-        D1[:,:-1] = tetra
-        D2[:,:-1] = tetra
-        D3[:,:-1] = tetra
-        D4[:,:-1] = tetra
-
-        D1[0,:-1] = p
-        D2[1,:-1] = p
-        D3[2,:-1] = p
-        D4[3,:-1] = p
-
-        dets = [det(_) for _ in [D0,D1,D2,D3,D4]]
-        dets_signs = [cmp(_,0) for _ in dets]
-        print(D0,D1,D2,D3)
-        print(dets_signs)
-        print(sum(dets[1:]),dets[0])
-        print(dets)
-        return len(set(dets_signs)) == 1
+    @property
+    def samples_idx(self):
+        from copy import deepcopy
+        if not hasattr(self,'_samples'):
+            raise ValueError('no sampling was requested upon object construction')
+        return deepcopy(self._samples_idx)
 
     # Getter for the neighbours/volume/bb table.
     @property
