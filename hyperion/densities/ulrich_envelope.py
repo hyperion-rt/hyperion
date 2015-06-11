@@ -127,6 +127,7 @@ class UlrichEnvelope(Envelope):
     attributes::
 
         >>> from hyperion.util.constants import msun, au, pc
+        >>> from hyperion.densities.ulrich_envelope import UlrichEnvelope
         >>> envelope = UlrichEnvelope()
         >>> envelope.rho_0 = 1.e-19
         >>> envelope.rmin = 0.1 * au

@@ -36,6 +36,7 @@ class AlphaDisk(Disk):
     attributes::
 
         >>> from hyperion.util.constants import msun, au
+        >>> from hyperion.densities.alpha_disk import AlphaDisk
         >>> disk = AlphaDisk()
         >>> disk.mass = 2. * msun
         >>> disk.rmin = 0.1 * au
