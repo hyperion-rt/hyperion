@@ -20,7 +20,7 @@ matrix:
 before_install:
 
    # Add 'saucy' repositories to get latest HDF5 version
-   - sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu/ saucy main universe'
+   - sudo apt-add-repository 'deb http://old-releases.ubuntu.com/ubuntu/ saucy main universe'
 
    # Linux packages
    - sudo apt-get update
