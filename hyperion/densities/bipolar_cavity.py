@@ -5,6 +5,7 @@ from astropy import log as logger
 
 from ..util.functions import FreezableClass
 from ..dust import SphericalDust
+from ..grid import SphericalPolarGrid, CylindricalPolarGrid
 from ..util.validator import validate_scalar
 
 from .core import Envelope, Density
@@ -172,15 +173,22 @@ class BipolarCavity(Density):
             is the same as ``grid.shape``.
         '''
 
+        if isinstance(grid, SphericalPolarGrid):
+            r = grid.gr
+        elif isinstance(grid, CylindricalPolarGrid):
+            r = np.hypot(grid.gw, grid.gz)
+        else:
+            raise TypeError("grid should be a SphericalPolarGrid or CylindricalPolarGrid instance")
+
         self._check_all_set()
 
         if self.theta_0 == 0.:
-            return np.zeros(grid.gr.shape)
+            return np.zeros(grid.shape)
 
-        rho = self.rho_0 * np.abs(grid.gr / self.r_0) ** (-self.rho_exp)
+        rho = self.rho_0 * np.abs(r / self.r_0) ** (-self.rho_exp)
 
-        rho[grid.gr < self._envelope.rmin] = 0.
-        rho[grid.gr > self._envelope.rmax] = 0.
+        rho[r < self._envelope.rmin] = 0.
+        rho[r > self._envelope.rmax] = 0.
 
         rho[self.mask(grid)] = 0.
 
@@ -216,8 +224,11 @@ class BipolarCavity(Density):
             shape of this array is the same as ``grid.shape``.
         '''
 
+        if not isinstance(grid, (SphericalPolarGrid, CylindricalPolarGrid)):
+            raise TypeError("grid should be a SphericalPolarGrid or CylindricalPolarGrid instance")
+
         if self.theta_0 == 0.:
-            return np.ones(grid.gr.shape, dtype=bool)
+            return np.ones(grid.shape, dtype=bool)
 
         self._check_all_set()
 
