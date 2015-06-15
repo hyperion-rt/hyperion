@@ -4,7 +4,7 @@ import numpy as np
 from astropy import log as logger
 
 from ..dust import SphericalDust
-from ..grid import SphericalPolarGrid
+from ..grid import SphericalPolarGrid, CylindricalPolarGrid
 from ..util.constants import G, pi
 from ..util.convenience import OptThinRadius
 from ..util.integrate import integrate_powerlaw
@@ -319,7 +319,7 @@ class UlrichEnvelope(Envelope):
 
         Parameters
         ----------
-        grid : :class:`~hyperion.grid.SphericalPolarGrid` instance.
+        grid : :class:`~hyperion.grid.SphericalPolarGrid` or :class:`~hyperion.grid.CylindricalPolarGrid` instance.
             The spherical polar grid object containing information about the
             position of the grid cells.
 
@@ -331,8 +331,14 @@ class UlrichEnvelope(Envelope):
             ``grid.shape``.
         '''
 
-        if not isinstance(grid, SphericalPolarGrid):
-            raise TypeError("grid should be a SphericalPolarGrid instance")
+        if isinstance(grid, SphericalPolarGrid):
+            r = grid.gr
+            mu = np.cos(grid.gt)
+        elif isinstance(grid, CylindricalPolarGrid):
+            r = np.hypot(grid.gw, grid.gz)
+            mu = grid.gz / r
+        else:
+            raise TypeError("grid should be a SphericalPolarGrid or CylindricalPolarGrid instance")
 
         self._check_all_set()
 
@@ -340,31 +346,28 @@ class UlrichEnvelope(Envelope):
             logger.warn("Ignoring Ulrich envelope, since rmax < rmin")
             return np.zeros(grid.shape)
 
-        # Find mu = cos(theta)
-        mu = np.cos(grid.gt)
-
         # Find mu_0, the cosine of the angle of a streamline of infalling
         # particles at r=infinity.
-        mu0 = solve_mu0(grid.gr / self.rc, mu)
+        mu0 = solve_mu0(r / self.rc, mu)
 
         # Find Ulrich envelope density
-        rho = self.rho_0 * (grid.gr / self.rc) ** -1.5 \
+        rho = self.rho_0 * (r / self.rc) ** -1.5 \
                 * (1 + mu / mu0) ** -0.5 \
-                * (mu / mu0 + 2. * mu0 ** 2 * self.rc / grid.gr) ** -1.
+                * (mu / mu0 + 2. * mu0 ** 2 * self.rc / r) ** -1.
 
-        mid1 = (np.abs(mu) < 1.e-10) & (grid.gr < self.rc)
-        rho[mid1] = self.rho_0 / np.sqrt(grid.gr[mid1] / self.rc) \
-                  / (1. - grid.gr[mid1] / self.rc) / 2.
+        mid1 = (np.abs(mu) < 1.e-10) & (r < self.rc)
+        rho[mid1] = self.rho_0 / np.sqrt(r[mid1] / self.rc) \
+                  / (1. - r[mid1] / self.rc) / 2.
 
-        mid2 = (np.abs(mu) < 1.e-10) & (grid.gr > self.rc)
-        rho[mid2] = self.rho_0 / np.sqrt(2. * grid.gr[mid2] / self.rc - 1) \
-                  / (grid.gr[mid2] / self.rc - 1.)
+        mid2 = (np.abs(mu) < 1.e-10) & (r > self.rc)
+        rho[mid2] = self.rho_0 / np.sqrt(2. * r[mid2] / self.rc - 1) \
+                  / (r[mid2] / self.rc - 1.)
 
-        if np.any((np.abs(mu) < 1.e-10) & (grid.gr == self.rc)):
+        if np.any((np.abs(mu) < 1.e-10) & (r == self.rc)):
             raise Exception("Grid point too close to Ulrich singularity")
 
-        rho[grid.gr < self.rmin] = 0.
-        rho[grid.gr > self.rmax] = 0.
+        rho[r < self.rmin] = 0.
+        rho[r > self.rmax] = 0.
 
         if not ignore_cavity and self.cavity is not None:
             mask = self.cavity.mask(grid)
