@@ -246,6 +246,8 @@ the same length as the ``refined`` list, where each density value corresponds
 to the equivalent cell in the ``refined`` list. Density values for cells with
 ``refined`` set to ``True`` will be ignored, and can be set to zero.
 
+.. _voronoi_grid:
+
 Voronoi grids
 -------------
 

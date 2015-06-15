@@ -17,7 +17,8 @@
 extern "C" const char * hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                              int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
                                              double const *points, int npoints, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args,
-                                             int with_sampling, int n_samples, double **sample_points, int **sampling_idx, int *tot_samples, int verbose);
+                                             int with_sampling, int n_samples, double **sample_points, int **sampling_idx, int *tot_samples, int *min_cell_samples,
+                                             int verbose);
 
 using namespace voro;
 
@@ -169,7 +170,7 @@ static inline void sample_point_in_tetra(Ptr res,It p0, It p1, It p2, It p3)
 const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                  int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double const *points,
                                  int nsites, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args, int with_sampling, int n_samples,
-                                 double **sample_points, int **sampling_idx, int *tot_samples, int verbose)
+                                 double **sample_points, int **sampling_idx, int *tot_samples, int *min_cell_samples, int verbose)
 {
     // We need to wrap everything in a try/catch block as exceptions cannot leak out to C.
     try {
@@ -329,8 +330,8 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
             // uniformly inside them.
             const double c_factor = c_vol.back()/(RAND_MAX + 1.0);
             // Number of samples for this cell, proportional to the volume of the cell
-            // but always at least 10.
-            const int nc_samples = std::max(int((c_vol.back() / dom_vol) * n_samples),10);
+            // but always at least min_cell_samples.
+            const int nc_samples = std::max(int((c_vol.back() / dom_vol) * n_samples),*min_cell_samples);
             for (int i = 0; i < nc_samples;) {
                 const double r_vol = std::rand()*c_factor;
                 std::vector<double>::iterator it = std::upper_bound(c_vol.begin(),c_vol.end(),r_vol);

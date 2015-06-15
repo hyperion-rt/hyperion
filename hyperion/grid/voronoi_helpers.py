@@ -29,15 +29,18 @@ class voronoi_grid(object):
         The domain of the grid, must be a 3x2 array corresponding to the
         min/max values in the three coordinates.
     n_samples: an integer
-        The total number of points to sample within the domain. If zero,
+        The total number of points to sample within the domain. If zero or negative,
         no sampling will take place. If positive, points will be uniformly sampled
         in each Voronoi cell so that at least ``n_samples`` total points will be
         produced. Each cell will contain a number of samples proportional to its
-        volume (but at least 10 points will always be sampled in each cell).
-        The coordinates of the sampling points are stored in the ``samples``
-        property of the class in sparse format. The indices of the sampling points
-        with respect to the Voronoi cells are stored in the ``samples_idx``
-        class property.
+        volume (but at least ``min_cell_samples`` points will always be sampled in
+        each cell). The coordinates of the sampling points are stored in the
+        ``samples`` property of the class in sparse format. The indices of the
+        sampling points with respect to the Voronoi cells are stored in the
+        ``samples_idx`` class property.
+    min_cell_samples: an integer
+        The minimum number of samples per cell. If ``n_samples`` is zero,
+        this parameter will be unused.
     with_vertices : boolean
         If ``True``, the vertices of the Voronoi cells will be computed.
         The vertices of the cells are not needed for RT simulations,
@@ -55,7 +58,8 @@ class voronoi_grid(object):
         documentation for more information.
     '''
 
-    def __init__(self, sites, domain, n_samples=0, with_vertices=False, wall=None, wall_args=None, verbose=False):
+    def __init__(self, sites, domain, n_samples=0, min_cell_samples = 10, with_vertices=False,
+                 wall=None, wall_args=None, verbose=False):
         import numpy as np
         from ._voronoi_core import _voropp_wrapper
         from astropy.table import Table
@@ -93,6 +97,9 @@ class voronoi_grid(object):
         if not isinstance(n_samples, int):
             raise TypeError(
                 'the \'n_samples\' parameter must be an int')
+        if not isinstance(min_cell_samples, int) or min_cell_samples < 0:
+            raise TypeError(
+                'the \'min_cell_samples\' parameter must be a non-negative int')
         # Wall checks.
         allowed_walls = ['sphere','cylinder','cone','plane']
         if not wall is None and not wall in allowed_walls:
@@ -109,7 +116,8 @@ class voronoi_grid(object):
 
         logger.info("Computing the tessellation via voro++")
         with_sampling = 1 if n_samples > 0 else 0
-        tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, with_sampling, n_samples, 1 if verbose else 0)
+        tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, with_sampling, n_samples,
+                              min_cell_samples, 1 if verbose else 0)
         names = ['coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max']
         if with_vertices:
             names.append('vertices')
