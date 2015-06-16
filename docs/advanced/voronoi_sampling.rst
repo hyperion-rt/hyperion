@@ -12,9 +12,50 @@ Cells in :ref:`Voronoi grids <voronoi_grid>` are indeed convex polyhedra with an
 whose shapes and volumes are determined by the intial distribution of sites.
 
 The Voronoi helper class in Hyperion contains support for producing a list of sampling points for each cell.
-This is a simple example of its usage.
 
-We first initialise a cubic domain with unitary edge, and we fill it with 1E5 randomly-placed points:
+Simple case: averaging of function
+==================================
+
+In the simplest case, we might want to evaluate a function in all cells (for example a function to find the density), and rather than using only the position of the sites, we want to use several random samples in each cell.
+
+The easiest way to do this is to make use of the top-level :class:`~hyperion.grid.VoronoiGrid` class and the :meth:`~hyperion.grid.VoronoiGrid.evaluate_function_average` method. Suppose we have a density function defined as
+
+.. code-block:: python
+
+   def density_func(x,y,z):
+      # Density is proportional to the inverse
+      # square of the distance from the origin.
+      density = 1 / (x*x + y*y + z*z)
+      return density
+
+We can now generate some random sites:
+
+>>> import numpy as np
+>>> N = 100000
+>>> x = np.random.uniform(size=N)
+>>> y = np.random.uniform(size=N)
+>>> z = np.random.uniform(size=N)
+
+and set up a voronoi grid:
+
+>>> from hyperion.grid import VoronoiGrid
+>>> g = VoronoiGrid(x, y, z)
+
+We can then simply call the
+:meth:`~hyperion.grid.VoronoiGrid.evaluate_function_average` method to evaluate
+the function at ``n_samples`` sites in total, with a minimum of
+``min_cell_samples`` samples in each cell::
+
+    >>> dens = g.evaluate_function_average(density_func,
+                                           n_samples=1000000,
+                                           min_cell_samples=5)
+
+Advanced: accessing the random samples directly
+===============================================
+
+In this example, we now show how to manually get the random samples in each cell and show to how to do the same function evaluation as above.
+
+As before, we first initialise a cubic domain with unitary edge, and we fill it with randomly-placed points:
 
 >>> import numpy as np
 >>> N = 100000
