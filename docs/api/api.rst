@@ -58,6 +58,7 @@ Grid
    hyperion.grid.SphericalPolarGrid.rst
    hyperion.grid.AMRGrid.rst
    hyperion.grid.OctreeGrid.rst
+   hyperion.grid.VoronoiGrid.rst
 
 Images and SED configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
