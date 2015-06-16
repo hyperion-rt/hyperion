@@ -28,6 +28,19 @@ class voronoi_grid(object):
     domain : np.ndarray of floats
         The domain of the grid, must be a 3x2 array corresponding to the
         min/max values in the three coordinates.
+    n_samples: an integer
+        The total number of points to sample within the domain. If zero or negative,
+        no sampling will take place. If positive, points will be uniformly sampled
+        in each Voronoi cell so that at least ``n_samples`` total points will be
+        produced. Each cell will contain a number of samples proportional to its
+        volume (but at least ``min_cell_samples`` points will always be sampled in
+        each cell). The coordinates of the sampling points are stored in the
+        ``samples`` property of the class in sparse format. The indices of the
+        sampling points with respect to the Voronoi cells are stored in the
+        ``samples_idx`` class property.
+    min_cell_samples: an integer
+        The minimum number of samples per cell. If ``n_samples`` is zero,
+        this parameter will be unused.
     with_vertices : boolean
         If ``True``, the vertices of the Voronoi cells will be computed.
         The vertices of the cells are not needed for RT simulations,
@@ -45,7 +58,8 @@ class voronoi_grid(object):
         documentation for more information.
     '''
 
-    def __init__(self, sites, domain, with_vertices=False, wall=None, wall_args=None, verbose=False):
+    def __init__(self, sites, domain, n_samples=0, min_cell_samples = 10, with_vertices=False,
+                 wall=None, wall_args=None, verbose=False):
         import numpy as np
         from ._voronoi_core import _voropp_wrapper
         from astropy.table import Table
@@ -80,6 +94,12 @@ class voronoi_grid(object):
         if not isinstance(with_vertices, bool):
             raise TypeError(
                 'the \'with_vertices\' parameter must be a boolean')
+        if not isinstance(n_samples, int):
+            raise TypeError(
+                'the \'n_samples\' parameter must be an int')
+        if not isinstance(min_cell_samples, int) or min_cell_samples < 0:
+            raise TypeError(
+                'the \'min_cell_samples\' parameter must be a non-negative int')
         # Wall checks.
         allowed_walls = ['sphere','cylinder','cone','plane']
         if not wall is None and not wall in allowed_walls:
@@ -95,14 +115,33 @@ class voronoi_grid(object):
         self._with_vertices = with_vertices
 
         logger.info("Computing the tessellation via voro++")
-        tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, 1 if verbose else 0)
+        with_sampling = 1 if n_samples > 0 else 0
+        tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, with_sampling, n_samples,
+                              min_cell_samples, 1 if verbose else 0)
+        names = ['coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max']
         if with_vertices:
-            t = Table([sites, tup[0], tup[1], tup[2], tup[3], tup[4]],
-                      names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max', 'vertices'))
-        else:
-            t = Table([sites, tup[0], tup[1], tup[2], tup[3]],
-                      names=('coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max'))
+            names.append('vertices')
+        if with_sampling:
+            self._samples = tup[-2]
+            self._samples_idx = tup[-1]
+            tup = tup[0:-2]
+        t = Table([sites] + list(filter(lambda _: not _ is None,tup)),names=tuple(names))
+
         self._neighbours_table = t
+
+    @property
+    def samples(self):
+        from copy import deepcopy
+        if not hasattr(self,'_samples'):
+            raise ValueError('no sampling was requested upon object construction')
+        return deepcopy(self._samples)
+
+    @property
+    def samples_idx(self):
+        from copy import deepcopy
+        if not hasattr(self,'_samples'):
+            raise ValueError('no sampling was requested upon object construction')
+        return deepcopy(self._samples_idx)
 
     # Getter for the neighbours/volume/bb table.
     @property

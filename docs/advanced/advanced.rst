@@ -16,6 +16,7 @@ transfer.
    logger.rst
    peeloff.rst
    use_grid_from_disk.rst
+   voronoi_sampling.rst
 
 
 Finally, the two following topics are reserved for coding ninjas! They explain
