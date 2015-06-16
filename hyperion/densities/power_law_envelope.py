@@ -4,7 +4,7 @@ import numpy as np
 from astropy import log as logger
 
 from ..dust import SphericalDust
-from ..grid import SphericalPolarGrid
+from ..grid import SphericalPolarGrid, CylindricalPolarGrid
 from ..util.constants import pi
 from ..util.convenience import OptThinRadius
 from ..util.integrate import integrate_powerlaw
@@ -206,7 +206,7 @@ class PowerLawEnvelope(Envelope):
 
         Parameters
         ----------
-        grid : :class:`~hyperion.grid.SphericalPolarGrid` instance.
+        grid : :class:`~hyperion.grid.SphericalPolarGrid` or :class:`~hyperion.grid.CylindricalPolarGrid` instance.
             The spherical polar grid object containing information about the
             position of the grid cells.
 
@@ -218,8 +218,12 @@ class PowerLawEnvelope(Envelope):
             ``grid.shape``.
         '''
 
-        if not isinstance(grid, SphericalPolarGrid):
-            raise TypeError("grid should be a SphericalPolarGrid instance")
+        if isinstance(grid, SphericalPolarGrid):
+            r = grid.gr
+        elif isinstance(grid, CylindricalPolarGrid):
+            r = np.hypot(grid.gw, grid.gz)
+        else:
+            raise TypeError("grid should be a SphericalPolarGrid or CylindricalPolarGrid instance")
 
         self._check_all_set()
 
@@ -227,10 +231,10 @@ class PowerLawEnvelope(Envelope):
             logger.warn("Ignoring power-law envelope, since rmax < rmin")
             return np.zeros(grid.shape)
 
-        rho = self.rho_0 * (grid.gr / self.r_0) ** self.power
+        rho = self.rho_0 * (r / self.r_0) ** self.power
 
-        rho[grid.gr < self.rmin] = 0.
-        rho[grid.gr > self.rmax] = 0.
+        rho[r < self.rmin] = 0.
+        rho[r > self.rmax] = 0.
 
         if self._rho_0 is None:
             norm = self.mass / np.sum(rho * grid.volumes)

@@ -423,14 +423,14 @@ class AnalyticalYSOModel(Model):
                         [envelope.rmax for envelope in self.envelopes] +
                         [ambient.rmax for ambient in self.ambients])
         rmax = _max_none(*rmax_values)
-        
+
         if rmax >= rmin:
             return rmin, rmax
         else:  # No dust
             return self.star.radius, self.star.radius
 
     def set_cylindrical_polar_grid_auto(self, n_w, n_z, n_phi,
-                                        wmax=None, zmax=None, min_spacing=1.e-8):
+                                        wmin=None, wmax=None, zmin=None, zmax=None, min_spacing=1.e-8):
         '''
         Set the grid to be cylindrical polar with automated resolution.
 
@@ -454,7 +454,7 @@ class AnalyticalYSOModel(Model):
         '''
         self.grid = {'grid_type': 'cylindrical',
                      'n1': n_w, 'n2': n_z, 'n3': n_phi,
-                     'rmax': wmax, 'zmax': zmax, 'min_spacing':min_spacing}
+                     'rmin':wmin, 'rmax': wmax, 'zmin':zmin, 'zmax': zmax, 'min_spacing':min_spacing}
 
     def set_spherical_polar_grid_auto(self, n_r, n_theta, n_phi,
                                       rmax=None, min_spacing=1.e-8):
@@ -483,7 +483,7 @@ class AnalyticalYSOModel(Model):
                      'rmax': rmax, 'min_spacing':min_spacing}
 
     def _set_polar_grid_auto(self, n1=None, n2=None, n3=None, grid_type=None,
-                             zmax=None, rmax=None, min_spacing=1.e-8):
+                             zmin=None, zmax=None, rmin=None, rmax=None, min_spacing=1.e-8):
 
         if self.star.radius is None:
             raise Exception("The central source radius need to be defined "
@@ -496,16 +496,17 @@ class AnalyticalYSOModel(Model):
         else:
             raise Exception("Unknown grid type: %s" % grid_type)
 
-        # Find minimum and maximum radius
-        if len(self.disks) == 0 and len(self.envelopes) == 0:
-            rmin = self.star.radius
-        else:
-            rmin_values = ([disk.rmin for disk in self.disks] +
-                           [envelope.rmin for envelope in self.envelopes] +
-                           [ambient.rmin for ambient in self.ambients])
-            rmin = _min_none(*rmin_values)
+        # Find minimum and maximum radius if not specified
+        if rmin is None:
+            if len(self.disks) == 0 and len(self.envelopes) == 0:
+                rmin = self.star.radius
+            else:
+                rmin_values = ([disk.rmin for disk in self.disks] +
+                               [envelope.rmin for envelope in self.envelopes] +
+                               [ambient.rmin for ambient in self.ambients])
+                rmin = _min_none(*rmin_values)
 
-        if not rmax:
+        if rmax is None:
             rmax_values = [2. * self.star.radius]
             rmax_values += ([disk.rmax for disk in self.disks] +
                             [envelope.rmax for envelope in self.envelopes] +
@@ -576,28 +577,37 @@ class AnalyticalYSOModel(Model):
         elif grid_type is 'cylindrical':
 
             # Z WALLS
-            zmin = np.inf
-            for disk in self.disks:
-                zmin = min(zmin, disk.scale_height_at(rmin))
 
             if not zmax:
                 zmax = rmax
-            if n_z % 2 == 0:
-                n_zn = n_z / 2
-                z_wall1 = np.linspace(zmin * 0.1, zmin * 0.9, 10)
-                z_wall2 = np.logspace(np.log10(zmin),
-                                      np.log10(zmax),
-                                      n_zn - 10)
-                z_wall = np.hstack([z_wall1, z_wall2])
-                z_wall = np.hstack([-z_wall[::-1], z_wall])
+
+            if zmin is None and len(self.disks) > 0:
+                zmin = np.inf
+                for disk in self.disks:
+                    zmin = min(zmin, disk.scale_height_at(rmin))
+
+            if zmin is not None:
+
+                if n_z % 2 == 0:
+                    n_zn = n_z / 2
+                    z_wall1 = np.linspace(zmin * 0.1, zmin * 0.9, 10)
+                    z_wall2 = np.logspace(np.log10(zmin),
+                                          np.log10(zmax),
+                                          n_zn - 10)
+                    z_wall = np.hstack([z_wall1, z_wall2])
+                    z_wall = np.hstack([-z_wall[::-1], z_wall])
+                else:
+                    n_zn = (n_z - 1) / 2
+                    z_wall1 = np.linspace(zmin * 0.1, zmin * 0.9, 10)
+                    z_wall2 = np.logspace(np.log10(zmin),
+                                          np.log10(zmax),
+                                          n_zn - 10)
+                    z_wall = np.hstack([z_wall1, z_wall2])
+                    z_wall = np.hstack([-z_wall[::-1], 0., z_wall])
+
             else:
-                n_zn = (n_z - 1) / 2
-                z_wall1 = np.linspace(zmin * 0.1, zmin * 0.9, 10)
-                z_wall2 = np.logspace(np.log10(zmin),
-                                      np.log10(zmax),
-                                      n_zn - 10)
-                z_wall = np.hstack([z_wall1, z_wall2])
-                z_wall = np.hstack([-z_wall[::-1], 0., z_wall])
+
+                z_wall = np.linspace(-zmax, zmax, n_z + 1)
 
         # PHI WALLS
         p_wall = np.linspace(0., 2. * pi, n_phi + 1)
