@@ -16,6 +16,7 @@ hyperion.grid.VoronoiGrid
       ~VoronoiGrid.write
       ~VoronoiGrid.write_single_array
       ~VoronoiGrid.add_derived_quantity
+      ~VoronoiGrid.evaluate_function_average
 
    .. rubric:: Methods (detail)
 
@@ -25,6 +26,7 @@ hyperion.grid.VoronoiGrid
    .. automethod:: VoronoiGrid.write
    .. automethod:: VoronoiGrid.write_single_array
    .. automethod:: VoronoiGrid.add_derived_quantity
+   .. automethod:: VoronoiGrid.evaluate_function_average
 
 .. autoclass:: VoronoiGridView
 

@@ -68,6 +68,12 @@ class VoronoiGrid(FreezableClass):
         self._y = None
         self._z = None
 
+        self._samples_params = None
+        self._n_samples = None
+        self._min_cell_samples = None
+        self._samples = None
+        self._samples_idx = None
+
         self.quantities = {}
 
         self.voronoi_table = None
@@ -150,10 +156,44 @@ class VoronoiGrid(FreezableClass):
         self._y = y
         self._z = z
 
-    @property
-    def voronoi_table(self):
+    def evaluate_function_average(self, func, n_samples=None, min_cell_samples=None):
+        """
+        Evaluate the average of a function inside each cell using randomly
+        sampled points inside each cell.
 
-        if self._voronoi_table is None or self._voronoi_table.meta['geometry'].decode('utf-8') != self.get_geometry_id():
+        .. note:: This feature is still experimental, use with caution
+
+        Parameters
+        ----------
+        func : function
+            The function to evaluate in each cell. This should take three 1-d
+            arrays of ``x``, ``y``, and ``z`` and return a 1-d array of values.
+        n_samples : int
+            The total number of points to sample within the domain. Points will
+            be uniformly sampled in each Voronoi cell so that at least
+            ``n_samples`` total points will be produced. Each cell will contain
+            a number of samples proportional to its volume (but at least
+            ``min_cell_samples`` points will always be sampled in each cell).
+        min_cell_samples : int
+            The minimum number of samples per cell.
+        """
+
+        self._n_samples = n_samples
+        self._min_cell_samples = min_cell_samples
+
+        self._recompute_voronoi()
+
+        values = func(self._samples[:,0],self._samples[:,1],self._samples[:,2])
+
+        averages = np.add.reduceat(values, self._samples_idx[:-1]) / np.diff(self._samples_idx)
+
+        return averages
+
+    def _recompute_voronoi(self, force=False):
+
+        if (self._voronoi_table is None
+            or self._voronoi_table.meta['geometry'].decode('utf-8') != self.get_geometry_id()
+            or self._samples_params != (self._n_samples, self._min_cell_samples)):
 
             from .voronoi_helpers import voronoi_grid
 
@@ -161,13 +201,26 @@ class VoronoiGrid(FreezableClass):
 
             # Compute the Voronoi tesselation
             points = np.array([self._x, self._y, self._z]).transpose()
-            mesh = voronoi_grid(points, np.array([[self.xmin, self.xmax],
-                                                  [self.ymin, self.ymax],
-                                                  [self.zmin, self.zmax]]),
+            mesh = voronoi_grid(points,
+                                np.array([[self.xmin, self.xmax],
+                                          [self.ymin, self.ymax],
+                                          [self.zmin, self.zmax]],
+                                          ),
+                                n_samples=self._n_samples or 0,
+                                min_cell_samples=self._min_cell_samples or 0,
                                 verbose=self._verbose)
+
             self._voronoi_table = mesh.neighbours_table
             self._voronoi_table.meta['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
 
+            if self._n_samples is not None:
+                self._samples = mesh.samples
+                self._samples_idx = mesh.samples_idx
+                self._samples_params = (self._n_samples, self._min_cell_samples)
+
+    @property
+    def voronoi_table(self):
+        self._recompute_voronoi()
         return self._voronoi_table
 
     @voronoi_table.setter
