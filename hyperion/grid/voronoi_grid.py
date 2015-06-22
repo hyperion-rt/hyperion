@@ -68,7 +68,7 @@ class VoronoiGrid(FreezableClass):
         self._y = None
         self._z = None
 
-        self._samples_params = None
+        self._samples_params = (None, None)
         self._n_samples = None
         self._min_cell_samples = None
         self._samples = None
