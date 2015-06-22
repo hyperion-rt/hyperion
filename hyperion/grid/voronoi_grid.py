@@ -183,11 +183,34 @@ class VoronoiGrid(FreezableClass):
 
         self._recompute_voronoi()
 
-        values = func(self._samples[:,0],self._samples[:,1],self._samples[:,2])
+        values_all = func(self._samples[:,0],self._samples[:,1],self._samples[:,2])
 
-        averages = np.add.reduceat(values, self._samples_idx[:-1]) / np.diff(self._samples_idx)
+        if not isinstance(values_all, tuple):
+            values_all = (values_all,)
+            single = True
+        else:
+            single = False
 
-        return averages
+        # reduceat does not recognize values of indices that are the size of
+        # the array so we need to subtract one here for those values.
+        idx = self._samples_idx.copy()
+        idx[idx == len(values_all[0])] -= 1
+
+        averages_all = []
+
+        for values in values_all:
+            averages = np.add.reduceat(values, idx[:-1]) / np.diff(idx)
+
+            # reduceat doesn't do what we want for two consecutive equal
+            # index values - it will take the value at that index rather than
+            # return 0 (which is what would be expected for i:i slicing)
+            averages[np.isinf(averages)] = 0.
+            averages_all.append(averages)
+
+        if single:
+            return averages_all[0]
+        else:
+            return tuple(averages_all)
 
     def _recompute_voronoi(self, force=False):
 
