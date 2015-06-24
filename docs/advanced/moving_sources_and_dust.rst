@@ -1,7 +1,7 @@
 Moving sources/dust
 ===================
 
-.. note:: This feature is experimental, and should be used with caution!
+.. warning:: This feature is currently experimental - use at your own risk!
 
 About
 -----

@@ -17,7 +17,6 @@ transfer.
    peeloff.rst
    use_grid_from_disk.rst
    voronoi_sampling.rst
-   moving_sources_and_dust.rst
 
 The following features are experimental:
 
@@ -25,6 +24,7 @@ The following features are experimental:
    :maxdepth: 1
 
    filter_convolution.rst
+   moving_sources_and_dust.rst
 
 Finally, the two following topics are reserved for coding ninjas! They explain
 the HDF5 file format used for the dust files and the model files so that you
