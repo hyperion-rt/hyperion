@@ -1,10 +1,13 @@
 Version History
 ===============
 
-1.0.0 (unreleased)
+0.9.7 (unreleased)
 ------------------
 
-- No changes yet
+New features
+^^^^^^^^^^^^
+
+- Added support for on-the-fly filter convolution. [#119]
 
 0.9.6 (2015-02-27)
 ------------------
