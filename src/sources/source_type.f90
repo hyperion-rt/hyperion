@@ -125,7 +125,7 @@ contains
        call mp_read_keyword(group, '.', 'vx', s%velocity%x)
        call mp_read_keyword(group, '.', 'vy', s%velocity%y)
        call mp_read_keyword(group, '.', 'vz', s%velocity%z)
-       if(s%velocity%x /= 0._dp .or. s%velocity%y /= 0._dp .or. s%velocity%z /= 0._dp) s%moving = .true.
+       s%moving = s%velocity%x /= 0._dp .or. s%velocity%y /= 0._dp .or. s%velocity%z /= 0._dp
     else
        s%moving = .false.
     end if
