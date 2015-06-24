@@ -56,11 +56,11 @@ The attributes to set are the following:
   before being used in Hyperion, but the values should give the relative
   transmission as a function of frequency. This should not already be
   multiplied or divided by the frequency. It should simply give at a given
-  frequency or wavelength, the relative probability that an energy package will
-  pass through the filter/system.
+  frequency or wavelength, the relative probability that an energy packet
+  will pass through the filter/system.
   
 * the ``detector_type`` attribute should be set to either ``'energy'`` or
-  ``'photons'``. This is important because for a given input specrtal shape for
+  ``'photons'``. This is important because for a given input spectral shape for
   the emission, if a detector simply measures photons, then proportionally more
   photons will be detected at longer wavelengths relative to shorter
   wavelengths compared to the ratio of the energy detected at longer
