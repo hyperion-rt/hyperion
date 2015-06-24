@@ -436,8 +436,6 @@ contains
 
     real(dp) :: t1, t2
 
-    logical :: pos_vx, pos_vy, pos_vz
-
     call reset_t()
 
     if(p%on_wall_id%w1 /= -1) then

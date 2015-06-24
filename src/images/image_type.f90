@@ -31,6 +31,14 @@ module type_image
      real(dp), allocatable :: log10_emissivity(:,:)
   end type dust_helper
 
+  type filter
+
+     real(dp) :: n_wav
+     real(dp), allocatable :: nu(:), tr(:)
+     real(dp) :: nu0
+
+  end type filter
+
   type image
 
      ! IMAGE PARAMETERS
@@ -99,6 +107,9 @@ module type_image
 
      integer :: group_id = 999
 
+     logical :: use_filters
+     type(filter), allocatable :: filters(:)
+
   end type image
 
 contains
@@ -152,12 +163,26 @@ contains
     real(dp) :: wav_min, wav_max
     integer :: io_bytes
     logical :: compute_stokes
+    integer :: ig, n_filt
+    character(len=100) :: group_name
 
     img%n_view = n_view
     img%n_sources = n_sources
     img%n_dust = n_dust
 
-    call mp_read_keyword(handle, path, 'n_wav',img%n_nu)
+    ! Set up filters
+    if(mp_exists_keyword(handle, path, 'use_filters')) then
+       call mp_read_keyword(handle, path, 'use_filters',img%use_filters)
+       if(img%use_filters) then
+          if(use_exact_nu) call error("image_setup", "cannot use filters in monochromatic mode")
+       end if
+       call mp_read_keyword(handle, path, 'n_filt',img%n_nu)
+    else
+       img%use_filters = .false.
+       call mp_read_keyword(handle, path, 'n_wav',img%n_nu)
+    end if
+
+    if(img%n_nu < 1) call error("image_setup", "n_nu should be >= 1")
 
     if(mp_exists_keyword(handle, path, 'compute_stokes')) then
        call mp_read_keyword(handle, path, 'compute_stokes',compute_stokes)
@@ -231,14 +256,27 @@ contains
 
        img%use_exact_nu = .false.
 
-       call mp_read_keyword(handle, path, 'wav_min',wav_min)
-       call mp_read_keyword(handle, path, 'wav_max',wav_max)
+       if(.not.img%use_filters) then
 
-       img%nu_min = c_cgs / (wav_max * 1.e-4)
-       img%nu_max = c_cgs / (wav_min * 1.e-4)
+          call mp_read_keyword(handle, path, 'wav_min',wav_min)
+          call mp_read_keyword(handle, path, 'wav_max',wav_max)
 
-       img%log10_nu_min = log10(img%nu_min)
-       img%log10_nu_max = log10(img%nu_max)
+          img%nu_min = c_cgs / (wav_max * 1.e-4)
+          img%nu_max = c_cgs / (wav_min * 1.e-4)
+
+          img%log10_nu_min = log10(img%nu_min)
+          img%log10_nu_max = log10(img%nu_max)
+
+       else
+
+          allocate(img%filters(img%n_nu))
+          do ig=1,img%n_nu
+             write(group_name, '("filter_",I5.5)') ig
+             call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'nu', img%filters(ig)%nu)
+             call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'tr_norm', img%filters(ig)%tr)
+             call mp_read_keyword(handle, trim(path)//"/"//group_name, 'nu0', img%filters(ig)%nu0)
+          end do
+       end if
 
     end if
 
@@ -371,8 +409,9 @@ contains
     real(dp),intent(in) :: x_image, y_image
     integer,intent(in) :: im ! sub-image to bin into
     real(dp) :: log10_nu_image
-    integer :: ix,iy,ir,inu,io ! Bins
-    integer :: iorig
+    integer :: inu,io ! Bins
+    integer :: iorig, ifilt
+    real(dp) :: transmission
 
     if(img%compute_image.and..not.allocated(img%img)) call error('bin_photon','Image not allocated')
     if(img%compute_sed.and..not.allocated(img%sed)) call error('bin_photon','SED not allocated')
@@ -420,6 +459,32 @@ contains
        io = 1
     end if
 
+    if(img%use_filters) then
+       do ifilt=1,size(img%filters)
+          transmission = interp1d(img%filters(ifilt)%nu,&
+               &                  img%filters(ifilt)%tr,&
+               &                  p%nu,bounds_error=.false., fill_value=0._dp)
+          if(transmission > 0._dp) then
+             call image_bin_single(img, p, x_image, y_image, im, ifilt, io, transmission)
+          end if
+       end do
+    else
+       call image_bin_single(img, p, x_image, y_image, im, inu, io, 1._dp)
+    end if
+
+  end subroutine image_bin
+
+  subroutine image_bin_single(img,p,x_image,y_image,im,inu,io, transmission)
+
+    implicit none
+
+    type(image),intent(inout)    :: img  ! Image
+    type(photon),intent(in) :: p
+    real(dp),intent(in) :: x_image, y_image
+    integer,intent(in) :: im, inu, io
+    integer :: ix,iy,ir ! Bins
+    real(dp) :: transmission
+
     if(img%n_stokes == 4) then
        img%tmp_stokes = [p%s%i,p%s%q,p%s%u,p%s%v]
     else
@@ -431,9 +496,9 @@ contains
           call find_image_bin(img,x_image,y_image,ix,iy)
           if(ix >= 1 .and. ix <= img%n_x) then
              if(iy >= 1 .and. iy <= img%n_y) then
-                img%img(inu,ix,iy,im,io,:) = img%img(inu,ix,iy,im,io,:) + img%tmp_stokes * p%energy
+                img%img(inu,ix,iy,im,io,:) = img%img(inu,ix,iy,im,io,:) + img%tmp_stokes * p%energy * transmission
                 if(img%uncertainties) then
-                   img%img2(inu,ix,iy,im,io,:) = img%img2(inu,ix,iy,im,io,:) + img%tmp_stokes**2._dp * p%energy**2._dp
+                   img%img2(inu,ix,iy,im,io,:) = img%img2(inu,ix,iy,im,io,:) + (img%tmp_stokes * p%energy * transmission) ** 2._dp
                    img%imgn(inu,ix,iy,im,io,:) = img%imgn(inu,ix,iy,im,io,:) + 1._dp
                 end if
              end if
@@ -442,16 +507,16 @@ contains
        if(img%compute_sed) then
           call find_sed_bin(img,x_image,y_image,ir)
           if(ir >= 1 .and. ir <= img%n_ap) then
-             img%sed(inu,ir,im,io,:) = img%sed(inu,ir,im,io,:) + img%tmp_stokes * p%energy
+             img%sed(inu,ir,im,io,:) = img%sed(inu,ir,im,io,:) + img%tmp_stokes * p%energy * transmission
              if(img%uncertainties) then
-                img%sed2(inu,ir,im,io,:) = img%sed2(inu,ir,im,io,:) + img%tmp_stokes**2._dp * p%energy**2._dp
+                img%sed2(inu,ir,im,io,:) = img%sed2(inu,ir,im,io,:) + (img%tmp_stokes * p%energy * transmission) ** 2._dp
                 img%sedn(inu,ir,im,io,:) = img%sedn(inu,ir,im,io,:) + 1._dp
              end if
           end if
        end if
     end if
 
-  end subroutine image_bin
+  end subroutine image_bin_single
 
   subroutine image_bin_raytraced(img,p,x_image,y_image,im,spectrum)
 
@@ -465,8 +530,10 @@ contains
     integer :: ix,iy,ir,iw,io ! Bins
     integer :: iorig
 
-    if(img%compute_image.and..not.allocated(img%img)) call error('bin_photon','Image not allocated')
-    if(img%compute_sed.and..not.allocated(img%sed)) call error('bin_photon','SED not allocated')
+    if(img%compute_image.and..not.allocated(img%img)) call error('image_bin_raytraced','Image not allocated')
+    if(img%compute_sed.and..not.allocated(img%sed)) call error('image_bin_raytraced','SED not allocated')
+
+    if(img%use_filters) call error("image_bin_raytraced", "filter convolution cannot be used with raytracing")
 
     if(is_nan(p%energy)) then
        call warn("image_bin_raytraced","photon has NaN energy - ignoring")
@@ -573,9 +640,16 @@ contains
     ! dnunorm = dnu(j) / nu(j)
     ! dnunorm = (nu_max / nu_min) ** (+0.5 / n_nu)
     !         - (nu_max / nu_min) ** (-0.5 / n_nu)
+    !
+    ! If using filters, we want to keep the flux in F_nu * dnu for now since
+    ! the filter already included the correct normalization.
 
-    dnunorm = (img%nu_max / img%nu_min) ** (+0.5_dp / real(img%n_nu, dp)) &
-         - (img%nu_max / img%nu_min) ** (-0.5_dp / real(img%n_nu, dp))
+    if(img%use_filters) then
+      dnunorm = 1._dp
+    else
+      dnunorm = (img%nu_max / img%nu_min) ** (+0.5_dp / real(img%n_nu, dp)) &
+           &  - (img%nu_max / img%nu_min) ** (-0.5_dp / real(img%n_nu, dp))
+    end if
 
     if(img%compute_sed) then
 
@@ -621,8 +695,10 @@ contains
        end select
 
        if(.not.img%use_exact_nu) then
-          call mp_write_keyword(group, 'seds','numin',img%nu_min)
-          call mp_write_keyword(group, 'seds','numax',img%nu_max)
+          if(.not.img%use_filters) then
+             call mp_write_keyword(group, 'seds','numin',img%nu_min)
+             call mp_write_keyword(group, 'seds','numax',img%nu_max)
+          end if
        end if
        call mp_write_keyword(group, 'seds','apmin',img%ap_min)
        call mp_write_keyword(group, 'seds','apmax',img%ap_max)
@@ -676,8 +752,10 @@ contains
        end select
 
        if(.not.img%use_exact_nu) then
-          call mp_write_keyword(group, 'images','numin',img%nu_min)
-          call mp_write_keyword(group, 'images','numax',img%nu_max)
+          if(.not.img%use_filters) then
+             call mp_write_keyword(group, 'images','numin',img%nu_min)
+             call mp_write_keyword(group, 'images','numax',img%nu_max)
+          end if
        end if
        call mp_write_keyword(group, 'images','xmin',img%x_min)
        call mp_write_keyword(group, 'images','xmax',img%x_max)
@@ -692,6 +770,12 @@ contains
           call mp_write_keyword(group, 'images', 'track_n_scat', img%track_n_scat)
        end if
 
+    end if
+
+    if(img%use_filters) then
+      call mp_write_keyword(group, '.', 'use_filters',img%use_filters)
+      call mp_write_keyword(group, '.', 'n_filt',size(img%filters))
+      call mp_write_array(group, 'filt_nu0', img%filters(:)%nu0)
     end if
 
     if(img%use_exact_nu) then

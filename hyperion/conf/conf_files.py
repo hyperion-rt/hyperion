@@ -4,6 +4,7 @@ import numpy as np
 from astropy import log as logger
 
 from ..util.functions import FreezableClass, bool2str, str2bool, is_numpy_array
+from ..filter import Filter
 
 
 class OutputConf(FreezableClass):
@@ -735,9 +736,37 @@ class ImageConf(FreezableClass):
         self.set_uncertainties(False)
         self.set_stokes(False)
         self._set_monochromatic(False)
+        self._filters = []
         self._freeze()
 
+    def add_filter(self, **kwargs):
+        """
+        Add a filter to internally convolve images or SED fluxes with
+        transmission curves.
 
+        Any keyword arguments are passed to :class:`hyperion.filters.Filter`.
+        """
+        filt = Filter(**kwargs)
+        self._filters.append(filt)
+        return filt
+
+    def _read_filters(self, group):
+        if 'use_filters' in group.attrs and str2bool(group.attrs['use_filters']):
+            self._filters = []
+            n_filt = group.attrs['n_filt']
+            for ifilter in range(n_filt):
+                self._filters.append(Filter.from_hdf5_group(group, 'filter_{0:05d}'.format(ifilter + 1)))
+        else:
+            self._filters = None
+
+    def _write_filters(self, group):
+        if self.n_wav is not None:
+            raise ValueError("Cannot specify both filters and wavelength range")
+        group.attrs['use_filters'] = bool2str(len(self._filters) > 0)
+        if self._filters is not None:
+            group.attrs['n_filt'] = len(self._filters)
+            for ifilter, filt in enumerate(self._filters):
+                filt.to_hdf5_group(group, 'filter_{0:05d}'.format(ifilter + 1))
 
     def set_output_bytes(self, io_bytes):
         '''
@@ -1037,6 +1066,9 @@ class ImageConf(FreezableClass):
     def _read_viewing_info(self, group):
         pass
 
+    def _validate_viewing_info(self):
+        pass
+
     def _write_viewing_info(self, group):
         pass
 
@@ -1048,11 +1080,17 @@ class ImageConf(FreezableClass):
         if self.image:
             self._read_image_size(group)
             self._read_image_limits(group)
+
         self._read_monochromatic(group)
+
         if self._monochromatic:
             self._read_wavelength_index_range(group)
         else:
-            self._read_wavelength_range(group)
+            if 'use_filters' in group.attrs and group.attrs['use_filters']:
+                self._read_filters(group)
+            else:
+                self._read_wavelength_range(group)
+
         self._read_output_bytes(group)
         self._read_track_origin(group)
         self._read_uncertainties(group)
@@ -1066,11 +1104,17 @@ class ImageConf(FreezableClass):
         if self.image:
             self._write_image_size(group)
             self._write_image_limits(group)
+
         self._write_monochromatic(group)
+
         if self._monochromatic:
             self._write_wavelength_index_range(group)
         else:
-            self._write_wavelength_range(group)
+            if len(self._filters) > 0:
+                self._write_filters(group)
+            else:
+                self._write_wavelength_range(group)
+
         self._write_output_bytes(group)
         self._write_track_origin(group)
         self._write_uncertainties(group)

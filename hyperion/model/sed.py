@@ -126,7 +126,10 @@ class SED(FreezableClass):
         """
         The wavelengths for which the SED is defined (in microns).
         """
-        return c / self.nu * 1e4
+        if self.nu is None:
+            return None
+        else:
+            return c / self.nu * 1e4
 
     def __iter__(self):
         if self.unc is None:

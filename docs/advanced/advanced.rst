@@ -18,6 +18,12 @@ transfer.
    use_grid_from_disk.rst
    voronoi_sampling.rst
 
+The following features are experimental:
+
+.. toctree::
+   :maxdepth: 1
+
+   filter_convolution.rst
 
 Finally, the two following topics are reserved for coding ninjas! They explain
 the HDF5 file format used for the dust files and the model files so that you

@@ -357,7 +357,10 @@ class ModelOutput(FreezableClass):
                                        source_id=source_id, dust_id=dust_id, n_scat=n_scat)
 
         # Set up wavelength space
-        if 'numin' in g['seds'].attrs:
+        if 'use_filters' in g.attrs and g.attrs['use_filters'].decode('utf-8').lower() == 'yes':
+            nu = g['filt_nu0'].value
+            wav = c / nu * 1.e4
+        elif 'numin' in g['seds'].attrs:
             numin = g['seds'].attrs['numin']
             numax = g['seds'].attrs['numax']
             wavmin, wavmax = c / numax * 1.e4, c / numin * 1.e4
@@ -391,7 +394,7 @@ class ModelOutput(FreezableClass):
 
             # Convert to the correct units
             if units == 'ergs/cm^2/s':
-                scale = np.repeat(1., len(nu))
+                scale = 1.
             elif units == 'ergs/cm^2/s/Hz':
                 scale = 1. / nu
             elif units == 'Jy':
@@ -411,7 +414,7 @@ class ModelOutput(FreezableClass):
                 raise ValueError("Since distance= is not specified, units should be set to ergs/s")
 
             # Units here are not technically ergs/cm^2/s but ergs/s
-            scale = np.repeat(1., len(nu))
+            scale = 1.
 
         # If in 32-bit mode, need to convert to 64-bit because of scaling/polarization to be safe
         if flux.dtype == np.float32:
@@ -675,7 +678,10 @@ class ModelOutput(FreezableClass):
 
 
         # Set up wavelength space
-        if 'numin' in g['images'].attrs:
+        if 'use_filters' in g.attrs and g.attrs['use_filters'].decode('utf-8').lower() == 'yes':
+            nu = g['filt_nu0'].value
+            wav = c / nu * 1.e4
+        elif 'numin' in g['images'].attrs:
             numin = g['images'].attrs['numin']
             numax = g['images'].attrs['numax']
             wavmin, wavmax = c / numax * 1.e4, c / numin * 1.e4
@@ -772,7 +778,7 @@ class ModelOutput(FreezableClass):
 
             # Convert to the correct units
             if units == 'ergs/cm^2/s':
-                scale = np.repeat(1., len(nu))
+                scale = 1.
             elif units == 'ergs/cm^2/s/Hz':
                 scale = 1. / nu
             elif units == 'Jy':
@@ -796,7 +802,7 @@ class ModelOutput(FreezableClass):
             if units != 'ergs/s':
                 raise ValueError("Since distance= is not specified, units should be set to ergs/s")
 
-            scale = np.repeat(1., len(nu))
+            scale = 1.
 
         # If in 32-bit mode, need to convert to 64-bit because of
         # scaling/polarization to be safe
