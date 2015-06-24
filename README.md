@@ -40,4 +40,4 @@ To update your clone of the git repository, use:
 Status
 ------
 
-[![Build Status](https://travis-ci.org/hyperion-rt/hyperion.png)](https://travis-ci.org/hyperion-rt/hyperion?branch=master)
+[![Build Status](https://travis-ci.org/hyperion-rt/hyperion.svg)](https://travis-ci.org/hyperion-rt/hyperion?branch=master)
