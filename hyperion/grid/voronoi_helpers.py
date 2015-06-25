@@ -39,8 +39,7 @@ class voronoi_grid(object):
         sampling points with respect to the Voronoi cells are stored in the
         ``samples_idx`` class property.
     min_cell_samples: an integer
-        The minimum number of samples per cell. If ``n_samples`` is zero,
-        this parameter will be unused.
+        The minimum number of samples per cell.
     with_vertices : boolean
         If ``True``, the vertices of the Voronoi cells will be computed.
         The vertices of the cells are not needed for RT simulations,

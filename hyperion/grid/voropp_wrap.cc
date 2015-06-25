@@ -17,7 +17,7 @@
 extern "C" const char * hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                              int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
                                              double const *points, int npoints, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args,
-                                             int with_sampling, int n_samples, double **sample_points, int **sampling_idx, int *tot_samples, int *min_cell_samples,
+                                             int with_sampling, int n_samples, double **sample_points, int **sampling_idx, int *tot_samples, int min_cell_samples,
                                              int verbose);
 
 using namespace voro;
@@ -170,7 +170,7 @@ static inline void sample_point_in_tetra(Ptr res,It p0, It p1, It p2, It p3)
 const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                  int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double const *points,
                                  int nsites, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args, int with_sampling, int n_samples,
-                                 double **sample_points, int **sampling_idx, int *tot_samples, int *min_cell_samples, int verbose)
+                                 double **sample_points, int **sampling_idx, int *tot_samples, int min_cell_samples, int verbose)
 {
     // We need to wrap everything in a try/catch block as exceptions cannot leak out to C.
     try {
@@ -253,6 +253,18 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     vs_points_idx.push_back(0);
     // Init the total number of samples.
     *tot_samples = 0;
+    // A vector of random values in the [0,1[ range used for the part of the sampling proportional
+    // to the cell volumes.
+    std::vector<double> random_values;
+    for (int i = 0; i < n_samples; ++i) {
+        random_values.push_back(std::rand()/(RAND_MAX + 1.0));
+    }
+    // Sort it in ascending order.
+    std::sort(random_values.begin(),random_values.end());
+
+    // Cumulative volume vector for the cells.
+    std::vector<double> cc_vol;
+    cc_vol.push_back(0);
 
     // Loop over all particles and compute the desired quantities.
     if(vl.start()) {
@@ -292,6 +304,8 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
             t_vert.clear();
             c_vol.clear();
             double vol = 0;
+            // Update the cumulative volume vector.
+            cc_vol.push_back(cc_vol.back() + vols.get()[idx] / dom_vol);
             // Compute the faces of the cell.
             c.face_vertices(f_vert);
             int j = 0;
@@ -326,12 +340,25 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
                 // Update the counter.
                 j += nfv + 1;
             }
+            // Now we need to establish how many points we need to randomly pick in this cell. The value must be
+            // at least min_cell_samples and proportional to the cell volume. In order to do this, we need
+            // to compute how many random samples in random_values fall within the current and previous cumulative
+            // cell volume.
+            typedef std::vector<double>::iterator it_type;
+            // First element in random_values that is greater than or equal to the lower bound of the volume range.
+            it_type lower = std::lower_bound(random_values.begin(),random_values.end(),*(cc_vol.end() - 2));
+            // First element in random_values that is greater than the upper bound of the volume range.
+            it_type upper = std::upper_bound(random_values.begin(),random_values.end(),*(cc_vol.end() - 1));
+            // The number of elements to sample according to the cell volume will be the distance between upper and lower.
+            int nc_samples = std::distance(lower,upper);
+            // If less than min samples, overwrite it.
+            if (nc_samples < min_cell_samples) {
+                nc_samples = min_cell_samples;
+            }
             // Now we need to select randomly tetras (with a probability proportional to their volume) and sample
             // uniformly inside them.
             const double c_factor = c_vol.back()/(RAND_MAX + 1.0);
-            // Number of samples for this cell, proportional to the volume of the cell
-            // but always at least min_cell_samples.
-            const int nc_samples = std::max(int((c_vol.back() / dom_vol) * n_samples),*min_cell_samples);
+            // Go with the sampling.
             for (int i = 0; i < nc_samples;) {
                 const double r_vol = std::rand()*c_factor;
                 std::vector<double>::iterator it = std::upper_bound(c_vol.begin(),c_vol.end(),r_vol);
