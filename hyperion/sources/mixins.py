@@ -153,7 +153,8 @@ class VectorVelocityMixin(object):
             self.velocity = None
 
     def _write_velocity(self, handle):
-        handle.create_dataset('velocity', data=self.velocity, compression=True)
+        if self.velocity is not None:
+            handle.create_dataset('velocity', data=self.velocity, compression=True)
 
 
 class RadiusMixin(object):

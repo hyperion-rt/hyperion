@@ -53,6 +53,7 @@ class Source(FreezableClass):
     Any additional arguments are are used to initialize attributes.
     '''
 
+    label = 'source'
     _support_lte_spectrum = True
 
     def __init__(self, name=None, peeloff=True, **kwargs):
@@ -269,7 +270,7 @@ class Source(FreezableClass):
 
         self._read_luminosity(handle)
 
-        if not handle.attrs['type'].decode('ascii') == self.short:
+        if not handle.attrs['type'].decode('ascii') == self.label:
             raise ValueError("Source is not a {0}".format(self.__class__.__name__))
 
         self.name = handle.attrs['name'].decode('utf-8')
@@ -303,7 +304,7 @@ class Source(FreezableClass):
 
         self._write_luminosity(g)
 
-        g.attrs['type'] = np.string_('spot'.encode('utf-8'))
+        g.attrs['type'] = np.string_(self.label.encode('utf-8'))
 
         g.attrs['name'] = np.string_(self.name.encode('utf-8'))
 
@@ -481,7 +482,7 @@ class SphericalSource(Source, PositionMixin, RadiusMixin, VelocityMixin):
     Any additional arguments are are used to initialize attributes.
     '''
 
-    short = 'sphere'
+    label = 'sphere'
     _support_lte_spectrum = False
 
     def __init__(self, name=None, peeloff=True, **kwargs):

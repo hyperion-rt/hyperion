@@ -16,8 +16,8 @@ def test_io_source_temperature():
     s1.luminosity = 1.
     s1.temperature = 5000.
     v = virtual_file()
-    s1.write(v)
-    s2 = Source.read(v)
+    s1.write(v, 'test')
+    s2 = Source.read(v['test'])
     assert s2.luminosity == s1.luminosity
     assert s2.temperature == s1.temperature
     assert s2.spectrum is None
@@ -28,8 +28,8 @@ def test_io_source_spectrum():
     s1.luminosity = 1.
     s1.spectrum = ([1., 2., 3.], [4., 5., 6.])
     v = virtual_file()
-    s1.write(v)
-    s2 = Source.read(v)
+    s1.write(v, 'test')
+    s2 = Source.read(v['test'])
     assert s2.luminosity == s1.luminosity
     assert s2.temperature is None
     assert_equal(s2.spectrum['nu'], s1.spectrum['nu'])
@@ -40,8 +40,8 @@ def test_io_source_lte():
     s1 = Source()
     s1.luminosity = 1.
     v = virtual_file()
-    s1.write(v)
-    s2 = Source.read(v)
+    s1.write(v, 'test')
+    s2 = Source.read(v['test'])
     assert s2.luminosity == s1.luminosity
     assert s2.temperature is None
     assert s2.spectrum is None
