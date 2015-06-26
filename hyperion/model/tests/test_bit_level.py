@@ -22,8 +22,6 @@ GRID_TYPES = ['car', 'cyl', 'sph', 'amr', 'oct']
 
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
-bit_level = pytest.mark.skipif(str(not pytest.config.getoption('enable_bit_level_tests')))
-
 
 @pytest.fixture(scope="module")
 def generate(request):
@@ -32,6 +30,11 @@ def generate(request):
         return False
     else:
         return generate_reference
+
+
+@pytest.fixture(scope="module")
+def bit_level_comparison(request):
+    return pytest.config.getoption('enable_bit_level_tests')
 
 
 def setup_all_grid_types(self, u, d):
@@ -122,7 +125,7 @@ def function_name():
     args, _, _, values = inspect.getargvalues(caller)
     name = [caller.f_code.co_name]
     for arg in args:
-        if arg not in ['self', 'generate', 'tmpdir']:
+        if arg not in ['self', 'generate', 'tmpdir', 'bit_level_comparison']:
             name += ["{0}={1}".format(arg, values[arg])]
     name = '.'.join(name)
     return name
@@ -134,9 +137,8 @@ class TestBasic(object):
         setup_all_grid_types(self, pc, 1.e-20)
         self.dust_file = os.path.join(DATA, 'kmh_lite.hdf5')
 
-    @bit_level
     @pytest.mark.parametrize(('grid_type', 'sample_sources_evenly', 'multiple_densities'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
-    def test_specific_energy(self, tmpdir, grid_type, sample_sources_evenly, multiple_densities, generate):
+    def test_specific_energy(self, tmpdir, grid_type, sample_sources_evenly, multiple_densities, generate, bit_level_comparison):
 
         np.random.seed(12345)
 
@@ -168,13 +170,12 @@ class TestBasic(object):
             reference_file = os.path.join(generate, function_name() + ".rtout")
             shutil.copy(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
-        else:
+        elif bit_level_comparison:
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
 
-    @bit_level
     @pytest.mark.parametrize(('grid_type', 'raytracing', 'sample_sources_evenly'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
-    def test_peeloff(self, tmpdir, grid_type, raytracing, sample_sources_evenly, generate):
+    def test_peeloff(self, tmpdir, grid_type, raytracing, sample_sources_evenly, generate, bit_level_comparison):
 
         np.random.seed(12345)
 
@@ -231,7 +232,7 @@ class TestBasic(object):
             reference_file = os.path.join(generate, function_name() + ".rtout")
             shutil.copy(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
-        else:
+        elif bit_level_comparison:
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
 
@@ -337,9 +338,8 @@ class TestPascucciBenchmark(object):
     def teardown_class(self):
         shutil.rmtree(self.tmpdir)
 
-    @bit_level
     @pytest.mark.parametrize(('tau'), [0.1, 1, 10, 100])
-    def test_pascucci(self, tmpdir, tau, generate):
+    def test_pascucci(self, tmpdir, tau, generate, bit_level_comparison):
 
         print(generate)
 
@@ -426,7 +426,7 @@ class TestPascucciBenchmark(object):
             reference_file = os.path.join(generate, function_name() + ".rtout")
             shutil.copy(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
-        else:
+        elif bit_level_comparison:
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
 
@@ -443,9 +443,8 @@ class TestPinteBenchmark(object):
     The current tests do not test the imaging part of the Pinte benchmark.
     '''
 
-    @bit_level
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
-    def test_pinte_seds(self, tmpdir, tau, generate):
+    def test_pinte_seds(self, tmpdir, tau, generate, bit_level_comparison):
 
         m = AnalyticalYSOModel()
 
@@ -541,13 +540,12 @@ class TestPinteBenchmark(object):
             reference_file = os.path.join(generate, function_name() + ".rtout")
             shutil.copy(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
-        else:
+        elif bit_level_comparison:
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
 
-    @bit_level
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
-    def test_pinte_images(self, tmpdir, tau, generate):
+    def test_pinte_images(self, tmpdir, tau, generate, bit_level_comparison):
 
         m = AnalyticalYSOModel()
 
@@ -632,13 +630,12 @@ class TestPinteBenchmark(object):
             reference_file = os.path.join(generate, function_name() + ".rtout")
             shutil.copy(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
-        else:
+        elif bit_level_comparison:
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
 
-    @bit_level
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
-    def test_pinte_specific_energy(self, tmpdir, tau, generate):
+    def test_pinte_specific_energy(self, tmpdir, tau, generate, bit_level_comparison):
 
         m = AnalyticalYSOModel()
 
@@ -698,7 +695,7 @@ class TestPinteBenchmark(object):
             reference_file = os.path.join(generate, function_name() + ".rtout")
             shutil.copy(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
-        else:
+        elif bit_level_comparison:
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
 
@@ -755,8 +752,7 @@ class TestMovingSourceDust(object):
         m.write(input_file)
         m.run(output_file)
 
-    @bit_level
-    def test_still_dust(self, tmpdir, generate):
+    def test_still_dust(self, tmpdir, generate, bit_level_comparison):
 
         input_file = tmpdir.join('test.rtin').strpath
         output_file = tmpdir.join('test.rtout').strpath
@@ -767,12 +763,11 @@ class TestMovingSourceDust(object):
             reference_file = os.path.join(generate, function_name() + ".rtout")
             shutil.copy(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
-        else:
+        elif bit_level_comparison:
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
 
-    @bit_level
-    def test_moving_dust(self, tmpdir, generate):
+    def test_moving_dust(self, tmpdir, generate, bit_level_comparison):
 
         input_file = tmpdir.join('test.rtin').strpath
         output_file = tmpdir.join('test.rtout').strpath
@@ -783,6 +778,6 @@ class TestMovingSourceDust(object):
             reference_file = os.path.join(generate, function_name() + ".rtout")
             shutil.copy(output_file, reference_file)
             pytest.skip("Skipping test, since generating data")
-        else:
+        elif bit_level_comparison:
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
