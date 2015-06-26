@@ -78,9 +78,6 @@ ext_modules = [Extension("hyperion.util._integrate_core",
 
 scripts = ['hyperion', 'hyperion2fits']
 
-if __dev__:
-    scripts.append('mctherm2hyperion')
-
 setup(name='Hyperion',
       version=__version__,
       url='http://www.hyperion-rt.org',
