@@ -163,6 +163,9 @@ class RunConf(object):
             photon chunk size for MPI.
         '''
 
+        # Reset number of photons to avoid issues when reading in models
+        self.n_photons.clear()
+
         if self.n_iter == 0:
             if initial is not None:
                 raise Exception("[n_photons] initial should not be set since no initial interations are being computed")
