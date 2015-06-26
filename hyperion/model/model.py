@@ -558,8 +558,8 @@ class Model(FreezableClass, RunConf):
         # Output sources
         for i, source in enumerate(self.sources):
             if isinstance(source, MapSource):
-                source.write(g_sources, 'source_%05i' % (i + 1), self.grid,
-                             compression=compression, map_dtype=physics_dtype)
+                source.write(g_sources, 'source_%05i' % (i + 1), grid=self.grid,
+                             compression=compression, dtype=physics_dtype)
             else:
                 source.write(g_sources, 'source_%05i' % (i + 1))
 

@@ -11,6 +11,9 @@ from ..util.integrate import integrate_loglog
 from ..util.validator import validate_scalar
 from astropy import log as logger
 
+from .mixins import (PositionMixin, VelocityMixin,
+                     VectorPositionMixin, VectorVelocityMixin,
+                     RadiusMixin)
 
 def read_source(handle):
     source_type = handle.attrs['type'].decode('ascii')
@@ -50,6 +53,8 @@ class Source(FreezableClass):
     Any additional arguments are are used to initialize attributes.
     '''
 
+    _support_lte_spectrum = True
+
     def __init__(self, name=None, peeloff=True, **kwargs):
 
         if name:
@@ -58,12 +63,22 @@ class Source(FreezableClass):
             self.name = random_id(length=8)
 
         self.peeloff = peeloff
-        self.velocity = None
 
         # Initialize attributes
         self.luminosity = None
         self.spectrum = None
         self.temperature = None
+
+        # Hooks for mix-in classes
+        self._read_hooks = []
+        self._write_hooks = []
+        self._required = ['luminosity']
+
+        # Initialize mix-in classes
+        import inspect
+        for base_class in inspect.getmro(self.__class__):
+            if 'Mixin' in base_class.__name__:
+                base_class.__init__(self)
 
         # Prevent new attributes from being created
         self._freeze()
@@ -101,39 +116,6 @@ class Source(FreezableClass):
 
     def _write_luminosity(self, handle):
         handle.attrs['luminosity'] = self.luminosity
-
-    @property
-    def velocity(self):
-        '''
-        The cartesian velocity of the source ``(vx, vy, vz)`` as a sequence of three floating-point values (cm/s)
-        '''
-        return self._velocity
-
-    @velocity.setter
-    def velocity(self, value):
-        if value is not None:
-            if type(value) in [tuple, list]:
-                if len(value) != 3:
-                    raise ValueError("velocity should be a sequence of 3 values")
-            elif is_numpy_array(value):
-                if value.ndim != 1:
-                    raise ValueError("velocity should be a 1-D sequence")
-                if len(value) != 3:
-                    raise ValueError("velocity should be a sequence of 3 values")
-            else:
-                raise ValueError("velocity should be a tuple, list, or Numpy array")
-        self._velocity = value
-
-    def _write_velocity(self, handle):
-        handle.attrs['vx'] = self.velocity[0]
-        handle.attrs['vy'] = self.velocity[1]
-        handle.attrs['vz'] = self.velocity[2]
-
-    def _read_velocity(self, handle):
-        if 'vx' in handle.attrs:
-            self.velocity = (handle.attrs['vx'], handle.attrs['vy'], handle.attrs['vz'])
-        else:
-            self.velocity = None
 
     @property
     def temperature(self):
@@ -249,8 +231,16 @@ class Source(FreezableClass):
             self._spectrum = value
 
     def _check_all_set(self):
-        if self.luminosity is None:
-            raise ValueError("luminosity is not set")
+
+        if self.has_lte_spectrum() and not self._support_lte_spectrum:
+            raise ValueError("{0} cannot have LTE spectrum".format(self.__class__.__name__))
+
+        for attribute in self._required:
+            if getattr(self, attribute) is None:
+                raise ValueError("{0} is not set".format(attribute))
+
+        if hasattr(self, '_check_all_set_specific'):
+            self._check_all_set_specific()
 
     def get_spectrum(self, nu_range=None):
 
@@ -279,6 +269,9 @@ class Source(FreezableClass):
 
         self._read_luminosity(handle)
 
+        if not handle.attrs['type'].decode('ascii') == self.short:
+            raise ValueError("Source is not a {0}".format(self.__class__.__name__))
+
         self.name = handle.attrs['name'].decode('utf-8')
 
         self.peeloff = str2bool(handle.attrs['peeloff'])
@@ -292,113 +285,108 @@ class Source(FreezableClass):
         else:
             raise ValueError('Unexpected value for `spectrum`: %s' % handle.attrs['spectrum'])
 
-        self._read_velocity(handle)
+        # Read in attributes specific to the sub-class
+        if hasattr(self, '_read_specific'):
+            self._read_specific(handle)
+
+        # Read in attributes from mix-ins
+        for reader in self._read_hooks:
+            reader(handle)
 
         return self
 
-    def write(self, handle):
+    def write(self, handle, name, grid=None, compression=True, dtype=float):
 
         self._check_all_set()
 
-        self._write_luminosity(handle)
+        g = handle.create_group(name)
 
-        handle.attrs['name'] = np.string_(self.name.encode('utf-8'))
+        self._write_luminosity(g)
 
-        handle.attrs['peeloff'] = np.string_(bool2str(self.peeloff))
+        g.attrs['type'] = np.string_('spot'.encode('utf-8'))
+
+        g.attrs['name'] = np.string_(self.name.encode('utf-8'))
+
+        g.attrs['peeloff'] = np.string_(bool2str(self.peeloff))
 
         if self.spectrum is not None:
-            handle.attrs['spectrum'] = np.string_('spectrum'.encode('utf-8'))
+            g.attrs['spectrum'] = np.string_('spectrum'.encode('utf-8'))
             table = Table()
             table.add_column(Column(data=self.spectrum['nu'], name='nu'))
             table.add_column(Column(data=self.spectrum['fnu'], name='fnu'))
-            table.write(handle, path='spectrum')
+            table.write(g, path='spectrum')
         elif self.temperature is not None:
-            handle.attrs['spectrum'] = np.string_('temperature'.encode('utf-8'))
-            handle.attrs['temperature'] = self.temperature
+            g.attrs['spectrum'] = np.string_('temperature'.encode('utf-8'))
+            g.attrs['temperature'] = self.temperature
         else:
-            handle.attrs['spectrum'] = np.string_('lte'.encode('utf-8'))
+            g.attrs['spectrum'] = np.string_('lte'.encode('utf-8'))
 
-        if self.velocity is not None:
-            self._write_velocity(handle)
+        # Write out attributes specific to the sub-class
+        if hasattr(self, '_write_specific'):
+            if grid is None:
+                self._write_specific(g)
+            else:
+                self._write_specific(g, grid=grid, compression=compression, dtype=dtype)
+
+        # Write out attributes for mix-ins
+        for writer in self._write_hooks:
+            writer(g)
 
     def has_lte_spectrum(self):
         return self.spectrum is None and self.temperature is None
 
 
-class SpotSource(Source):
+class SpotSource(Source, RadiusMixin):
+    '''
+    A spot on a spherical source
+
+    Parameters
+    ----------
+    name : str, optional
+        The name of the source
+    peeloff : bool, optional
+        Whether to peel-off photons from this source
+
+    Any additional arguments are are used to initialize attributes.
+
+    Attributes
+    ----------
+    luminosity : float
+        The luminosity of the source (in ergs/s)
+    spectrum : astropy.table.Table or tuple
+        The spectrum of the source, specified either as:
+            * an Astropy Table with ``nu`` and ``fnu`` column
+            * a ``(nu, fnu)`` tuple
+        ``nu`` should be in Hz, and the units for ``fnu`` are not
+        important, since the luminosity determined the absolute scaling``
+    temperature : float
+        The temperature of the source (in K)
+    longitude : float
+        The longitude of the spot on the spherical source (in degrees)
+    latitude : float
+        The latitude of the spot on the spherical source (in degrees)
+    radius : float
+        The radius of the spherical source (in cm)
+    '''
+
+    label = 'spot'
+    _support_lte_spectrum = False
 
     def __init__(self, name=None, peeloff=True, **kwargs):
-        '''
-        A spot on a spherical source
-
-        Parameters
-        ----------
-        name : str, optional
-            The name of the source
-        peeloff : bool, optional
-            Whether to peel-off photons from this source
-
-        Any additional arguments are are used to initialize attributes.
-
-        Attributes
-        ----------
-        luminosity : float
-            The luminosity of the source (in ergs/s)
-        spectrum : astropy.table.Table or tuple
-            The spectrum of the source, specified either as:
-                * an Astropy Table with ``nu`` and ``fnu`` column
-                * a ``(nu, fnu)`` tuple
-            ``nu`` should be in Hz, and the units for ``fnu`` are not
-            important, since the luminosity determined the absolute scaling``
-        temperature : float
-            The temperature of the source (in K)
-        longitude : float
-            The longitude of the spot on the spherical source (in degrees)
-        latitude : float
-            The latitude of the spot on the spherical source (in degrees)
-        radius : float
-            The radius of the spherical source (in cm)
-        '''
 
         self.longitude = None
         self.latitude = None
-        self.radius = None
 
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
+        self._required.extend(['longitude', 'latitude'])
 
-    def _check_all_set(self):
-        Source._check_all_set(self)
-        if self.longitude is None:
-            raise ValueError("longitude is not set")
-        if self.latitude is None:
-            raise ValueError("latitude is not set")
-        if self.radius is None:
-            raise ValueError("radius is not set")
-        if self.has_lte_spectrum():
-            raise ValueError("Spot source cannot have LTE spectrum")
-
-    @classmethod
-    def read(cls, handle):
-
-        if not handle.attrs['type'] == b'spot':
-            raise ValueError("Source is not a SpotSource")
-
-        self = super(SpotSource, cls).read(handle)
-
+    def _read_specific(self, handle):
         self.longitude = handle.attrs['longitude']
         self.latitude = handle.attrs['latitude']
-        self.radius = handle.attrs['radius']
 
-        return self
-
-    def write(self, handle, name):
-        self._check_all_set()
-        g = handle.create_group(name)
-        g.attrs['type'] = np.string_('spot'.encode('utf-8'))
-        g.attrs['longitude'] = self.longitude
-        g.attrs['latitude'] = self.latitude
-        g.attrs['radius'] = self.radius
-        Source.write(self, g)
+    def _write_specific(self, handle):
+        handle.attrs['longitude'] = self.longitude
+        handle.attrs['latitude'] = self.latitude
 
     def __setattr__(self, attribute, value):
 
@@ -406,13 +394,11 @@ class SpotSource(Source):
             validate_scalar('longitude', value, domain=[0, 360])
         elif attribute == 'latitude' and value is not None:
             validate_scalar('latitude', value, domain=[-90, 90])
-        elif attribute == 'radius' and value is not None:
-            validate_scalar('radius', value, domain='positive')
 
         Source.__setattr__(self, attribute, value)
 
 
-class PointSource(Source):
+class PointSource(Source, PositionMixin, VelocityMixin):
     '''
     A point source.
 
@@ -428,62 +414,13 @@ class PointSource(Source):
     Any additional arguments are are used to initialize attributes.
     '''
 
-    def __init__(self, name=None, peeloff=True, **kwargs):
-
-        self.position = (0., 0., 0.)
-
-        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
-
-    @property
-    def position(self):
-        '''
-        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
-        '''
-        return self._position
-
-    @position.setter
-    def position(self, value):
-        if value is not None:
-            if type(value) in [tuple, list]:
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            elif is_numpy_array(value):
-                if value.ndim != 1:
-                    raise ValueError("position should be a 1-D sequence")
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            else:
-                raise ValueError("position should be a tuple, list, or Numpy array")
-        self._position = value
-
-    def _check_all_set(self):
-        Source._check_all_set(self)
-        if self.position is None:
-            raise ValueError("position is not set")
-        if self.has_lte_spectrum():
-            raise ValueError("Point source cannot have LTE spectrum")
-
-    @classmethod
-    def read(cls, handle):
-        if not handle.attrs['type'] == b'point':
-            raise ValueError("Source is not a PointSource")
-        self = super(PointSource, cls).read(handle)
-        self.position = (handle.attrs['x'], handle.attrs['y'], handle.attrs['z'])
-        return self
-
-    def write(self, handle, name):
-        self._check_all_set()
-        g = handle.create_group(name)
-        g.attrs['type'] = np.string_('point'.encode('utf-8'))
-        g.attrs['x'] = self.position[0]
-        g.attrs['y'] = self.position[1]
-        g.attrs['z'] = self.position[2]
-        Source.write(self, g)
+    label = 'point'
+    _support_lte_spectrum = False
 
 
-class PointSourceCollection(Source):
+class PointSourceCollection(Source, VectorPositionMixin, VectorVelocityMixin):
     '''
-    A point source.
+    A point source collection.
 
     Parameters
     ----------
@@ -497,11 +434,8 @@ class PointSourceCollection(Source):
     Any additional arguments are are used to initialize attributes.
     '''
 
-    def __init__(self, name=None, peeloff=True, **kwargs):
-
-        self.position = None
-
-        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
+    label = 'point_collection'
+    _support_lte_spectrum = False
 
     @property
     def luminosity(self):
@@ -530,78 +464,8 @@ class PointSourceCollection(Source):
     def _write_luminosity(self, handle):
         handle.create_dataset('luminosity', data=self.luminosity, compression=True)
 
-    @property
-    def position(self):
-        '''
-        The cartesian position of the N sources ``(x, y, z)`` as a 2-D Numpy array with shape Nx3 (cm)
-        '''
-        return self._position
 
-    @position.setter
-    def position(self, value):
-        if value is not None:
-            if is_numpy_array(value):
-                if value.ndim != 2:
-                    raise ValueError("position should be a 2-D array")
-                if value.shape[1] != 3:
-                    raise ValueError("position should be an Nx3 array")
-                if self.luminosity is not None and value.shape[0] != self.luminosity.shape[0]:
-                    raise ValueError("position should be a 2-D array with the same number of rows as luminosity")
-            else:
-                raise ValueError("position should be a Numpy array")
-        self._position = value
-
-    @property
-    def velocity(self):
-        '''
-        The cartesian velocity of the source ``(vx, vy, vz)`` as a sequence of three floating-point values (cm/s)
-        '''
-        return self._velocity
-
-    @velocity.setter
-    def velocity(self, value):
-        if value is not None:
-            if is_numpy_array(value):
-                if value.ndim != 2:
-                    raise ValueError("velocity should be a 2-D array")
-                if value.shape[1] != 3:
-                    raise ValueError("velocity should be a N x 3 array")
-            else:
-                raise ValueError("velocity should be a Numpy array")
-        self._velocity = value
-
-    def _write_velocity(self, handle):
-        handle.create_dataset('velocity', data=self.velocity, compression=True)
-
-    def _read_velocity(self, handle):
-        if 'velocity' in handle:
-            self.velocity = handle['velocity']
-        else:
-            self.velocity = None
-
-    def _check_all_set(self):
-        Source._check_all_set(self)
-        if self.position is None:
-            raise ValueError("position is not set")
-        if self.has_lte_spectrum():
-            raise ValueError("Point source cannot have LTE spectrum")
-
-    @classmethod
-    def read(cls, handle):
-        if not handle.attrs['type'] == b'point_collection':
-            raise ValueError("Source is not a PointSource")
-        self = super(PointSourceCollection, cls).read(handle)
-        self.position = np.array(handle['position'])
-        return self
-
-    def write(self, handle, name):
-        self._check_all_set()
-        g = handle.create_group(name)
-        g.attrs['type'] = np.string_('point_collection'.encode('utf-8'))
-        g.create_dataset('position', data=self.position, compression=True)
-        Source.write(self, g)
-
-class SphericalSource(Source):
+class SphericalSource(Source, PositionMixin, RadiusMixin, VelocityMixin):
     '''
     A spherical source
 
@@ -617,49 +481,14 @@ class SphericalSource(Source):
     Any additional arguments are are used to initialize attributes.
     '''
 
-    def __init__(self, name=None, peeloff=True, **kwargs):
+    short = 'sphere'
+    _support_lte_spectrum = False
 
-        self.position = (0., 0., 0.)
-        self.radius = None
+    def __init__(self, name=None, peeloff=True, **kwargs):
         self.limb = False
         self._spots = []
-
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
-
-    @property
-    def radius(self):
-        '''
-        The radius of the source (cm)
-        '''
-        return self._radius
-
-    @radius.setter
-    def radius(self, value):
-        if value is not None:
-            validate_scalar('radius', value, domain='positive')
-        self._radius = value
-
-    @property
-    def position(self):
-        '''
-        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
-        '''
-        return self._position
-
-    @position.setter
-    def position(self, value):
-        if value is not None:
-            if type(value) in [tuple, list]:
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            elif is_numpy_array(value):
-                if value.ndim != 1:
-                    raise ValueError("position should be a 1-D sequence")
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            else:
-                raise ValueError("position should be a tuple, list, or Numpy array")
-        self._position = value
+        self._required.append('limb')
 
     @property
     def limb(self):
@@ -675,48 +504,20 @@ class SphericalSource(Source):
                 raise ValueError("limb should be a boolean value (True/False)")
         self._limb = value
 
-    def _check_all_set(self):
-        Source._check_all_set(self)
-        if self.position is None:
-            raise ValueError("position is not set")
-        if self.radius is None:
-            raise ValueError("radius is not set")
-        if self.limb is None:
-            raise ValueError("limb is not set")
-        if self.has_lte_spectrum():
-            raise ValueError("Spherical source cannot have LTE spectrum")
+    def _read_specific(self, handle):
 
-    @classmethod
-    def read(cls, handle):
-        if not handle.attrs['type'] == b'sphere':
-            raise ValueError("Source is not a SphericalSource")
-        self = super(SphericalSource, cls).read(handle)
-        self.position = (handle.attrs['x'], handle.attrs['y'], handle.attrs['z'])
-        self.radius = handle.attrs['r']
         self.limb = str2bool(handle.attrs['limb'])
 
-        # Read in spots
         for group in handle:
             if 'Spot' in group:
                 self._spots.append(SpotSource.read(handle[group]))
 
-        return self
+    def _write_specific(self, handle):
 
-    def write(self, handle, name):
-
-        self._check_all_set()
-
-        g = handle.create_group(name)
-        g.attrs['type'] = np.string_('sphere'.encode('utf-8'))
-        g.attrs['x'] = self.position[0]
-        g.attrs['y'] = self.position[1]
-        g.attrs['z'] = self.position[2]
-        g.attrs['r'] = self.radius
-        g.attrs['limb'] = np.string_(bool2str(self.limb))
-        Source.write(self, g)
+        handle.attrs['limb'] = np.string_(bool2str(self.limb))
 
         for i, spot in enumerate(self._spots):
-            spot.write(g, 'Spot %i' % i)
+            spot.write(handle, 'Spot %i' % i)
 
     def add_spot(self, *args, **kwargs):
         '''
@@ -730,7 +531,7 @@ class SphericalSource(Source):
         return spot
 
 
-class ExternalSphericalSource(Source):
+class ExternalSphericalSource(Source, PositionMixin, RadiusMixin):
     '''
     An spherical external source.
 
@@ -750,77 +551,8 @@ class ExternalSphericalSource(Source):
     Any additional arguments are are used to initialize attributes.
     '''
 
-    def __init__(self, name=None, peeloff=True, **kwargs):
-
-        self.position = (0., 0., 0.)
-        self.radius = None
-
-        Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
-
-    @property
-    def radius(self):
-        '''
-        The radius of the source (cm)
-        '''
-        return self._radius
-
-    @radius.setter
-    def radius(self, value):
-        if value is not None:
-            validate_scalar('radius', value, domain='positive')
-        self._radius = value
-
-    @property
-    def position(self):
-        '''
-        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
-        '''
-        return self._position
-
-    @position.setter
-    def position(self, value):
-        if value is not None:
-            if type(value) in [tuple, list]:
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            elif is_numpy_array(value):
-                if value.ndim != 1:
-                    raise ValueError("position should be a 1-D sequence")
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            else:
-                raise ValueError("position should be a tuple, list, or Numpy array")
-        self._position = value
-
-    def _check_all_set(self):
-        Source._check_all_set(self)
-        if self.position is None:
-            raise ValueError("position is not set")
-        if self.radius is None:
-            raise ValueError("radius is not set")
-        if self.has_lte_spectrum():
-            raise ValueError("External spherical source cannot have LTE spectrum")
-
-    @classmethod
-    def read(cls, handle):
-        if not handle.attrs['type'] == b'extern_sph':
-            raise ValueError("Source is not a ExternalSphericalSource")
-        self = super(ExternalSphericalSource, cls).read(handle)
-        self.position = (handle.attrs['x'], handle.attrs['y'], handle.attrs['z'])
-        self.radius = handle.attrs['r']
-        return self
-
-    def write(self, handle, name):
-
-        self._check_all_set()
-
-        g = handle.create_group(name)
-        g.attrs['type'] = np.string_('extern_sph'.encode('utf-8'))
-        g.attrs['x'] = self.position[0]
-        g.attrs['y'] = self.position[1]
-        g.attrs['z'] = self.position[2]
-        g.attrs['r'] = self.radius
-        Source.write(self, g)
+    label = 'extern_sph'
+    _support_lte_spectrum = False
 
 
 class ExternalBoxSource(Source):
@@ -842,11 +574,13 @@ class ExternalBoxSource(Source):
     Any additional arguments are are used to initialize attributes.
     '''
 
+    label = 'extern_box'
+    _support_lte_spectrum = False
+
     def __init__(self, name=None, peeloff=True, **kwargs):
-
         self.bounds = None
-
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
+        self._required.append('bounds')
 
     @property
     def bounds(self):
@@ -871,36 +605,18 @@ class ExternalBoxSource(Source):
                 raise ValueError("bounds should be a tuple, list, or Numpy array")
         self._bounds = value
 
-    def _check_all_set(self):
-        Source._check_all_set(self)
-        if self.bounds is None:
-            raise ValueError("bounds is not set")
-        if self.has_lte_spectrum():
-            raise ValueError("External spherical source cannot have LTE spectrum")
-
-    @classmethod
-    def read(cls, handle):
-        if not handle.attrs['type'] == b'extern_box':
-            raise ValueError("Source is not a ExternalBoxSource")
-        self = super(ExternalBoxSource, cls).read(handle)
+    def _read_specific(self, handle):
         self.bounds = [(handle.attrs['xmin'], handle.attrs['xmax']),
                        (handle.attrs['ymin'], handle.attrs['ymax']),
                        (handle.attrs['zmin'], handle.attrs['zmax'])]
-        return self
 
-    def write(self, handle, name):
-
-        self._check_all_set()
-
-        g = handle.create_group(name)
-        g.attrs['type'] = np.string_('extern_box'.encode('utf-8'))
-        g.attrs['xmin'] = self.bounds[0][0]
-        g.attrs['xmax'] = self.bounds[0][1]
-        g.attrs['ymin'] = self.bounds[1][0]
-        g.attrs['ymax'] = self.bounds[1][1]
-        g.attrs['zmin'] = self.bounds[2][0]
-        g.attrs['zmax'] = self.bounds[2][1]
-        Source.write(self, g)
+    def _write_specific(self, handle):
+        handle.attrs['xmin'] = self.bounds[0][0]
+        handle.attrs['xmax'] = self.bounds[0][1]
+        handle.attrs['ymin'] = self.bounds[1][0]
+        handle.attrs['ymax'] = self.bounds[1][1]
+        handle.attrs['zmin'] = self.bounds[2][0]
+        handle.attrs['zmax'] = self.bounds[2][1]
 
 
 class MapSource(Source):
@@ -922,11 +638,13 @@ class MapSource(Source):
     Any additional arguments are are used to initialize attributes.
     '''
 
+    label = 'map'
+    _support_lte_spectrum = True
+
     def __init__(self, name=None, peeloff=True, **kwargs):
-
         self.map = None
-
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
+        self._required.append('map')
 
     @property
     def map(self):
@@ -942,34 +660,20 @@ class MapSource(Source):
                 raise ValueError("map should be a Numpy array or an AMRGridView instance")
         self._map = value
 
-    def _check_all_set(self):
-        Source._check_all_set(self)
-        if self.map is None:
-            raise ValueError("map is not set")
+    def _check_all_set_specific(self):
         if is_numpy_array(self.map) and np.all(self.map == 0.):
             raise ValueError("map is zero everywhere")
 
-    @classmethod
-    def read(cls, handle):
-        if not handle.attrs['type'] == b'map':
-            raise ValueError("Source is not a MapSource")
-        self = super(MapSource, cls).read(handle)
+    def _read_specific(self, handle):
         self.map = np.array(handle['Luminosity map'])
-        return self
 
-    def write(self, handle, name, grid, compression=True, map_dtype=float):
-
-        self._check_all_set()
-
-        g = handle.create_group(name)
-        g.attrs['type'] = np.string_('map'.encode('utf-8'))
-        grid.write_single_array(g, "Luminosity map", self.map,
+    def _write_specific(self, handle, grid=None, compression=True, dtype=float):
+        grid.write_single_array(handle, "Luminosity map", self.map,
                                 compression=compression,
-                                physics_dtype=map_dtype)
-        Source.write(self, g)
+                                physics_dtype=dtype)
 
 
-class PlaneParallelSource(Source):
+class PlaneParallelSource(Source, PositionMixin, RadiusMixin):
     '''
     A circular plane-parallel source.
 
@@ -988,56 +692,24 @@ class PlaneParallelSource(Source):
     Any additional arguments are are used to initialize attributes.
     '''
 
+    label = 'plane_parallel'
+    _support_lte_spectrum = False
+
     def __init__(self, name=None, peeloff=False, **kwargs):
 
         if peeloff:
             raise ValueError("Cannot peeloff plane parallel source")
 
-        self.position = (0., 0., 0.)
-        self.radius = None
         self.direction = None
 
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
-
-    @property
-    def radius(self):
-        '''
-        The radius of the source (cm)
-        '''
-        return self._radius
-
-    @radius.setter
-    def radius(self, value):
-        if value is not None:
-            validate_scalar('radius', value, domain='positive')
-        self._radius = value
-
-    @property
-    def position(self):
-        '''
-        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
-        '''
-        return self._position
-
-    @position.setter
-    def position(self, value):
-        if value is not None:
-            if type(value) in [tuple, list]:
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            elif is_numpy_array(value):
-                if value.ndim != 1:
-                    raise ValueError("position should be a 1-D sequence")
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            else:
-                raise ValueError("position should be a tuple, list, or Numpy array")
-        self._position = value
+        self._required.append('direction')
 
     @property
     def direction(self):
         '''
-        The direction the photons should be emitted in ``(theta, phi)`` where ``theta`` and ``phi`` are spherical polar angles (rad)
+        The direction the photons should be emitted in ``(theta, phi)`` where
+        ``theta`` and ``phi`` are spherical polar angles (rad)
         '''
         return self._direction
 
@@ -1056,35 +728,9 @@ class PlaneParallelSource(Source):
                 raise ValueError("direction should be a tuple, list, or Numpy array")
         self._direction = value
 
-    def _check_all_set(self):
-        Source._check_all_set(self)
-        if self.position is None:
-            raise ValueError("position is not set")
-        if self.radius is None:
-            raise ValueError("radius is not set")
-        if self.direction is None:
-            raise ValueError("direction is not set")
-        if self.has_lte_spectrum():
-            raise ValueError("Point source cannot have LTE spectrum")
-
-    @classmethod
-    def read(cls, handle):
-        if not handle.attrs['type'] == b'plane_parallel':
-            raise ValueError("Source is not a PlaneParallelSource")
-        self = super(PlaneParallelSource, cls).read(handle)
-        self.position = (handle.attrs['x'], handle.attrs['y'], handle.attrs['z'])
-        self.radius = handle.attrs['r']
+    def _read_specific(self, handle):
         self.direction = (handle.attrs['theta'], handle.attrs['phi'])
-        return self
 
-    def write(self, handle, name):
-        self._check_all_set()
-        g = handle.create_group(name)
-        g.attrs['type'] = np.string_('plane_parallel'.encode('utf-8'))
-        g.attrs['x'] = self.position[0]
-        g.attrs['y'] = self.position[1]
-        g.attrs['z'] = self.position[2]
-        g.attrs['r'] = self.radius
-        g.attrs['theta'] = self.direction[0]
-        g.attrs['phi'] = self.direction[1]
-        Source.write(self, g)
+    def _write_specific(self, handle):
+        handle.attrs['theta'] = self.direction[0]
+        handle.attrs['phi'] = self.direction[1]

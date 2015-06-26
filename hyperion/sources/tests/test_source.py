@@ -459,10 +459,7 @@ def test_all(source_type):
     s = source_type()
     for attribute in REQUIRED[source_type]:
         setattr(s, attribute, REQUIRED[source_type][attribute])
-    if source_type == Source:
-        s.write(v)
-    else:
-        s.write(v, 'test')
+    s.write(v, 'test')
 
 # Test that an error is raised if one attribute is missing
 
@@ -478,10 +475,7 @@ def test_missing(source_type, missing):
             continue
         setattr(s, attribute, REQUIRED[source_type][attribute])
     with pytest.raises(ValueError) as exc:
-        if source_type == Source:
-            s.write(v)
-        else:
-            s.write(v, 'test')
+        s.write(v, 'test')
     if missing == 'temperature':
         assert exc.value.args[0].endswith('cannot have LTE spectrum')
     else:
