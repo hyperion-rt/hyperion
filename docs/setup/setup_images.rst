@@ -39,9 +39,9 @@ The image size in pixels and the extent of the images should be specified using:
 where the image limits should be given in cm. The apertures for the SEDs can
 be specified using::
 
-    image.set_aperture_range(n_ap, ap_min, ap_max)
+    image.set_aperture_radii(n_ap, ap_min, ap_max)
 
-where the apertures should be given in cm. If this is not specified, the
+where the radii should be given in cm. If this is not specified, the
 default is to have one aperture with infinite size, i.e. measuring all the
 flux.
 
@@ -181,4 +181,3 @@ The following example creates two sets of peeled SEDs/images. The first is used 
     image2.set_wavelength_range(5, 10., 100.)
     image2.set_image_size(100, 100)
     image2.set_image_limits(-pc, +pc, -pc, +pc)
-

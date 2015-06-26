@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 
+import warnings
 import numpy as np
 from astropy import log as logger
 
@@ -719,7 +720,7 @@ class ImageConf(FreezableClass):
         self.sed = sed
         self.image = image
         if self.sed:
-            self.set_aperture_range(1, np.inf, np.inf)  # reasonable default
+            self.set_aperture_radii(1, np.inf, np.inf)  # reasonable default
         # Since there are no reasonable defaults for image size and limits,
         # as well as wavelength range, we don't set any. But we still have
         # to set the variables since new attributes cannot be created later.
@@ -843,6 +844,10 @@ class ImageConf(FreezableClass):
         group.attrs['y_max'] = self.ymax
 
     def set_aperture_range(self, n_ap, ap_min, ap_max):
+        warnings.warn("set_aperture_range has been renamed to set_aperture_radii", DeprecationWarning)
+        return self.set_aperture_radii(n_ap, ap_min, ap_max)
+
+    def set_aperture_radii(self, n_ap, ap_min, ap_max):
         '''
         Set the range of apertures to use for SEDs/Images
 
