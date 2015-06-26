@@ -151,6 +151,16 @@ a source which emits photons from all cells equally::
     source.luminosity = lsun  # [ergs/s]
     source.map = np.ones((10, 10, 10))
 
+By default, if no spectrum or temperature is provided, photons will be emitted
+using the local emissivity of the dust. However, you can also specify either a
+temperature or a spectrum as for `Point Sources`_ and `Spherical Sources`_, e.g::
+
+    source.temperature = 10000.  # [K]
+
+or::
+
+    source.spectrum = (nu, fnu)
+
 .. note:: The ``map`` array does not need to be normalized.
 
 External sources
