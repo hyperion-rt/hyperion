@@ -701,3 +701,88 @@ class TestPinteBenchmark(object):
         else:
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
+
+
+# A simple model to check what happens when a source is moving towards dust and
+# we observe both the source and the dust. If we observe the source such that
+# the dust is directly behind, and the source is moving towards the dust, we
+# should see red-shifted emission from the source and blue-shifted scattered
+# light emission.
+
+
+class TestMovingSourceDust(object):
+
+    def _test(self, input_file, output_file, dust_velocity):
+
+        m = Model()
+
+        m.set_cartesian_grid([-1.,0, 1], [-1., 1.], [-1., 1])
+
+        density = np.zeros(m.grid.shape)
+        density[:,:,0] = 1.
+
+        vx = np.ones(m.grid.shape) * dust_velocity
+        vy = np.zeros(m.grid.shape)
+        vz = np.zeros(m.grid.shape)
+
+        m.add_density_grid(density,
+                           os.path.join(DATA, 'kmh_lite.hdf5'),
+                           velocity=(vx, vy, vz))
+
+        # narrow emission line spectrum at 1 micron
+        wav = np.array([0.9999, 1.0001])
+        fnu = np.array([1., 1.])
+        nu = c / (wav * 1.e-4)
+
+        s = m.add_spherical_source()
+        s.position = 0.5, 0., 0.
+        s.velocity = -1e8, 0., 0.
+        s.spectrum = nu[::-1], fnu[::-1]
+        s.luminosity = 1
+        s.radius = 0.1
+
+        i = m.add_peeled_images(sed=False, image=True)
+        i.set_wavelength_range(9, 0.995, 1.005)
+        i.set_viewing_angles(np.linspace(0., 180, 13), np.repeat(0., 13))
+        i.set_image_size(11, 11)
+        i.set_image_limits(-1.5, 1.5, -1.5, 1.5)
+
+        m.set_n_initial_iterations(0)
+        m.set_n_photons(imaging=1e5)
+
+        m.set_copy_input(False)
+
+        m.write(input_file)
+        m.run(output_file)
+
+    @bit_level
+    def test_still_dust(self, tmpdir, generate):
+
+        input_file = tmpdir.join('test.rtin').strpath
+        output_file = tmpdir.join('test.rtout').strpath
+
+        self._test(input_file, output_file, dust_velocity=0)
+
+        if generate:
+            reference_file = os.path.join(generate, function_name() + ".rtout")
+            shutil.copy(output_file, reference_file)
+            pytest.skip("Skipping test, since generating data")
+        else:
+            reference_file = os.path.join(DATA, function_name() + ".rtout")
+            assert_identical_results(output_file, reference_file)
+
+    @bit_level
+    def test_moving_dust(self, tmpdir, generate):
+
+        input_file = tmpdir.join('test.rtin').strpath
+        output_file = tmpdir.join('test.rtout').strpath
+
+        self._test(input_file, output_file, dust_velocity=-4e7)
+
+        if generate:
+            reference_file = os.path.join(generate, function_name() + ".rtout")
+            shutil.copy(output_file, reference_file)
+            pytest.skip("Skipping test, since generating data")
+        else:
+            reference_file = os.path.join(DATA, function_name() + ".rtout")
+            assert_identical_results(output_file, reference_file)
