@@ -24,6 +24,9 @@ class PositionMixin(object):
             if type(value) in [tuple, list]:
                 if len(value) != 3:
                     raise ValueError("position should be a sequence of 3 values")
+                for v in value:
+                    if not np.isscalar(v):
+                        raise ValueError("position should be a sequence of 3 scalar values")
             elif is_numpy_array(value):
                 if value.ndim != 1:
                     raise ValueError("position should be a 1-D sequence")
