@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import numpy as np
 from astropy.tests.helper import pytest
 
-from ..mixins import PositionMixin, VelocityMixin, VectorPositionMixin, VectorVelocityMixin
+from ..mixins import PositionMixin, VelocityMixin, VectorPositionMixin, VectorVelocityMixin, RadiusMixin
 from ..source import Source
 
 
@@ -186,3 +186,32 @@ class TestVectorVelocityMixin(object):
         with pytest.raises(ValueError) as exc:
             self.s.velocity = velocity
         assert exc.value.args[0] == "velocity should be a Numpy array"
+
+
+class TestRadiusMixin(object):
+
+    def setup_method(self, method):
+
+        class SourceTest(Source, RadiusMixin):
+            pass
+
+        self.s = SourceTest()
+
+    def test_default(self):
+        assert self.s.radius is None
+
+    def test_set_non(self):
+        self.s.radius = None
+
+    def test_set_valid(self):
+        self.s.radius = 3.
+
+    def test_set_invalid_value(self):
+        with pytest.raises(ValueError) as exc:
+            self.s.radius = -3.
+        assert exc.value.args[0] == "radius should be positive"
+
+    def test_set_invalid_len(self):
+        with pytest.raises(ValueError) as exc:
+            self.s.radius = [1,2,3]
+        assert exc.value.args[0] == "radius should be a scalar value"
