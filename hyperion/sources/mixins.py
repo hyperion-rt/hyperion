@@ -65,6 +65,9 @@ class VelocityMixin(object):
             if type(value) in [tuple, list]:
                 if len(value) != 3:
                     raise ValueError("velocity should be a sequence of 3 values")
+                for v in value:
+                    if not np.isscalar(v):
+                        raise ValueError("velocity should be a sequence of 3 scalar values")
             elif is_numpy_array(value):
                 if value.ndim != 1:
                     raise ValueError("velocity should be a 1-D sequence")
@@ -144,7 +147,7 @@ class VectorVelocityMixin(object):
                 if value.ndim != 2:
                     raise ValueError("velocity should be a 2-D array")
                 if value.shape[1] != 3:
-                    raise ValueError("velocity should be a N x 3 array")
+                    raise ValueError("velocity should be an Nx3 array")
             else:
                 raise ValueError("velocity should be a Numpy array")
         self._velocity = value
