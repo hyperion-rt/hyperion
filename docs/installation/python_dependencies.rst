@@ -172,3 +172,17 @@ Finally, check that Astropy imports cleanly::
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import astropy
     >>>
+
+Known issues
+============
+
+On recent versions of MacOS X, you may encounter the following error when trying
+to install the Python library for Hyperion::
+
+    clang: error: unknown argument: '-mno-fused-madd' [-Wunused-command-line-argument-hard-error-in-future]
+
+If this is the case, try setting the following environment variables before
+installing it::
+
+    export CFLAGS=-Qunused-arguments
+    export CPPFLAGS=-Qunused-arguments
