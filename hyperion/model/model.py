@@ -572,6 +572,8 @@ class Model(FreezableClass, RunConf):
 
         # Output configuration for binned images/SEDs
         if self.binned_output is not None:
+            if self.forced_first_scattering:
+                raise Exception("can't use binned images with forced first scattering - use set_forced_first_scattering(False) to disable")
             self.binned_output.write(g_binned.create_group('group_00001'))
 
         # Write monochromatic configuration
@@ -914,7 +916,7 @@ class Model(FreezableClass, RunConf):
         self.peeled_output[-1]._set_monochromatic(self._monochromatic, frequencies=self._frequencies)
         return self.peeled_output[-1]
 
-    def add_binned_images(self, **kwargs):
+    def add_binned_images(self, sed=True, image=True):
         """
         Define a set of (binned) images/SEDs.
 

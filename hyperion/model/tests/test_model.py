@@ -371,3 +371,20 @@ def test_model_minimal(tmpdir):
     m.set_n_photons(imaging=10)
     m.write(tmpdir.join(random_id()).strpath)
     m.run()
+
+
+def test_binned_forced_first_scattering(tmpdir):
+
+    m = Model()
+
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+
+    i = m.add_binned_images(sed=True, image=False)
+    i.set_wavelength_range(5, 1, 10)
+    i.set_viewing_bins(2, 2)
+
+    m.set_n_photons(initial=100, imaging=100)
+
+    with pytest.raises(Exception) as exc:
+        m.write(tmpdir.join(random_id()).strpath)
+    assert exc.value.args[0] == "can't use binned images with forced first scattering - use set_forced_first_scattering(False) to disable"
