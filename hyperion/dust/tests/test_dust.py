@@ -157,7 +157,10 @@ def test_isotropic_dust():
     dust = IsotropicDust(nu, albedo, chi)
 
 
-def test_io(tmpdir):
+def test_sublimation_io(tmpdir):
+
+    # Regression test for a bug that caused sublimation data to not be
+    # correctly read in.
 
     filename = tmpdir.join('test.hdf5').strpath
 
