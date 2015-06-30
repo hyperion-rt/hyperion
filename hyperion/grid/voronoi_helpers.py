@@ -124,7 +124,8 @@ class voronoi_grid(object):
             self._samples = tup[-2]
             self._samples_idx = tup[-1]
             tup = tup[0:-2]
-        t = Table([sites] + list(filter(lambda _: not _ is None,tup)),names=tuple(names))
+        t = Table([sites] + list(filter(lambda _: not _ is None,tup[2:])),names=tuple(names))
+        self.st = tup[0:2]
 
         self._neighbours_table = t
 
