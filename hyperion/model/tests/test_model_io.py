@@ -127,3 +127,36 @@ def test_io_voronoi(tmpdir):
     m1.write(filename)
 
     m2 = Model.read(filename)
+
+
+def test_read_then_monochromatic(tmpdir):
+
+    # If we run a model then read in the output and make a new model with
+    # monochromatic output, Hyperion used to raise an error that the number
+    # of non-monochromatic had already been set by there was no way to
+    # fix that with the public API.
+
+    filename1 = tmpdir.join(random_id()).strpath
+    filename2 = tmpdir.join(random_id()).strpath
+
+    m = Model()
+
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+
+    s = m.add_point_source()
+    s.position = (0.4, 0., 0.)
+    s.luminosity = 1000
+    s.temperature = 6000.
+
+    m.set_n_photons(initial=10, imaging=0)
+
+    m.write(filename1 + '.rtin')
+    m.run(filename1 + '.rtout')
+
+    m2 = Model.read(filename1 + '.rtout')
+
+    m.set_monochromatic(True, wavelengths=[1])
+    m.set_n_initial_iterations(0)
+    m.set_n_photons(imaging_sources=10, imaging_dust=10)
+
+    m.write(filename2 + '.rtin', overwrite=True)
