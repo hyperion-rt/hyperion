@@ -155,3 +155,25 @@ def test_isotropic_dust():
     albedo = np.repeat(0.5, 100)
     chi = np.ones(100)
     dust = IsotropicDust(nu, albedo, chi)
+
+
+def test_sublimation_io(tmpdir):
+
+    # Regression test for a bug that caused sublimation data to not be
+    # correctly read in.
+
+    filename = tmpdir.join('test.hdf5').strpath
+
+    nu = np.logspace(0., 20., 100)
+    albedo = np.repeat(0.5, 100)
+    chi = np.ones(100)
+    dust = IsotropicDust(nu, albedo, chi)
+
+    dust.set_sublimation_specific_energy('fast', 8.3)
+
+    dust.write(filename)
+
+    dust2 = SphericalDust(filename)
+
+    assert dust2.sublimation_mode == 'fast'
+    assert_allclose(dust2.sublimation_energy, 8.3)

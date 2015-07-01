@@ -235,6 +235,12 @@ class SphericalDust(FreezableClass):
         if self.sublimation_mode in ['slow', 'fast', 'cap']:
             group.attrs['sublimation_specific_energy'] = self.sublimation_energy
 
+    def _read_dust_sublimation(self, group):
+        if 'sublimation_mode' in group.attrs:
+            self.sublimation_mode = group.attrs['sublimation_mode'].decode('ascii')
+            if self.sublimation_mode in ['slow', 'fast', 'cap']:
+                self.sublimation_energy = group.attrs['sublimation_specific_energy']
+
     def _compute_mean_opacities(self):
         if not self.mean_opacities.all_set():
             self.mean_opacities.compute(self.optical_properties)
@@ -332,6 +338,9 @@ class SphericalDust(FreezableClass):
 
         # Read in emissivities
         self.emissivities.from_hdf5_group(dt)
+
+        # Dust sublimation parameters
+        self._read_dust_sublimation(dt)
 
         # Close file object if needed
         if close:
