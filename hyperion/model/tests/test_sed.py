@@ -32,7 +32,7 @@ class TestSEDSimpleModel(object):
         i = m.add_peeled_images(sed=True, image=False)
         i.set_viewing_angles([1., 2.], [1., 2.])
         i.set_wavelength_range(5, 0.1, 100.)
-        i.set_aperture_range(3, 1., 10.)
+        i.set_aperture_radii(3, 1., 10.)
         i.set_stokes(True)
 
         m.set_n_initial_iterations(0)
@@ -160,7 +160,7 @@ class TestSEDSimpleModelTrackingDetailed(object):
         i = m.add_peeled_images(sed=True, image=False)
         i.set_viewing_angles([1., 2.], [1., 2.])
         i.set_wavelength_range(5, 0.1, 100.)
-        i.set_aperture_range(3, 1., 10.)
+        i.set_aperture_radii(3, 1., 10.)
         i.set_track_origin('detailed')
 
         m.set_n_initial_iterations(0)
@@ -242,7 +242,7 @@ class TestSEDSimpleModelTrackingScatterings(object):
         i = m.add_peeled_images(sed=True, image=False)
         i.set_viewing_angles([1., 2.], [1., 2.])
         i.set_wavelength_range(5, 0.1, 100.)
-        i.set_aperture_range(3, 1., 10.)
+        i.set_aperture_radii(3, 1., 10.)
         i.set_track_origin('scatterings', n_scat=5)
 
         m.set_n_initial_iterations(0)
@@ -317,7 +317,7 @@ class TestSimpleModelInside(object):
         i = m.add_peeled_images(sed=True, image=False)
         i.set_inside_observer((0., 0., 0.))
         i.set_wavelength_range(5, 0.1, 100.)
-        i.set_aperture_range(3, 1., 10.)
+        i.set_aperture_radii(3, 1., 10.)
 
         m.set_n_initial_iterations(0)
 
@@ -354,7 +354,7 @@ class TestSED(object):
         sed = m.add_peeled_images(sed=True, image=False)
         sed.set_viewing_angles([1., 2.], [1., 2.])
         sed.set_wavelength_range(5, 0.1, 100.)
-        sed.set_aperture_range(4, 2., 5.)
+        sed.set_aperture_radii(4, 2., 5.)
         sed.set_depth(-2., 3.)
 
         m.set_n_initial_iterations(0)
@@ -456,7 +456,7 @@ class TestInsideSED(object):
         sed.set_inside_observer((0., 0., 0.))
         sed.set_viewing_angles([1., 2., 3.], [1., 2., 3.])
         sed.set_wavelength_range(3, 0.2, 50.)
-        sed.set_aperture_range(4, 2., 50.)
+        sed.set_aperture_radii(4, 2., 50.)
 
         m.set_n_initial_iterations(0)
 
@@ -541,7 +541,7 @@ class TestSEDStokesOption(object):
         sed = m.add_peeled_images(sed=True, image=False)
         sed.set_viewing_angles([1., 2.], [1., 2.])
         sed.set_wavelength_range(5, 0.1, 100.)
-        sed.set_aperture_range(4, 2., 5.)
+        sed.set_aperture_radii(4, 2., 5.)
 
         m.set_n_initial_iterations(0)
 

@@ -28,7 +28,7 @@ def test_io_image_conf():
     i1 = ImageConf()
     i1.set_image_size(33, 42)
     i1.set_image_limits(3.2, 4.4, 5.2, 9.9)
-    i1.set_aperture_range(6, 1.2, 8.8)
+    i1.set_aperture_range(6, 1.2, 8.8)  # deliberately old API
     i1.set_wavelength_range(9, 2.2, 7.4)
     i1.set_output_bytes(4)
     i1.set_track_origin('basic')
@@ -42,7 +42,7 @@ def test_io_image_conf():
     assert i2.xmax == i1.xmax
     assert i2.ymin == i1.ymin
     assert i2.ymax == i1.ymax
-    assert i2.n_ap == i1.n_ap
+    assert i2.n_ap == i1.n_ap and i1.n_ap == 6
     assert i2.ap_min == i1.ap_min
     assert i2.ap_max == i1.ap_max
     assert i2.n_wav == i1.n_wav
@@ -57,7 +57,7 @@ def test_io_binned_image_conf():
     i1 = BinnedImageConf()
     i1.set_image_size(33, 42)
     i1.set_image_limits(3.2, 4.4, 5.2, 9.9)
-    i1.set_aperture_range(6, 1.2, 8.8)
+    i1.set_aperture_radii(6, 1.2, 8.8)
     i1.set_wavelength_range(9, 2.2, 7.4)
     i1.set_viewing_bins(76, 22)
     v = virtual_file()
@@ -71,7 +71,7 @@ def test_io_peeled_image_conf():
     i1 = PeeledImageConf()
     i1.set_image_size(33, 42)
     i1.set_image_limits(3.2, 4.4, 5.2, 9.9)
-    i1.set_aperture_range(6, 1.2, 8.8)
+    i1.set_aperture_radii(6, 1.2, 8.8)
     i1.set_wavelength_range(9, 2.2, 7.4)
     i1.set_viewing_angles([1., 2., 3], [4., 5., 6.])
     i1.set_peeloff_origin([2.2, 3.3, 7.6])
@@ -93,7 +93,7 @@ def test_io_peeled_image_conf_inside():
     i1 = PeeledImageConf()
     i1.set_image_size(33, 42)
     i1.set_image_limits(3.2, -4.4, 5.2, 9.9)
-    i1.set_aperture_range(6, 1.2, 8.8)
+    i1.set_aperture_radii(6, 1.2, 8.8)
     i1.set_wavelength_range(9, 2.2, 7.4)
     i1.set_viewing_angles([1., 2., 3], [4., 5., 6.])
     i1.set_inside_observer([7., 8., 9.])

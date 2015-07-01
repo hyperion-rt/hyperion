@@ -11,7 +11,7 @@ hyperion.conf.PeeledImageConf
    .. autosummary::
 
 
-      ~PeeledImageConf.set_aperture_range
+      ~PeeledImageConf.set_aperture_radii
       ~PeeledImageConf.set_depth
       ~PeeledImageConf.set_ignore_optical_depth
       ~PeeledImageConf.set_image_limits
@@ -28,7 +28,7 @@ hyperion.conf.PeeledImageConf
 
    .. rubric:: Methods (detail)
 
-   .. automethod:: PeeledImageConf.set_aperture_range
+   .. automethod:: PeeledImageConf.set_aperture_radii
    .. automethod:: PeeledImageConf.set_depth
    .. automethod:: PeeledImageConf.set_ignore_optical_depth
    .. automethod:: PeeledImageConf.set_image_limits

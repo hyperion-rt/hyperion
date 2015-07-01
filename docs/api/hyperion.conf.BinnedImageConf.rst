@@ -11,7 +11,7 @@ hyperion.conf.BinnedImageConf
    .. autosummary::
 
 
-      ~BinnedImageConf.set_aperture_range
+      ~BinnedImageConf.set_aperture_radii
       ~BinnedImageConf.set_image_limits
       ~BinnedImageConf.set_image_size
       ~BinnedImageConf.set_output_bytes
@@ -23,7 +23,7 @@ hyperion.conf.BinnedImageConf
 
    .. rubric:: Methods (detail)
 
-   .. automethod:: BinnedImageConf.set_aperture_range
+   .. automethod:: BinnedImageConf.set_aperture_radii
    .. automethod:: BinnedImageConf.set_image_limits
    .. automethod:: BinnedImageConf.set_image_size
    .. automethod:: BinnedImageConf.set_output_bytes
