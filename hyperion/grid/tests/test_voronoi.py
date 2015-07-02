@@ -59,7 +59,12 @@ def test_consistency():
         assert _neighbours_check(voro, qhull)
         assert _volume_check(voro)
         assert _bb_check(voro)
-
+        # Check that the sparse representation is consistent with the dense one.
+        assert len(vg.st[1]) == 10 ** (idx + 1) + 1
+        for i in range(10 ** (idx + 1)):
+            # The dense array of neighbours.
+            na = vg.neighbours_table[i]['neighbours']
+            assert all(vg.st[0][vg.st[1][i]:vg.st[1][i+1]] == na[na != -10])
 
 def test_evaluate_function_average():
 
