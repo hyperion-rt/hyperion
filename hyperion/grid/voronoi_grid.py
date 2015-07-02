@@ -77,6 +77,8 @@ class VoronoiGrid(FreezableClass):
         self.quantities = {}
 
         self.voronoi_table = None
+        # The neighbours information in sparse format.
+        self._st = None
 
         try:
             self._verbose = kwargs.pop('verbose')
@@ -233,6 +235,8 @@ class VoronoiGrid(FreezableClass):
                                 min_cell_samples=self._min_cell_samples or 0,
                                 verbose=self._verbose)
 
+            # Store the neighbours information in sparse format.
+            self._st = mesh.st
             self._voronoi_table = mesh.neighbours_table
             self._voronoi_table.meta['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
 
@@ -418,6 +422,8 @@ class VoronoiGrid(FreezableClass):
             The datatype to use to write the physical quantities
         '''
 
+        from astropy.table import Table
+
         # Create HDF5 groups if needed
 
         if 'Geometry' not in group:
@@ -450,10 +456,17 @@ class VoronoiGrid(FreezableClass):
         voronoi_table['volume'][np.isnan(voronoi_table['volume'])] = -1.
         voronoi_table['volume'][np.isinf(voronoi_table['volume'])] = -1.
 
-        if voronoi_table['neighbours'].dtype != np.int32:
-            raise TypeError("neighbours should be int32")
+        # Remove the dense neighbours from the table.
+        voronoi_table = Table([voronoi_table['coordinates'],voronoi_table['volume'],voronoi_table['bb_min'],voronoi_table['bb_max']])
 
+        # Create new tables from the sparse representation of the neighbours, with indices.
+        snt = Table(data = [self._st[0]],names=['sparse_neighs'])
+        sit = Table(data = [self._st[1]],names=['sparse_idx'])
+
+        # Write the tables.
         voronoi_table.write(g_geometry, path="cells", compression=True)
+        snt.write(g_geometry, path="sparse_neighs", compression=True)
+        sit.write(g_geometry, path="sparse_idx", compression=True)
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()
