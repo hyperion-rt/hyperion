@@ -456,9 +456,6 @@ class VoronoiGrid(FreezableClass):
         voronoi_table['volume'][np.isnan(voronoi_table['volume'])] = -1.
         voronoi_table['volume'][np.isinf(voronoi_table['volume'])] = -1.
 
-        # Remove the dense neighbours from the table.
-        voronoi_table = voronoi_table['coordinates', 'volume', 'bb_min', 'bb_max']
-
         # Create new tables from the sparse representation of the neighbours, with indices.
         snt = Table(data = [self._st[0]],names=['sparse_neighs'])
         sit = Table(data = [self._st[1]],names=['sparse_idx'])

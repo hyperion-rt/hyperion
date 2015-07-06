@@ -117,7 +117,7 @@ class voronoi_grid(object):
         with_sampling = 1 if n_samples > 0 else 0
         tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, with_sampling, n_samples,
                               min_cell_samples, 1 if verbose else 0)
-        names = ['coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max']
+        names = ['coordinates', 'volume', 'bb_min', 'bb_max']
         if with_vertices:
             names.append('vertices')
         if with_sampling:
