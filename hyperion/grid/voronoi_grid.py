@@ -423,6 +423,7 @@ class VoronoiGrid(FreezableClass):
         '''
 
         from astropy.table import Table
+        import numpy as np
 
         # Create HDF5 groups if needed
 
@@ -456,14 +457,10 @@ class VoronoiGrid(FreezableClass):
         voronoi_table['volume'][np.isnan(voronoi_table['volume'])] = -1.
         voronoi_table['volume'][np.isinf(voronoi_table['volume'])] = -1.
 
-        # Create new tables from the sparse representation of the neighbours, with indices.
-        snt = Table(data = [self._st[0]],names=['sparse_neighs'])
-        sit = Table(data = [self._st[1]],names=['sparse_idx'])
-
         # Write the tables.
-        voronoi_table.write(g_geometry, path="cells", compression=True)
-        snt.write(g_geometry, path="sparse_neighs", compression=True)
-        sit.write(g_geometry, path="sparse_idx", compression=True)
+        voronoi_table.write(g_geometry, path='cells', compression=True)
+        g_geometry.create_dataset('sparse_neighs', data = self._st[0], compression = True)
+        g_geometry.create_dataset('sparse_idx', data = self._st[1], compression = True)
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()

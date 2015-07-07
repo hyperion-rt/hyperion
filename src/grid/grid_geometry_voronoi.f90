@@ -113,8 +113,8 @@ contains
     call mp_table_read_column_auto(group, 'cells', 'coordinates', points)
     call mp_table_read_column_auto(group, 'cells', 'bb_min', bb_min)
     call mp_table_read_column_auto(group, 'cells', 'bb_max', bb_max)
-    call mp_table_read_column_auto(group, 'sparse_neighs', 'sparse_neighs', sparse_neighs)
-    call mp_table_read_column_auto(group, 'sparse_idx', 'sparse_idx', sparse_idx)
+    call hdf5_read_array_auto(group, 'sparse_neighs', sparse_neighs)
+    call hdf5_read_array_auto(group, 'sparse_idx', sparse_idx)
 
     allocate(x(size(points,2)))
     allocate(y(size(points,2)))
