@@ -117,14 +117,15 @@ class voronoi_grid(object):
         with_sampling = 1 if n_samples > 0 else 0
         tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, with_sampling, n_samples,
                               min_cell_samples, 1 if verbose else 0)
-        names = ['coordinates', 'neighbours', 'volume', 'bb_min', 'bb_max']
+        names = ['coordinates', 'volume', 'bb_min', 'bb_max']
         if with_vertices:
             names.append('vertices')
         if with_sampling:
             self._samples = tup[-2]
             self._samples_idx = tup[-1]
             tup = tup[0:-2]
-        t = Table([sites] + list(filter(lambda _: not _ is None,tup)),names=tuple(names))
+        t = Table([sites] + list(filter(lambda _: not _ is None,tup[2:])),names=tuple(names))
+        self.st = tup[0:2]
 
         self._neighbours_table = t
 

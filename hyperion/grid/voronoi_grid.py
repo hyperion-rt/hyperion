@@ -77,6 +77,8 @@ class VoronoiGrid(FreezableClass):
         self.quantities = {}
 
         self.voronoi_table = None
+        # The neighbours information in sparse format.
+        self._st = None
 
         try:
             self._verbose = kwargs.pop('verbose')
@@ -233,6 +235,8 @@ class VoronoiGrid(FreezableClass):
                                 min_cell_samples=self._min_cell_samples or 0,
                                 verbose=self._verbose)
 
+            # Store the neighbours information in sparse format.
+            self._st = mesh.st
             self._voronoi_table = mesh.neighbours_table
             self._voronoi_table.meta['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
 
@@ -418,6 +422,9 @@ class VoronoiGrid(FreezableClass):
             The datatype to use to write the physical quantities
         '''
 
+        from astropy.table import Table
+        import numpy as np
+
         # Create HDF5 groups if needed
 
         if 'Geometry' not in group:
@@ -450,10 +457,10 @@ class VoronoiGrid(FreezableClass):
         voronoi_table['volume'][np.isnan(voronoi_table['volume'])] = -1.
         voronoi_table['volume'][np.isinf(voronoi_table['volume'])] = -1.
 
-        if voronoi_table['neighbours'].dtype != np.int32:
-            raise TypeError("neighbours should be int32")
-
-        voronoi_table.write(g_geometry, path="cells", compression=True)
+        # Write the tables.
+        voronoi_table.write(g_geometry, path='cells', compression=True)
+        g_geometry.create_dataset('sparse_neighs', data = self._st[0], compression = True)
+        g_geometry.create_dataset('sparse_idx', data = self._st[1], compression = True)
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()

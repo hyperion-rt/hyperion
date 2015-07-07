@@ -19,7 +19,13 @@ DATA = os.path.join(os.path.dirname(__file__), 'data')
 # could have extra neighbours due to the clipping of the domain
 # by voro++.
 def _neighbours_check(voro, qhull):
-    return all([all([_ in set(filter(lambda n: n >= 0, tup[0]))] for _ in filter(lambda n: n >= 0, tup[1])) for tup in zip(qhull['neighbours'], voro['neighbours'])])
+    idx = voro.st[1]
+    vneighs = voro.st[0]
+    for i in range(len(idx) - 1):
+        cur_neighs = filter(lambda n: n >= 0,vneighs[idx[i]:idx[i+1]])
+        if not all([_ in qhull['neighbours'][i] for _ in cur_neighs]):
+            return False
+    return True
 
 # Check that the volumes are positive and amount to the total domain volume.
 
@@ -56,10 +62,9 @@ def test_consistency():
         vg = vh.voronoi_grid(sites_arr, np.array([[0, 1.], [0, 1], [0, 1]]))
         voro = vg.neighbours_table
         qhull = Table.read(os.path.join(DATA, s), path='data')
-        assert _neighbours_check(voro, qhull)
+        assert _neighbours_check(vg, qhull)
         assert _volume_check(voro)
         assert _bb_check(voro)
-
 
 def test_evaluate_function_average():
 

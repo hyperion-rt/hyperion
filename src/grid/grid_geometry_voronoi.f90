@@ -98,10 +98,10 @@ contains
 
     integer(hid_t),intent(in) :: group
 
-    integer :: ic, iv
-    real(dp), allocatable :: x(:), y(:), z(:)
-    integer, allocatable :: neighbors(:,:)
+    integer :: ic, iv, is
     integer :: n_neighbors
+    real(dp), allocatable :: x(:), y(:), z(:)
+    integer, allocatable :: sparse_neighs(:), sparse_idx(:)
     real(dp),allocatable :: bb_min(:,:), bb_max(:,:)
     type(cell),pointer :: c
 
@@ -111,9 +111,10 @@ contains
 
     ! Read in list of cells
     call mp_table_read_column_auto(group, 'cells', 'coordinates', points)
-    call mp_table_read_column_auto(group, 'cells', 'neighbours', neighbors)
     call mp_table_read_column_auto(group, 'cells', 'bb_min', bb_min)
     call mp_table_read_column_auto(group, 'cells', 'bb_max', bb_max)
+    call hdf5_read_array_auto(group, 'sparse_neighs', sparse_neighs)
+    call hdf5_read_array_auto(group, 'sparse_idx', sparse_idx)
 
     allocate(x(size(points,2)))
     allocate(y(size(points,2)))
@@ -131,14 +132,20 @@ contains
     allocate(geo%cells(geo%n_cells))
 
     ! Assigned refined values to all cells
+    is = 1
     do ic=1,geo%n_cells
        geo%cells(ic)%r%x = x(ic)
        geo%cells(ic)%r%y = y(ic)
        geo%cells(ic)%r%z = z(ic)
-       ! Indices from -1 to -6 included are the walls of the rectangular domain.
-       n_neighbors = count(neighbors(:, ic) >= -6)
+       ! Determine the number of neighbors from the sparse idx array.
+       n_neighbors = sparse_idx(is+1) - sparse_idx(is)
        allocate(geo%cells(ic)%neighbors(n_neighbors))
-       geo%cells(ic)%neighbors(1:n_neighbors) = neighbors(1:n_neighbors, ic) + 1
+       ! All these +1s are due to the difference in array indexing between Fortran and C/Python.
+       ! Specifically:
+       ! - sparse_idx(is) + 1 because sparse_idx is an array of C-style indices,
+       ! - sparse_neighs(...) + 1 because the neighbour indices are C-style.
+       geo%cells(ic)%neighbors(1:n_neighbors) = sparse_neighs(sparse_idx(is) + 1:sparse_idx(is + 1) + 1) + 1
+       is = is + 1
     end do
 
     ! Construct KDTree
@@ -358,7 +365,7 @@ contains
         if (icell%neighbors(i) <= 0 .and. icell%neighbors(i) >= -5) then
             select case (icell%neighbors(i))
                 case (0)
-                    ! Note that here we are checking indices from 0 to -5 (instead of -1 to -6 as in the 
+                    ! Note that here we are checking indices from 0 to -5 (instead of -1 to -6 as in the
                     ! original voro++ convention) because of the indexing offset introduced by Fortran notation.
                     ! xmin wall
                     if (p%v%x < 0._dp) call insert_t(( geo%xmin - p%r%x ) / p%v%x, 1, geo%n_cells + 1, 0._dp)

@@ -14,7 +14,7 @@
 
 #include "voro++/voro++.hh"
 
-extern "C" const char * hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
+extern "C" const char * hyperion_voropp_wrap(int **sparse_neighbours, int **neigh_pos, int *nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                              int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
                                              double const *points, int npoints, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args,
                                              int with_sampling, int n_samples, double **sample_points, int **sampling_idx, int *tot_samples, int min_cell_samples,
@@ -167,7 +167,7 @@ static inline void sample_point_in_tetra(Ptr res,It p0, It p1, It p2, It p3)
 }
 
 // Main wrapper called from cpython.
-const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
+const char *hyperion_voropp_wrap(int **sparse_neighbours, int **neigh_pos, int *nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                  int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double const *points,
                                  int nsites, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args, int with_sampling, int n_samples,
                                  double **sample_points, int **sampling_idx, int *tot_samples, int min_cell_samples, int verbose)
@@ -261,10 +261,12 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     }
     // Sort it in ascending order.
     std::sort(random_values.begin(),random_values.end());
-
     // Cumulative volume vector for the cells.
     std::vector<double> cc_vol;
     cc_vol.push_back(0);
+
+    // Init the total number of neighbours.
+    *nn = 0;
 
     // Loop over all particles and compute the desired quantities.
     if(vl.start()) {
@@ -276,6 +278,8 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
             con.compute_cell(c,vl);
             // Compute the neighbours.
             c.neighbors(n_list[idx]);
+            // Update the number of neighbours.
+            *nn += n_list[idx].size();
             // Volume.
             vols.get()[idx] = c.volume();
             // Compute bounding box. Start by asking for the vertices.
@@ -413,19 +417,19 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
         }
     }
 
-    // Compute the max number of neighbours.
-    *max_nn = std::max_element(n_list.begin(),n_list.end(),size_cmp<int>)->size();
-    if (verbose) std::cout << "Max number of neighbours is: " << *max_nn << '\n';
-
-    // Allocate space for flat array of neighbours.
-    ptr_raii<int> neighs(static_cast<int *>(std::malloc(sizeof(int) * nsites * (*max_nn))));
-    // Fill it in.
-    for (idx = 0; idx < nsites; ++idx) {
-        int *ptr = neighs.get() + (*max_nn) * idx;
-        std::copy(n_list[idx].begin(),n_list[idx].end(),ptr);
-        // Fill empty elements with -10.
-        std::fill(ptr + n_list[idx].size(),ptr + (*max_nn),-10);
+    // Allocate space for the sparse version of the neighbour indices.
+    ptr_raii<int> sparse_neighs(static_cast<int *>(std::malloc(sizeof(int) * (*nn))));
+    ptr_raii<int> sparse_neighs_indices(static_cast<int *>(std::malloc(sizeof(int) * (nsites + 1))));
+    // Build the sparse version of the neighbours list.
+    int cur_idx = 0;
+    for (std::size_t i = 0u; i < n_list.size(); ++i) {
+        const std::vector<int> &v = n_list[i];
+        std::copy(v.begin(),v.end(),sparse_neighs.get() + cur_idx);
+        *(sparse_neighs_indices.get() + i) = cur_idx;
+        cur_idx += v.size();
     }
+    // Last index.
+    *(sparse_neighs_indices.get() + nsites) = cur_idx;
 
     if (with_vertices) {
         // Compute the max number of vertices coordinates.
@@ -452,9 +456,10 @@ const char *hyperion_voropp_wrap(int **neighbours, int *max_nn, double **volumes
     *volumes = vols.release();
     *bb_min = bb_m.release();
     *bb_max = bb_M.release();
-    *neighbours = neighs.release();
     *sample_points = spoints.release();
     *sampling_idx = spoints_idx.release();
+    *sparse_neighbours = sparse_neighs.release();
+    *neigh_pos = sparse_neighs_indices.release();
 
     return NULL;
 
