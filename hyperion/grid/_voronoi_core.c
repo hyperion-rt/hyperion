@@ -7,7 +7,7 @@
 // Declaration of the voro++ wrapping function.
 const char *hyperion_voropp_wrap(int **sparse_neighbours, int **neigh_pos, int *nn, double **volumes, double **bb_min, double **bb_max, double **vertices, int *max_nv,
                   double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double const *points, int npoints, int with_vertices, const char *wall_str, const double *wall_args_arr,
-                  int n_wall_args, int with_sampling, int n_samples, double **sample_points, int **sampling_idx, int *tot_samples, int min_cell_samples, int verbose);
+                  int n_wall_args, int with_sampling, int n_samples, double **sample_points, int **sampling_idx, int *tot_samples, int min_cell_samples, int seed, int verbose);
 
 /* Define docstrings */
 static char module_docstring[] = "C implementation of utility functions used in Voronoi grids";
@@ -56,10 +56,10 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
     int with_vertices;
     const char *wall_str;
     int verbose;
-    int with_sampling, n_samples, min_cell_samples;
+    int with_sampling, n_samples, min_cell_samples, seed;
 
-    if (!PyArg_ParseTuple(args, "OOisOiiii", &sites_obj, &domain_obj, &with_vertices,&wall_str,&wall_args_obj,
-        &with_sampling, &n_samples, &min_cell_samples, &verbose))
+    if (!PyArg_ParseTuple(args, "OOisOiiiii", &sites_obj, &domain_obj, &with_vertices,&wall_str,&wall_args_obj,
+        &with_sampling, &n_samples, &min_cell_samples, &seed, &verbose))
     {
         return NULL;
     }
@@ -107,7 +107,7 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
     const char *status = hyperion_voropp_wrap(&sparse_neighbours,&neigh_pos,&nn,&volumes,&bb_min,&bb_max,&vertices,&max_nv,
                                               d_data[0],d_data[1],d_data[2],d_data[3],d_data[4],d_data[5],s_data,nsites,with_vertices,
                                               wall_str,wall_args_arr,n_wall_args,with_sampling,n_samples,&sample_points,&sampling_idx,
-                                              &tot_samples,min_cell_samples,verbose
+                                              &tot_samples,min_cell_samples,seed,verbose
                                              );
 
     if (status != NULL) {
