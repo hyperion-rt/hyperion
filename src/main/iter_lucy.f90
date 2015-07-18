@@ -30,7 +30,7 @@ module iteration_lucy
        &                   precompute_jnu_var, &
        &                   update_alpha_inv_planck, &
        &                   update_energy_abs, &
-       &                   sublimate_dust
+       &                   sublimate_dust, specific_energy_sum, n_photons, last_photon_id
 
   use grid_propagate, only : grid_escape_tau, &
        &                     grid_integrate
@@ -54,7 +54,7 @@ module iteration_lucy
 
   use performance, only : perf_header, perf_footer
 
-  use counters, only : killed_photons_int
+  use counters, only : killed_photons_int, killed_photons_geo
 
   implicit none
   save
@@ -124,6 +124,10 @@ contains
 
        if(n_photons==0) exit
 
+       !$OMP PARALLEL DEFAULT(FIRSTPRIVATE) SHARED(n_photons, last_photon_id, killed_photons_geo, specific_energy_sum, killed_photons_int)
+
+       !$OMP DO
+
        ! Compute all photons in chunk
        do ip=1,n_photons
 
@@ -143,6 +147,7 @@ contains
                 end do
                 if(mrw_steps == n_mrw_max + 1) then
                    if(n_mrw_max_warn) call warn("do_lucy","maximum number of MRW steps exceeded - killing")
+                   !$OMP ATOMIC
                    killed_photons_int = killed_photons_int + 1
                    p%killed = .true.
                    exit
@@ -204,7 +209,15 @@ contains
 
        end do
 
+       !$OMP END DO
+
+       !$OMP END PARALLEL
+
     end do
+
+    !$OMP PARALLEL
+    !$OMP BARRIER
+    !$OMP END PARALLEL
 
     call mp_join()
 

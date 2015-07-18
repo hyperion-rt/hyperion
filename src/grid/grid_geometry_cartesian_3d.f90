@@ -29,6 +29,8 @@ module grid_geometry_specific
   real(dp) :: tmin, emin
   type(wall_id) :: imin, iext
 
+  !$OMP THREADPRIVATE(debug, tmin, emin, imin, iext)
+
   public :: escaped
   interface escaped
      module procedure escaped_photon

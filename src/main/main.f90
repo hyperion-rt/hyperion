@@ -163,7 +163,12 @@ program main
   if(main_process()) write(*, '(" [main] using random seed = ", I0)') seed
 
   call set_verbose_level(100)
+
+  !$OMP PARALLEL
+  !TODO: need to set different seed on each OpenMP process
   call mp_set_random_seed(seed)
+  !$OMP END PARALLEL
+
   call setup_initial(handle_in)
 
   ! Wait for all threads

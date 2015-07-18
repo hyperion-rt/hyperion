@@ -24,6 +24,8 @@ module grid_propagate
 
   logical :: debug = .false.
 
+  !$OMP THREADPRIVATE(debug, id)
+
 contains
 
   subroutine grid_propagate_debug(debug_flag)
@@ -71,7 +73,9 @@ contains
 
     if(allocated(n_photons)) then
        if(last_photon_id(p%icell%ic).ne.p%id) then
+         !$OMP ATOMIC
           n_photons(p%icell%ic) = n_photons(p%icell%ic) + 1
+          !$OMP ATOMIC
           last_photon_id(p%icell%ic) = p%id
        end if
     end if
@@ -91,6 +95,7 @@ contains
        if(xi < frac_check) then
           if(.not.in_correct_cell(p)) then
              call warn("grid_integrate","not in correct cell - killing")
+             !$OMP ATOMIC
              killed_photons_geo = killed_photons_geo + 1
              p%killed = .true.
              return
@@ -104,6 +109,7 @@ contains
 
        if(id_min == no_wall) then
           call warn("grid_integrate","cannot find next wall - killing")
+          !$OMP ATOMIC
           killed_photons_geo = killed_photons_geo + 1
           p%killed = .true.
           return
@@ -134,6 +140,7 @@ contains
 
           do id=1,n_dust
              if(density(p%icell%ic, id) > 0._dp) then
+               !$OMP ATOMIC
                 specific_energy_sum(p%icell%ic, id) = &
                      & specific_energy_sum(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
              end if
@@ -152,7 +159,9 @@ contains
 
           if(allocated(n_photons)) then
              if(last_photon_id(p%icell%ic).ne.p%id) then
+                !$OMP ATOMIC
                 n_photons(p%icell%ic) = n_photons(p%icell%ic) + 1
+                !$OMP ATOMIC
                 last_photon_id(p%icell%ic) = p%id
              end if
           end if
@@ -180,6 +189,7 @@ contains
 
           do id=1,n_dust
              if(density(p%icell%ic, id) > 0._dp) then
+               !$OMP ATOMIC
                 specific_energy_sum(p%icell%ic, id) = &
                      & specific_energy_sum(p%icell%ic, id) &
                      & + tact * p%current_kappa(id) * p%energy
