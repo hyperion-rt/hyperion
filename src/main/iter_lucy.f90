@@ -124,7 +124,7 @@ contains
 
        if(n_photons==0) exit
 
-       !$OMP PARALLEL DEFAULT(FIRSTPRIVATE) SHARED(n_photons, last_photon_id, killed_photons_geo, specific_energy_sum, killed_photons_int)
+       !$OMP PARALLEL DEFAULT(FIRSTPRIVATE) REDUCTION(+:last_photon_id,killed_photons_geo,specific_energy_sum,killed_photons_int)
 
        !$OMP DO
 
