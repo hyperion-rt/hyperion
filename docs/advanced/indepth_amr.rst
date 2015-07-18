@@ -14,7 +14,7 @@ The following example demonstrates how an AMR grid can be built programmatically
     from hyperion.grid import AMRGrid
     amr = AMRGrid()
     for ilevel in range(nlevels):
-        level = amd.add_level()
+        level = amr.add_level()
         for igrid in range(ngrids):
             grid = level.add_grid()
             grid.xmin, grid.xmax = ..., ...
