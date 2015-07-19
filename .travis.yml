@@ -15,7 +15,7 @@ matrix:
 
         # try older Numpy and yt version
         - python: 2.7
-          env: NUMPY_VERSION=1.7 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=2
+          env: NUMPY_VERSION=1.8 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=2
 
 before_install:
 
