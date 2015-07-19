@@ -563,6 +563,8 @@ class AMRGrid(FreezableClass):
         """
         Convert a yt dataset to a Hyperion AMRGrid object
 
+        .. note:: This method requires yt 3.0 or later
+
         Parameters
         ----------
 
@@ -603,6 +605,13 @@ class AMRGrid(FreezableClass):
 
             >>> amr = AMRGrid.from_yt(ds, quantity_mapping={'density':'dust_density'})
         """
+
+        import yt
+        from distutils.version import LooseVersion
+
+        if not LooseVersion(yt.__version__) >= LooseVersion('3'):
+            raise ImportError("yt 3.0 or later is required")
+
         from yt_wrappers import yt_dataset_to_amr_grid
         return yt_dataset_to_amr_grid(ds, quantity_mapping=quantity_mapping,
                                       center_origin=center_origin)

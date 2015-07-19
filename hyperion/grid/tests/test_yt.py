@@ -1,7 +1,7 @@
 import os
 import sys
 from copy import deepcopy
-
+from distutils.version import LooseVersion
 import h5py
 import numpy as np
 from astropy.tests.helper import pytest
@@ -16,13 +16,22 @@ from .. import CartesianGrid, \
                AMRGrid, \
                OctreeGrid
 
+try:
+    import yt
+except:
+    YT_VERSION = None
+else:
+    if LooseVersion(yt.__version__) >= LooseVersion('3'):
+        YT_VERSION = 3
+    else:
+        YT_VERSION = 2
+
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
 ALL_GRID_TYPES = ['car', 'amr', 'oct']
 
-PY27 = sys.version_info[:2] == (2, 7)
 
-@pytest.mark.skipif("not PY27")
+@pytest.mark.skipif("YT_VERSION is None")
 class TestToYt(object):
 
     def setup_method(self, method):
@@ -77,10 +86,11 @@ class TestToYt(object):
         p.save(tmpdir.join('test.png').strpath)
 
 
-@pytest.mark.skipif("not PY27")
+@pytest.mark.skipif("YT_VERSION < 3")
 def test_from_yt(tmpdir):
 
     from yt import load
+
     ds = load(os.path.join(DATA, 'DD0010', 'moving7_0010'))
 
     def _dust_density(field, data):
