@@ -558,6 +558,53 @@ class AMRGrid(FreezableClass):
         from yt_wrappers import amr_grid_to_yt_stream
         return amr_grid_to_yt_stream(self.levels, dust_id)
 
+    @classmethod
+    def from_yt(cls, ds, quantity_mapping={}, center_origin=False):
+        """
+        Convert a yt dataset to a Hyperion AMRGrid object
+
+        Parameters
+        ----------
+
+        ds : yt Dataset
+            The yt dataset
+        quantity_mapping : dict
+            A dictionary mapping the name of the quantity to use in Hyperion (the
+            key) to the name of the field to extract in yt (the value).
+        center_origin : bool
+            Some simulation grids are not centered on the origin (0, 0, 0), but
+            instead have one of the corners at the origin. If this option is
+            set, Hyperion will re-center the simulation so as to be centered on
+            the origin.
+
+        Examples
+        --------
+
+        Assuming that your dust opacities are defined per unit gas mass, and the
+        simulation density is given in gas densities, converting is
+        straightfoward (in this case we assume the density field is called
+        ``('gas', 'density')``)::
+
+            >>> from yt import load
+            >>> from hyperion.grid import AMRGrid
+            >>> ds = load('DD0010/moving7_0010')
+            >>> amr = AMRGrid.from_yt(ds, quantity_mapping={'density':('gas', 'density')})
+
+        However, you will need to take care if your dust opacities are defined
+        in dust mass units. If the yt dataset does not contain dust densities,
+        you can add a field yourself, for example::
+
+            >>> from yt import load
+            >>> from hyperion.grid import AMRGrid
+            >>> ds = load('DD0010/moving7_0010')
+            >>> def _dust_density(field, data):
+            ...     return data[('gas', 'density')].in_units('g/cm**3') * 0.01
+            >>> ds.add_field("dust_density", function=_dust_density, units='g/cm**3')
+
+            >>> amr = AMRGrid.from_yt(ds, quantity_mapping={'density':'dust_density'})
+        """
+        return yt_dataset_to_amr_grid(ds, quantity_mapping=quantity_mapping,
+                                      center_origin=center_origin)
 
 class AMRGridView(AMRGrid):
 
