@@ -17,6 +17,7 @@ hyperion.grid.OctreeGrid
       ~OctreeGrid.write
       ~OctreeGrid.write_single_array
       ~OctreeGrid.add_derived_quantity
+      ~OctreeGrid.to_yt
 
    .. rubric:: Methods (detail)
 
@@ -27,6 +28,7 @@ hyperion.grid.OctreeGrid
    .. automethod:: OctreeGrid.write
    .. automethod:: OctreeGrid.write_single_array
    .. automethod:: OctreeGrid.add_derived_quantity
+   .. automethod:: OctreeGrid.to_yt
 
 .. autoclass:: OctreeGridView
 
