@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 
 import numpy as np
-
+from astropy.extern import six
 
 def almost_equal(a, b):
     return a / b < 1. + 1.e-4 and b / a < 1. + 1.e-4
@@ -186,3 +186,59 @@ def cartesian_grid_to_yt_stream(grid, xmin, xmax, ymin, ymax, zmin, zmax, dust_i
                             bbox=np.array([(xmin, xmax), (ymin, ymax), (zmin, zmax)]))
 
     return spf
+
+
+# For the following function, we use the low-level API described here:
+# http://yt-project.org/docs/dev/examining/low_level_inspection.html
+
+
+def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
+
+    field_list = "\n    ".join([str(x) for x in ds.field_list])
+
+    if len(quantity_mapping) == 0:
+        raise ValueError("quantity_mapping needs to specified with key:value "
+                         "pairs where the key is the name to give the quantity "
+                         "in Hyperion and value is the name of the field in the "
+                         "yt dataset. Available quantities are: \n\n    {0}".format(field_list))
+
+    for output_quantity, input_field in six.iteritems(quantity_mapping):
+        if not isinstance(output_quantity, six.string_types):
+            raise ValueError("quantity_mapping keys should be strings")
+        if input_field not in ds.field_list:
+            raise ValueError("yt field {0} does not exist. Available fields "
+                             "are: \n\n    {1}".format(input_field, field_list))
+
+    # Get levels and limits of all the grids
+    n_levels = ds.index.max_level + 1
+    levels = ds.index.grid_levels
+    zmin, ymin, xmin = ds.index.grid_left_edge.in_units('cm').ndarray_view().transpose()
+    zmax, ymax, xmax = ds.index.grid_right_edge.in_units('cm').ndarray_view().transpose()
+
+    # Loop over levels and add grids
+    from .amr_grid import AMRGrid
+    amr = AMRGrid()
+    for ilevel in range(n_levels):
+
+        # Add a new level
+        level = amr.add_level()
+
+        # Loop over yt grids that are at this level
+        for igrid in np.nonzero(levels == ilevel)[0]:
+
+            # Get yt grid
+            yt_grid = ds.index.grids[igrid]
+
+            # Add a new Hyperion grid
+            grid = level.add_grid()
+
+            grid.xmin, grid.xmax = xmin[igrid], xmax[igrid]
+            grid.ymin, grid.ymax = ymin[igrid], ymax[igrid]
+            grid.zmin, grid.zmax = zmin[igrid], zmax[igrid]
+
+            grid.nz, grid.ny, grid.nx = yt_grid.shape
+
+            for output_quantity, input_field in six.iteritems(quantity_mapping):
+                grid.quantities[output_quantity] = yt_grid[input_field].ndarray_view()
+
+    return amr
