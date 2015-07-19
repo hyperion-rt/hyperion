@@ -7,7 +7,7 @@ python:
 
 env:
     # try all python versions with the latest stable Numpy
-    - NUMPY_VERSION=1.8 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=3.0.1
+    - NUMPY_VERSION=1.8 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=3
 
 matrix:
 
@@ -15,7 +15,7 @@ matrix:
 
         # try older Numpy and yt version
         - python: 2.7
-          env: NUMPY_VERSION=1.7 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=2.6
+          env: NUMPY_VERSION=1.7 ASTROPY_VERSION=0.4 SETUP_CMD='test' YT_VERSION=2
 
 before_install:
 
