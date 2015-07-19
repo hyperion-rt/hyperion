@@ -603,6 +603,7 @@ class AMRGrid(FreezableClass):
 
             >>> amr = AMRGrid.from_yt(ds, quantity_mapping={'density':'dust_density'})
         """
+        from yt_wrappers import yt_dataset_to_amr_grid
         return yt_dataset_to_amr_grid(ds, quantity_mapping=quantity_mapping,
                                       center_origin=center_origin)
 

@@ -1,3 +1,4 @@
+import os
 import sys
 from copy import deepcopy
 
@@ -6,11 +7,16 @@ import numpy as np
 from astropy.tests.helper import pytest
 
 from ...util.functions import random_id
+from ...model import Model
+from ...model.tests.test_helpers import get_realistic_test_dust
+
 from .. import CartesianGrid, \
                SphericalPolarGrid, \
                CylindricalPolarGrid, \
                AMRGrid, \
                OctreeGrid
+
+DATA = os.path.join(os.path.dirname(__file__), 'data')
 
 ALL_GRID_TYPES = ['car', 'amr', 'oct']
 
@@ -69,3 +75,41 @@ class TestToYt(object):
 
         p = ProjectionPlot(pf, 'x', ["density"], center='c', origin='native')
         p.save(tmpdir.join('test.png').strpath)
+
+
+@pytest.mark.skipif("not PY27")
+def test_from_yt(tmpdir):
+
+    from yt import load
+    ds = load(os.path.join(DATA, 'DD0010', 'moving7_0010'))
+
+    def _dust_density(field, data):
+        return data["density"].in_units('g/cm**3') * 0.01
+
+    ds.add_field("dust_density", function=_dust_density, units='g/cm**3')
+
+    amr = AMRGrid.from_yt(ds, quantity_mapping={'density':'dust_density'}, center_origin=True)
+
+    m = Model()
+
+    m.set_amr_grid(amr)
+
+    m.add_density_grid(amr['density'], get_realistic_test_dust())
+
+    s = m.add_point_source()
+    s.luminosity = 1000
+    s.temperature = 1000
+
+    m.set_n_initial_iterations(3)
+
+    m.set_n_photons(initial=1e5, imaging=0)
+
+    m.set_propagation_check_frequency(1)
+
+    m.set_copy_input(False)
+
+    input_file = tmpdir.join('test.rtin').strpath
+    output_file = tmpdir.join('test.rtout').strpath
+
+    m.write(input_file)
+    m.run(output_file)
