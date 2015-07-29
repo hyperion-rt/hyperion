@@ -16,6 +16,8 @@ hyperion.grid.AMRGrid
       ~AMRGrid.write
       ~AMRGrid.write_single_array
       ~AMRGrid.add_derived_quantity
+      ~AMRGrid.to_yt
+      ~AMRGrid.from_yt
 
    .. rubric:: Methods (detail)
 
@@ -25,6 +27,8 @@ hyperion.grid.AMRGrid
    .. automethod:: AMRGrid.write
    .. automethod:: AMRGrid.write_single_array
    .. automethod:: AMRGrid.add_derived_quantity
+   .. automethod:: AMRGrid.to_yt
+   .. automethod:: AMRGrid.from_yt
 
 .. autoclass:: AMRGridView
 

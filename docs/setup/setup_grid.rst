@@ -182,6 +182,11 @@ geometry is correct.
 For more details on how to create or read in an AMR object, and for a list of
 requirements and restrictions on the geometry, see :ref:`amr_indepth`.
 
+.. note:: If you load in your simulation data with the
+          `yt <http://yt-project.org/>`_ package, you can make use of the
+          :meth:`~hyperion.grid.AMRGrid.from_yt` method to easily convert the
+          simulation into a Hyperion :class:`~hyperion.grid.AMRGrid` object.
+
 Density and Specific Energy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

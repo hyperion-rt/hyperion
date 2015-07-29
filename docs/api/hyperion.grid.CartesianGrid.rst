@@ -17,6 +17,7 @@ hyperion.grid.CartesianGrid
       ~CartesianGrid.write
       ~CartesianGrid.write_single_array
       ~CartesianGrid.add_derived_quantity
+      ~CartesianGrid.to_yt
 
    .. rubric:: Methods (detail)
 
@@ -27,6 +28,7 @@ hyperion.grid.CartesianGrid
    .. automethod:: CartesianGrid.write
    .. automethod:: CartesianGrid.write_single_array
    .. automethod:: CartesianGrid.add_derived_quantity
+   .. automethod:: CartesianGrid.to_yt
 
 .. autoclass:: CartesianGridView
 

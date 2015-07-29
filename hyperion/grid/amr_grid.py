@@ -558,6 +558,63 @@ class AMRGrid(FreezableClass):
         from yt_wrappers import amr_grid_to_yt_stream
         return amr_grid_to_yt_stream(self.levels, dust_id)
 
+    @classmethod
+    def from_yt(cls, ds, quantity_mapping={}):
+        """
+        Convert a yt dataset to a Hyperion AMRGrid object
+
+        .. note:: This method requires yt 3.0 or later
+
+        Parameters
+        ----------
+
+        ds : yt Dataset
+            The yt dataset
+        quantity_mapping : dict
+            A dictionary mapping the name of the quantity to use in Hyperion (the
+            key) to the name of the field to extract in yt (the value).
+
+        Notes
+        -----
+
+        The domain is always re-centered so that the position at
+        ds.domain_center in yt becomes the origin in Hyperion.
+
+        Examples
+        --------
+
+        Assuming that your dust opacities are defined per unit gas mass, and the
+        simulation density is given in gas densities, converting is
+        straightfoward (in this case we assume the density field is called
+        ``('gas', 'density')``)::
+
+            >>> from yt import load
+            >>> from hyperion.grid import AMRGrid
+            >>> ds = load('DD0010/moving7_0010')
+            >>> amr = AMRGrid.from_yt(ds, quantity_mapping={'density':('gas', 'density')})
+
+        However, you will need to take care if your dust opacities are defined
+        in dust mass units. If the yt dataset does not contain dust densities,
+        you can add a field yourself, for example::
+
+            >>> from yt import load
+            >>> from hyperion.grid import AMRGrid
+            >>> ds = load('DD0010/moving7_0010')
+            >>> def _dust_density(field, data):
+            ...     return data[('gas', 'density')].in_units('g/cm**3') * 0.01
+            >>> ds.add_field(('gas', 'dust_density'), function=_dust_density, units='g/cm**3')
+
+            >>> amr = AMRGrid.from_yt(ds, quantity_mapping={'density':('gas', 'dust_density')})
+        """
+
+        import yt
+        from distutils.version import LooseVersion
+
+        if not LooseVersion(yt.__version__) >= LooseVersion('3'):
+            raise ImportError("yt 3.0 or later is required")
+
+        from yt_wrappers import yt_dataset_to_amr_grid
+        return yt_dataset_to_amr_grid(ds, quantity_mapping=quantity_mapping)
 
 class AMRGridView(AMRGrid):
 
