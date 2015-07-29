@@ -559,7 +559,7 @@ class AMRGrid(FreezableClass):
         return amr_grid_to_yt_stream(self.levels, dust_id)
 
     @classmethod
-    def from_yt(cls, ds, quantity_mapping={}, center_origin=False):
+    def from_yt(cls, ds, quantity_mapping={}):
         """
         Convert a yt dataset to a Hyperion AMRGrid object
 
@@ -573,11 +573,12 @@ class AMRGrid(FreezableClass):
         quantity_mapping : dict
             A dictionary mapping the name of the quantity to use in Hyperion (the
             key) to the name of the field to extract in yt (the value).
-        center_origin : bool
-            Some simulation grids are not centered on the origin (0, 0, 0), but
-            instead have one of the corners at the origin. If this option is
-            set, Hyperion will re-center the simulation so as to be centered on
-            the origin.
+
+        Notes
+        -----
+
+        The domain is always re-centered so that the position at
+        ds.domain_center in yt becomes the origin in Hyperion.
 
         Examples
         --------
@@ -613,8 +614,7 @@ class AMRGrid(FreezableClass):
             raise ImportError("yt 3.0 or later is required")
 
         from yt_wrappers import yt_dataset_to_amr_grid
-        return yt_dataset_to_amr_grid(ds, quantity_mapping=quantity_mapping,
-                                      center_origin=center_origin)
+        return yt_dataset_to_amr_grid(ds, quantity_mapping=quantity_mapping)
 
 class AMRGridView(AMRGrid):
 

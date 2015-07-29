@@ -194,24 +194,53 @@ def cartesian_grid_to_yt_stream(grid, xmin, xmax, ymin, ymax, zmin, zmax, dust_i
 # http://yt-project.org/docs/dev/examining/low_level_inspection.html
 
 
-def yt_dataset_to_amr_grid(ds, quantity_mapping={}, center_origin=False):
+def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
     """
-    Convert a yt dataset to a Hyperion AMR grid
+    Convert a yt dataset to a Hyperion AMRGrid object
 
-    For more information on using this, see :meth:`hyperion.grid.AMRGrid.from_yt`
+    .. note:: This function requires yt 3.0 or later
 
     Parameters
     ----------
+
     ds : yt Dataset
         The yt dataset
     quantity_mapping : dict
         A dictionary mapping the name of the quantity to use in Hyperion (the
-        key) to the name of the field to extract in yt (the value).
-    center_origin : bool
-        Some simulation grids are not centered on the origin (0, 0, 0), but
-        instead have one of the corners at the origin. If this option is
-        set, Hyperion will re-center the simulation so as to be centered on
-        the origin.
+        key) to the name of the field to extract in yt (the value). An example
+        is provided below.
+
+    Notes
+    -----
+
+    The domain is always re-centered so that the position at
+    ds.domain_center in yt becomes the origin in Hyperion.
+
+    Examples
+    --------
+
+    Assuming that your dust opacities are defined per unit gas mass, and the
+    simulation density is given in gas densities, converting is
+    straightfoward (in this case we assume the density field is called
+    ``('gas', 'density')``)::
+
+        >>> from yt import load
+        >>> from hyperion.yt_wrappers import yt_dataset_to_amr_grid
+        >>> ds = load('DD0010/moving7_0010')
+        >>> amr = yt_dataset_to_amr_grid(ds, quantity_mapping={'density':('gas', 'density')})
+
+    However, you will need to take care if your dust opacities are defined
+    in dust mass units. If the yt dataset does not contain dust densities,
+    you can add a field yourself, for example::
+
+        >>> from yt import load
+        >>> from hyperion.yt_wrappers import yt_dataset_to_amr_grid
+        >>> ds = load('DD0010/moving7_0010')
+        >>> def _dust_density(field, data):
+        ...     return data[('gas', 'density')].in_units('g/cm**3') * 0.01
+        >>> ds.add_field("dust_density", function=_dust_density, units='g/cm**3')
+
+        >>> amr = yt_dataset_to_amr_grid(ds, quantity_mapping={'density':'dust_density'})
     """
 
     field_list = "\n    ".join([str(x) for x in ds.derived_field_list])
@@ -241,14 +270,13 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}, center_origin=False):
     zmin, ymin, xmin = ds.index.grid_left_edge.in_units('cm').ndarray_view().transpose()
     zmax, ymax, xmax = ds.index.grid_right_edge.in_units('cm').ndarray_view().transpose()
 
-    if center_origin:
-        logger.info("Re-centering simulation so that domain center is at (0, 0, 0)")
-        xmin -= x0
-        xmax -= x0
-        ymin -= y0
-        ymax -= y0
-        zmin -= z0
-        zmax -= z0
+    logger.info("Re-centering simulation so that domain center is at (0, 0, 0)")
+    xmin -= x0
+    xmax -= x0
+    ymin -= y0
+    ymax -= y0
+    zmin -= z0
+    zmax -= z0
 
     # Loop over levels and add grids
     from .amr_grid import AMRGrid
