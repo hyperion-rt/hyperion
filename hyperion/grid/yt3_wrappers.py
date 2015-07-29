@@ -238,9 +238,9 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
         >>> ds = load('DD0010/moving7_0010')
         >>> def _dust_density(field, data):
         ...     return data[('gas', 'density')].in_units('g/cm**3') * 0.01
-        >>> ds.add_field("dust_density", function=_dust_density, units='g/cm**3')
+        >>> ds.add_field(('gas', 'dust_density'), function=_dust_density, units='g/cm**3')
 
-        >>> amr = yt_dataset_to_amr_grid(ds, quantity_mapping={'density':'dust_density'})
+        >>> amr = yt_dataset_to_amr_grid(ds, quantity_mapping={'density':('gas', 'dust_density')})
     """
 
     field_list = "\n    ".join([str(x) for x in ds.derived_field_list])
