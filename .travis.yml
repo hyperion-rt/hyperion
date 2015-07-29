@@ -41,12 +41,7 @@ before_install:
 install:
    - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
    - source activate test
-   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]];
-     then
-       conda install --yes numpy=$NUMPY_VERSION h5py astropy=$ASTROPY_VERSION pip matplotlib yt=$YT_VERSION;
-     else
-       conda install --yes numpy=$NUMPY_VERSION h5py astropy=$ASTROPY_VERSION pip matplotlib;
-     fi
+   - conda install --yes numpy=$NUMPY_VERSION h5py astropy=$ASTROPY_VERSION pip matplotlib yt=$YT_VERSION;
 
 script:
    - ./configure
