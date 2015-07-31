@@ -1,5 +1,23 @@
 language: python
 
+dist: trusty
+
+sudo: false
+
+cache: apt
+
+addons:
+    apt:
+        packages:
+            - build-essential
+            - g++
+            - mpich2
+            - libmpich2-dev
+            - libhdf5-7
+            - libhdf5-mpich-dev
+            - gfortran
+            - hdf5-tools
+
 python:
     - 2.7
     - 3.4
@@ -22,14 +40,6 @@ matrix:
 
 before_install:
 
-   # Add 'saucy' repositories to get latest HDF5 version
-   - sudo apt-add-repository 'deb http://old-releases.ubuntu.com/ubuntu/ saucy main universe'
-
-   # Linux packages
-   - sudo apt-get update
-   - sudo apt-get install build-essential g++
-   - sudo apt-get install mpich2 libmpich2-dev libhdf5-7 libhdf5-dev gfortran hdf5-tools
-
    # Python packages
    - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
    - chmod +x miniconda.sh
@@ -40,6 +50,9 @@ before_install:
    # Make sure that interactive matplotlib backends work
    - export DISPLAY=:99.0
    - sh -e /etc/init.d/xvfb start
+   
+   # Add path for hyperion binaries
+   - export PATH=$HOME/usr/bin:$PATH
 
 install:
    - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
@@ -52,8 +65,8 @@ install:
      fi
 
 script:
-   - ./configure
+   - ./configure --prefix=$HOME/usr
    - make serial
-   - sudo make install
+   - make install
    - python setup.py install  # to get the hyperion script installed
    - python setup.py $SETUP_CMD
