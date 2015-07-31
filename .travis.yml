@@ -65,6 +65,7 @@ install:
      fi
 
 script:
+   - mpif90 -show
    - ./configure --prefix=$HOME/usr
    - make serial
    - make install
