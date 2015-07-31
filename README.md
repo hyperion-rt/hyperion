@@ -13,7 +13,7 @@ Stable releases can be found at:
 
 To download from the git repository, use:
 
-    git clone git@github.com:hyperion-rt/hyperion.git
+    git clone https://github.com/hyperion-rt/hyperion.git
     cd hyperion
     git submodule init
     git submodule update
