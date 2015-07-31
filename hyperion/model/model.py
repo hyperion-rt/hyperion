@@ -858,7 +858,8 @@ class Model(FreezableClass, RunConf):
         self.set_grid(VoronoiGrid(x, y, z,
                                   xmin=xmin, xmax=xmax,
                                   ymin=ymin, ymax=ymax,
-                                  zmin=zmin, zmax=zmax))
+                                  zmin=zmin, zmax=zmax,
+                                  seed=self._seed))
 
     def set_grid(self, grid):
         if isinstance(grid, AMRGrid):

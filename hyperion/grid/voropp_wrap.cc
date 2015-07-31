@@ -18,7 +18,7 @@ extern "C" const char * hyperion_voropp_wrap(int **sparse_neighbours, int **neig
                                              int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax,
                                              double const *points, int npoints, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args,
                                              int with_sampling, int n_samples, double **sample_points, int **sampling_idx, int *tot_samples, int min_cell_samples,
-                                             int verbose);
+                                             int seed, int verbose);
 
 using namespace voro;
 
@@ -170,10 +170,13 @@ static inline void sample_point_in_tetra(Ptr res,It p0, It p1, It p2, It p3)
 const char *hyperion_voropp_wrap(int **sparse_neighbours, int **neigh_pos, int *nn, double **volumes, double **bb_min, double **bb_max, double **vertices,
                                  int *max_nv, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double const *points,
                                  int nsites, int with_vertices, const char *wall_str, const double *wall_args_arr, int n_wall_args, int with_sampling, int n_samples,
-                                 double **sample_points, int **sampling_idx, int *tot_samples, int min_cell_samples, int verbose)
+                                 double **sample_points, int **sampling_idx, int *tot_samples, int min_cell_samples, int seed, int verbose)
 {
     // We need to wrap everything in a try/catch block as exceptions cannot leak out to C.
     try {
+
+    // Set the random seed.
+    std::srand(static_cast<unsigned>(seed));
 
     // Volume of the domain.
     const double dom_vol = (xmax - xmin) * (ymax - ymin) * (zmax - zmin);

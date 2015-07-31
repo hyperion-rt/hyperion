@@ -80,6 +80,12 @@ class VoronoiGrid(FreezableClass):
         # The neighbours information in sparse format.
         self._st = None
 
+        # Set the seed.
+        try:
+            self._seed = kwargs.pop('seed')
+        except KeyError:
+            self._seed = 0
+
         try:
             self._verbose = kwargs.pop('verbose')
         except KeyError:
@@ -233,7 +239,8 @@ class VoronoiGrid(FreezableClass):
                                           ),
                                 n_samples=self._n_samples or 0,
                                 min_cell_samples=self._min_cell_samples or 0,
-                                verbose=self._verbose)
+                                verbose=self._verbose,
+                                seed=self._seed)
 
             # Store the neighbours information in sparse format.
             self._st = mesh.st
