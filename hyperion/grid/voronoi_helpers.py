@@ -38,6 +38,8 @@ class voronoi_grid(object):
         ``samples`` property of the class in sparse format. The indices of the
         sampling points with respect to the Voronoi cells are stored in the
         ``samples_idx`` class property.
+    seed: an integer
+        The seed for the random number generator used when sampling.
     min_cell_samples: an integer
         The minimum number of samples per cell.
     with_vertices : boolean
@@ -58,7 +60,7 @@ class voronoi_grid(object):
     '''
 
     def __init__(self, sites, domain, n_samples=0, min_cell_samples = 10, with_vertices=False,
-                 wall=None, wall_args=None, verbose=False):
+                 wall=None, wall_args=None, verbose=False, seed=0):
         import numpy as np
         from ._voronoi_core import _voropp_wrapper
         from astropy.table import Table
@@ -105,6 +107,11 @@ class voronoi_grid(object):
             raise ValueError('the \'wall\' parameter must be None or one of ' + str(allowed_walls))
         if not wall_args is None and (not isinstance(wall_args,tuple) or not all([isinstance(_,float) for _ in wall_args])):
             raise ValueError('the \'wall_args\' parameter must be None or a tuple of floats')
+        # Seed checks.
+        if not isinstance(seed, int):
+            raise TypeError(
+                'the \'seed\' parameter must be an int')
+        self._seed = seed
 
         # Redefine wall params in order to pass it to the C++ routine.
         wall = "" if wall is None else wall
@@ -116,7 +123,7 @@ class voronoi_grid(object):
         logger.info("Computing the tessellation via voro++")
         with_sampling = 1 if n_samples > 0 else 0
         tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, with_sampling, n_samples,
-                              min_cell_samples, 1 if verbose else 0)
+                              min_cell_samples, seed, 1 if verbose else 0)
         names = ['coordinates', 'volume', 'bb_min', 'bb_max']
         if with_vertices:
             names.append('vertices')
