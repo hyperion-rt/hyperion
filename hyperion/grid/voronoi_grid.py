@@ -374,6 +374,7 @@ class VoronoiGrid(FreezableClass):
 
         # Avoid re-computing Voronoi table
         self.voronoi_table = Table.read(group['cells'], format='hdf5')
+        self._st = group['sparse_neighs'].value, group['sparse_idx'].value
 
     def read_quantities(self, group, quantities='all'):
         '''

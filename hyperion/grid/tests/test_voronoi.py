@@ -3,6 +3,7 @@ from __future__ import print_function, division
 import os
 import random
 
+import h5py
 import numpy as np
 from astropy.table import Table
 
@@ -88,3 +89,23 @@ def test_evaluate_function_average():
 
     np.testing.assert_allclose(dens, [0.202441, 0.29333, 0.522314, 0.767736, 0.451614,
                                       0.294537, 0.121397, 0.224867, 0.124017, 0.373834], rtol=1e-2)
+
+
+def test_io(tmpdir):
+
+    file_1 = tmpdir.join('test1.hdf5').strpath
+    file_2 = tmpdir.join('test2.hdf5').strpath
+
+    g1 = VoronoiGrid([1,2,3],[3,4,5],[2,3,4])
+    f1 = h5py.File(file_1, 'w')
+    g1.write(f1)
+    f1.close()
+
+    f2 = h5py.File(file_1, 'r')
+    f3 = h5py.File(file_2, 'w')
+    g2 = VoronoiGrid()
+    g2.read(f2)
+    g2.write(f3)
+
+    np.testing.assert_allclose(g1._st[0], g2._st[0])
+    np.testing.assert_allclose(g1._st[1], g2._st[1])
