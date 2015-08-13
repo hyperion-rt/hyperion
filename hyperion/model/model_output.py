@@ -1024,6 +1024,10 @@ class ModelOutput(FreezableClass):
             logger.info("No density present in output, reading initial density")
             g.read_quantities(g_grid['Quantities'], quantities=['density'])
 
+        if not 'specific_energy' in g:
+            logger.info("No specific_energy present in output, reading initial specific_energy")
+            g.read_quantities(g_grid['Quantities'], quantities=['specific_energy'])
+
         # Compute the temperature as a derived quantity
         if 'specific_energy' in g:
 
