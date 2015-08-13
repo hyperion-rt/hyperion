@@ -465,7 +465,11 @@ contains
     if(img%use_filters) then
        ! Redshift frequency change
        do ifilt=1,size(img%filters)
-          if(img%filters(ifilt)%redshift .gt. 0._dp) nu = p%nu / (1 + img%filters(ifilt)%redshift)
+          if(img%filters(ifilt)%redshift .gt. 0._dp) then
+             nu = p%nu / (1 + img%filters(ifilt)%redshift)
+          else
+             nu = p%nu
+          end if
           transmission = interp1d(img%filters(ifilt)%nu,&
                &                  img%filters(ifilt)%tr,&
                &                  nu, bounds_error=.false., fill_value=0._dp)
