@@ -36,6 +36,7 @@ module type_image
      real(dp) :: n_wav
      real(dp), allocatable :: nu(:), tr(:)
      real(dp) :: nu0
+     real(dp) :: redshift
 
   end type filter
 
@@ -275,6 +276,7 @@ contains
              call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'nu', img%filters(ig)%nu)
              call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'tr_norm', img%filters(ig)%tr)
              call mp_read_keyword(handle, trim(path)//"/"//group_name, 'nu0', img%filters(ig)%nu0)
+             call mp_read_keyword(handle, trim(path)//"/"//group_name, 'redshift', img%filters(ig)%redshift)
           end do
        end if
 
@@ -412,6 +414,7 @@ contains
     integer :: inu,io ! Bins
     integer :: iorig, ifilt
     real(dp) :: transmission
+    real(dp) :: nu
 
     if(img%compute_image.and..not.allocated(img%img)) call error('bin_photon','Image not allocated')
     if(img%compute_sed.and..not.allocated(img%sed)) call error('bin_photon','SED not allocated')
@@ -460,11 +463,15 @@ contains
     end if
 
     if(img%use_filters) then
+       ! Redshift frequency change
        do ifilt=1,size(img%filters)
+          if(img%filters(ifilt)%redshift .gt. 0._dp) nu = p%nu / (1 + img%filters(ifilt)%redshift)
           transmission = interp1d(img%filters(ifilt)%nu,&
                &                  img%filters(ifilt)%tr,&
-               &                  p%nu,bounds_error=.false., fill_value=0._dp)
+               &                  nu, bounds_error=.false., fill_value=0._dp)
           if(transmission > 0._dp) then
+              ! Redshift effect on the monochromatic luminosity
+              if(img%filters(ifilt)%redshift .gt. 0._dp) transmission = transmission / (1 + img%filters(ifilt)%redshift)
              call image_bin_single(img, p, x_image, y_image, im, ifilt, io, transmission)
           end if
        end do
@@ -474,7 +481,7 @@ contains
 
   end subroutine image_bin
 
-  subroutine image_bin_single(img,p,x_image,y_image,im,inu,io, transmission)
+  subroutine image_bin_single(img,p,x_image,y_image,im,inu,io,transmission)
 
     implicit none
 

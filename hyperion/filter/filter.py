@@ -35,6 +35,7 @@ class Filter(object):
         self._alpha = None
         self._beta = None
         self.central_spectral_coord = None
+        self.redshift = 0
 
     @property
     def name(self):
@@ -82,6 +83,41 @@ class Filter(object):
                                                 shape=None if self.spectral_coord is None else (len(self.spectral_coord),),
                                                 physical_type=('dimensionless'))
 
+    @property
+    def redshift(self):
+        """
+        The redshift correction to apply before convolution.
+        """
+        return self._redshift
+
+    @redshift.setter
+    def redshift(self, value):
+        """
+        Apply a redshift correction to the photon packets before they reach the
+        image/SED. This can only be used in conjunction with the filter
+        convolution option.
+
+        Note that you will still need to apply a distance when getting the SED
+        and image, and you will need to make sure that this distance is
+        consistent with the redshift specified here.
+
+        Parameters
+        ----------
+        redshift : float
+            The redshift to apply
+
+        Notes
+        -----
+        The correction applied to the photon packets are:
+
+            * The wavelength is multipled by (1+z)
+            * The energy of the photon is multiplied by 1/(1+z)
+        """
+        if np.isreal(value) :
+            self._redshift = value
+        else:
+            raise TypeError("redshift should be a floating point value")
+
     def check_all_set(self):
         for attr in ['spectral_coord', 'transmission', 'name', 'alpha',
                      'detector_type', 'central_spectral_coord']:
@@ -122,6 +158,7 @@ class Filter(object):
         dset.attrs['alpha'] = self.alpha
         dset.attrs['beta'] = self._beta
         dset.attrs['nu0'] = self.central_spectral_coord.to(u.Hz, equivalencies=u.spectral()).value
+        dset.attrs['redshift'] = self.redshift
 
     @classmethod
     def from_hdf5_group(cls, group, name):
@@ -134,6 +171,7 @@ class Filter(object):
         self.alpha = group[name].attrs['alpha']
         self._beta = group[name].attrs['beta']
         self.central_spectral_coords = group[name].attrs['nu0'] * u.Hz
+        self.redshift = group[name].attrs['redshift']
 
         return self
 
