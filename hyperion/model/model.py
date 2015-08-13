@@ -77,7 +77,8 @@ class Model(FreezableClass, RunConf):
         self.binned_output = None
         self.peeled_output = []
 
-    def set_monochromatic(self, monochromatic, wavelengths=None):
+    def set_monochromatic(self, monochromatic, wavelengths=None,
+                          energy_threshold=1e-10):
         '''
         Set whether to do the radiation transfer at specific wavelengths.
 
@@ -88,11 +89,17 @@ class Model(FreezableClass, RunConf):
             or wavelengths
         wavelengths : iterable of floats, optional
             The wavelengths to compute the radiation transfer for, in microns
+        energy_threshold : float
+            In this mode, the propagation of photons is done by scattering
+            photons and decreasing their energy by the albedo each time. Once
+            their energy has decreased by a ratio corresponding to this
+            parameter, the photons are terminated.
 
         If `monochromatic` is True then `wavelengths` is required
         '''
 
         self._monochromatic = monochromatic
+        self._monochromatic_energy_threshold = energy_threshold
 
         if self._monochromatic:
 
@@ -118,11 +125,16 @@ class Model(FreezableClass, RunConf):
         self._monochromatic = str2bool(group.attrs['monochromatic'])
         if self._monochromatic:
             self._frequencies = np.array(group['frequencies']['nu'])
+            if 'energy_threshold' in group.attrs:
+                self._monochromatic_energy_threshold = group.attrs['energy_threshold']
+            else:
+                self._monochromatic_energy_threshold = 1.e-10
 
     def _write_monochromatic(self, group, compression=True, dtype=np.float64):
         group.attrs['monochromatic'] = bool2str(self._monochromatic)
         if self._monochromatic:
             group.create_dataset('frequencies', data=np.array(list(zip(self._frequencies)), dtype=[('nu', dtype)]), compression=compression)
+            group.attrs['monochromatic_energy_threshold'] = self._monochromatic_energy_threshold
 
     @classmethod
     def read(cls, filename, only_initial=True):

@@ -33,9 +33,8 @@ module iteration_final_mono
        &               n_inter_max_warn, &
        &               n_reabs_max,  &
        &               n_reabs_max_warn,  &
-       &               forced_first_interaction, &
-       &               forced_first_interaction_algorithm, &
-       &               kill_on_scatter
+       &               kill_on_scatter, &
+       &               monochromatic_energy_threshold
 
   use performance, only : perf_header, &
        &                  perf_footer
@@ -120,7 +119,7 @@ contains
                 end if
 
                 ! Propagate until photon is absorbed again
-                call propagate(p)
+                call propagate(p, peeloff_scattering_only)
 
              end do
 
@@ -192,7 +191,7 @@ contains
                       end if
 
                       ! Propagate until photon is absorbed again
-                      call propagate(p)
+                      call propagate(p, peeloff_scattering_only)
 
                    end if
 
@@ -228,17 +227,23 @@ contains
 
   end subroutine do_final_mono
 
-  subroutine propagate(p)
+  subroutine propagate(p, peeloff_scattering_only)
 
     implicit none
 
     type(photon), intent(inout) :: p
+    logical,intent(in) :: peeloff_scattering_only
     integer(idp) :: interactions
     real(dp) :: tau_achieved, tau, tau_escape
     type(photon) :: p_tmp
     real(dp) :: xi, weight
     logical :: killed
     integer :: ia
+
+    logical, parameter :: force_scatter = .true.
+    real(dp) :: energy_initial
+
+    energy_initial = p%energy
 
     ! Propagate photon
     do interactions=1, n_inter_max+1
@@ -277,8 +282,11 @@ contains
 
              ! The parentheses are required in the following expression to
              ! force the evaluation of the option (otherwise it gets reset
-             ! because p has intent(out) from emit)
-             call emit(p, reemit=.true., reemit_id=(p%reabsorbed_id), reemit_energy=(p%energy), inu=(p%inu))
+             ! because p has intent(out) from emit). Technically speaking
+             ! this may not be correct because we should not be re-emitting
+             ! with the same frequency.
+             call emit(p, reemit=.true., reemit_id=(p%reabsorbed_id),&
+                  &    reemit_energy=(p%energy), inu=(p%inu))
 
              ! We now peeloff the photon even if only scattered photons are
              ! wanted because this is a kind of scattering, and will not be
@@ -317,9 +325,13 @@ contains
           exit
        end if
 
-       ! Absorb & re-emit, or scatter
-       call interact(p)
-       p%killed = (kill_on_scatter .and. p%scattered) .or. .not.p%scattered
+       ! In the monochromatic algorithm, we always kill the photon when
+       ! absorbed, so we might as well force scatterings to get a better
+       ! signal-to-noise there.
+
+       call interact(p, force_scatter=force_scatter)
+       p%killed = (kill_on_scatter .and. p%scattered) .or. (force_scatter .and. p%energy < energy_initial * monochromatic_energy_threshold)
+
        if(p%killed) exit
        if(make_peeled_images) call peeloff_photon(p, polychromatic=.false.)
 

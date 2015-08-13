@@ -47,6 +47,9 @@ contains
     call mp_join()
 
     call mp_read_keyword(input_handle, '/', 'monochromatic', use_exact_nu)
+    if(use_exact_nu) then
+        call mp_read_keyword(input_handle, '/', 'monochromatic_energy_threshold', monochromatic_energy_threshold)
+    end if
     call mp_read_keyword(input_handle, '/', 'raytracing', use_raytracing)
 
     call mp_read_keyword(input_handle, '/', 'n_stats', n_stats)

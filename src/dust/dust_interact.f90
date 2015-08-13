@@ -19,7 +19,7 @@ module dust_interact
 contains
 
 
-  subroutine interact(p)
+  subroutine interact(p, force_scatter)
 
     implicit none
 
@@ -27,6 +27,7 @@ contains
     integer :: id
     real(dp) :: xi,albedo
     real(dp) :: energy_scaling
+    logical,optional :: force_scatter
 
     ! given the density and energy of each dust type, process a photon
     ! this means finding out whether to scatter or aborb the photon, and to do
@@ -42,7 +43,12 @@ contains
     p%s_prev = p%s
 
     ! Decide whether to absorb or scatter
-    call random(xi)
+    if(present(force_scatter) .and. force_scatter) then
+      xi = 0._dp
+    else
+      call random(xi)
+    end if
+    
     if(xi > albedo) then
        call dust_emit(d(id),jnu_var_id(p%icell%ic,id),jnu_var_frac(p%icell%ic,id),p%nu,p%a,p%s,energy_scaling)
        p%energy = p%energy * energy_scaling
@@ -62,6 +68,10 @@ contains
     end if
 
     call angle3d_to_vector3d(p%a,p%v)
+
+    if(present(force_scatter) .and. force_scatter) then
+      p%energy = p%energy * albedo
+    end if
 
   end subroutine interact
 
