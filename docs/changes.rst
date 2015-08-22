@@ -38,6 +38,8 @@ New features
 
 - Added the ability to load AMR grids from yt datasets. [#148]
 
+- Fixed Fortran dependencies install script.
+
 0.9.6 (2015-02-27)
 ------------------
 
