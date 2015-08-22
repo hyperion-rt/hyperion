@@ -35,10 +35,12 @@ It is important to note that the two are incompatible - a given image group can
 can be added to a single image group. The filter properties are then set using
 e.g.::
 
+    from astropy import units as u
+
     f = i.add_filter()
     f.name = 'F2'
     f.spectral_coord = [2, 2.1, 2.2, 2.3, 2.4] * u.micron
-    f.transmission = [0., 50, 100, 60, 0.]
+    f.transmission = [0., 50, 100, 60, 0.] * u.percent
     f.detector_type = 'energy'
     f.alpha = 1.
     f.central_spectral_coord = 2.15 * u.micron
