@@ -9,36 +9,43 @@ New features
 
 - Added support for on-the-fly filter convolution. [#119]
 
-- Correctly raise an error if photons are emitted outside the Voronoi grid.
-  [#127]
-
-- Internal refactoring of how spectra are gridded for raytracing to make it
-  easier to implement Doppler-shifted spectra in future. [#126]
-
-- Initial implementation of on-the-fly filter convolution. [#119]
-
-- Optimizations to memory and disk usage for Voronoi grids. [#128, #154, #156]
-
 - Power-law and Ulrich envelopes can now be used on cylindrical polar grids.
   [#136]
 
 - Provide a way to sample random positions inside Voronoi cells. [#134, #151]
 
-- Improvements to warnings and documentation. [#54, #98, #125]
+- Added the ability to load AMR grids from yt datasets. [#148]
 
-- Removed deprecated mctherm2hyperion script. [#144]
+Bug fixes
+^^^^^^^^^
+
+- Correctly raise an error if photons are emitted outside the Voronoi grid.
+  [#127]
 
 - Avoid issues with number of photons when reading in models. [#145]
 
 - Fix a bug that caused sublimation parameters to not be correctly read in.
   [#133]
 
+- Fixed Fortran dependencies install script.
+
+API changes
+^^^^^^^^^^^
+
 - ``set_aperture_range`` has been renamed to ``set_aperture_radii`` to
   emphasize that these are radii. [#132]
 
-- Added the ability to load AMR grids from yt datasets. [#148]
+Other
+^^^^^
 
-- Fixed Fortran dependencies install script.
+- Internal refactoring of how spectra are gridded for raytracing to make it
+  easier to implement Doppler-shifted spectra in future. [#126]
+
+- Optimizations to memory and disk usage for Voronoi grids. [#128, #154, #156]
+
+- Improvements to warnings and documentation. [#54, #98, #125]
+
+- Removed deprecated mctherm2hyperion script. [#144]
 
 0.9.6 (2015-02-27)
 ------------------
