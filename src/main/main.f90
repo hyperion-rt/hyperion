@@ -67,7 +67,7 @@ program main
   logical :: confirm_overwrite, show_usage
   integer :: n_args
 
-  character(len=5), parameter :: fortran_version = '0.9.7'
+  character(len=5), parameter :: fortran_version = '0.9.8'
 
   call mp_set_compression(.true.)
 
