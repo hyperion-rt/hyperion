@@ -1,6 +1,8 @@
 include configure Makefile.in src/modules/empty.txt bin/empty.txt LICENSE
 exclude scripts/mctherm2hyperion
 
+recursive-include cmake_modules *
+
 recursive-include src *.f90
 recursive-include fortranlib *.f90
 recursive-include deps *
