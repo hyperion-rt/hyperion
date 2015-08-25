@@ -179,8 +179,8 @@ ZLIB_SHA1 = '44d667c142d7cda120332623eab69f40'
 HDF5_URL = 'http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.9/src/hdf5-1.8.9.tar.gz'
 HDF5_SHA1 = '4ba3ede947b1571e9586fdeb8351d6585a56133c'
 
-MPICH2_URL = 'http://www.mpich.org/static/downloads/1.4.1p1/mpich2-1.4.1p1.tar.gz'
-MPICH2_SHA1 = '8dcc8888fb27232eb8f76c11cc890f1c3c483804'
+MPICH2_URL = 'http://www.mpich.org/static/downloads/3.1.4/mpich-3.1.4.tar.gz'
+MPICH2_SHA1 = 'af4f563e2772d610e57e17420c9dcc5c3c9fec4e'
 
 print(" -> changing to work directory... ")
 work_dir = tempfile.mkdtemp()
