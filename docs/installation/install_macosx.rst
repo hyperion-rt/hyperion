@@ -42,6 +42,14 @@ that can be seen with::
 
 If the installation fails, a log will be posted to the `Pastebin <http://pastebin.com/>`_ service. Copy the URL and report it either by email or on the Github `Issues <https://www.github.com/hyperion-rt/hyperion/issues>`_.
 
+If you don't have root access, you can do:
+
+    sudo python install.py $HOME/usr
+
+Then be sure to add ``$HOME/usr/bin`` to your ``$PATH``:
+
+    export PATH=$HOME/usr/bin:$PATH
+
 Python dependencies
 ^^^^^^^^^^^^^^^^^^^
 
