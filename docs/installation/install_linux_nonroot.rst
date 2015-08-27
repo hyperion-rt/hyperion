@@ -11,7 +11,7 @@ To install `HDF5 <http://www.hdfgroup.org/HDF5/>`_ and `MPICH2 <http://www.mpich
     wget https://raw.githubusercontent.com/hyperion-rt/hyperion/master/deps/fortran/install.py
     python install.py $HOME/usr
     
-Then, make sure that $HOME/usr/bin is in your ``$PATH``. If you use bash for example, you would do this with:
+Then, make sure that $HOME/usr/bin is in your ``$PATH``. If you use bash for example, you would do this with::
 
     export PATH=$HOME/usr/bin:$PATH
   
@@ -42,7 +42,7 @@ Python dependencies
 
 Download and install the free `Anaconda Python Distribution <https://store.continuum.io/cshop/anaconda/>`_, which is a scientific linux distribution that contains all the dependencies required by Hyperion. By default, this will be installed to your home directory and will not require root access.
 
-Once you have installed it, you can check that you are indeed using the Python version from Anaconda by typing;:
+Once you have installed it, you can check that you are indeed using the Python version from Anaconda by typing::
 
     python --version
     

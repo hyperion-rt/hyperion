@@ -42,11 +42,11 @@ that can be seen with::
 
 If the installation fails, a log will be posted to the `Pastebin <http://pastebin.com/>`_ service. Copy the URL and report it either by email or on the Github `Issues <https://www.github.com/hyperion-rt/hyperion/issues>`_.
 
-If you don't have root access, you can do:
+If you don't have root access, you can do::
 
     sudo python install.py $HOME/usr
 
-Then be sure to add ``$HOME/usr/bin`` to your ``$PATH``:
+Then be sure to add ``$HOME/usr/bin`` to your ``$PATH``::
 
     export PATH=$HOME/usr/bin:$PATH
 
@@ -55,7 +55,8 @@ Python dependencies
 
 Download and install the free `Anaconda Python Distribution <https://store.continuum.io/cshop/anaconda/>`_, which is a scientific linux distribution that contains all the dependencies required by Hyperion. By default, this will be installed to your home directory and will not require root access.
 
-Once you have installed it, you can check that you are indeed using the Python version from Anaconda by typing;:
+Once you have installed it, you can check that you are indeed using the Python
+version from Anaconda by typing::
 
     python --version
 

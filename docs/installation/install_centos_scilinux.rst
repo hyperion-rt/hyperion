@@ -35,7 +35,7 @@ then you can install h5py and Astropy::
     pip install six --user --upgrade
     pip install h5py astropy --user
 
-If instead you use the [Anaconda Python Distribution](https://store.continuum.io/cshop/anaconda/) you can install the Python dependencies with::
+If instead you use the `Anaconda Python Distribution <https://store.continuum.io/cshop/anaconda/>`_ you can install the Python dependencies with::
 
     conda install numpy matplotlib h5py astropy
     

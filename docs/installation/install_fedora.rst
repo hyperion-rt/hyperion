@@ -19,7 +19,7 @@ the Python code with::
 
     sudo yum install gcc-c++ numpy h5py python-matplotlib python-astropy
 
-If instead you use the [Anaconda Python Distribution](https://store.continuum.io/cshop/anaconda/) you can install the Python dependencies with::
+If instead you use the `Anaconda Python Distribution <https://store.continuum.io/cshop/anaconda/>`_ you can install the Python dependencies with::
 
     conda install numpy matplotlib h5py astropy
 
