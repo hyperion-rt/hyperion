@@ -20,7 +20,7 @@ To install `HDF5 <http://www.hdfgroup.org/HDF5/>`_ and `MPICH2 <http://www.mpich
 
     wget https://raw.githubusercontent.com/hyperion-rt/hyperion/master/deps/fortran/install.py
     sudo python install.py /usr/local
-      
+
 Next, open a new terminal and ensure that the following commands::
 
     which mpif90
@@ -58,7 +58,7 @@ Download and install the free `Anaconda Python Distribution <https://store.conti
 Once you have installed it, you can check that you are indeed using the Python version from Anaconda by typing;:
 
     python --version
-    
+
 and you should see something like::
 
     Python 2.7.10 :: Continuum Analytics, Inc

@@ -93,12 +93,9 @@ Compile the Fortran code with::
     make install
 
 By default, the binaries will be written to ``/usr/local/bin`` (which will
-require you to use ``sudo`` for the last command), but you can change this
-using the ``--prefix`` option to configure, for example::
-
-    ./configure --prefix=/usr/local/hyperion
-
-or::
+require you to use ``sudo`` for the last command). If you would prefer to
+install to your home directory, you can change this using the ``--prefix``
+option to configure, for example::
 
     ./configure --prefix=$HOME/usr
 
