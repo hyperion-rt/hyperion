@@ -15,12 +15,37 @@ First, you will need to install several dependencies. Please follow the
 instructions at the following pages to make sure that you have all the
 dependencies installed.
 
+If you have a Linux computer with root access, you can choose your distribution
+from the following list:
+
 .. toctree::
    :maxdepth: 1
 
-   fortran_dependencies.rst
-   python_dependencies.rst
-   cmake_build_system.rst
+   install_debian_ubuntu.rst
+   install_fedora.rst
+   install_centos_scilinux.rst
+
+If your Linux distribution is not here, or if you don't have the root password,
+you can follow these instructions:
+
+.. toctree::
+   :maxdepth: 1
+
+   install_linux_nonroot.rst
+
+Finally, if you use a Mac, you can follow these instructions:
+
+.. toctree::
+   :maxdepth: 1
+
+   install_macosx.rst
+
+If for any reason you want to install everything the hard way, you can follow these instructions:
+
+.. toctree::
+   :maxdepth: 1
+
+   install_full.rst
 
 .. note:: For instructions for specific computer clusters, see the :ref:`specific` instead, then proceed to the instructions for installing Hyperion below.
 
