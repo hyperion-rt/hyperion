@@ -1,5 +1,5 @@
-Installing dependencies on Debian/Ubuntu
-----------------------------------------
+Installing dependencies on Debian/Ubuntu (requires root)
+--------------------------------------------------------
 
 Fortran dependencies
 ^^^^^^^^^^^^^^^^^^^^

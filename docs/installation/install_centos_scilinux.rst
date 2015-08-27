@@ -1,5 +1,5 @@
-Installing dependencies on CentOS and Scientific Linux
-------------------------------------------------------
+Installing dependencies on CentOS and Scientific Linux (requires root)
+----------------------------------------------------------------------
 
 .. note:: The HDF5 and Astropy packages are not available for these
           distributions, so a few additional steps are needed.

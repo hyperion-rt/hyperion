@@ -1,5 +1,5 @@
-Installing dependencies on Fedora
----------------------------------
+Installing dependencies on Fedora (requires root)
+-------------------------------------------------
 
 Fortran dependencies
 ^^^^^^^^^^^^^^^^^^^^

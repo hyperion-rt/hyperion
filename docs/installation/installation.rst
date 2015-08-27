@@ -11,12 +11,7 @@ Installation
 Dependencies
 ============
 
-First, you will need to install several dependencies. Please follow the
-instructions at the following pages to make sure that you have all the
-dependencies installed.
-
-If you have a Linux computer with root access, you can choose your distribution
-from the following list:
+First, you will need to install several dependencies for the Fortran and Python versions of Hyperion. Choose your own adventure!
 
 .. toctree::
    :maxdepth: 1
@@ -24,40 +19,22 @@ from the following list:
    install_debian_ubuntu.rst
    install_fedora.rst
    install_centos_scilinux.rst
-
-If your Linux distribution is not here, or if you don't have the root password,
-you can follow these instructions:
-
-.. toctree::
-   :maxdepth: 1
-
    install_linux_nonroot.rst
-
-Finally, if you use a Mac, you can follow these instructions:
-
-.. toctree::
-   :maxdepth: 1
-
    install_macosx.rst
-
-If for any reason you want to install everything the hard way, you can follow these instructions:
-
-.. toctree::
-   :maxdepth: 1
-
    install_full.rst
-
-.. note:: For instructions for specific computer clusters, see the :ref:`specific` instead, then proceed to the instructions for installing Hyperion below.
 
 .. _hyperion_install:
 
 Hyperion
 ========
 
+Once you have installed the dependencies as described in one of the sections
+above, you are ready to install Hyperion!
+
 Download the latest tar file from `here <https://pypi.python.org/pypi/Hyperion/>`_, then expand it with::
 
-    tar xvzf hyperion-x.x.x.tar.gz
-    cd hyperion-x.x.x
+    tar xvzf Hyperion-x.x.x.tar.gz
+    cd Hyperion-x.x.x
 
 Python module
 -------------
@@ -91,7 +68,20 @@ should contain something like this::
     changing mode of /Users/tom/Library/Python/2.7/bin/hyperion to 755
 
 The path listed (excluding ``hyperion`` at the end) should be in your
-``$PATH``.
+``$PATH``. On Linux systems, this path will often be ``$HOME/.local/bin``.
+
+
+.. note:: On recent versions of MacOS X, you may encounter the following error  
+          when trying to install the Python library for Hyperion::
+
+              clang: error: unknown argument: '-mno-fused-madd' [-Wunused-command-line-argument-hard-error-in-future]
+
+          If this is the case, try setting the following environment variables
+          before installing it::
+
+              export CFLAGS=-Qunused-arguments
+              export CPPFLAGS=-Qunused-arguments
+
 
 Fortran binaries
 ----------------
