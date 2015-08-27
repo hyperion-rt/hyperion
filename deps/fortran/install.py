@@ -28,6 +28,12 @@ program test
 end program test
 '''
 
+TEST_CC = '''
+int main() {}
+'''
+
+TEST_CXX = TEST_CC
+
 TEST_MPIF90_F90 = '''
 program test
 
@@ -151,15 +157,15 @@ def run(command, logfile):
         par = {}
         par['api_dev_key'] = 'd3b3e1a0b666fbcbe383162be949f81e'
         par['api_option'] = 'paste'
-        par['api_paste_code'] = open(logfile).read().encode('utf-8')
+        par['api_paste_code'] = open(logfile).read()
         par['api_paste_name'] = command
         par['api_paste_format'] = 'bash'
         u = urlopen('http://pastebin.com/api/api_post.php',
-                           data=urlencode(par))
+                           data=urlencode(par).encode('utf-8'))
         url = u.read()
         print("=" * 72)
-        print("The installation failed. The log of the failed command has been sent")
-        print("to: " + url)
+        print("The installation failed. The log of the failed command has been sent to:")
+        print(url.decode('utf-8'))
         print("=" * 72)
         sys.exit(1)
     else:
@@ -210,11 +216,14 @@ if fc is None:
 
     # Determine available fortran compilers
     FORTRAN_COMPILERS = ['ifort',
-                         'gfortran',
                          'gfortran-mp-4.3',
                          'gfortran-mp-4.4',
                          'gfortran-mp-4.5',
                          'gfortran-mp-4.6',
+                         'gfortran-mp-4.7',
+                         'gfortran-mp-4.8',
+                         'gfortran-mp-4.9',
+                         'gfortran',
                          'g95',
                          'pgfortran',
                          'pgf95']
@@ -248,8 +257,29 @@ if cc is None:
 
     print(" -> determining best C compiler...", end=' ')
 
-    # TODO: implement search
-    cc = 'gcc'
+    # Determine available C compilers
+    C_COMPILERS = ['icc',
+                   'i686-apple-darwin11-llvm-gcc-4.2',
+                   'gcc-mp-4.3',
+                   'gcc-mp-4.4',
+                   'gcc-mp-4.5',
+                   'gcc-mp-4.6',
+                   'gcc-mp-4.7',
+                   'gcc-mp-4.8',
+                   'gcc-mp-4.9',
+                   'gcc']
+
+    # Create test script
+    open('test_cc.c', 'w').write(TEST_CC)
+
+    cc = None
+    for compiler in C_COMPILERS:
+
+        return_code = subprocess.call(compiler + ' test_cc.c -o test_cc', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        if return_code == 0:
+            cc = compiler
+            break
 
     print(cc)
 
@@ -263,11 +293,30 @@ if cc is None:
 
 if cxx is None:
 
-    print(" -> determining best C compiler...", end=' ')
+    print(" -> determining best C++ compiler...", end=' ')
 
-    # TODO: implement search
-    cxx = 'g++'
+    # Determine available C compilers
+    CXX_COMPILERS = ['i686-apple-darwin11-llvm-g++-4.2',
+                     'g++-mp-4.3',
+                     'g++-mp-4.4',
+                     'g++-mp-4.5',
+                     'g++-mp-4.6',
+                     'g++-mp-4.7',
+                     'g++-mp-4.8',
+                     'g++-mp-4.9',
+                     'g++']
+                  
+    # Create test script
+    open('test_cxx.cpp', 'w').write(TEST_CXX)
 
+    cxx = None
+    for compiler in CXX_COMPILERS:
+
+        return_code = subprocess.call(compiler + ' test_cxx.cpp -o test_cxx', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        if return_code == 0:
+            cxx = compiler
+            break
     print(cxx)
 
 else:
@@ -363,9 +412,10 @@ if system == 'Darwin' and is_gcc:
         pass  # just be safe and don't assume anything
     elif arch_c != arch_f90:
         if arch_c == 32:
-            cc += '- m64'
+            cc += ' -m64'
             cxx += ' -m64'
             print(" -> SPECIAL CASE: adjusting C compiler:", cc)
+            print(" -> SPECIAL CASE: adjusting C++ compiler:", cxx)
         else:
             fc += ' -m64'
             print(" -> SPECIAL CASE: adjusting fortran compiler:", fc)
