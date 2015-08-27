@@ -11,28 +11,30 @@ Installation
 Dependencies
 ============
 
-First, you will need to install several dependencies. Please follow the
-instructions at the following pages to make sure that you have all the
-dependencies installed.
+First, you will need to install several dependencies for the Fortran and Python versions of Hyperion. Choose your own adventure!
 
 .. toctree::
    :maxdepth: 1
 
-   fortran_dependencies.rst
-   python_dependencies.rst
-   cmake_build_system.rst
-
-.. note:: For instructions for specific computer clusters, see the :ref:`specific` instead, then proceed to the instructions for installing Hyperion below.
+   install_debian_ubuntu.rst
+   install_fedora.rst
+   install_centos_scilinux.rst
+   install_linux_nonroot.rst
+   install_macosx.rst
+   install_full.rst
 
 .. _hyperion_install:
 
 Hyperion
 ========
 
+Once you have installed the dependencies as described in one of the sections
+above, you are ready to install Hyperion!
+
 Download the latest tar file from `here <https://pypi.python.org/pypi/Hyperion/>`_, then expand it with::
 
-    tar xvzf hyperion-x.x.x.tar.gz
-    cd hyperion-x.x.x
+    tar xvzf Hyperion-x.x.x.tar.gz
+    cd Hyperion-x.x.x
 
 Python module
 -------------
@@ -66,7 +68,20 @@ should contain something like this::
     changing mode of /Users/tom/Library/Python/2.7/bin/hyperion to 755
 
 The path listed (excluding ``hyperion`` at the end) should be in your
-``$PATH``.
+``$PATH``. On Linux systems, this path will often be ``$HOME/.local/bin``.
+
+
+.. note:: On recent versions of MacOS X, you may encounter the following error  
+          when trying to install the Python library for Hyperion::
+
+              clang: error: unknown argument: '-mno-fused-madd' [-Wunused-command-line-argument-hard-error-in-future]
+
+          If this is the case, try setting the following environment variables
+          before installing it::
+
+              export CFLAGS=-Qunused-arguments
+              export CPPFLAGS=-Qunused-arguments
+
 
 Fortran binaries
 ----------------
@@ -78,12 +93,9 @@ Compile the Fortran code with::
     make install
 
 By default, the binaries will be written to ``/usr/local/bin`` (which will
-require you to use ``sudo`` for the last command), but you can change this
-using the ``--prefix`` option to configure, for example::
-
-    ./configure --prefix=/usr/local/hyperion
-
-or::
+require you to use ``sudo`` for the last command). If you would prefer to
+install to your home directory, you can change this using the ``--prefix``
+option to configure, for example::
 
     ./configure --prefix=$HOME/usr
 

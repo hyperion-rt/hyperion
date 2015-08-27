@@ -2,14 +2,11 @@
 .. _HDF5 downloads: http://www.hdfgroup.org/ftp/HDF5/current/src/
 
 
-.. _fortrandep:
+Installing dependencies the hard way
+------------------------------------
 
-=========================
-Fortran code dependencies
-=========================
-
-Summary of dependencies
-=======================
+Summary
+^^^^^^^
 
 The packages required for the Fortran code are:
 
@@ -25,83 +22,16 @@ The packages required for the Fortran code are:
 
 Note that often, default installations of HDF5 and MPI packages do not include support for Fortran - this has to be explicitly enabled as described below.
 
-Fortran compiler
-================
+The packages required for the Python code are:
 
-The first dependency is a Fortran compiler. In addition to commercial
-compilers (e.g. ``ifort``, ``pgfortran``, ...), there are a couple of free
-ones, the most common of which is ``gfortran``. If you don't already have a
-compiler installed, you can install ``gfortran`` via package managers on Linux
-machines, or from MacPorts or binary installers on Mac (e.g.
-`http://gcc.gnu.org/wiki/GFortranBinaries <http://gcc.gnu.org/wiki/GFortranBinaries>`_). If
-you are unsure about how to do this, speak to your system administrator.
+* `Python <http://www.python.org>`_
+* `NumPy <http://www.scipy.org/>`_
+* `Matplotlib <http://matplotlib.sourceforge.net/>`_
+* `h5py <http://h5py.alfven.org/>`_
+* `Astropy <http://www.astropy.org>`_
 
-Non-root installs
-=================
-
-If you do not have root access to the machine you are using, then replace
-``/usr/local`` in the following instructions by e.g. ``$HOME/usr``.
-In addition, you should never include ``sudo`` in any of the commands.
-
-Automated Installation
-======================
-
-.. note:: You only need to follow this section if you do **not** have HDF5 or
-          MPI already installed
-
-The easiest way to install these dependencies correctly is to use the
-installation script provided with Hyperion. First, make sure you have
-downloaded the latest tar file from `here <https://pypi.python.org/pypi/Hyperion/>`_, then expand it with::
-
-    tar xvzf hyperion-x.x.x.tar.gz
-    cd hyperion-x.x.x
-
-Then, go to the ``deps/fortran`` directory and run the automated install
-script provided::
-
-    cd deps/fortran
-    python install.py <prefix>
-
-where ``<prefix>`` is the folder in which you want to install the MPI and HDF5
-libraries. To avoid conflicting with existing installed versions (that may not
-have Fortran support), it is best to install these in a dedicated directory
-such as ``/usr/local/hyperion``::
-
-    python install.py /usr/local/hyperion
-
-and the libraries will be installed in the ``lib``, ``include``, etc. directories inside ``/usr/local/hyperion``. Once the installation is complete, the installer will instruct you to add certain commands to your startup files.
-
-.. note:: if you are installing to a location outside your user directory,
-          you will need to run the command with ``sudo``, i.e.::
-
-            sudo python install.py <prefix>
-
-Next, open a new terminal and ensure that the following commands::
-
-    which mpif90
-    which h5fc
-
-return a path that is inside the installation path you specified, for example::
-
-    $ which mpif90
-    /usr/local/hyperion/bin/mpif90
-    $ which h5fc
-    /usr/local/hyperion/bin/h5fc
-
-If you get ``command not found`` then you have probably not set up your
-``$PATH`` correctly.
-
-The installation script has a number of options (e.g. to set the compilers)
-that can be seen with::
-
-    python install.py --help
-
-If the installation fails, a log will be posted to the `Pastebin <http://pastebin.com/>`_ service. Copy the URL and report it either by email or on the Github `Issues <https://www.github.com/hyperion-rt/hyperion/issues>`_.
-
-If the installation succeeds, you can ignore the rest of this document, and move on to the :doc:`python_dependencies`.
-
-Manual Installation: MPI
-========================
+MPI
+^^^
 
 .. note:: You only need to follow this section if you do **not** have MPI
           already installed.
@@ -111,9 +41,6 @@ need an installation of MPI that supports Fortran. By default, MacOS X ships
 with OpenMPI, but the Fortran bindings are not included. In this section, I
 have included instructions to install the MPICH2 library with support for
 Fortran (though you can in principle use any MPI distribution).
-
-Installation
-------------
 
 .. note:: If you encounter any errors at any stage, see the :ref:`mpitrouble` section.
 
@@ -125,12 +52,12 @@ source directory::
 
 and configure the installation::
 
-    ./configure --enable-fc --prefix=/usr/local/mpich2
+    ./configure --enable-fc --prefix=/usr/local
 
 In practice, you will probably want to use a specific fortran compiler, which
 you can specify using the ``F77`` and ``FC`` variables as follows::
 
-    ./configure F77=ifort FC=ifort --enable-fc --prefix=/usr/local/mpich2
+    ./configure F77=ifort FC=ifort --enable-fc --prefix=/usr/local
 
 Once the configure script has successfully run, you can then proceed to build
 the MPI library::
@@ -141,24 +68,25 @@ If the build is successful, then you can install the library into place using::
 
     sudo make install
 
-Finally, you will need to add the MPICH2 ``/usr/local/mpich2/bin`` directory to your ``$PATH``.
-To check that the installation was successful, type::
+Finally, if this is not alrady the case, you will need to add the MPICH2
+``/usr/local/bin`` directory to your ``$PATH``. To check that the installation
+was successful, type::
 
     which mpif90
 
 and you should get::
 
-    /usr/local/mpich2/bin/mpif90
+    /usr/local/bin/mpif90
 
 If this is not the case, then the installation was unsuccessful.
 
 .. _mpitrouble:
 
 Troubleshooting
----------------
+"""""""""""""""
 
-MacOS 10.5 and ifort
-^^^^^^^^^^^^^^^^^^^^
+MacOS 10.5
+**********
 
 If you get the following error when running ./configure::
 
@@ -175,18 +103,15 @@ with::
 
 Then, rerun configure and build using::
 
-    ./configure F77="ifort -m32" FC="ifort -m32" --enable-fc --prefix=/usr/local/mpich2
+    ./configure F77="ifort -m32" FC="ifort -m32" --enable-fc --prefix=/usr/local
     make
     sudo make install
 
-Manual Installation: HDF5
-=========================
+HDF5
+^^^^
 
 .. note:: You only need to follow this section if you do **not** have HDF5
           already installed.
-
-Installation
-------------
 
 .. note:: If you encounter any errors at any stage, see the :ref:`hdftrouble` section.
 
@@ -238,10 +163,10 @@ If this is not the case, then the installation was unsuccessful.
 .. _hdftrouble:
 
 Troubleshooting
----------------
+"""""""""""""""
 
 MacOS 10.5 and ifort
-^^^^^^^^^^^^^^^^^^^^
+********************
 
 If you get the following error when running make::
 
@@ -280,7 +205,7 @@ If this does not work, try cleaning again, and setup the 32-bit ifort using the 
     sudo make install
 
 NAG f95
-^^^^^^^
+*******
 
 If you get the following error when running make::
 
@@ -305,4 +230,58 @@ Then, rerun configure and build using::
     make
     sudo make install
 
+Python
+^^^^^^
 
+How you install the Python dependencies depends on your operating system,
+whether you are an existing Python user, and whether you use package managers.
+To find out whether any of these are already installed, start up a Python
+prompt by typing ``python`` on the command line, then try the following
+commands::
+
+    import numpy
+    import matplotlib
+    import h5py
+    import astropy
+
+If you see this::
+
+    >>> import numpy
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    ImportError: No module named numpy
+    >>>
+
+then the module is not installed. If you see this
+
+    >>> import numpy
+    >>>
+
+then the module is already installed.
+
+Anaconda
+""""""""
+
+If you are not sure how to set up a Scientific Python environment, simply download and install the `Anaconda Python Distribution <https://store.continuum.io/cshop/anaconda/>`_, which contains all the required Python dependencies for Hyperion.
+
+Linux
+"""""
+
+Numpy, Matplotlib, and h5py should be available in most major Linux package
+managers. If Astropy is not available, you can easily install it from source with::
+
+    pip install astropy --user
+
+MacOS X
+"""""""
+
+If you use MacPorts, you can install all the dependencies for Hyperion with::
+
+    sudo port selfupdate
+    sudo port install py27-numpy py27-matplotlib py27-h5py py27-astropy
+
+
+Hyperion
+^^^^^^^^
+
+You are now ready to install Hyperion. Proceed to the :ref:`Hyperion installation instructions <hyperion_install>`!
