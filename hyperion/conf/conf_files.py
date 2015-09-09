@@ -44,6 +44,7 @@ class RunConf(object):
         '''
         self.set_n_initial_iterations(5)
         self.n_photons = {}
+        self.set_full_stokes_scattering(True)
         self.set_propagation_check_frequency(0.001)
         self.set_seed(-124902)
         self.set_raytracing(False)
@@ -62,6 +63,28 @@ class RunConf(object):
         self._monochromatic = False
         self.set_specific_energy_type('initial')
         super(RunConf, self).__init__()
+
+    def set_full_stokes_scattering(self, full_stokes_scattering):
+        '''
+        Set whether to take into account the full Stokes vector when sampling
+        scattering angles.
+
+        Parameters
+        ----------
+        full_stokes_scattering : bool
+            If `False`, scattered emission will still be polarized, but the
+            sampling of the angle of scattering will be determined using only
+            the S11 element of the phase function matrix.
+        '''
+        if not isinstance(full_stokes_scattering, bool):
+            raise TypeError("frequency should be a boolean value")
+        self._full_stokes_scattering = full_stokes_scattering
+
+    def _read_full_stokes_scattering(self, group):
+        self._full_stokes_scattering = group.attrs['full_stokes_scattering']
+
+    def _write_full_stokes_scattering(self, group):
+        group.attrs['full_stokes_scattering'] = self._full_stokes_scattering
 
     def set_propagation_check_frequency(self, frequency):
         '''

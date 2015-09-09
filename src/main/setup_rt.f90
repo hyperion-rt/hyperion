@@ -44,6 +44,12 @@ contains
 
     call mp_join()
 
+    if(mp_exists_keyword(input_handle, '/', 'full_stokes_scattering')) then
+       call mp_read_keyword(input_handle, '/', 'full_stokes_scattering', full_stokes_scattering)
+    else
+       full_stokes_scattering = .true.
+    end if
+
     call mp_read_keyword(input_handle, '/', 'monochromatic', use_exact_nu)
     call mp_read_keyword(input_handle, '/', 'raytracing', use_raytracing)
 
