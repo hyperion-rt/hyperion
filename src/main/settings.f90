@@ -46,4 +46,6 @@ module settings
 
   character(len=20) :: specific_energy_type
 
+  logical :: full_stokes_scattering = .true.
+
 end module settings

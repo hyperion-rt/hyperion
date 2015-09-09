@@ -7,6 +7,7 @@ module dust_interact
 
   use dust_main
   use grid_physics
+  use settings, only : full_stokes_scattering
 
 
   implicit none
@@ -53,7 +54,11 @@ contains
        p%dust_id = id
        p%last = 'de'
     else
-       call dust_scatter(d(id),p%nu,p%a,p%s)
+       if(full_stokes_scattering) then
+          call dust_scatter(d(id),p%nu,p%a,p%s)
+       else
+          call dust_scatter_nostokes(d(id),p%nu,p%a,p%s)
+       end if
        p%scattered=.true.
        p%last_isotropic = .false.
        p%dust_id = id
@@ -71,7 +76,7 @@ contains
     type(angle3d_dp),intent(in)    :: a_req
     select case(p%last)
     case('ds')
-       call dust_scatter_peeloff(d(p%dust_id),p%nu,p%a,p%s,a_req)
+      call dust_scatter_peeloff(d(p%dust_id),p%nu,p%a,p%s,a_req)
     case('de')
        call dust_emit_peeloff(d(p%dust_id),p%nu,p%a,p%s,a_req)
     case default

@@ -2,6 +2,7 @@ module type_dust
 
   use core_lib
   use mpi_hdf5_io
+  use settings, only : full_stokes_scattering
 
   implicit none
   save
@@ -12,6 +13,7 @@ module type_dust
   public :: dust_emit
   public :: dust_emit_peeloff
   public :: dust_scatter
+  public :: dust_scatter_nostokes
   public :: dust_scatter_peeloff
   public :: dust_sample_emit_probability
   public :: dust_sample_j_nu
@@ -43,7 +45,14 @@ module type_dust
      integer :: n_mu                              ! number of cos(theta)
      real(dp),allocatable :: mu(:)                ! Values of cos(theta) that P is tabulated for
      real(dp),allocatable :: P1(:,:),P2(:,:),P3(:,:),P4(:,:) ! 4-element P matrix
-     real(dp),allocatable :: P1_cdf(:,:),P2_cdf(:,:),P3_cdf(:,:),P4_cdf(:,:) ! 4-element P matrix
+
+     ! If we are using full stokes propagation we need to set up a CDF
+     ! for P1 and P2
+     real(dp),allocatable :: P1_cdf(:,:),P2_cdf(:,:)
+
+     ! Otherwise we can use a normal PDF object for P1
+     type(pdf_dp), allocatable :: P1_pdf(:)
+
      real(dp),allocatable :: I_max(:)
      real(dp) :: mu_min, mu_max                   ! range of mu values
 
@@ -195,22 +204,28 @@ contains
     end do
 
     ! Allocate cumulative scattering matrix elements
-    allocate(d%P1_cdf(size(d%P1,1), size(d%P1,2)))
-    allocate(d%P2_cdf(size(d%P2,1), size(d%P2,2)))
-    allocate(d%P3_cdf(size(d%P3,1), size(d%P3,2)))
-    allocate(d%P4_cdf(size(d%P4,1), size(d%P4,2)))
+    if(full_stokes_scattering) then
 
-    ! Find cumulative scattering matrix elements
-    do j=1,d%n_nu
-       d%P1_cdf(:,j) = cumulative_integral(d%mu, d%P1(:,j))
-       d%P2_cdf(:,j) = cumulative_integral(d%mu, d%P2(:,j))
-       d%P3_cdf(:,j) = cumulative_integral(d%mu, d%P3(:,j))
-       d%P4_cdf(:,j) = cumulative_integral(d%mu, d%P4(:,j))
-       if(.not.all(d%P1_cdf(:,j)==0.)) d%P1_cdf(:,j) = d%P1_cdf(:,j) / d%P1_cdf(d%n_mu, j)
-       if(.not.all(d%P2_cdf(:,j)==0.)) d%P2_cdf(:,j) = d%P2_cdf(:,j) / d%P2_cdf(d%n_mu, j)
-       if(.not.all(d%P3_cdf(:,j)==0.)) d%P3_cdf(:,j) = d%P3_cdf(:,j) / d%P3_cdf(d%n_mu, j)
-       if(.not.all(d%P4_cdf(:,j)==0.)) d%P4_cdf(:,j) = d%P4_cdf(:,j) / d%P4_cdf(d%n_mu, j)
-    end do
+       allocate(d%P1_cdf(size(d%P1,1), size(d%P1,2)))
+       allocate(d%P2_cdf(size(d%P2,1), size(d%P2,2)))
+
+       ! Find cumulative scattering matrix elements
+       do j=1,d%n_nu
+          d%P1_cdf(:,j) = cumulative_integral(d%mu, d%P1(:,j))
+          d%P2_cdf(:,j) = cumulative_integral(d%mu, d%P2(:,j))
+          if(.not.all(d%P1_cdf(:,j)==0.)) d%P1_cdf(:,j) = d%P1_cdf(:,j) / d%P1_cdf(d%n_mu, j)
+          if(.not.all(d%P2_cdf(:,j)==0.)) d%P2_cdf(:,j) = d%P2_cdf(:,j) / d%P2_cdf(d%n_mu, j)
+       end do
+
+    else
+
+       ! Here we can set up a normal PDF for P1
+       allocate(d%P1_pdf(d%n_nu))
+       do j=1,d%n_nu
+          call set_pdf(d%P1_pdf(j), d%mu, d%P1(:, j))
+       end do
+
+    end if
 
     ! MEAN OPACITIES
 
@@ -564,6 +579,82 @@ contains
     S%V = S%V * norm
 
   end subroutine dust_scatter
+
+  subroutine dust_scatter_nostokes(d,nu,a,s)
+
+    ! Same as dust_scatter but only considers the 11 term of the scattering
+    ! matrix and assumes incoming and outgoing light is unpolarized.
+
+    implicit none
+
+    type(dust),intent(in)                :: d
+    type(angle3d_dp),intent(inout)       :: a
+    type(stokes_dp),intent(inout)        :: s
+
+    real(dp) :: nu
+
+    type(angle3d_dp) :: a_scat
+    type(angle3d_dp) :: a_final
+
+    real(dp) :: P1,P2,P3,P4,norm
+
+    real(dp) :: c1, c2, ctot, cdf1, cdf2, xi
+    real(dp) :: sin_2_i1,cos_2_i1
+
+    integer :: imin, imax, imu, inu
+
+    integer :: iter
+    integer,parameter :: maxiter = 1000000
+
+    real(dp) :: phi
+
+    inu = locate(d%nu, nu)
+
+    if(inu==-1) then
+
+       ! Frequency is out of bounds, use isotropic scattering.
+       call random_sphere_angle3d(a_scat)
+
+       P1 = 1._dp
+       P2 = 0._dp
+       P3 = 1._dp
+       P4 = 0._dp
+       
+    else
+
+       ! Sample phi isotropically
+       call random_uni(phi, 0._dp, twopi)
+       a_scat%cosp = cos(phi)
+       a_scat%sinp = sin(phi)
+
+       ! Sample cos(theta) from PDF
+       a_scat%cost = sample_pdf(d%P1_pdf(inu))
+       a_scat%sint = sqrt(1._dp - a%cost * a%cost)
+
+       P1 = interp2d(d%mu,d%nu,d%P1,a_scat%cost,nu)
+       P2 = interp2d(d%mu,d%nu,d%P2,a_scat%cost,nu)
+       P3 = interp2d(d%mu,d%nu,d%P3,a_scat%cost,nu)
+       P4 = interp2d(d%mu,d%nu,d%P4,a_scat%cost,nu)
+
+       ! Find new photon direction
+       call rotate_angle3d(a_scat,a,a_final)
+
+    end if
+
+     ! Compute how the stokes parameters are changed by the interaction
+     call scatter_stokes(s,a,a_scat,a_final,P1,P2,P3,P4)
+
+     ! Change photon direction
+     a = a_final
+
+     norm = 1._dp / S%I
+
+     S%I = 1._dp
+     S%Q = S%Q * norm
+     S%U = S%U * norm
+     S%V = S%V * norm
+
+  end subroutine dust_scatter_nostokes
 
   !#############################################################################
   !
