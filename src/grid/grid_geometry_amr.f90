@@ -392,7 +392,7 @@ contains
              do igrid2=1,size(level2%grids)
                 grid2 => level2%grids(igrid2)
 
-                if(grids_close(grid1, grid2).and.igrid1.ne.igrid2) then
+                if(grids_close(grid1, grid2).and.(igrid1.ne.igrid2 .or. ilevel1.ne.ilevel2)) then
 
                    ! xmin side
                    i1 = 0
