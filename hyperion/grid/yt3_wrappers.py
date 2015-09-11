@@ -73,13 +73,13 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
 
             grid_dict = {}
 
-            grid_dict['left_edge'] = [grid.zmin, grid.ymin, grid.xmin]
-            grid_dict['right_edge'] = [grid.zmax, grid.ymax, grid.xmax]
-            grid_dict['dimensions'] = [grid.nz, grid.ny, grid.nx]
+            grid_dict['left_edge'] = [grid.xmin, grid.ymin, grid.zmin]
+            grid_dict['right_edge'] = [grid.xmax, grid.ymax, grid.zmax]
+            grid_dict['dimensions'] = [grid.nx, grid.ny, grid.nz]
             grid_dict['level'] = ilevel
 
             for field in grid.quantities:
-                grid_dict[('gas', field)] = grid.quantities[field][dust_id]
+                grid_dict[('gas', field)] = grid.quantities[field][dust_id].transpose()
 
             grid_data.append(grid_dict)
 
@@ -103,13 +103,14 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
     dz = (grid0.zmax - grid0.zmin) / float(grid0.nz)
     nz = int(round((zmax - zmin) / dz))
 
-    domain_dimensions = np.array([nz, ny, nx])
+    domain_dimensions = np.array([nx, ny, nz])
 
     bbox = np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])
 
     from yt.mods import load_amr_grids
 
-    spf = load_amr_grids(grid_data, domain_dimensions, bbox=bbox)
+    spf = load_amr_grids(grid_data, domain_dimensions, bbox=bbox,
+                         geometry=('cartesian', ('x', 'y', 'z')))
 
     return spf
 
@@ -179,13 +180,14 @@ def cartesian_grid_to_yt_stream(grid, xmin, xmax, ymin, ymax, zmin, zmax, dust_i
     # Make data dict which should contain (array, unit) tuples
     data = {}
     for field in grid.quantities:
-        data[field] = (grid.quantities[field][dust_id], '')
+        data[field] = grid.quantities[field][dust_id].transpose(), ''
 
     # Load cartesian grid into yt
     from yt.mods import load_uniform_grid
     spf = load_uniform_grid(data=data,
-                            domain_dimensions=np.array(grid.shape, dtype=np.int32),
-                            bbox=np.array([(xmin, xmax), (ymin, ymax), (zmin, zmax)]))
+                            domain_dimensions=np.array(grid.shape[::-1], dtype=np.int32),
+                            bbox=np.array([(xmin, xmax), (ymin, ymax), (zmin, zmax)]),
+                            geometry=('cartesian', ('x', 'y', 'z')))
 
     return spf
 
