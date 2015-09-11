@@ -180,8 +180,10 @@ def test_amr_not_aligned_across_levels(tmpdir, direction):
     assert ('Grid 1 in level 2 is not aligned with cells in level 1 in the \n           %s direction' % direction) in open(log_file).read()
 
 
-@pytest.mark.skipif("YT_VERSION is None or YT_VERSION < 3")
+@pytest.mark.skipif("YT_VERSION is None")
 def test_shadowing_regression(tmpdir):
+
+    from ...grid.tests.yt_compat import get_frb
 
     # Regression test for a bug that caused photons escaping from some grids to
     # be terminated.
@@ -232,4 +234,4 @@ def test_shadowing_regression(tmpdir):
                          center=[0.0, 0.0, 0.0])
 
     # With bug, value was lower because there were shadowed regions
-    assert 12. < prj.frb['temperature'].min().value < 13.
+    assert 12. < get_frb(prj, 'temperature').min() < 13.
