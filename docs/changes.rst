@@ -6,6 +6,9 @@ Version History
 
 - Fixed bug in ordering of axes for Cartesian and AMR grids for yt 3.x. [#168]
 
+- Fixed a severe bug in the set-up of AMR grids that caused photons to be
+  terminated before escaping from grids in specific cases. [#167]
+
 0.9.7 (2015-08-22)
 ------------------
 

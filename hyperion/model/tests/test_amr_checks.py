@@ -1,9 +1,21 @@
+from distutils.version import LooseVersion
+
 from astropy.tests.helper import pytest
 import numpy as np
 
-from .. import Model
+from .. import Model, ModelOutput
 from .test_helpers import random_id, get_test_dust
 from ...grid import AMRGrid
+
+try:
+    import yt
+except:
+    YT_VERSION = None
+else:
+    if LooseVersion(yt.__version__) >= LooseVersion('3'):
+        YT_VERSION = 3
+    else:
+        YT_VERSION = 2
 
 
 @pytest.mark.parametrize(('direction'), ['x', 'y', 'z'])
@@ -166,3 +178,60 @@ def test_amr_not_aligned_across_levels(tmpdir, direction):
     assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
                                 'complete'
     assert ('Grid 1 in level 2 is not aligned with cells in level 1 in the \n           %s direction' % direction) in open(log_file).read()
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+def test_shadowing_regression(tmpdir):
+
+    from ...grid.tests.yt_compat import get_frb
+
+    # Regression test for a bug that caused photons escaping from some grids to
+    # be terminated.
+
+    amr = AMRGrid()
+
+    level = amr.add_level()
+
+    grid = level.add_grid()
+    grid.xmin, grid.xmax = -1, 1
+    grid.ymin, grid.ymax = -1, 1
+    grid.zmin, grid.zmax = -1, 1
+    grid.nx, grid.ny, grid.nz = 8, 8, 8
+    grid.quantities['density'] = np.ones((grid.nz, grid.ny, grid.nx))
+
+    level = amr.add_level()
+
+    grid = level.add_grid()
+    grid.xmin, grid.xmax = 0.5, 1
+    grid.ymin, grid.ymax = -0.5, 0.5
+    grid.zmin, grid.zmax = -0.5, 0.5
+    grid.nx, grid.ny, grid.nz = 4, 8, 8
+    grid.quantities['density'] = np.ones((grid.nz, grid.ny, grid.nx))
+
+    m = Model()
+
+    m.set_grid(amr)
+
+    m.add_density_grid(amr['density'], get_test_dust())
+
+    s = m.add_point_source()
+    s.luminosity = 100
+    s.temperature = 10000
+    s.position = (0.0001, 0.0001, 0.0001)
+
+    m.set_n_photons(initial=1e5, imaging=0)
+
+    m.write(tmpdir.join(random_id()).strpath)
+    mo = m.run(tmpdir.join(random_id()).strpath)
+
+    from yt.mods import SlicePlot
+
+    g = mo.get_quantities()
+
+    pf = g.to_yt()
+
+    prj = SlicePlot(pf, 'y', ['density', 'temperature'],
+                         center=[0.0, 0.0, 0.0])
+
+    # With bug, value was lower because there were shadowed regions
+    assert 12. < get_frb(prj, 'temperature').min() < 13.
