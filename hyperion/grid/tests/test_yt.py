@@ -123,3 +123,63 @@ def test_from_yt(tmpdir):
 
     m.write(input_file)
     m.run(output_file)
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+def test_axis_ordering_cartesian():
+
+    # Regression test for axis ordering
+
+    from .yt_compat import get_frb
+
+    x = np.linspace(-1, 1, 9)
+    y = np.linspace(-2, 2, 17)
+    z = np.linspace(-3, 3, 33)
+
+    density = np.arange(32)[:,None,None] * np.ones((32, 16, 8))
+
+    g = CartesianGrid(x, y, z)
+    g['density'] = []
+    g['density'].append(density)
+
+    from yt.mods import ProjectionPlot, SlicePlot
+
+    pf = g.to_yt()
+
+    for iz, z in enumerate(g.z):
+        prj = SlicePlot(pf, 'z', ['density'], center=[0.0, 0.0, z])
+        np.testing.assert_allclose(get_frb(prj, 'density').min(), iz)
+        np.testing.assert_allclose(get_frb(prj, 'density').max(), iz)
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+def test_axis_ordering_amr():
+
+    # Regression test for axis ordering
+
+    from .yt_compat import get_frb
+
+    g = AMRGrid()
+
+    level = g.add_level()
+
+    grid = level.add_grid()
+    grid.xmin, grid.xmax = -1, 1
+    grid.ymin, grid.ymax = -2, 2
+    grid.zmin, grid.zmax = -3, 3
+    grid.nx, grid.ny, grid.nz = 8, 16, 32
+
+    grid.quantities['density'] = []
+    grid.quantities['density'].append(np.arange(grid.nz)[:,None,None] * np.ones((grid.nz, grid.ny, grid.nx)))
+
+    from yt.mods import ProjectionPlot, SlicePlot
+
+    pf = g.to_yt()
+
+    zw = np.linspace(-3, 3, 33)
+    zcen = 0.5 * (zw[1:] + zw[:-1])
+
+    for iz, z in enumerate(zcen):
+        prj = SlicePlot(pf, 'z', ['density'], center=[0.0, 0.0, z])
+        np.testing.assert_allclose(get_frb(prj, 'density').min(), iz)
+        np.testing.assert_allclose(get_frb(prj, 'density').max(), iz)
