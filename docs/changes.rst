@@ -4,7 +4,7 @@ Version History
 0.9.8 (unreleased)
 ------------------
 
-- No changes yet
+- Fixed bug in ordering of axes for Cartesian and AMR grids for yt 3.x. [#168]
 
 0.9.7 (2015-08-22)
 ------------------
