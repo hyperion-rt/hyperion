@@ -48,7 +48,11 @@ contains
 
     call mp_read_keyword(input_handle, '/', 'monochromatic', use_exact_nu)
     if(use_exact_nu) then
-        call mp_read_keyword(input_handle, '/', 'monochromatic_energy_threshold', monochromatic_energy_threshold)
+        if(mp_exists_keyword(input_handle, '/', 'monochromatic_energy_threshold')) then
+            call mp_read_keyword(input_handle, '/', 'monochromatic_energy_threshold', monochromatic_energy_threshold)
+        else
+            monochromatic_energy_threshold = 1e-10
+        end if
     end if
     call mp_read_keyword(input_handle, '/', 'raytracing', use_raytracing)
 
