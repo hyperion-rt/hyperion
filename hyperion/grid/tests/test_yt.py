@@ -125,19 +125,12 @@ def test_from_yt(tmpdir):
     m.run(output_file)
 
 
-def get_density_frb(prj):
-    if hasattr(prj, 'frb'):
-        return prj.frb['density'].value
-    else:
-        if prj._frb is None:
-            prj._recreate_frb()
-        return prj._frb['density']
-
-
 @pytest.mark.skipif("YT_VERSION is None")
 def test_axis_ordering_cartesian():
 
     # Regression test for axis ordering
+
+    from .yt_compat import get_frb
 
     x = np.linspace(-1, 1, 9)
     y = np.linspace(-2, 2, 17)
@@ -155,14 +148,16 @@ def test_axis_ordering_cartesian():
 
     for iz, z in enumerate(g.z):
         prj = SlicePlot(pf, 'z', ['density'], center=[0.0, 0.0, z])
-        np.testing.assert_allclose(get_density_frb(prj).min(), iz)
-        np.testing.assert_allclose(get_density_frb(prj).max(), iz)
+        np.testing.assert_allclose(get_frb(prj, 'density').min(), iz)
+        np.testing.assert_allclose(get_frb(prj, 'density').max(), iz)
 
 
 @pytest.mark.skipif("YT_VERSION is None")
 def test_axis_ordering_amr():
 
     # Regression test for axis ordering
+
+    from .yt_compat import get_frb
 
     g = AMRGrid()
 
@@ -186,5 +181,5 @@ def test_axis_ordering_amr():
 
     for iz, z in enumerate(zcen):
         prj = SlicePlot(pf, 'z', ['density'], center=[0.0, 0.0, z])
-        np.testing.assert_allclose(get_density_frb(prj).min(), iz)
-        np.testing.assert_allclose(get_density_frb(prj).max(), iz)
+        np.testing.assert_allclose(get_frb(prj, 'density').min(), iz)
+        np.testing.assert_allclose(get_frb(prj, 'density').max(), iz)
