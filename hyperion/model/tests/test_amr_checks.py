@@ -1,3 +1,5 @@
+from distutils.version import LooseVersion
+
 from astropy.tests.helper import pytest
 import numpy as np
 
@@ -7,9 +9,14 @@ from ...grid import AMRGrid
 
 try:
     import yt
-    YT_INSTALLED = True
-except ImportError:
-    YT_INSTALLED = False
+except:
+    YT_VERSION = None
+else:
+    if LooseVersion(yt.__version__) >= LooseVersion('3'):
+        YT_VERSION = 3
+    else:
+        YT_VERSION = 2
+
 
 @pytest.mark.parametrize(('direction'), ['x', 'y', 'z'])
 def test_amr_differing_widths(tmpdir, direction):
@@ -173,7 +180,7 @@ def test_amr_not_aligned_across_levels(tmpdir, direction):
     assert ('Grid 1 in level 2 is not aligned with cells in level 1 in the \n           %s direction' % direction) in open(log_file).read()
 
 
-@pytest.mark.skipif("not YT_INSTALLED")
+@pytest.mark.skipif("YT_VERSION is None or YT_VERSION < 3")
 def test_shadowing_regression(tmpdir):
 
     # Regression test for a bug that caused photons escaping from some grids to
