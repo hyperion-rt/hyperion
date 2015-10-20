@@ -3,6 +3,7 @@ from __future__ import print_function, division
 from astropy.tests.helper import pytest
 import numpy as np
 from astropy.table import Table, Column
+from traitlets import TraitError
 
 from .. import (Source, PointSource, PointSourceCollection, SpotSource,
                 SphericalSource, ExternalSphericalSource, ExternalBoxSource,
@@ -32,7 +33,7 @@ def test_luminosity_scalar(source_type):
 @pytest.mark.parametrize(('source_type'), list(set(ALL_SOURCES) - set([PointSourceCollection])))
 def test_luminosity_scalar_invalid2(source_type):
     s = source_type()
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(TraitError) as exc:
         s.luminosity = np.array([1, 2, 3])  # luminosity should be a scalar
     assert exc.value.args[0] == 'luminosity should be a scalar value'
 
@@ -40,7 +41,7 @@ def test_luminosity_scalar_invalid2(source_type):
 @pytest.mark.parametrize(('source_type'), list(set(ALL_SOURCES) - set([PointSourceCollection])))
 def test_luminosity_scalar_invalid3(source_type):
     s = source_type()
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(TraitError) as exc:
         s.luminosity = 'invalid'  # luminosity should be a number
     assert exc.value.args[0] == 'luminosity should be a numerical value'
 
@@ -48,7 +49,7 @@ def test_luminosity_scalar_invalid3(source_type):
 @pytest.mark.parametrize(('source_type'), list(set(ALL_SOURCES) - set([PointSourceCollection])))
 def test_luminosity_scalar_invalid4(source_type):
     s = source_type()
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(TraitError) as exc:
         s.luminosity = -1.  # luminosity should be positive
     assert exc.value.args[0] == 'luminosity should be positive'
 
@@ -289,9 +290,9 @@ def test_position_tuple(source_type):
 @pytest.mark.parametrize(('source_type'), SOURCES_POSITION)
 def test_position_tuple_invalid(source_type):
     s = source_type()
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(TraitError) as exc:
         s.position = (0., 1., 2., 4.)  # too many elements
-    assert exc.value.args[0] == 'position should be a sequence of 3 values'
+    assert exc.value.args[0] == 'position has incorrect length (expected 3 but found 4)'
 
 
 @pytest.mark.parametrize(('source_type'), SOURCES_POSITION)
@@ -303,9 +304,9 @@ def test_position_list(source_type):
 @pytest.mark.parametrize(('source_type'), SOURCES_POSITION)
 def test_position_list_invalid(source_type):
     s = source_type()
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(TraitError) as exc:
         s.position = [1., 2.]  # too few elements
-    assert exc.value.args[0] == 'position should be a sequence of 3 values'
+    assert exc.value.args[0] == 'position has incorrect length (expected 3 but found 2)'
 
 
 @pytest.mark.parametrize(('source_type'), SOURCES_POSITION)
@@ -317,17 +318,17 @@ def test_position_numpy(source_type):
 @pytest.mark.parametrize(('source_type'), SOURCES_POSITION)
 def test_position_numpy_invalid1(source_type):
     s = source_type()
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(TraitError) as exc:
         s.position = np.array([2.])  # too few elements
-    assert exc.value.args[0] == 'position should be a sequence of 3 values'
+    assert exc.value.args[0] == 'position has incorrect length (expected 3 but found 1)'
 
 
 @pytest.mark.parametrize(('source_type'), SOURCES_POSITION)
 def test_position_numpy_invalid2(source_type):
     s = source_type()
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(TraitError) as exc:
         s.position = np.array([[1., 2., 3.]])  # wrong dimensionality
-    assert exc.value.args[0] == 'position should be a 1-D sequence'
+    assert exc.value.args[0] == 'position should be a 1-d sequence'
 
 # POSITION (ARRAY)
 

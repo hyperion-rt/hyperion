@@ -11,6 +11,8 @@ from ..util.integrate import integrate_loglog
 from ..util.validator import validate_scalar
 from astropy import log as logger
 
+from numtraits import NumericalTrait
+from traitlets import HasTraits
 
 def read_source(handle):
     source_type = handle.attrs['type'].decode('ascii')
@@ -34,7 +36,7 @@ def read_source(handle):
         raise ValueError("Unexpected source type: {0}".format(source_type))
 
 
-class Source(FreezableClass):
+class Source(FreezableClass,HasTraits):
     '''
     This class is not meant to be used directly, but forms the basis for all other source types.
 
@@ -82,18 +84,7 @@ class Source(FreezableClass):
     def name(self, value):
         self._name = value
 
-    @property
-    def luminosity(self):
-        '''
-        The bolometric luminosity of the source (ergs/s)
-        '''
-        return self._luminosity
-
-    @luminosity.setter
-    def luminosity(self, value):
-        if value is not None:
-            validate_scalar('luminosity', value, domain='positive')
-        self._luminosity = value
+    luminosity = NumericalTrait(domain='positive',allow_none=True,ndim=0)
 
     def _read_luminosity(self, handle):
         self.luminosity = handle.attrs['luminosity']
@@ -395,27 +386,7 @@ class PointSource(Source):
 
         Source.__init__(self, name=name, peeloff=peeloff, **kwargs)
 
-    @property
-    def position(self):
-        '''
-        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
-        '''
-        return self._position
-
-    @position.setter
-    def position(self, value):
-        if value is not None:
-            if type(value) in [tuple, list]:
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            elif is_numpy_array(value):
-                if value.ndim != 1:
-                    raise ValueError("position should be a 1-D sequence")
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            else:
-                raise ValueError("position should be a tuple, list, or Numpy array")
-        self._position = value
+    position = NumericalTrait(allow_none=True,ndim=1,shape=(3,))
 
     def _check_all_set(self):
         Source._check_all_set(self)
@@ -571,27 +542,7 @@ class SphericalSource(Source):
             validate_scalar('radius', value, domain='positive')
         self._radius = value
 
-    @property
-    def position(self):
-        '''
-        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
-        '''
-        return self._position
-
-    @position.setter
-    def position(self, value):
-        if value is not None:
-            if type(value) in [tuple, list]:
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            elif is_numpy_array(value):
-                if value.ndim != 1:
-                    raise ValueError("position should be a 1-D sequence")
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            else:
-                raise ValueError("position should be a tuple, list, or Numpy array")
-        self._position = value
+    position = NumericalTrait(allow_none=True,ndim=1,shape=(3,))
 
     @property
     def limb(self):
@@ -702,27 +653,7 @@ class ExternalSphericalSource(Source):
             validate_scalar('radius', value, domain='positive')
         self._radius = value
 
-    @property
-    def position(self):
-        '''
-        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
-        '''
-        return self._position
-
-    @position.setter
-    def position(self, value):
-        if value is not None:
-            if type(value) in [tuple, list]:
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            elif is_numpy_array(value):
-                if value.ndim != 1:
-                    raise ValueError("position should be a 1-D sequence")
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            else:
-                raise ValueError("position should be a tuple, list, or Numpy array")
-        self._position = value
+    position = NumericalTrait(allow_none=True,ndim=1,shape=(3,))
 
     def _check_all_set(self):
         Source._check_all_set(self)
@@ -944,27 +875,7 @@ class PlaneParallelSource(Source):
             validate_scalar('radius', value, domain='positive')
         self._radius = value
 
-    @property
-    def position(self):
-        '''
-        The cartesian position of the source ``(x, y, z)`` as a sequence of three floating-point values (cm)
-        '''
-        return self._position
-
-    @position.setter
-    def position(self, value):
-        if value is not None:
-            if type(value) in [tuple, list]:
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            elif is_numpy_array(value):
-                if value.ndim != 1:
-                    raise ValueError("position should be a 1-D sequence")
-                if len(value) != 3:
-                    raise ValueError("position should be a sequence of 3 values")
-            else:
-                raise ValueError("position should be a tuple, list, or Numpy array")
-        self._position = value
+    position = NumericalTrait(allow_none=True,ndim=1,shape=(3,))
 
     @property
     def direction(self):
