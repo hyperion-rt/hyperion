@@ -108,5 +108,29 @@ def test_io(tmpdir):
     g2.read(f2)
     g2.write(f3)
 
-    np.testing.assert_allclose(g1._st[0], g2._st[0])
-    np.testing.assert_allclose(g1._st[1], g2._st[1])
+    np.testing.assert_allclose(g1._sparse_neighbors[0], g2._sparse_neighbors[0])
+    np.testing.assert_allclose(g1._sparse_neighbors[1], g2._sparse_neighbors[1])
+    
+    
+
+def test_init_sparse(tmpdir):
+    
+    # Regression test for a bug that caused VoronoiGrid._sparse_neighbors to not be defined
+    # when writing out a Voronoi grid.
+
+    file_1 = tmpdir.join('test1.hdf5').strpath
+    file_2 = tmpdir.join('test2.hdf5').strpath
+
+    g1 = VoronoiGrid([1,2,3],[3,4,5],[2,3,4])
+    f1 = h5py.File(file_1, 'w')
+    g1.write(f1)
+    f1.close()
+
+    f2 = h5py.File(file_1, 'r')
+    g2 = VoronoiGrid()
+    g2.read(f2)
+    
+    f3 = h5py.File(file_2, 'w')
+    g3 = VoronoiGrid(g2)
+    g3.write(f3)
+
