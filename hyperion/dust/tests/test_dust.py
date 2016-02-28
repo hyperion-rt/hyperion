@@ -24,6 +24,10 @@ class TestSphericalDust(object):
         self.dust.optical_properties.chi = np.ones(100)
         self.dust.optical_properties.mu = [-1., 1.]
         self.dust.optical_properties.initialize_scattering_matrix()
+        self.dust.optical_properties.P1[:, :] = 1.
+        self.dust.optical_properties.P2[:, :] = 0.
+        self.dust.optical_properties.P3[:, :] = 1.
+        self.dust.optical_properties.P4[:, :] = 0.
 
     def test_helpers(self):
 
