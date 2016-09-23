@@ -223,6 +223,7 @@ if fc is None:
                          'gfortran-mp-4.7',
                          'gfortran-mp-4.8',
                          'gfortran-mp-4.9',
+                         'gfortran-mp-5',
                          'gfortran',
                          'g95',
                          'pgfortran',
@@ -267,6 +268,7 @@ if cc is None:
                    'gcc-mp-4.7',
                    'gcc-mp-4.8',
                    'gcc-mp-4.9',
+                   'gcc-mp-5',
                    'gcc']
 
     # Create test script
@@ -304,6 +306,7 @@ if cxx is None:
                      'g++-mp-4.7',
                      'g++-mp-4.8',
                      'g++-mp-4.9',
+                     'g++-mp-5',
                      'g++']
                   
     # Create test script
