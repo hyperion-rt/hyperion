@@ -66,9 +66,6 @@ class TestFilters(object):
         self.tmpdir = tempfile.mkdtemp()
         m.write(os.path.join(self.tmpdir, random_id()))
 
-        # TEMP: xfail due to bug HDFFV-9985 in HDF5
-        pytest.xfail()
-
         self.m = m.run()
 
     def teardown_class(self):
