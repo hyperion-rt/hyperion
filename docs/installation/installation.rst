@@ -8,10 +8,37 @@ Installation
           talk to your system administrator to see if they can help you get
           set up!
 
-Dependencies
+The easy way
 ============
 
-First, you will need to install several dependencies for the Fortran and Python versions of Hyperion. Choose your own adventure!
+The easiest way to install Hyperion and all the dependencies on MacOS X or Linux
+is to use the `Anaconda Python Distribution <https://www.continuum.io/downloads>`_
+or `Miniconda <http://conda.pydata.org/miniconda.html>`_. Once you have either
+of these set up, you can install Hyperion by simply doing::
+
+    conda install -c conda-forge hyperion
+
+This will install both the Fortran binaries and the Python library for Hyperion
+(as well as all the dependencies including MPI and HDF5). That's it! You can
+check that the installation works by making sure that the following commands do
+not return 'command not found'::
+
+    $ hyperion
+    usage: hyperion [-h] [-f] [-m n_cores] input output
+    hyperion: error: the following arguments are required: input, output
+    $ hyperion_car
+    Usage: hyperion_car [-f] input_file output_file
+
+If you see the same as the above, you are all set!
+
+The longer way
+==============
+
+Dependencies
+------------
+
+First, you will need to install several dependencies for the Fortran and Python
+versions of Hyperion. Choose your own adventure!
 
 .. toctree::
    :maxdepth: 1
@@ -26,7 +53,7 @@ First, you will need to install several dependencies for the Fortran and Python 
 .. _hyperion_install:
 
 Hyperion
-========
+--------
 
 Once you have installed the dependencies as described in one of the sections
 above, you are ready to install Hyperion!
@@ -71,7 +98,7 @@ The path listed (excluding ``hyperion`` at the end) should be in your
 ``$PATH``. On Linux systems, this path will often be ``$HOME/.local/bin``.
 
 
-.. note:: On recent versions of MacOS X, you may encounter the following error  
+.. note:: On recent versions of MacOS X, you may encounter the following error
           when trying to install the Python library for Hyperion::
 
               clang: error: unknown argument: '-mno-fused-madd' [-Wunused-command-line-argument-hard-error-in-future]
