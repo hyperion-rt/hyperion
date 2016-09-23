@@ -82,6 +82,11 @@ class TestToYt(object):
         g['density'].append(self.density[grid_type])
         pf = g.to_yt()
 
+        # TEMP: xfail due to bug in yt
+        # https://bitbucket.org/yt_analysis/yt/pull-requests/2362/fix-type-issue-in-octree-construction/diff
+        if grid_type == 'oct':
+            pytest.xfail()
+
         p = ProjectionPlot(pf, 'x', ["density"], center='c', origin='native')
         p.save(tmpdir.join('test.png').strpath)
 
