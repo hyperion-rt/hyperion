@@ -1,5 +1,9 @@
 language: c
 
+os:
+  - linux
+  - osx
+
 env:
     global:
         - SETUP_XVFB=True
