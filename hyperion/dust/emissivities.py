@@ -7,7 +7,7 @@ from astropy.table import Table, Column
 
 from ..util.integrate import integrate_loglog
 from ..util.interpolate import interp1d_fast_loglog
-from ..util.functions import (B_nu, FreezableClass, nu_common
+from ..util.functions import (B_nu, FreezableClass, nu_common,
                               planck_nu_range, bool2str, is_numpy_array, monotonically_increasing)
 from astropy import log as logger
 
