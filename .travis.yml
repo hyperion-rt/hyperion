@@ -19,6 +19,7 @@ env:
 install:
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
+    - export DYLD_FALLBACK_LIBRARY_PATH=$HOME/miniconda/envs/test/lib
 
 script:
    - ./configure
