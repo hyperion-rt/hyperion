@@ -9,7 +9,7 @@ def test_b_nu():
 
     nu = np.logspace(-20, 20., 10000)
 
-    for T in [10,100,1000,10000]:
+    for T in [10, 100, 1000, 10000]:
 
         # Compute planck function
         b = B_nu(nu, T)
@@ -19,7 +19,7 @@ def test_b_nu():
         np.testing.assert_allclose(total, sigma * T ** 4 / np.pi, rtol=1e-4)
 
         # Check that we reach the rayleigh-jeans limit at low frequencies
-        rj = 2. * nu **2 * k * T / c**2
+        rj = 2. * nu ** 2 * k * T / c**2
         np.testing.assert_allclose(b[nu < 1e-10], rj[nu < 1e-10], rtol=1.e-8)
 
 
@@ -27,7 +27,7 @@ def test_db_nu_dt():
 
     nu = np.logspace(-20, 20., 10000)
 
-    for T in [10,100,1000,10000]:
+    for T in [10, 100, 1000, 10000]:
 
         # Compute exact planck function derivative
         db = dB_nu_dT(nu, T)

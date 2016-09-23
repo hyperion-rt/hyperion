@@ -46,6 +46,7 @@ class AmbientMedium(Density):
     where the density of component of ``e`` is larger than ``rho``, no dust is
     added.
     '''
+
     def __init__(self, rho=None, rmin=None, rmax=None, subtract=[]):
 
         # Basic ambient medium parameters

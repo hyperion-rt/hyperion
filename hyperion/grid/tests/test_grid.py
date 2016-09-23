@@ -3,9 +3,9 @@ from __future__ import print_function, division
 from astropy.tests.helper import pytest
 import numpy as np
 
-from .. import CartesianGrid, \
-               CylindricalPolarGrid, \
-               SphericalPolarGrid
+from .. import (CartesianGrid,
+                CylindricalPolarGrid,
+                SphericalPolarGrid)
 
 GRIDS = [CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid]
 
@@ -70,8 +70,8 @@ def test_grid_invalid3(grid):
 def test_grid_invalid4(grid):
     with pytest.raises(ValueError) as e:
         grid([[0., 1.]],  # lists should be 1D
-              (0., 1.),
-              np.array([0., 1.]))
+             (0., 1.),
+             np.array([0., 1.]))
     assert e.value.args[0] == WALL[grid][0] + ' should be a 1-D sequence'
 
 

@@ -122,10 +122,8 @@ class CartesianGrid(FreezableClass):
         self.gx, self.gy, self.gz = meshgrid_nd(self.x, self.y, self.z)
 
         # Generate 3D versions of the inner and outer wall positions respectively
-        gx_wall_min, gy_wall_min, gz_wall_min = \
-                    meshgrid_nd(x_wall[:-1], y_wall[:-1], z_wall[:-1])
-        gx_wall_max, gy_wall_max, gz_wall_max = \
-                    meshgrid_nd(x_wall[1:], y_wall[1:], z_wall[1:])
+        gx_wall_min, gy_wall_min, gz_wall_min = meshgrid_nd(x_wall[:-1], y_wall[:-1], z_wall[:-1])
+        gx_wall_max, gy_wall_max, gz_wall_max = meshgrid_nd(x_wall[1:], y_wall[1:], z_wall[1:])
 
         # USEFUL QUANTITIES
 
@@ -352,8 +350,8 @@ class CartesianGrid(FreezableClass):
                     link_or_copy(g_quantities, quantity, self.quantities[quantity], copy, absolute_paths=absolute_paths)
                 else:
                     dset = g_quantities.create_dataset(quantity, data=self.quantities[quantity],
-                                                    compression=compression,
-                                                    dtype=physics_dtype)
+                                                       compression=compression,
+                                                       dtype=physics_dtype)
                     dset.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
 
     def write_single_array(self, group, name, array, copy=True, absolute_paths=False, compression=True, physics_dtype=float):
@@ -453,9 +451,9 @@ class CartesianGrid(FreezableClass):
         # Convert to yt object
         from yt_wrappers import cartesian_grid_to_yt_stream
         return cartesian_grid_to_yt_stream(self, self.x_wall[0], self.x_wall[-1],
-                                                 self.y_wall[0], self.y_wall[-1],
-                                                 self.z_wall[0], self.z_wall[-1],
-                                                 dust_id=dust_id)
+                                           self.y_wall[0], self.y_wall[-1],
+                                           self.z_wall[0], self.z_wall[-1],
+                                           dust_id=dust_id)
 
 
 class CartesianGridView(CartesianGrid):

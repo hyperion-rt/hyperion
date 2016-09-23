@@ -300,6 +300,7 @@ class TestSEDSimpleModelTrackingScatterings(object):
             else:
                 assert sed.val.sum() == 0.
 
+
 class TestSimpleModelInside(object):
 
     def setup_class(self):

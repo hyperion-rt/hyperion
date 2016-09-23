@@ -16,7 +16,6 @@ def validate_physical_type(name, value, physical_type):
                 raise TypeError("{0} should be given in units of {1}".format(name, ', '.join(physical_type)))
 
 
-
 def validate_array(name, value, domain=None, ndim=1, shape=None, physical_type=None):
 
     if physical_type is None:
@@ -40,7 +39,6 @@ def validate_array(name, value, domain=None, ndim=1, shape=None, physical_type=N
             raise ValueError("{0} has incorrect shape (expected {1} but found {2})".format(name, shape, value.shape))
 
     return value
-
 
 
 def validate_scalar(name, value, domain=None, extra='', physical_type=None):

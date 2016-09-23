@@ -298,6 +298,7 @@ def test_dust_mix(tmpdir):
     m.write(tmpdir.join(random_id()).strpath)
     m.run(tmpdir.join(random_id()).strpath)
 
+
 def test_voronoi_basics(tmpdir):
     # A test to check the interaction between C++, Fortran and Python,
     # and to test the internal consistency of the Voronoi gridding.
@@ -336,6 +337,7 @@ def test_voronoi_basics(tmpdir):
     m.write(tmpdir.join(random_id()).strpath)
     m.run(tmpdir.join(random_id()).strpath)
 
+
 def test_dust_changed_nosave(tmpdir):
 
     kmh_dust = SphericalDust(os.path.join(DATA, 'kmh_lite.hdf5'))
@@ -366,7 +368,7 @@ def test_dust_changed_save(tmpdir):
 def test_model_minimal(tmpdir):
 
     m = Model()
-    m.set_cartesian_grid([-1., 1.],[-1., 1.],[-1., 1.])
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
     m.set_n_initial_iterations(0)
     m.set_n_photons(imaging=10)
     m.write(tmpdir.join(random_id()).strpath)

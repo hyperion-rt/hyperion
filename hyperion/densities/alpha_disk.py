@@ -282,9 +282,9 @@ class AlphaDisk(Disk):
             if self.star.mass is None:
                 raise Exception("Stellar mass is undefined - cannot compute disk accretion rate")
             mdot = self.lvisc / G / self.star.mass * 2. \
-                 / (3. / self.rmin - 3. / self.rmax \
-                    - 2. * np.sqrt(self.star.radius / self.rmin ** 3.) \
-                    + 2. * np.sqrt(self.star.radius / self.rmax ** 3.))
+                / (3. / self.rmin - 3. / self.rmax
+                   - 2. * np.sqrt(self.star.radius / self.rmin ** 3.)
+                   + 2. * np.sqrt(self.star.radius / self.rmax ** 3.))
             return mdot
 
     @mdot.setter
@@ -308,9 +308,9 @@ class AlphaDisk(Disk):
             if self.star.mass is None:
                 raise Exception("Stellar mass is undefined - cannot compute disk accretion luminosity")
             lvisc = G * self.star.mass * self.mdot / 2. \
-                    * (3. / self.rmin - 3. / self.rmax \
-                    - 2. * np.sqrt(self.star.radius / self.rmin ** 3.) \
-                    + 2. * np.sqrt(self.star.radius / self.rmax ** 3.))
+                * (3. / self.rmin - 3. / self.rmax
+                   - 2. * np.sqrt(self.star.radius / self.rmin ** 3.)
+                   + 2. * np.sqrt(self.star.radius / self.rmax ** 3.))
             return lvisc
 
     @lvisc.setter
@@ -598,8 +598,8 @@ class AlphaDisk(Disk):
 
         # Find disk luminosity at all positions
         luminosity = lvisc0 / grid.gw ** 3 / h * grid.volumes \
-                   * (1. - np.sqrt(self.star.radius / grid.gw)) \
-                   * np.exp(-0.5 * (grid.gz / h) ** 2)
+            * (1. - np.sqrt(self.star.radius / grid.gw)) \
+            * np.exp(-0.5 * (grid.gz / h) ** 2)
 
         # Truncate below rmin and above rmax
         if self.cylindrical_inner_rim:

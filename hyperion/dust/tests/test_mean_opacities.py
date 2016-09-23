@@ -32,7 +32,7 @@ class TestMeanOpacities(object):
         assert_allclose(m.temperature[-1], 1000.)
 
         assert_allclose(m.specific_energy,
-                                   4. * sigma * m.temperature ** 4. * m.kappa_planck)
+                        4. * sigma * m.temperature ** 4. * m.kappa_planck)
 
     def test_io(self):
 

@@ -140,10 +140,8 @@ class SphericalPolarGrid(FreezableClass):
         self.gw = self.gr * np.sin(self.gt)
 
         # Generate 3D versions of the inner and outer wall positions respectively
-        gr_wall_min, gt_wall_min, gp_wall_min = \
-                    meshgrid_nd(r_wall[:-1], t_wall[:-1], p_wall[:-1])
-        gr_wall_max, gt_wall_max, gp_wall_max = \
-                    meshgrid_nd(r_wall[1:], t_wall[1:], p_wall[1:])
+        gr_wall_min, gt_wall_min, gp_wall_min = meshgrid_nd(r_wall[:-1], t_wall[:-1], p_wall[:-1])
+        gr_wall_max, gt_wall_max, gp_wall_max = meshgrid_nd(r_wall[1:], t_wall[1:], p_wall[1:])
 
         # USEFUL QUANTITIES
 
@@ -388,8 +386,8 @@ class SphericalPolarGrid(FreezableClass):
                     link_or_copy(g_quantities, quantity, self.quantities[quantity], copy, absolute_paths=absolute_paths)
                 else:
                     dset = g_quantities.create_dataset(quantity, data=self.quantities[quantity],
-                                                    compression=compression,
-                                                    dtype=physics_dtype)
+                                                       compression=compression,
+                                                       dtype=physics_dtype)
                     dset.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
 
     def write_single_array(self, group, name, array, copy=True, absolute_paths=False, compression=True, physics_dtype=float):

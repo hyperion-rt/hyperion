@@ -28,6 +28,7 @@ class Filter(object):
     transmission : `numpy.ndarray`
         The spectral transmission as a function of spectral coordinate.
     """
+
     def __init__(self, name=None, spectral_coord=None, transmission=None):
         self.name = name
         self.spectral_coord = spectral_coord
@@ -107,9 +108,9 @@ class Filter(object):
         beta = self._beta
 
         # Here we normalize the filter before passing it to Hyperion
-        tr_norm = tr / nu ** (1 + beta) \
-                     / nu0 ** alpha \
-                     / integrate(nu, tr / nu ** (1. + alpha + beta))
+        tr_norm = (tr / nu ** (1 + beta)
+                   / nu0 ** alpha
+                   / integrate(nu, tr / nu ** (1. + alpha + beta)))
 
         # Now multiply by nu so that Hyperion returns nu * Fnu
         tr_norm *= nu

@@ -40,7 +40,7 @@ def mc_linear_polarization(I, sigma_I, Q, sigma_Q, U, sigma_U, N=1000):
     # This function is written with in-place operations for performance, which
     # can speed things up by at least a factor of two.
 
-    new_shape =  (N,) + I.shape
+    new_shape = (N,) + I.shape
     ones_shape = (N,) + (1,) * I.ndim
 
     xi1 = np.random.normal(loc=0, scale=1., size=ones_shape)
@@ -76,7 +76,7 @@ def mc_circular_polarization(I, sigma_I, V, sigma_V, N=1000):
     # This function is written with in-place operations for performance, which
     # can speed things up by at least a factor of two.
 
-    new_shape =  (N,) + I.shape
+    new_shape = (N,) + I.shape
     ones_shape = (N,) + (1,) * I.ndim
 
     xi1 = np.random.normal(loc=0, scale=1., size=ones_shape)
@@ -354,7 +354,7 @@ class ModelOutput(FreezableClass):
 
         if 'track_origin' in g['seds'].attrs and component != 'total':
             io = self._get_origin_slice(g['seds'], component=component,
-                                       source_id=source_id, dust_id=dust_id, n_scat=n_scat)
+                                        source_id=source_id, dust_id=dust_id, n_scat=n_scat)
 
         # Set up wavelength space
         if 'use_filters' in g.attrs and g.attrs['use_filters'].decode('utf-8').lower() == 'yes':
@@ -674,8 +674,7 @@ class ModelOutput(FreezableClass):
 
         if 'track_origin' in g['images'].attrs and component != 'total':
             io = self._get_origin_slice(g['images'], component=component,
-                                       source_id=source_id, dust_id=dust_id, n_scat=n_scat)
-
+                                        source_id=source_id, dust_id=dust_id, n_scat=n_scat)
 
         # Set up wavelength space
         if 'use_filters' in g.attrs and g.attrs['use_filters'].decode('utf-8').lower() == 'yes':

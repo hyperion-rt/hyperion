@@ -82,30 +82,30 @@ def solve_mu0(ratio, mu):
 
     v = x[0].real
 
-    mask = ambig & (mu >= 0) & (x[0].real >= 0) \
-                             & (x[1].real < 0) \
-                             & (x[2].real < 0)
+    mask = ambig & (mu >= 0) & ((x[0].real >= 0)
+                                & (x[1].real < 0)
+                                & (x[2].real < 0))
     v[mask] = x[0][mask].real
-    mask = ambig & (mu >= 0) & (x[0].real < 0) \
-                             & (x[1].real >= 0) \
-                             & (x[2].real < 0)
+    mask = ambig & (mu >= 0) & ((x[0].real < 0)
+                                & (x[1].real >= 0)
+                                & (x[2].real < 0))
     v[mask] = x[1][mask].real
-    mask = ambig & (mu >= 0) & (x[0].real < 0) \
-                             & (x[1].real < 0) \
-                             & (x[2].real >= 0)
+    mask = ambig & (mu >= 0) & ((x[0].real < 0)
+                                & (x[1].real < 0)
+                                & (x[2].real >= 0))
     v[mask] = x[2][mask].real
 
-    mask = ambig & (mu < 0) & (x[0].real < 0) \
-                            & (x[1].real >= 0) \
-                            & (x[2].real >= 0)
+    mask = ambig & (mu < 0) & ((x[0].real < 0)
+                               & (x[1].real >= 0)
+                               & (x[2].real >= 0))
     v[mask] = x[0][mask].real
-    mask = ambig & (mu < 0) & (x[0].real >= 0) \
-                            & (x[1].real < 0) \
-                            & (x[2].real >= 0)
+    mask = ambig & (mu < 0) & ((x[0].real >= 0)
+                               & (x[1].real < 0)
+                               & (x[2].real >= 0))
     v[mask] = x[1][mask].real
-    mask = ambig & (mu < 0) & (x[0].real >= 0) \
-                            & (x[1].real >= 0) \
-                            & (x[2].real < 0)
+    mask = ambig & (mu < 0) & ((x[0].real >= 0)
+                               & (x[1].real >= 0)
+                               & (x[2].real < 0))
     v[mask] = x[2][mask].real
 
     return v
@@ -213,8 +213,8 @@ class UlrichEnvelope(Envelope):
             self._check_all_set()
             if self.star.mass is None:
                 raise Exception("Stellar mass is undefined - cannot compute infall rate")
-            mdot = self.rho_0 * \
-                   (4. * pi * np.sqrt(G * self.star.mass * self.rc ** 3.))
+            mdot = (self.rho_0 *
+                    (4. * pi * np.sqrt(G * self.star.mass * self.rc ** 3.)))
             return mdot
 
     @mdot.setter
@@ -237,8 +237,8 @@ class UlrichEnvelope(Envelope):
             self._check_all_set()
             if self.star.mass is None:
                 raise Exception("Stellar mass is undefined - cannot compute density scaling")
-            rho_0 = self.mdot / \
-                    (4. * pi * np.sqrt(G * self.star.mass * self.rc ** 3.))
+            rho_0 = (self.mdot /
+                     (4. * pi * np.sqrt(G * self.star.mass * self.rc ** 3.)))
             return rho_0
 
     @rho_0.setter
@@ -351,17 +351,17 @@ class UlrichEnvelope(Envelope):
         mu0 = solve_mu0(r / self.rc, mu)
 
         # Find Ulrich envelope density
-        rho = self.rho_0 * (r / self.rc) ** -1.5 \
-                * (1 + mu / mu0) ** -0.5 \
-                * (mu / mu0 + 2. * mu0 ** 2 * self.rc / r) ** -1.
+        rho = (self.rho_0 * (r / self.rc) ** -1.5
+               * (1 + mu / mu0) ** -0.5
+               * (mu / mu0 + 2. * mu0 ** 2 * self.rc / r) ** -1.)
 
         mid1 = (np.abs(mu) < 1.e-10) & (r < self.rc)
-        rho[mid1] = self.rho_0 / np.sqrt(r[mid1] / self.rc) \
-                  / (1. - r[mid1] / self.rc) / 2.
+        rho[mid1] = (self.rho_0 / np.sqrt(r[mid1] / self.rc)
+                     / (1. - r[mid1] / self.rc) / 2.)
 
         mid2 = (np.abs(mu) < 1.e-10) & (r > self.rc)
-        rho[mid2] = self.rho_0 / np.sqrt(2. * r[mid2] / self.rc - 1) \
-                  / (r[mid2] / self.rc - 1.)
+        rho[mid2] = (self.rho_0 / np.sqrt(2. * r[mid2] / self.rc - 1)
+                     / (r[mid2] / self.rc - 1.))
 
         if np.any((np.abs(mu) < 1.e-10) & (r == self.rc)):
             raise Exception("Grid point too close to Ulrich singularity")
@@ -429,17 +429,17 @@ class UlrichEnvelope(Envelope):
 
         if gamma_0 < 1.:
 
-            rho[:] = self.rho_0 * self.rc \
-                * (np.log((np.sqrt(gamma_1) + 1) / (1. - np.sqrt(gamma_1)))
-                   - np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0))))
+            rho[:] = (self.rho_0 * self.rc
+                      * (np.log((np.sqrt(gamma_1) + 1) / (1. - np.sqrt(gamma_1)))
+                         - np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0)))))
 
             rho[gamma_1 >= 1.] = np.inf
 
         elif gamma_0 > 1:
 
-            rho[:] = self.rho_0 * self.rc \
-                * (np.log((np.sqrt(2. * gamma_1 - 1.) - 1.) / (np.sqrt(2. * gamma_1 - 1.) + 1.))
-                   - np.log((np.sqrt(2. * gamma_0 - 1.) - 1.) / (np.sqrt(2. * gamma_0 - 1.) + 1.)))
+            rho[:] = (self.rho_0 * self.rc
+                      * (np.log((np.sqrt(2. * gamma_1 - 1.) - 1.) / (np.sqrt(2. * gamma_1 - 1.) + 1.))
+                         - np.log((np.sqrt(2. * gamma_0 - 1.) - 1.) / (np.sqrt(2. * gamma_0 - 1.) + 1.))))
 
         else:
 

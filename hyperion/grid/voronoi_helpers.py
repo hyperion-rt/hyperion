@@ -59,7 +59,7 @@ class voronoi_grid(object):
         documentation for more information.
     '''
 
-    def __init__(self, sites, domain, n_samples=0, min_cell_samples = 10, with_vertices=False,
+    def __init__(self, sites, domain, n_samples=0, min_cell_samples=10, with_vertices=False,
                  wall=None, wall_args=None, verbose=False, seed=0):
         import numpy as np
         from ._voronoi_core import _voropp_wrapper
@@ -102,10 +102,10 @@ class voronoi_grid(object):
             raise TypeError(
                 'the \'min_cell_samples\' parameter must be a non-negative int')
         # Wall checks.
-        allowed_walls = ['sphere','cylinder','cone','plane']
+        allowed_walls = ['sphere', 'cylinder', 'cone', 'plane']
         if not wall is None and not wall in allowed_walls:
             raise ValueError('the \'wall\' parameter must be None or one of ' + str(allowed_walls))
-        if not wall_args is None and (not isinstance(wall_args,tuple) or not all([isinstance(_,float) for _ in wall_args])):
+        if not wall_args is None and (not isinstance(wall_args, tuple) or not all([isinstance(_, float) for _ in wall_args])):
             raise ValueError('the \'wall_args\' parameter must be None or a tuple of floats')
         # Seed checks.
         if not isinstance(seed, int):
@@ -131,7 +131,7 @@ class voronoi_grid(object):
             self._samples = tup[-2]
             self._samples_idx = tup[-1]
             tup = tup[0:-2]
-        t = Table([sites] + list(filter(lambda _: not _ is None,tup[2:])),names=tuple(names))
+        t = Table([sites] + list(filter(lambda _: not _ is None, tup[2:])), names=tuple(names))
         self.st = tup[0:2]
 
         self._neighbours_table = t
@@ -139,14 +139,14 @@ class voronoi_grid(object):
     @property
     def samples(self):
         from copy import deepcopy
-        if not hasattr(self,'_samples'):
+        if not hasattr(self, '_samples'):
             raise ValueError('no sampling was requested upon object construction')
         return deepcopy(self._samples)
 
     @property
     def samples_idx(self):
         from copy import deepcopy
-        if not hasattr(self,'_samples'):
+        if not hasattr(self, '_samples'):
             raise ValueError('no sampling was requested upon object construction')
         return deepcopy(self._samples_idx)
 

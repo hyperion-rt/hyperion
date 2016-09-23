@@ -280,7 +280,6 @@ def test_extrapolate_wav():
     assert_array_almost_equal_nulp(o.nu[-1], c / 1.e-4, 2)
 
 
-
 def test_io():
 
     o = OpticalProperties()
@@ -318,6 +317,6 @@ def test_plot():
     o.chi = np.ones(100)
     o.mu = [-1., 1.]
     o.initialize_scattering_matrix()
-    o.plot(fig, [321,322,323,324,325,326])
+    o.plot(fig, [321, 322, 323, 324, 325, 326])
 
     plt.close(fig)

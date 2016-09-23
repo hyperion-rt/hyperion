@@ -21,4 +21,3 @@ def test_grid_on_disk(tmpdir):
 
     g = GridOnDisk(grid_file)
     assert g['density'].n_dust == 1
-

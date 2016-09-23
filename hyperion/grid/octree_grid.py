@@ -221,7 +221,7 @@ class OctreeGrid(FreezableClass):
                 current_i += 1
                 max_levels = []
                 for i in range(8):
-                    current_i, max_level_indiv = check_recursive(refined, current_i, max_level+1)
+                    current_i, max_level_indiv = check_recursive(refined, current_i, max_level + 1)
                     max_levels.append(max_level_indiv)
                 max_level = max(max_levels)
             else:

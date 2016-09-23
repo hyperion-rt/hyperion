@@ -6,6 +6,7 @@ import yt.frontends.stream.api as stream
 from yt.utilities.io_handler import BaseIOHandler
 from yt.utilities.definitions import mpc_conversion
 
+
 class HyperionIOHandler(BaseIOHandler):
 
     def __init__(self, grids, dust_id):

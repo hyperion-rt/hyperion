@@ -191,7 +191,7 @@ class VoronoiGrid(FreezableClass):
 
         self._recompute_voronoi()
 
-        values_all = func(self._samples[:,0],self._samples[:,1],self._samples[:,2])
+        values_all = func(self._samples[:, 0], self._samples[:, 1], self._samples[:, 2])
 
         if not isinstance(values_all, tuple):
             values_all = (values_all,)
@@ -224,7 +224,7 @@ class VoronoiGrid(FreezableClass):
 
         if (self._voronoi_table is None
             or self._voronoi_table.meta['geometry'].decode('utf-8') != self.get_geometry_id()
-            or self._samples_params != (self._n_samples, self._min_cell_samples)):
+                or self._samples_params != (self._n_samples, self._min_cell_samples)):
 
             from .voronoi_helpers import voronoi_grid
 
@@ -236,7 +236,7 @@ class VoronoiGrid(FreezableClass):
                                 np.array([[self.xmin, self.xmax],
                                           [self.ymin, self.ymax],
                                           [self.zmin, self.zmax]],
-                                          ),
+                                         ),
                                 n_samples=self._n_samples or 0,
                                 min_cell_samples=self._min_cell_samples or 0,
                                 verbose=self._verbose,
@@ -363,7 +363,7 @@ class VoronoiGrid(FreezableClass):
 
         coords = group['cells']['coordinates']
 
-        self.set_points(coords[:,0], coords[:,1], coords[:,2],
+        self.set_points(coords[:, 0], coords[:, 1], coords[:, 2],
                         xmin=group.attrs['xmin'], xmax=group.attrs['xmax'],
                         ymin=group.attrs['ymin'], ymax=group.attrs['ymax'],
                         zmin=group.attrs['zmin'], zmax=group.attrs['zmax'])
@@ -467,8 +467,8 @@ class VoronoiGrid(FreezableClass):
 
         # Write the tables.
         voronoi_table.write(g_geometry, path='cells', compression=True)
-        g_geometry.create_dataset('sparse_neighs', data = self._st[0], compression = True)
-        g_geometry.create_dataset('sparse_idx', data = self._st[1], compression = True)
+        g_geometry.create_dataset('sparse_neighs', data=self._st[0], compression=True)
+        g_geometry.create_dataset('sparse_idx', data=self._st[1], compression=True)
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()

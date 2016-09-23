@@ -7,8 +7,8 @@ from astropy.table import Table, Column
 
 from ..util.integrate import integrate_loglog
 from ..util.interpolate import interp1d_fast_loglog
-from ..util.functions import B_nu, FreezableClass, nu_common, \
-                                    planck_nu_range, bool2str, is_numpy_array, monotonically_increasing
+from ..util.functions import (B_nu, FreezableClass, nu_common,
+                              planck_nu_range, bool2str, is_numpy_array, monotonically_increasing)
 from astropy import log as logger
 
 
@@ -111,10 +111,10 @@ class Emissivities(FreezableClass):
         self.is_lte = group.attrs['lte'].decode('utf-8').lower() == 'yes'
 
     def all_set(self):
-        return self.var_name is not None and \
-               self.var is not None and \
-               self.nu is not None and \
-               self.jnu is not None
+        return (self.var_name is not None and
+                self.var is not None and
+                self.nu is not None and
+                self.jnu is not None)
 
     def plot(self, figure, subplot):
 
@@ -132,9 +132,9 @@ class Emissivities(FreezableClass):
         ax = figure.add_subplot(subplot)
         ax.patch.set_facecolor('black')
         ax.contourf(self.nu, self.var,
-                     np.log10(np.clip(np.abs(self.jnu.swapaxes(0, 1)), 10. ** vmin, 10. ** vmax)),
-                     np.linspace(vmin, vmax, 30),
-                     cmap=m)
+                    np.log10(np.clip(np.abs(self.jnu.swapaxes(0, 1)), 10. ** vmin, 10. ** vmax)),
+                    np.linspace(vmin, vmax, 30),
+                    cmap=m)
         ax.set_xscale('log')
         ax.set_yscale('log')
         ax.set_xlim(self.nu.min(), self.nu.max())

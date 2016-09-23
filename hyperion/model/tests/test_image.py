@@ -643,14 +643,14 @@ def test_flux_preserved_scatterings(tmpdir):
 
     i = m.add_peeled_images(sed=False, image=True)
     i.set_wavelength_range(10, 0.1, 1000.)
-    i.set_viewing_angles([32],[33.])
+    i.set_viewing_angles([32], [33.])
     i.set_image_limits(-2., 2., -2., 2.)
     i.set_image_size(256, 256)
     i.set_track_origin('scatterings', n_scat=2)
 
     i = m.add_peeled_images(sed=False, image=True)
     i.set_wavelength_range(10, 0.1, 1000.)
-    i.set_viewing_angles([32],[33.])
+    i.set_viewing_angles([32], [33.])
     i.set_image_limits(-2., 2., -2., 2.)
     i.set_image_size(256, 256)
 

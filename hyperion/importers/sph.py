@@ -16,9 +16,9 @@ def refine(x, y, z, dx, dy, dz, px, py, pz, sigma, mass, levels_remaining, stopp
     py_pos = py > y
     pz_pos = pz > z
 
-    for zcomp, zsub in ((~pz_pos, z - dz * 0.5),(pz_pos, z + dz  *0.5)):
-        for ycomp, ysub in ((~py_pos, y - dy * 0.5),(py_pos, y + dy  *0.5)):
-            for xcomp, xsub in ((~px_pos, x - dx * 0.5),(px_pos, x + dx  *0.5)):
+    for zcomp, zsub in ((~pz_pos, z - dz * 0.5), (pz_pos, z + dz * 0.5)):
+        for ycomp, ysub in ((~py_pos, y - dy * 0.5), (py_pos, y + dy * 0.5)):
+            for xcomp, xsub in ((~px_pos, x - dx * 0.5), (px_pos, x + dx * 0.5)):
 
                 keep = xcomp & ycomp & zcomp
 
@@ -185,7 +185,7 @@ def compute_octree_densities(octree, px, py, pz, sigma, mass, mode='exact'):
 
         # Split them up for multiprocessing
         size = int(np.ceil(len(idx) / float(N)))
-        idx_split = [idx[i:i+size] for i in range(0, len(idx), size)]
+        idx_split = [idx[i:i + size] for i in range(0, len(idx), size)]
         assert np.all(np.hstack(idx_split) == idx)
 
         # Construct tuple to send to multiprocessing

@@ -2,15 +2,15 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from .interpolate import interp1d_fast, \
-                         interp1d_fast_loglin, \
-                         interp1d_fast_linlog, \
-                         interp1d_fast_loglog
+from .interpolate import (interp1d_fast,
+                          interp1d_fast_loglin,
+                          interp1d_fast_linlog,
+                          interp1d_fast_loglog)
 
-from ._integrate_core import _integrate, \
-                             _integrate_loglin, \
-                             _integrate_linlog, \
-                             _integrate_loglog
+from ._integrate_core import (_integrate,
+                              _integrate_loglin,
+                              _integrate_linlog,
+                              _integrate_loglog)
 
 
 def integrate_subset(x, y, xmin, xmax):

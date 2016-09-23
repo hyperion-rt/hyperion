@@ -616,6 +616,7 @@ class AMRGrid(FreezableClass):
         from yt_wrappers import yt_dataset_to_amr_grid
         return yt_dataset_to_amr_grid(ds, quantity_mapping=quantity_mapping)
 
+
 class AMRGridView(AMRGrid):
 
     def __init__(self, amr_grid, quantity):

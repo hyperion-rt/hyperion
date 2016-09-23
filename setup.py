@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import os
 import sys
 
 if sys.version_info[0] >= 3:
@@ -114,5 +113,5 @@ setup(name='Hyperion',
                     'hyperion.testing':['coveragerc']},
       scripts=['scripts/' + x for x in scripts],
       cmdclass=cmdclass,
-      ext_modules = ext_modules
+      ext_modules=ext_modules
      )

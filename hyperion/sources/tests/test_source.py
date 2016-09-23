@@ -9,10 +9,10 @@ from .. import (Source, PointSource, PointSourceCollection, SpotSource,
                 MapSource, PlaneParallelSource)
 
 from ...grid import (CartesianGrid,
-                    CylindricalPolarGrid,
-                    SphericalPolarGrid,
-                    AMRGrid,
-                    OctreeGrid)
+                     CylindricalPolarGrid,
+                     SphericalPolarGrid,
+                     AMRGrid,
+                     OctreeGrid)
 
 from ...util.functions import virtual_file
 
@@ -28,6 +28,7 @@ ALL_SOURCES = [Source, PointSource, PointSourceCollection, SpotSource,
 def test_luminosity_scalar(source_type):
     s = source_type()
     s.luminosity = 1.
+
 
 @pytest.mark.parametrize(('source_type'), list(set(ALL_SOURCES) - set([PointSourceCollection])))
 def test_luminosity_scalar_invalid2(source_type):
@@ -54,10 +55,12 @@ def test_luminosity_scalar_invalid4(source_type):
 
 # ARRAY LUMINOSITY
 
+
 @pytest.mark.parametrize(('source_type'), [PointSourceCollection])
 def test_luminosity_array(source_type):
     s = source_type()
     s.luminosity = np.array([1, 2, 3])
+
 
 @pytest.mark.parametrize(('source_type'), [PointSourceCollection])
 def test_luminosity_array_invalid1(source_type):
@@ -66,12 +69,14 @@ def test_luminosity_array_invalid1(source_type):
         s.luminosity = 1.
     assert exc.value.args[0] == 'luminosity should be a Numpy array'
 
+
 @pytest.mark.parametrize(('source_type'), [PointSourceCollection])
 def test_luminosity_array_invalid2(source_type):
     s = source_type()
     with pytest.raises(ValueError) as exc:
-        s.luminosity = np.ones((2,2))
+        s.luminosity = np.ones((2, 2))
     assert exc.value.args[0] == 'luminosity should be a 1-D array'
+
 
 @pytest.mark.parametrize(('source_type'), [PointSourceCollection])
 def test_luminosity_array_invalid3(source_type):
@@ -226,6 +231,7 @@ def test_set_spectrum_temperature(source_type):
         s.temperature = 1000.  # spectrum has already been specified
     assert exc.value.args[0] == 'A spectrum has already been set, so cannot set a temperature'
 
+
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
 def test_spectrum_negative(source_type):
 
@@ -242,6 +248,7 @@ def test_spectrum_negative(source_type):
     with pytest.raises(ValueError) as exc:
         s.spectrum = (nu, fnu)
     assert exc.value.args[0] == 'fnu should be positive'
+
 
 @pytest.mark.parametrize(('source_type'), ALL_SOURCES)
 def test_spectrum_nan(source_type):
@@ -353,12 +360,14 @@ def test_position_invalid1(source_type):
         s.position = [0., 1., 2.]
     assert exc.value.args[0] == 'position should be a Numpy array'
 
+
 @pytest.mark.parametrize(('source_type'), SOURCES_POSITION_ARRAY)
 def test_position_invalid2(source_type):
     s = source_type()
     with pytest.raises(ValueError) as exc:
         s.position = np.array([0., 1., 2.])
     assert exc.value.args[0] == 'position should be a 2-D array'
+
 
 @pytest.mark.parametrize(('source_type'), SOURCES_POSITION_ARRAY)
 def test_position_invalid3(source_type):
@@ -734,7 +743,7 @@ def test_map_write_octree():
 
     # Set up coordinate grid
     refined = [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-           0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+               0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
     g = OctreeGrid(0., 0., 0., 10., 10., 10., np.array(refined).astype(bool))
 
     v = virtual_file()

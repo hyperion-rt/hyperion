@@ -10,11 +10,11 @@ from ...util.functions import random_id
 from ...model import Model
 from ...model.tests.test_helpers import get_realistic_test_dust
 
-from .. import CartesianGrid, \
-               SphericalPolarGrid, \
-               CylindricalPolarGrid, \
-               AMRGrid, \
-               OctreeGrid
+from .. import (CartesianGrid,
+                SphericalPolarGrid,
+                CylindricalPolarGrid,
+                AMRGrid,
+                OctreeGrid)
 
 try:
     import yt
@@ -103,7 +103,7 @@ def test_from_yt(tmpdir):
 
     ds.add_field(("gas", "dust_density"), function=_dust_density, units='g/cm**3')
 
-    amr = AMRGrid.from_yt(ds, quantity_mapping={'density':('gas', 'dust_density')})
+    amr = AMRGrid.from_yt(ds, quantity_mapping={'density': ('gas', 'dust_density')})
 
     m = Model()
 
@@ -141,7 +141,7 @@ def test_axis_ordering_cartesian():
     y = np.linspace(-2, 2, 17)
     z = np.linspace(-3, 3, 33)
 
-    density = np.arange(32)[:,None,None] * np.ones((32, 16, 8))
+    density = np.arange(32)[:, None, None] * np.ones((32, 16, 8))
 
     g = CartesianGrid(x, y, z)
     g['density'] = []
@@ -175,7 +175,7 @@ def test_axis_ordering_amr():
     grid.nx, grid.ny, grid.nz = 8, 16, 32
 
     grid.quantities['density'] = []
-    grid.quantities['density'].append(np.arange(grid.nz)[:,None,None] * np.ones((grid.nz, grid.ny, grid.nx)))
+    grid.quantities['density'].append(np.arange(grid.nz)[:, None, None] * np.ones((grid.nz, grid.ny, grid.nx)))
 
     from yt.mods import ProjectionPlot, SlicePlot
 

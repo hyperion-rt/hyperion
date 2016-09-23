@@ -48,27 +48,27 @@ class TestSphericalDust(object):
 
         # Test with scalars
         assert_allclose(self.dust.temperature2specific_energy(0.1),
-                                   self.dust.mean_opacities.specific_energy[0])
+                        self.dust.mean_opacities.specific_energy[0])
         assert_allclose(self.dust.temperature2specific_energy(1e4),
-                                   self.dust.mean_opacities.specific_energy[-1])
+                        self.dust.mean_opacities.specific_energy[-1])
 
         # Test with arrays
         assert_allclose(self.dust.temperature2specific_energy(np.array([0.1])),
-                                   self.dust.mean_opacities.specific_energy[0])
+                        self.dust.mean_opacities.specific_energy[0])
         assert_allclose(self.dust.temperature2specific_energy(np.array([1e4])),
-                                   self.dust.mean_opacities.specific_energy[-1])
+                        self.dust.mean_opacities.specific_energy[-1])
 
         # Test with scalars
         assert_allclose(self.dust.specific_energy2temperature(1.e-10),
-                                   self.dust.mean_opacities.temperature[0])
+                        self.dust.mean_opacities.temperature[0])
         assert_allclose(self.dust.specific_energy2temperature(1.e+10),
-                                   self.dust.mean_opacities.temperature[-1])
+                        self.dust.mean_opacities.temperature[-1])
 
         # Test with arrays
         assert_allclose(self.dust.specific_energy2temperature(np.array([1.e-10])),
-                                   self.dust.mean_opacities.temperature[0])
+                        self.dust.mean_opacities.temperature[0])
         assert_allclose(self.dust.specific_energy2temperature(np.array([1.e+10])),
-                                   self.dust.mean_opacities.temperature[-1])
+                        self.dust.mean_opacities.temperature[-1])
 
     def test_conversions_roundtrip(self):
 
@@ -98,7 +98,7 @@ class TestSphericalDust(object):
         assert_allclose(self.dust.mean_opacities.temperature[-1], 1000)
 
         assert_allclose(self.dust.mean_opacities.specific_energy,
-                                  self.dust.emissivities.var)
+                        self.dust.emissivities.var)
 
     def test_plot(self, tmpdir):
 

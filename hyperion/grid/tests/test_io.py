@@ -5,11 +5,11 @@ import numpy as np
 from astropy.tests.helper import pytest
 
 from ...util.functions import random_id
-from .. import CartesianGrid, \
-               CylindricalPolarGrid, \
-               SphericalPolarGrid, \
-               AMRGrid, \
-               OctreeGrid
+from .. import (CartesianGrid,
+                CylindricalPolarGrid,
+                SphericalPolarGrid,
+                AMRGrid,
+                OctreeGrid)
 
 ALL_GRID_TYPES = ['car', 'sph', 'cyl', 'amr', 'oct']
 

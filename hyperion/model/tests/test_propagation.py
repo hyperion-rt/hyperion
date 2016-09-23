@@ -15,10 +15,10 @@ def any_photons_killed(handle):
         if 'killed_photons_geo' in handle[group].attrs:
             if handle[group].attrs['killed_photons_geo'] != 0 or handle[group].attrs['killed_photons_int'] != 0:
                 return True
-    return handle.attrs['killed_photons_geo_final'] != 0 or \
-           handle.attrs['killed_photons_int_final'] != 0 or \
-           handle.attrs['killed_photons_geo_raytracing'] != 0 or \
-           handle.attrs['killed_photons_int_raytracing'] != 0
+    return (handle.attrs['killed_photons_geo_final'] != 0 or
+            handle.attrs['killed_photons_int_final'] != 0 or
+            handle.attrs['killed_photons_geo_raytracing'] != 0 or
+            handle.attrs['killed_photons_int_raytracing'] != 0)
 
 
 class TestCartesianBase(object):
@@ -82,9 +82,9 @@ class TestCartesianBase(object):
         for ix in range(len(self.x)):
             for iy in range(len(self.y)):
                 for iz in range(len(self.z)):
-                    if ix == 0 or ix == len(self.x) - 1 or \
-                        iy == 0 or iy == len(self.y) - 1 or \
-                            iz == 0 or iz == len(self.z) - 1:
+                    if (ix == 0 or ix == len(self.x) - 1 or
+                        iy == 0 or iy == len(self.y) - 1 or
+                            iz == 0 or iz == len(self.z) - 1):
                         s = self.m.add_point_source()
                         x = self.x[ix]
                         y = self.y[iy]

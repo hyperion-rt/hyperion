@@ -22,12 +22,12 @@ class OptThinRadius(object):
     def evaluate(self, star, dust):
         rstar = star.radius
         tstar = star.effective_temperature()
-        nu_min, nu_max = dust.optical_properties.nu[0], \
-                         dust.optical_properties.nu[-1]
+        nu_min, nu_max = (dust.optical_properties.nu[0],
+                          dust.optical_properties.nu[-1])
         nu, fnu = star.total_spectrum(bnu_range=(nu_min, nu_max))
-        x = (self.temperature / tstar) ** 4. \
-            * dust.kappa_nu_temperature(self.temperature) \
-            / dust.kappa_nu_spectrum(nu, fnu)
+        x = ((self.temperature / tstar) ** 4.
+             * dust.kappa_nu_temperature(self.temperature)
+             / dust.kappa_nu_spectrum(nu, fnu))
         if x < 0.001:
             r = self.value * rstar / 2. / np.sqrt(x)
         else:

@@ -136,7 +136,7 @@ def find_order(refined):
                 cells.append(sub_cells)
             else:
                 cells.append(i)
-        cells = [cells[j] for j in [0,1,5,3,7,2,6,4,8]]
+        cells = [cells[j] for j in [0, 1, 5, 3, 7, 2, 6, 4, 8]]
         return i, np.hstack(cells)
 
     return find_nested(0)[1]

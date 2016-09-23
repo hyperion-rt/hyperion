@@ -58,7 +58,7 @@ def test_construct_octree():
         for sub in range(8):
             volumes += [current_volume]
             if refined[i]:
-                sub_volumes, i = get_volumes(i+1, current_volume / 8., refined)
+                sub_volumes, i = get_volumes(i + 1, current_volume / 8., refined)
                 volumes += sub_volumes
             else:
                 i += 1
