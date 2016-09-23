@@ -441,6 +441,7 @@ class PointSource(Source):
         g.attrs['z'] = self.position[2]
         Source.write(self, g)
 
+
 class PointSourceCollection(Source):
     '''
     A point source.
@@ -532,6 +533,7 @@ class PointSourceCollection(Source):
         g.attrs['type'] = np.string_('point_collection'.encode('utf-8'))
         g.create_dataset('position', data=self.position, compression=True)
         Source.write(self, g)
+
 
 class SphericalSource(Source):
     '''

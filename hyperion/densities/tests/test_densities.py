@@ -717,7 +717,8 @@ def test_ambient_densities_1():
     a.rmax = 10.
 
     expected = np.ones(len(r) - 1) * 2.
-    assert_array_almost_equal_nulp(a.density(g)[0,0,:], expected, 10)
+    assert_array_almost_equal_nulp(a.density(g)[0, 0, :], expected, 10)
+
 
 def test_ambient_densities_2():
 
@@ -741,14 +742,15 @@ def test_ambient_densities_2():
     a.subtract = [p1]
 
     expected = 10. * g.r ** -2
-    assert_array_almost_equal_nulp(p1.density(g)[0,0,:], expected, 10)
+    assert_array_almost_equal_nulp(p1.density(g)[0, 0, :], expected, 10)
 
     expected = np.clip(2 - 10. * g.r ** -2, 0., np.inf)
-    assert_array_almost_equal_nulp(a.density(g)[0,0,:], expected, 10)
+    assert_array_almost_equal_nulp(a.density(g)[0, 0, :], expected, 10)
 
     expected = np.clip(10. * g.r ** -2, 2., np.inf)
-    assert_array_almost_equal_nulp((a.density(g) + p1.density(g))[0,0,:],
+    assert_array_almost_equal_nulp((a.density(g) + p1.density(g))[0, 0, :],
                                    expected, 10)
+
 
 def test_ambient_densities_3():
 
@@ -780,13 +782,13 @@ def test_ambient_densities_3():
     a.subtract = [p1, p2]
 
     expected = 10. * g.r ** -2
-    assert_array_almost_equal_nulp(p1.density(g)[0,0,:], expected, 10)
+    assert_array_almost_equal_nulp(p1.density(g)[0, 0, :], expected, 10)
 
-    expected = np.clip(2 - 10. * g.r ** -2 - 8. * g.r ** -1.5, 0., np.inf )
-    assert_array_almost_equal_nulp(a.density(g)[0,0,:], expected, 10)
+    expected = np.clip(2 - 10. * g.r ** -2 - 8. * g.r ** -1.5, 0., np.inf)
+    assert_array_almost_equal_nulp(a.density(g)[0, 0, :], expected, 10)
 
     expected = np.clip(10. * g.r ** -2 + 8. * g.r ** -1.5, 2., np.inf)
-    assert_array_almost_equal_nulp((a.density(g) + p1.density(g) + p2.density(g))[0,0,:],
+    assert_array_almost_equal_nulp((a.density(g) + p1.density(g) + p2.density(g))[0, 0, :],
                                    expected, 10)
 
 
@@ -796,7 +798,7 @@ def test_ambient_densities_4():
     # densities to subtract from the ambient medium.
 
     r = np.linspace(0., 10., 10)
-    t = np.linspace(0., np.pi,10)
+    t = np.linspace(0., np.pi, 10)
     p = [0., 2 * np.pi]
     g = SphericalPolarGrid(r, t, p)
 
@@ -822,14 +824,14 @@ def test_ambient_densities_4():
     a.subtract = [p1, c]
 
     expected = np.repeat(3., 9)
-    assert_array_almost_equal_nulp((p1.density(g) + c.density(g) + a.density(g))[0,0,:], expected, 10)
+    assert_array_almost_equal_nulp((p1.density(g) + c.density(g) + a.density(g))[0, 0, :], expected, 10)
 
     c.rho_0 = 2.
 
     expected = np.repeat(2., 9)
-    assert_array_almost_equal_nulp((p1.density(g) + c.density(g) + a.density(g))[0,0,:], expected, 10)
+    assert_array_almost_equal_nulp((p1.density(g) + c.density(g) + a.density(g))[0, 0, :], expected, 10)
 
     c.rho_0 = 1.
 
     expected = np.repeat(2., 9)
-    assert_array_almost_equal_nulp((p1.density(g) + c.density(g) + a.density(g))[0,0,:], expected, 10)
+    assert_array_almost_equal_nulp((p1.density(g) + c.density(g) + a.density(g))[0, 0, :], expected, 10)

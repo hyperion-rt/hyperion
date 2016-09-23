@@ -13,8 +13,8 @@ from ...util.functions import virtual_file
 
 @pytest.mark.parametrize(('attribute', 'value'),
                          list(product(['output_density', 'output_density_diff',
-                         'output_specific_energy', 'output_n_photons'],
-                         ['none', 'last', 'all'])))
+                                       'output_specific_energy', 'output_n_photons'],
+                                      ['none', 'last', 'all'])))
 def test_io_output_conf(attribute, value):
     o1 = OutputConf()
     setattr(o1, attribute, value)

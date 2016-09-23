@@ -21,7 +21,7 @@ def test_basic():
     f = Filter()
 
     f.name = "2J"
-    f.spectral_coord = [1,2,3] * u.Hz
+    f.spectral_coord = [1, 2, 3] * u.Hz
     f.transmission = [4, 5, 6] * u.percent
     f.central_spectral_coord = 1.5 * u.Hz
     f.detector_type = 'photons'
@@ -34,7 +34,8 @@ def test_basic():
     assert f.detector_type == 'photons'
     assert f.alpha == -1.
 
-@pytest.mark.parametrize('value', [object(), 1., [1,2,3]])
+
+@pytest.mark.parametrize('value', [object(), 1., [1, 2, 3]])
 def test_name_invalid_type(value):
     f = Filter()
     with pytest.raises(TypeError) as exc:
@@ -42,7 +43,7 @@ def test_name_invalid_type(value):
     assert exc.value.args[0] == 'name should be given as a string'
 
 
-@pytest.mark.parametrize('value', [1. * u.Hz, [[1,2,3],[4,5,6]] * u.Hz])
+@pytest.mark.parametrize('value', [1. * u.Hz, [[1, 2, 3], [4, 5, 6]] * u.Hz])
 def test_spectral_coord_invalid_shape(value):
     f = Filter()
     with pytest.raises(TypeError) as exc:
@@ -50,7 +51,7 @@ def test_spectral_coord_invalid_shape(value):
     assert exc.value.args[0] == 'spectral_coord should be a 1-d sequence'
 
 
-@pytest.mark.parametrize('value', ['string', object(), 1., [1,2,3]])
+@pytest.mark.parametrize('value', ['string', object(), 1., [1, 2, 3]])
 def test_spectral_coord_invalid_type(value):
     f = Filter()
     with pytest.raises(TypeError) as exc:
@@ -66,7 +67,7 @@ def test_spectral_coord_invalid_unit(unit):
     assert exc.value.args[0] == 'spectral_coord should be given in units of frequency, length, energy'
 
 
-@pytest.mark.parametrize('value', ['string', object(), 1., [1,2,3]])
+@pytest.mark.parametrize('value', ['string', object(), 1., [1, 2, 3]])
 def test_central_spectral_coord_invalid_type(value):
     f = Filter()
     with pytest.raises(TypeError) as exc:
@@ -87,7 +88,7 @@ def test_roundtrip():
     f = Filter()
 
     f.name = "2J"
-    f.spectral_coord = [1,2,3] * u.Hz
+    f.spectral_coord = [1, 2, 3] * u.Hz
     f.transmission = [4, 5, 6] * u.percent
     f.central_spectral_coord = 1.5 * u.Hz
     f.detector_type = 'photons'

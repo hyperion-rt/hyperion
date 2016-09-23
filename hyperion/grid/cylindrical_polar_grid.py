@@ -131,11 +131,9 @@ class CylindricalPolarGrid(FreezableClass):
         self.gw, self.gz, self.gp = meshgrid_nd(self.w, self.z, self.p)
 
         # Generate 3D versions of the inner and outer wall positions respectively
-        gw_wall_min, gz_wall_min, gp_wall_min = \
-                    meshgrid_nd(w_wall[:-1], z_wall[:-1], p_wall[:-1])
+        gw_wall_min, gz_wall_min, gp_wall_min = meshgrid_nd(w_wall[:-1], z_wall[:-1], p_wall[:-1])
 
-        gw_wall_max, gz_wall_max, gp_wall_max = \
-                    meshgrid_nd(w_wall[1:], z_wall[1:], p_wall[1:])
+        gw_wall_max, gz_wall_max, gp_wall_max = meshgrid_nd(w_wall[1:], z_wall[1:], p_wall[1:])
 
         # USEFUL QUANTITIES
 
@@ -378,8 +376,8 @@ class CylindricalPolarGrid(FreezableClass):
                     link_or_copy(g_quantities, quantity, self.quantities[quantity], copy, absolute_paths=absolute_paths)
                 else:
                     dset = g_quantities.create_dataset(quantity, data=self.quantities[quantity],
-                                                    compression=compression,
-                                                    dtype=physics_dtype)
+                                                       compression=compression,
+                                                       dtype=physics_dtype)
                     dset.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
 
     def write_single_array(self, group, name, array, copy=True, absolute_paths=False, compression=True, physics_dtype=float):

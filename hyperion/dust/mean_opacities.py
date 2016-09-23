@@ -50,7 +50,6 @@ class MeanOpacities(FreezableClass):
         planck_nu = planck_nu_range(temp_min, temp_max)
         nu = nu_common(planck_nu, optical_properties.nu)
 
-
         if planck_nu.min() < optical_properties.nu.min():
             logger.warn("Planck function for lowest temperature not completely covered by opacity function")
             nu = nu[nu >= optical_properties.nu.min()]

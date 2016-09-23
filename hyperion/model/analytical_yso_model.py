@@ -410,7 +410,7 @@ class AnalyticalYSOModel(Model):
 
         if (len(self.disks) == 0 and
             len(self.envelopes) == 0 and
-            len(self.ambients) == 0):
+                len(self.ambients) == 0):
             rmin = self.star.radius
         else:
             rmin_values = ([disk.rmin for disk in self.disks] +
@@ -454,7 +454,7 @@ class AnalyticalYSOModel(Model):
         '''
         self.grid = {'grid_type': 'cylindrical',
                      'n1': n_w, 'n2': n_z, 'n3': n_phi,
-                     'rmin':wmin, 'rmax': wmax, 'zmin':zmin, 'zmax': zmax, 'min_spacing':min_spacing}
+                     'rmin': wmin, 'rmax': wmax, 'zmin': zmin, 'zmax': zmax, 'min_spacing': min_spacing}
 
     def set_spherical_polar_grid_auto(self, n_r, n_theta, n_phi,
                                       rmax=None, min_spacing=1.e-8):
@@ -480,7 +480,7 @@ class AnalyticalYSOModel(Model):
         '''
         self.grid = {'grid_type': 'spherical',
                      'n1': n_r, 'n2': n_theta, 'n3': n_phi,
-                     'rmax': rmax, 'min_spacing':min_spacing}
+                     'rmax': rmax, 'min_spacing': min_spacing}
 
     def _set_polar_grid_auto(self, n1=None, n2=None, n3=None, grid_type=None,
                              zmin=None, zmax=None, rmin=None, rmax=None, min_spacing=1.e-8):

@@ -231,7 +231,7 @@ def test_shadowing_regression(tmpdir):
     pf = g.to_yt()
 
     prj = SlicePlot(pf, 'y', ['density', 'temperature'],
-                         center=[0.0, 0.0, 0.0])
+                    center=[0.0, 0.0, 0.0])
 
     # With bug, value was lower because there were shadowed regions
     assert 12. < get_frb(prj, 'temperature').min() < 13.

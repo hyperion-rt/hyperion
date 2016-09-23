@@ -109,7 +109,7 @@ class Image(FreezableClass):
             if self.nu is not None and len(self.nu) != value.shape[-1]:
                 raise ValueError("the last dimension of the unc array should match the length of the nu array (expected {0} but found {1})".format(len(self.nu), value.shape[-1]))
             else:
-                if hasattr(self, 'val') and  self.val is not None:
+                if hasattr(self, 'val') and self.val is not None:
                     if value.shape != self.val.shape:
                         raise ValueError("dimensions should match that of val")
                 self._unc = value

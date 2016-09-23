@@ -87,7 +87,7 @@ def assert_identical_results(file1, file2):
             group1.append(name)
     f1.visititems(func)
 
-     # Visit order is not guaranteed, so sort
+    # Visit order is not guaranteed, so sort
     data1.sort()
     group1.sort()
 
@@ -102,7 +102,7 @@ def assert_identical_results(file1, file2):
             group2.append(name)
     f2.visititems(func)
 
-     # Visit order is not guaranteed, so sort
+    # Visit order is not guaranteed, so sort
     data2.sort()
     group2.sort()
 

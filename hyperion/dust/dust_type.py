@@ -557,7 +557,6 @@ class HenyeyGreensteinDust(SphericalDust):
     and the maximum linear polarization.
     """
 
-
     def __init__(self, nu, albedo, chi, g, p_lin_max):
 
         SphericalDust.__init__(self)
@@ -576,9 +575,9 @@ class HenyeyGreensteinDust(SphericalDust):
 
         for i in range(n_mu):
             self.optical_properties.P1[:, i], \
-            self.optical_properties.P2[:, i], \
-            self.optical_properties.P3[:, i], \
-            self.optical_properties.P4[:, i] = henyey_greenstein(self.optical_properties.mu[i], g, p_lin_max)
+                self.optical_properties.P2[:, i], \
+                self.optical_properties.P3[:, i], \
+                self.optical_properties.P4[:, i] = henyey_greenstein(self.optical_properties.mu[i], g, p_lin_max)
 
 
 class HOCHUNKDust(HenyeyGreensteinDust):
@@ -594,12 +593,13 @@ class HOCHUNKDust(HenyeyGreensteinDust):
     where ``filename`` is the name of the file containing the dust properties
     in the HOCHUNK format.
     """
+
     def __init__(self, filename):
 
         # Read in dust file
-        dustfile = np.loadtxt(filename, dtype=[('wav', float), ('c_ext', float), \
-                              ('c_sca', float), ('chi', float), ('g', float), \
-                              ('p_lin_max', float)], usecols=[0, 1, 2, 3, 4, 5])
+        dustfile = np.loadtxt(filename, dtype=[('wav', float), ('c_ext', float),
+                                               ('c_sca', float), ('chi', float), ('g', float),
+                                               ('p_lin_max', float)], usecols=[0, 1, 2, 3, 4, 5])
 
         # Ensure file is ordered in increasing frequency
         if dustfile['wav'][-1] > dustfile['wav'][0]:
@@ -614,6 +614,7 @@ class HOCHUNKDust(HenyeyGreensteinDust):
         HenyeyGreensteinDust.__init__(self, nu, albedo, dustfile['chi'], dustfile['g'], dustfile['p_lin_max'])
 
 TTsreDust = HOCHUNKDust
+
 
 class CoatsphSingle(SphericalDust):
 
@@ -640,9 +641,9 @@ class CoatsphSingle(SphericalDust):
         # Read in main dust file
 
         dustfile = np.loadtxt(f, skiprows=3,
-                    dtype=[('x', float), ('radius', float), ('wav', float),
-                    ('q_ext', float), ('q_sca', float), ('q_back', float),
-                    ('g', float)])
+                              dtype=[('x', float), ('radius', float), ('wav', float),
+                                     ('q_ext', float), ('q_sca', float), ('q_back', float),
+                                     ('g', float)])
 
         n_wav = len(dustfile)
 
@@ -657,9 +658,9 @@ class CoatsphSingle(SphericalDust):
             filename = '%s/coatsph_scat_%04i_0001.dat' % (directory, i + 1)
 
             phasefile = np.loadtxt(filename, skiprows=9,
-                        dtype=[('theta', float), ('s11', float), ('polariz',
-                        float), ('s12', float), ('s33', float), ('s34',
-                        float)])
+                                   dtype=[('theta', float), ('s11', float), ('polariz',
+                                                                             float), ('s12', float), ('s33', float), ('s34',
+                                                                                                                      float)])
 
             if i == 0:
                 self.optical_properties.mu = np.cos(np.radians(phasefile['theta']))
@@ -692,9 +693,9 @@ class CoatsphMultiple(SphericalDust):
         # Read in main dust file
 
         dustfile = np.loadtxt(f, skiprows=7,
-                    dtype=[('wav', float), ('c_ext', float), ('c_sca', float),
-                    ('chi', float), ('g', float), ('pmax', float),
-                    ('thetmax', float)])
+                              dtype=[('wav', float), ('c_ext', float), ('c_sca', float),
+                                     ('chi', float), ('g', float), ('pmax', float),
+                                     ('thetmax', float)])
 
         n_wav = len(dustfile)
         self.optical_properties.nu = c / dustfile['wav'] * 1.e4
@@ -708,9 +709,9 @@ class CoatsphMultiple(SphericalDust):
             filename = '%s/coatsph_scat.%04i.dat' % (directory, i + 1)
 
             phasefile = np.loadtxt(filename, skiprows=7,
-                        dtype=[('theta', float), ('s11', float), ('polariz',
-                        float), ('s12', float), ('s33', float), ('s34',
-                        float)])
+                                   dtype=[('theta', float), ('s11', float), ('polariz',
+                                                                             float), ('s12', float), ('s33', float), ('s34',
+                                                                                                                      float)])
 
             if i == 0:
                 self.optical_properties.mu = np.cos(np.radians(phasefile['theta']))
@@ -825,6 +826,7 @@ class BHDust(SphericalDust):
         >>> d = BHDust('directory/mydust')
 
     """
+
     def __init__(self, model):
 
         SphericalDust.__init__(self)

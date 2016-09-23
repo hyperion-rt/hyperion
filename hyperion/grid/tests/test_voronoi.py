@@ -23,7 +23,7 @@ def _neighbours_check(voro, qhull):
     idx = voro.st[1]
     vneighs = voro.st[0]
     for i in range(len(idx) - 1):
-        cur_neighs = filter(lambda n: n >= 0,vneighs[idx[i]:idx[i+1]])
+        cur_neighs = filter(lambda n: n >= 0, vneighs[idx[i]:idx[i + 1]])
         if not all([_ in qhull['neighbours'][i] for _ in cur_neighs]):
             return False
     return True
@@ -67,6 +67,7 @@ def test_consistency():
         assert _volume_check(voro)
         assert _bb_check(voro)
 
+
 def test_evaluate_function_average():
 
     np.random.seed(12345)
@@ -96,7 +97,7 @@ def test_io(tmpdir):
     file_1 = tmpdir.join('test1.hdf5').strpath
     file_2 = tmpdir.join('test2.hdf5').strpath
 
-    g1 = VoronoiGrid([1,2,3],[3,4,5],[2,3,4])
+    g1 = VoronoiGrid([1, 2, 3], [3, 4, 5], [2, 3, 4])
     f1 = h5py.File(file_1, 'w')
     g1.write(f1)
     f1.close()

@@ -37,4 +37,3 @@ def test_use_grid_from_file(tmpdir):
 
     model.write(input_file)
     model.run(output_file)
-

@@ -5,11 +5,11 @@ import hashlib
 import numpy as np
 from astropy.table import Table, Column
 
-from ..util.integrate import integrate_loglog, integrate_linlog_subset
-from ..util.interpolate import interp1d_fast, interp1d_fast_loglog, \
-                                      interp1d_fast_linlog
-from ..util.functions import extrap1d_log10, B_nu, FreezableClass, \
-                                    nu_common, planck_nu_range, is_numpy_array, monotonically_increasing
+from ..util.integrate import integrate_linlog_subset
+from ..util.interpolate import (interp1d_fast, interp1d_fast_loglog,
+                                interp1d_fast_linlog)
+from ..util.functions import (extrap1d_log10, FreezableClass,
+                              is_numpy_array, monotonically_increasing)
 from ..util.constants import c, sigma
 from astropy import log as logger
 
@@ -96,10 +96,10 @@ class OpticalProperties(FreezableClass):
         for inu in range(len(self.nu)):
 
             # Find fraction remaining
-            frac = integrate_linlog_subset(self.mu, self.P1[inu, :],
-                                           self.mu[0], mu_max) \
-                 / integrate_linlog_subset(self.mu, self.P1[inu, :],
-                                           self.mu[0], self.mu[-1])
+            frac = (integrate_linlog_subset(self.mu, self.P1[inu, :],
+                                            self.mu[0], mu_max)
+                    / integrate_linlog_subset(self.mu, self.P1[inu, :],
+                                              self.mu[0], self.mu[-1]))
 
             logger.info("Removing fraction %g" % frac)
 
@@ -333,8 +333,8 @@ class OpticalProperties(FreezableClass):
         ax = figure.add_subplot(subplots[1])
         ax.patch.set_facecolor('black')
         ax.contourf(self.wav, self.mu,
-                     np.log10(np.clip(np.abs(self.P1.swapaxes(0, 1)), 10. ** vmin, 10. ** vmax)),
-                     np.linspace(vmin, vmax, 30), cmap=m)
+                    np.log10(np.clip(np.abs(self.P1.swapaxes(0, 1)), 10. ** vmin, 10. ** vmax)),
+                    np.linspace(vmin, vmax, 30), cmap=m)
         ax.set_xscale('log')
         ax.set_xlim(self.wav.min(), self.wav.max())
         ax.set_ylim(-1., 1.)
@@ -345,8 +345,8 @@ class OpticalProperties(FreezableClass):
         ax = figure.add_subplot(subplots[2])
         ax.patch.set_facecolor('black')
         ax.contourf(self.wav, self.mu,
-                     np.log10(np.clip(np.abs(self.P2.swapaxes(0, 1)), 10. ** vmin, 10. ** vmax)),
-                     np.linspace(vmin, vmax, 30), cmap=m)
+                    np.log10(np.clip(np.abs(self.P2.swapaxes(0, 1)), 10. ** vmin, 10. ** vmax)),
+                    np.linspace(vmin, vmax, 30), cmap=m)
         ax.set_xscale('log')
         ax.set_xlim(self.wav.min(), self.wav.max())
         ax.set_ylim(-1., 1.)
@@ -357,8 +357,8 @@ class OpticalProperties(FreezableClass):
         ax = figure.add_subplot(subplots[3])
         ax.patch.set_facecolor('black')
         ax.contourf(self.wav, self.mu,
-                     np.log10(np.clip(np.abs(self.P3.swapaxes(0, 1)), 10. ** vmin, 10. ** vmax)),
-                     np.linspace(vmin, vmax, 30), cmap=m)
+                    np.log10(np.clip(np.abs(self.P3.swapaxes(0, 1)), 10. ** vmin, 10. ** vmax)),
+                    np.linspace(vmin, vmax, 30), cmap=m)
         ax.set_xscale('log')
         ax.set_xlim(self.wav.min(), self.wav.max())
         ax.set_ylim(-1., 1.)
@@ -369,8 +369,8 @@ class OpticalProperties(FreezableClass):
         ax = figure.add_subplot(subplots[4])
         ax.patch.set_facecolor('black')
         ax.contourf(self.wav, self.mu,
-                     np.log10(np.clip(np.abs(self.P4.swapaxes(0, 1)), 10. ** vmin, 10. ** vmax)),
-                     np.linspace(vmin, vmax, 30), cmap=m)
+                    np.log10(np.clip(np.abs(self.P4.swapaxes(0, 1)), 10. ** vmin, 10. ** vmax)),
+                    np.linspace(vmin, vmax, 30), cmap=m)
         ax.set_xscale('log')
         ax.set_xlim(self.wav.min(), self.wav.max())
         ax.set_ylim(-1., 1.)
