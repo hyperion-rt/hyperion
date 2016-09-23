@@ -114,5 +114,5 @@ setup(name='Hyperion',
                     'hyperion.testing':['coveragerc']},
       scripts=['scripts/' + x for x in scripts],
       cmdclass=cmdclass,
-      ext_modules = ext_modules
+      ext_modules=ext_modules
      )
