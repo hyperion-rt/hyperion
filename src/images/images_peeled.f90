@@ -334,6 +334,9 @@ contains
           if(peeled_image(ig)%compute_image) then
              if(peeled_image(ig)%x_min < peeled_image(ig)%x_max) call error("peeled_images_setup", "longitudes should increase towards the left for inside observers")
           end if
+          if(peeled_image(ig)%compute_sed) then
+            call error("peeled_images_setup", "computing SEDs for inside observers is not supported")
+          end if
        end if
 
        do iv=1,n_view
@@ -411,7 +414,7 @@ contains
 
        if(peeled_image(group_id)%use_exact_nu) then
           spectrum = get_spectrum_interp(s(source_id), peeled_image(group_id)%nu)
-       else         
+       else
           spectrum = get_spectrum_binned(s(source_id), peeled_image(group_id)%n_nu, &
                & peeled_image(group_id)%nu_min, peeled_image(group_id)%nu_max)
        end if
@@ -488,7 +491,7 @@ contains
 
        if(peeled_image(group_id)%use_exact_nu) then
           extinction = get_chi_nu_interp(d(dust_id), peeled_image(group_id)%nu)
-       else         
+       else
           extinction = get_chi_nu_binned(d(dust_id), peeled_image(group_id)%n_nu, &
                & peeled_image(group_id)%nu_min, peeled_image(group_id)%nu_max)
 
