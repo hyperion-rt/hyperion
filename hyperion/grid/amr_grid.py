@@ -555,7 +555,7 @@ class AMRGrid(FreezableClass):
             The ID of the dust population to extract. If not set, this
             defaults to 0 (the first dust population).
         '''
-        from yt_wrappers import amr_grid_to_yt_stream
+        from .yt_wrappers import amr_grid_to_yt_stream
         return amr_grid_to_yt_stream(self.levels, dust_id)
 
     @classmethod
@@ -613,7 +613,7 @@ class AMRGrid(FreezableClass):
         if not LooseVersion(yt.__version__) >= LooseVersion('3'):
             raise ImportError("yt 3.0 or later is required")
 
-        from yt_wrappers import yt_dataset_to_amr_grid
+        from .yt_wrappers import yt_dataset_to_amr_grid
         return yt_dataset_to_amr_grid(ds, quantity_mapping=quantity_mapping)
 
 

@@ -1,11 +1,15 @@
 language: c
 
+os:
+  - linux
+  - osx
+
 env:
     global:
         - SETUP_XVFB=True
         - CONDA_DEPENDENCIES
         - CONDA_CHANNELS='conda-forge conda-forge/label/test'
-        - CONDA_DEPENDENCIES='numpy astropy h5py matplotlib yt mpich hdf5'
+        - CONDA_DEPENDENCIES='numpy astropy h5py matplotlib yt mpich hdf5 gcc'
         - SETUP_CMD='test'
     matrix:
         - PYTHON_VERSION=2.7
@@ -15,6 +19,7 @@ env:
 install:
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
+    - export DYLD_FALLBACK_LIBRARY_PATH=$HOME/miniconda/envs/test/lib
 
 script:
    - ./configure

@@ -10,8 +10,7 @@ import numpy as np
 from astropy import log as logger
 from astropy.table import Table
 
-from ..util.meshgrid import meshgrid_nd
-from ..util.functions import FreezableClass, is_numpy_array, monotonically_increasing, link_or_copy
+from ..util.functions import FreezableClass, is_numpy_array, link_or_copy
 from .grid_helpers import single_grid_dims
 
 
@@ -430,7 +429,6 @@ class VoronoiGrid(FreezableClass):
             The datatype to use to write the physical quantities
         '''
 
-        from astropy.table import Table
         import numpy as np
 
         # Create HDF5 groups if needed

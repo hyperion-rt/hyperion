@@ -2,6 +2,7 @@ from __future__ import print_function, division
 
 import numpy as np
 from astropy import log as logger
+from astropy.extern import six
 
 from ..dust import SphericalDust
 from ..grid import SphericalPolarGrid, CylindricalPolarGrid
@@ -176,7 +177,7 @@ class PowerLawEnvelope(Envelope):
 
     @dust.setter
     def dust(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             self._dust = SphericalDust(value)
         else:
             self._dust = value

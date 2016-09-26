@@ -9,6 +9,10 @@ Version History
 - Fixed a severe bug in the set-up of AMR grids that caused photons to be
   terminated before escaping from grids in specific cases. [#167]
 
+- Disabled computation of SEDs for inside observers, since the apertures are
+  not truly circular. Users should instead set up images and then do
+  photometry on them as appropriate. [#185]
+
 0.9.7 (2015-08-22)
 ------------------
 

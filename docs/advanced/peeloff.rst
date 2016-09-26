@@ -33,7 +33,8 @@ inverted. For example::
 
     image.set_image_limits(65., -65., -1., 1.)
 
-will produce an image going from l=65 to l=-65, and from b=-1 to b=1.
+will produce an image going from l=65 to l=-65, and from b=-1 to b=1. Note
+that only images (not SEDs) can be computed for inside observers.
 
 Image depth
 -----------
@@ -56,4 +57,3 @@ Note that in this mode, the optical depth used to calculate the peeling off
 is the total optical depth to the observer, not just the optical depth in
 the slab considered. The slab is only used to determine which emission or
 scattering events should be included in the image.
-
