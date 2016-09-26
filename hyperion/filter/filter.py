@@ -116,7 +116,9 @@ class Filter(object):
         tr_norm *= nu
 
         dset = group.create_dataset(name, data=np.array(list(zip(nu, tr, tr_norm)),
-                                                        dtype=[('nu', float), ('tr', float), ('tr_norm', float)]))
+                                                        dtype=[('nu', float),
+                                                               ('tr', float),
+                                                               ('tn', float)]))
 
         dset.attrs['name'] = np.string_(self.name)
 

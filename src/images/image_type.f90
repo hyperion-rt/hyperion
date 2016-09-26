@@ -273,7 +273,7 @@ contains
           do ig=1,img%n_nu
              write(group_name, '("filter_",I5.5)') ig
              call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'nu', img%filters(ig)%nu)
-             call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'tr_norm', img%filters(ig)%tr)
+             call mp_table_read_column_auto(handle, trim(path)//"/"//group_name, 'tn', img%filters(ig)%tr)
              call mp_read_keyword(handle, trim(path)//"/"//group_name, 'nu0', img%filters(ig)%nu0)
           end do
        end if
