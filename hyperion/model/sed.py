@@ -1,5 +1,7 @@
 import numpy as np
 
+from astropy.extern import six
+
 from ..util.functions import FreezableClass
 from ..util.constants import c
 
@@ -116,7 +118,7 @@ class SED(FreezableClass):
 
     @unit.setter
     def unit(self, value):
-        if value is None or isinstance(value, basestring):
+        if value is None or isinstance(value, six.string_types):
             self._unit = value
         else:
             raise ValueError("unit should be a string")

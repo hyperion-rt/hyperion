@@ -8,6 +8,9 @@ from copy import deepcopy
 import h5py
 import numpy as np
 
+from astropy import log as logger
+from astropy.extern import six
+
 from ..version import __version__
 from ..util.functions import delete_file
 from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid, VoronoiGrid, GridOnDisk
@@ -16,7 +19,6 @@ from ..conf import RunConf, PeeledImageConf, BinnedImageConf, OutputConf
 from ..util.constants import c
 from ..util.functions import FreezableClass, link_or_copy, is_numpy_array, bool2str, str2bool
 from ..dust import SphericalDust
-from astropy import log as logger
 from ..util.validator import validate_scalar
 
 from .model_output import ModelOutput
@@ -627,7 +629,7 @@ class Model(FreezableClass, RunConf):
 
                     if copy:
 
-                        if isinstance(dust, basestring):
+                        if isinstance(dust, six.string_types):
                             dust = SphericalDust(dust)
 
                         if dust.hash() in present:
@@ -801,7 +803,7 @@ class Model(FreezableClass, RunConf):
             # Only consider this if the specific energy is not specified
             if specific_energy is None:
 
-                if isinstance(dust, basestring):
+                if isinstance(dust, six.string_types):
 
                     if dust in self.dust:
 
@@ -815,7 +817,7 @@ class Model(FreezableClass, RunConf):
 
                     dust_hashes = []
                     for d in self.dust:
-                        if not isinstance(d, basestring):
+                        if not isinstance(d, six.string_types):
                             dust_hashes.append(d.hash())
                         else:
                             dust_hashes.append(None)

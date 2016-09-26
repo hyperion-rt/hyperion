@@ -531,7 +531,7 @@ class OctreeGrid(FreezableClass):
             The ID of the dust population to extract. If not set, this
             defaults to 0 (the first dust population).
         '''
-        from yt_wrappers import octree_grid_to_yt_stream
+        from .yt_wrappers import octree_grid_to_yt_stream
         return octree_grid_to_yt_stream(self, dust_id)
 
 

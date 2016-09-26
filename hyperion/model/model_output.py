@@ -4,11 +4,12 @@ import os
 import warnings
 
 import numpy as np
+from astropy import log as logger
+from astropy.extern import six
 
 from ..util.constants import c, pi
 from ..util.functions import FreezableClass
 from ..dust import SphericalDust
-from astropy import log as logger
 from ..util.otf_hdf5 import on_the_fly_hdf5
 from ..grid import CartesianGrid, SphericalPolarGrid, CylindricalPolarGrid, OctreeGrid, AMRGrid, VoronoiGrid
 
@@ -150,7 +151,7 @@ class ModelOutput(FreezableClass):
 
             if track_origin == 'detailed':
 
-                if isinstance(source_id, basestring) and source_id != 'all':
+                if isinstance(source_id, six.string_types) and source_id != 'all':
                     try:
                         source_id = self.get_available_sources().index(source_id)
                     except ValueError:
@@ -329,7 +330,7 @@ class ModelOutput(FreezableClass):
         '''
 
         # Check argument types
-        if not isinstance(stokes, basestring):
+        if not isinstance(stokes, six.string_types):
             raise ValueError("stokes argument should be a string")
 
         # Check for inconsistent parameters
@@ -649,7 +650,7 @@ class ModelOutput(FreezableClass):
         '''
 
         # Check argument types
-        if not isinstance(stokes, basestring):
+        if not isinstance(stokes, six.string_types):
             raise ValueError("stokes argument should be a string")
 
         # Check for inconsistent parameters

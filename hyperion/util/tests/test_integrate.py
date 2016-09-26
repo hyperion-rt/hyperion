@@ -2,10 +2,11 @@ from __future__ import print_function, division
 
 import struct
 
-from astropy.tests.helper import pytest
 import numpy as np
-
 from numpy.testing import assert_array_almost_equal_nulp
+
+from astropy.tests.helper import pytest
+from astropy.extern import six
 
 from ..integrate import *
 
@@ -118,7 +119,7 @@ def test_linear_not_monotonic():
     y = 2. * x - 1.
     with pytest.raises(ValueError) as exc:
         integrate(x, y)
-    if isinstance(exc.value, basestring):
+    if isinstance(exc.value, six.string_types):
         assert exc.value == 'x is not monotonically increasing'
     else:
         assert exc.value.args[0] == 'x is not monotonically increasing'
@@ -129,7 +130,7 @@ def test_loglog_not_monotonic():
     y = 2. * x - 1.
     with pytest.raises(ValueError) as exc:
         integrate_loglog(x, y)
-    if isinstance(exc.value, basestring):
+    if isinstance(exc.value, six.string_types):
         assert exc.value == 'x is not monotonically increasing'
     else:
         assert exc.value.args[0] == 'x is not monotonically increasing'
@@ -140,7 +141,7 @@ def test_loglin_not_monotonic():
     y = 2. * x - 1.
     with pytest.raises(ValueError) as exc:
         integrate_loglin(x, y)
-    if isinstance(exc.value, basestring):
+    if isinstance(exc.value, six.string_types):
         assert exc.value == 'x is not monotonically increasing'
     else:
         assert exc.value.args[0] == 'x is not monotonically increasing'
@@ -151,7 +152,7 @@ def test_linlog_not_monotonic():
     y = 2. * x - 1.
     with pytest.raises(ValueError) as exc:
         integrate_linlog(x, y)
-    if isinstance(exc.value, basestring):
+    if isinstance(exc.value, six.string_types):
         assert exc.value == 'x is not monotonically increasing'
     else:
         assert exc.value.args[0] == 'x is not monotonically increasing'

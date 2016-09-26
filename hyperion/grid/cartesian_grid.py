@@ -5,10 +5,10 @@ from copy import deepcopy
 
 import h5py
 import numpy as np
+from astropy import log as logger
 
 from ..util.meshgrid import meshgrid_nd
 from ..util.functions import FreezableClass, is_numpy_array, monotonically_increasing, link_or_copy
-from astropy import log as logger
 from .grid_helpers import single_grid_dims
 
 
@@ -449,7 +449,7 @@ class CartesianGrid(FreezableClass):
             raise ValueError("Grid is significantly non-regular in z direction")
 
         # Convert to yt object
-        from yt_wrappers import cartesian_grid_to_yt_stream
+        from .yt_wrappers import cartesian_grid_to_yt_stream
         return cartesian_grid_to_yt_stream(self, self.x_wall[0], self.x_wall[-1],
                                            self.y_wall[0], self.y_wall[-1],
                                            self.z_wall[0], self.z_wall[-1],

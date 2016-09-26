@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.testing import assert_allclose
 from astropy.tests.helper import pytest
-import matplotlib.pyplot as plt
 
 from .. import SphericalDust, IsotropicDust
 from ...util.functions import random_id, B_nu
@@ -115,8 +114,7 @@ class TestSphericalDust(object):
         try:
             assert self.dust.hash() == '8e1f63eedcafcc05183b99ee8fe1333a'
         except AssertionError:  # On MacOS X, the hash is sometimes different
-            assert self.dust.hash() == '34dcacd899a948d707f0759b34a1353b'
-
+            assert self.dust.hash() == '34dcacd899a948d707f0759b34a1353b'
     def test_io(self, tmpdir):
 
         filename = tmpdir.join('test.hdf5').strpath

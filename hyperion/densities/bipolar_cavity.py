@@ -2,6 +2,7 @@ from __future__ import print_function, division
 
 import numpy as np
 from astropy import log as logger
+from astropy.extern import six
 
 from ..util.functions import FreezableClass
 from ..dust import SphericalDust
@@ -131,7 +132,7 @@ class BipolarCavity(Density):
 
     @dust.setter
     def dust(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             self._dust = SphericalDust(value)
         else:
             self._dust = value
