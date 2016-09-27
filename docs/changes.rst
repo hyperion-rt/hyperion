@@ -18,6 +18,14 @@ Version History
 
 - Check for NaNs when writing out dust or model HDF5 file.
 
+- Remove deprecated frequencies= argument from set_monochromatic (instead, the
+  wavelengths= argument should be used to give the wavelengths in microns). [#183]
+
+- The set_wavelength_index_range should now take zero-based indices, consistent
+  with the Python/Numpy convention. Note that this will break compatibility with
+  previous scripts, so you will need to be sure to update calls to this method
+  if you were using it. [#183]
+
 0.9.7 (2015-08-22)
 ------------------
 
