@@ -28,7 +28,7 @@ def test_io_minimal_mono(tmpdir):
     m1 = Model()
     m1.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
     m1.set_n_initial_iterations(0)
-    m1.set_monochromatic(True, frequencies=[1, 4.5, 7.7])
+    m1.set_monochromatic(True, wavelengths=[1, 4.5, 7.7])
     m1.set_n_photons(imaging_sources=10, imaging_dust=10)
     m1.write(filename)
 
@@ -42,7 +42,7 @@ def test_io_minimal_mono(tmpdir):
 def test_io_monochromatic(value):
     m1 = Model()
     if value:
-        m1.set_monochromatic(value, frequencies=[1, 4.5, 7.7])
+        m1.set_monochromatic(value, wavelengths=[1, 4.5, 7.7])
     else:
         m1.set_monochromatic(value)
     v = virtual_file()

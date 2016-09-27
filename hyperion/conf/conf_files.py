@@ -893,7 +893,7 @@ class ImageConf(FreezableClass):
                 self.n_wav = None
                 self.wav_min = None
                 self.wav_max = None
-            self.set_wavelength_index_range(1, len(frequencies))
+            self.set_wavelength_index_range(0, len(frequencies) - 1)
         else:
             if self.iwav_min is not None or self.iwav_max is not None:
                 logger.warn("Removing monochromatic wavelength settings")
@@ -952,7 +952,7 @@ class ImageConf(FreezableClass):
         iwav_min, iwav_max : int
             The index of the first and last frequency to compute SEDs/Images
             for. This is the index in the array of wavelengths used when
-            calling ``set_monochromatic``.
+            calling ``set_monochromatic``. These values should be zero-based.
         '''
         if not self._monochromatic:
             raise Exception("set_frequency_index_range cannot be used when not in monochromatic mode")
@@ -963,13 +963,13 @@ class ImageConf(FreezableClass):
         # For backward-compability reasons, the variables are called ``inu``
         # instead of ``iwav`` in the HDF5 files, but these are variable names
         # the user will never be exposed to.
-        self.iwav_min = group.attrs['inu_min']
-        self.iwav_max = group.attrs['inu_max']
+        self.iwav_min = group.attrs['inu_min'] - 1
+        self.iwav_max = group.attrs['inu_max'] - 1
 
     def _write_wavelength_index_range(self, group):
         group.attrs['n_wav'] = self.iwav_max - self.iwav_min + 1
-        group.attrs['inu_min'] = self.iwav_min
-        group.attrs['inu_max'] = self.iwav_max
+        group.attrs['inu_min'] = self.iwav_min + 1
+        group.attrs['inu_max'] = self.iwav_max + 1
 
     def set_track_origin(self, track_origin, n_scat=None):
         '''

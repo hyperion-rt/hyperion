@@ -248,9 +248,14 @@ contains
        call mp_read_keyword(handle, path, 'inu_max',img%inu_max)
 
        if(.not.present(frequencies)) call error('image_setup','frequencies should be given if use_exact_nu is .true.')
+       if(img%inu_min < 1 .or. img%inu_min > size(frequencies)) call error('image_setup','inu_min value is out of range')
+       if(img%inu_max < 1 .or. img%inu_max > size(frequencies)) call error('image_setup','inu_max value is out of range')
 
-       allocate(img%nu(size(frequencies)))
+       allocate(img%nu(img%n_nu))
+
        img%nu = frequencies(img%inu_min:img%inu_max)
+
+       if(img%n_nu /= size(img%nu)) call error('image_setup','n_nu should match length of frequencies array')
 
     else
 
@@ -779,8 +784,8 @@ contains
     end if
 
     if(img%use_exact_nu) then
-       call mp_table_write_header(group, 'frequencies',img%inu_max - img%inu_min + 1,1,(/'nu'/),(/1/),(/h5t_ieee_f64le/))
-       call mp_table_write_column(group, 'frequencies','nu',img%nu(img%inu_min:img%inu_max))
+       call mp_table_write_header(group, 'frequencies',img%n_nu,1,(/'nu'/),(/1/),(/h5t_ieee_f64le/))
+       call mp_table_write_column(group, 'frequencies','nu',img%nu)
     end if
 
     write(*,'(" [image_write] done")')
