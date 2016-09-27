@@ -1,7 +1,7 @@
 Version History
 ===============
 
-0.9.8 (unreleased)
+0.9.8 (2016-09-27)
 ------------------
 
 - Refactored installation instructions to provide a more streamlined experience.
