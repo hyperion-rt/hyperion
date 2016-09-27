@@ -893,7 +893,7 @@ class ImageConf(FreezableClass):
                 self.n_wav = None
                 self.wav_min = None
                 self.wav_max = None
-            self.set_wavelength_index_range(1, len(frequencies))
+            self.set_wavelength_index_range(0, len(frequencies) - 1)
         else:
             if self.iwav_min is not None or self.iwav_max is not None:
                 logger.warn("Removing monochromatic wavelength settings")
