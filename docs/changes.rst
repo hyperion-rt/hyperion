@@ -7,7 +7,7 @@ Version History
 - Fixed bug in ordering of axes for Cartesian and AMR grids for yt 3.x. [#168]
 
 - Fixed a bug that caused a VoronoiGrid initialized from another VoronoiGrid to
-  not include the sparse neighbor information.
+  not include the sparse neighbor information. [#177]
 
 - Fixed a severe bug in the set-up of AMR grids that caused photons to be
   terminated before escaping from grids in specific cases. [#167]
@@ -25,6 +25,24 @@ Version History
   with the Python/Numpy convention. Note that this will break compatibility with
   previous scripts, so you will need to be sure to update calls to this method
   if you were using it. [#183]
+
+- The code base is now Python 3-compatible, and we no longer rely on 2to3.
+  [#185]
+
+- Add workaround for a bug in HDF5 1.8 that caused issues with models
+  that made use of filters. [#187]
+
+- Update bundled decorator.py module. [#184]
+
+- Update installation instructions to mention conda as the preferred
+  installation method. [#186]
+
+- Fix the installation script for dependencies to work with GCC 5. [#182]
+
+- Add installation instructions for FreeBSD (thanks to Aaron Lauterer). [#173]
+
+- Refactored installation instructions to provide a more streamlined experience.
+  [#161]
 
 0.9.7 (2015-08-22)
 ------------------
