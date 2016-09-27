@@ -15,7 +15,7 @@ docker info
 cat << EOF | docker run -i \
                         -v ${PWD}:/hyperion_src \
                         -a stdin -a stdout -a stderr \
-                        astrofrog/hyperion-ci:1.0 \
+                        astrofrog/hyperion-ci:1.1 \
                         bash || exit $?
 
 set -x
