@@ -1,0 +1,11 @@
+machine:
+  services:
+    - docker
+
+dependencies:
+  override:
+    - docker pull astrofrog/hyperion-ci
+
+test:
+  override:
+    - echo "Testing"
