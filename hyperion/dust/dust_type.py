@@ -25,6 +25,7 @@ from ..util.constants import c
 from ..util.functions import FreezableClass
 from ..util.interpolate import interp1d_fast_loglog
 from ..util.integrate import integrate_loglog
+from ..util.nans import check_for_nans
 
 from .optical_properties import OpticalProperties
 from .emissivities import Emissivities
@@ -286,6 +287,10 @@ class SphericalDust(FreezableClass):
 
         # Dust sublimation parameters
         self._write_dust_sublimation(dt)
+
+        # Check that there are no NaN values in the file - if there are, a
+        # warning is emitted.
+        check_for_nans(dt)
 
         # Close dust file
         if isinstance(dt, h5py.highlevel.File):

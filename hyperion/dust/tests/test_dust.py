@@ -24,6 +24,10 @@ class TestSphericalDust(object):
         self.dust.optical_properties.chi = np.ones(100)
         self.dust.optical_properties.mu = [-1., 1.]
         self.dust.optical_properties.initialize_scattering_matrix()
+        self.dust.optical_properties.P1[:, :] = 1.
+        self.dust.optical_properties.P2[:, :] = 0.
+        self.dust.optical_properties.P3[:, :] = 1.
+        self.dust.optical_properties.P4[:, :] = 0.
 
     def test_helpers(self):
 
@@ -112,9 +116,9 @@ class TestSphericalDust(object):
         # they are computed automatically
 
         try:
-            assert self.dust.hash() == '8e1f63eedcafcc05183b99ee8fe1333a'
+            assert self.dust.hash() == 'ace50d004550889b0e739db8ec8f10fb'
         except AssertionError:  # On MacOS X, the hash is sometimes different
-            assert self.dust.hash() == '34dcacd899a948d707f0759b34a1353b'
+            assert self.dust.hash() == 'c5765806a1b59b527420444c4355ac41'
     def test_io(self, tmpdir):
 
         filename = tmpdir.join('test.hdf5').strpath

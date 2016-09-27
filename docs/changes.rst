@@ -16,6 +16,8 @@ Version History
   not truly circular. Users should instead set up images and then do
   photometry on them as appropriate. [#185]
 
+- Check for NaNs when writing out dust or model HDF5 file.
+
 0.9.7 (2015-08-22)
 ------------------
 

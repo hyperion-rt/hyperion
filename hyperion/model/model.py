@@ -20,6 +20,7 @@ from ..util.constants import c
 from ..util.functions import FreezableClass, link_or_copy, is_numpy_array, bool2str, str2bool
 from ..dust import SphericalDust
 from ..util.validator import validate_scalar
+from ..util.nans import check_for_nans
 
 from .model_output import ModelOutput
 
@@ -703,6 +704,10 @@ class Model(FreezableClass, RunConf):
         else:
 
             root.create_group('Dust')
+
+        # Check that there are no NaN values in the file - if there are, a
+        # warning is emitted.
+        check_for_nans(root)
 
         root.close()
 
