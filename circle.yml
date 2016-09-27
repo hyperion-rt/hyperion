@@ -4,7 +4,7 @@ machine:
 
 dependencies:
   override:
-    - docker pull astrofrog/hyperion-ci:1.1
+    - docker pull astrofrog/hyperion-ci:1.2
 
 checkout:
   post:
