@@ -33,19 +33,15 @@ method. For example, to compute images at 1, 1.2, and 1.4 microns, you would nee
 
     m.set_monochromatic(True, wavelengths=[1., 1.2, 1.4])
 
-where the ``wavelength`` arguments takes a list of wavelengths in microns. It
-is also possible to specify the frequencies in Hz::
-
-    m.set_monochromatic(True, frequencies=[1.e11, 2.e11])
-
-When using the monochromatic mode, it is then necessary to set the number of
-photons separately for the photons emitted from sources and the photons
-emitted from dust::
+where the ``wavelength`` arguments takes a list of wavelengths in microns. When
+using the monochromatic mode, it is then necessary to set the number of photons
+separately for the photons emitted from sources and the photons emitted from
+dust::
 
     m.set_n_photons(..., imaging_sources=1000, imaging_dust=1000, ...)
 
 This should be used instead of the ``imaging`` option. The number of photons
-is the number **per wavelength/frequency**.
+is the number **per wavelength**.
 
 .. _pure-scattering:
 

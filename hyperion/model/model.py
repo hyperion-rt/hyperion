@@ -77,7 +77,7 @@ class Model(FreezableClass, RunConf):
         self.binned_output = None
         self.peeled_output = []
 
-    def set_monochromatic(self, monochromatic, wavelengths=None, frequencies=None):
+    def set_monochromatic(self, monochromatic, wavelengths=None):
         '''
         Set whether to do the radiation transfer at specific wavelengths.
 
@@ -92,17 +92,12 @@ class Model(FreezableClass, RunConf):
         If `monochromatic` is True then `wavelengths` is required
         '''
 
-        if frequencies is not None:
-            logger.warn("The frequencies= option will soon be deprecated - please specify wavelengths instead.")
-
         self._monochromatic = monochromatic
 
         if self._monochromatic:
 
             if wavelengths is not None:
                 self._frequencies = c / (np.array(wavelengths) * 1.e-4)
-            elif frequencies is not None:
-                self._frequencies = frequencies
             else:
                 raise Exception("Need to specify wavelengths")
 
