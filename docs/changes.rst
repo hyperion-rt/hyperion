@@ -4,19 +4,22 @@ Version History
 0.9.8 (unreleased)
 ------------------
 
-- Fixed bug in ordering of axes for Cartesian and AMR grids for yt 3.x. [#168]
-
-- Fixed a bug that caused a VoronoiGrid initialized from another VoronoiGrid to
-  not include the sparse neighbor information. [#177]
+- Refactored installation instructions to provide a more streamlined experience.
+  [#161]
 
 - Fixed a severe bug in the set-up of AMR grids that caused photons to be
   terminated before escaping from grids in specific cases. [#167]
 
-- Disabled computation of SEDs for inside observers, since the apertures are
-  not truly circular. Users should instead set up images and then do
-  photometry on them as appropriate. [#185]
+- Fixed bug in ordering of axes for Cartesian and AMR grids for yt 3.x. [#168]
+
+- Add installation instructions for FreeBSD (thanks to Aaron Lauterer). [#173]
+
+- Fixed a bug that caused a VoronoiGrid initialized from another VoronoiGrid to
+  not include the sparse neighbor information. [#177]
 
 - Check for NaNs when writing out dust or model HDF5 file. [#179]
+
+- Fix the installation script for dependencies to work with GCC 5. [#182]
 
 - Remove deprecated frequencies= argument from set_monochromatic (instead, the
   wavelengths= argument should be used to give the wavelengths in microns). [#183]
@@ -26,23 +29,20 @@ Version History
   previous scripts, so you will need to be sure to update calls to this method
   if you were using it. [#183]
 
+- Update bundled decorator.py module. [#184]
+
+- Disabled computation of SEDs for inside observers, since the apertures are
+  not truly circular. Users should instead set up images and then do
+  photometry on them as appropriate. [#185]
+
 - The code base is now Python 3-compatible, and we no longer rely on 2to3.
   [#185]
-
-- Add workaround for a bug in HDF5 1.8 that caused issues with models
-  that made use of filters. [#187]
-
-- Update bundled decorator.py module. [#184]
 
 - Update installation instructions to mention conda as the preferred
   installation method. [#186]
 
-- Fix the installation script for dependencies to work with GCC 5. [#182]
-
-- Add installation instructions for FreeBSD (thanks to Aaron Lauterer). [#173]
-
-- Refactored installation instructions to provide a more streamlined experience.
-  [#161]
+- Add workaround for a bug in HDF5 1.8 that caused issues with models
+  that made use of filters. [#187]
 
 0.9.7 (2015-08-22)
 ------------------
