@@ -234,6 +234,7 @@ contains
     real(dp) :: xi
     logical :: killed
     integer :: ia
+    real(dp) :: one_minus_exp
 
     ! Propagate photon
     do interactions=1, n_inter_max+1
@@ -241,14 +242,19 @@ contains
        ! Sample a random optical depth and propagate that optical depth
        call random_exp(tau)
 
-       if(interactions==1) then
+       if(interactions == 1) then
           if(forced_first_scattering) then
              p_tmp = p
              call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
-             if(tau_escape > 1.e-10_dp .and. .not. killed) then
+             if(.not. killed) then
                 call random(xi)
-                tau = -log(1._dp-xi*(1._dp - exp(-tau_escape)))
-                p%energy = p%energy * (1._dp - exp(-tau_escape))
+                if(tau_escape > 1.e-7) then
+                   one_minus_exp = 1._dp - exp(-tau_escape)
+                else
+                   one_minus_exp = tau_escape
+                end if
+                tau = -log(1._dp - xi * one_minus_exp)
+                p%energy = p%energy * one_minus_exp
              end if
           end if
        end if
