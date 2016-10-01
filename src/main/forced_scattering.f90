@@ -14,7 +14,7 @@ module forced_scattering
   ! The optical depth at which we transition to approximating (1 - exp(-tau))
   ! by simply tau
   real(dp), parameter :: TAU_THRES = 1.e-7_dp
-  real(dp) :: baes16_eta = 0.
+  real(dp) :: baes16_eta = 0.5_dp
 
   integer, parameter :: WR99=1, BAES16=2
 

@@ -523,7 +523,7 @@ class RunConf(object):
     def _write_kill_on_scatter(self, group):
         group.attrs['kill_on_scatter'] = bool2str(self.kill_on_scatter)
 
-    def set_forced_first_scattering(self, forced_first_scattering):
+    def set_forced_first_scattering(self, forced_first_scattering, algorithm='wr99', baes16_eta=0.5):
         '''
         Set whether to ensure that photons scatter at least once before
         escaping the grid.
@@ -533,18 +533,60 @@ class RunConf(object):
         forced_first_scattering : bool
             Whether to force at least one scattering before escaping the
             grid
+        algorithm : 'wr99' or 'baes16'
+            Which algorithm to use for the forced first scattering. The
+            algorithms are described in the notes below.
 
-        References
-        ----------
-        Wood & Reynolds, 1999, The Astrophysical Journal, 525, 799
+        Notes
+        -----
+
+        The 'wr99' algorithm refers to that described in Wood & Reynolds, 1999,
+        The Astrophysical Journal, 525, 799. During normal un-forced photon
+        propagation, we sample the optical depth from a probability density
+        function (PDF) that follows exp(-tau) from tau=0 to infinity. The Wood
+        and Reynolds algorithm modifies the PDF to be truncated at tau_escape
+        (the optical depth for the photon to escape the grid). This ensures that
+        all photons interact at least once before leaving the system. This
+        algorithm is ideal for cases where the optical depths are very small
+        and you are interested in making images. Note that this algorithm does
+        not apply to the temperature calculation iterations since it is not
+        needed there.
+
+        The 'baes16' algorithm refers to that described in Baes et al. 2019,
+        Astronomy and Astrophysics, 590, A55. In this algorithm, the PDF is
+        the weighted combination of a truncated decaying exponential and a
+        constant, which ensures that interactions will occur with a reasonable
+        probability anywhere along the photon escape path. This is useful for
+        cases where there are shadowed regions that otherwise would not receive
+        many photons. The relative weight of the truncated exponential versus
+        the constant is given by baes16_eta, which should be in the range 0 to 1
         '''
+
+        if baes16_eta < 0 or baes16_eta > 1:
+            raise ValueError('baes16_eta should be in the range 0 to 1')
+
+        if algorithm not in ('wr99', 'baes16'):
+            raise ValueError('algorithm should be wr99 or baes16')
+
         self.forced_first_scattering = forced_first_scattering
+        self.forced_first_scattering_algorithm = algorithm
+        self.forced_first_scattering_baes16_eta = baes16_eta
 
     def _read_forced_first_scattering(self, group):
         self.forced_first_scattering = str2bool(group.attrs['forced_first_scattering'])
+        if 'forced_first_scattering_algorithm' in group.attrs:
+            self.forced_first_scattering_algorithm = group.attrs['forced_first_scattering_algorithm'].decode()
+        else:
+            self.forced_first_scattering_algorithm = 'wr99'
+        if 'forced_first_scattering_baes16_eta' in group.attrs:
+            self.forced_first_scattering_algorithm = group.attrs['forced_first_scattering_baes16_eta']
+        else:
+            self.forced_first_scattering_algorithm = 0.5
 
     def _write_forced_first_scattering(self, group):
         group.attrs['forced_first_scattering'] = bool2str(self.forced_first_scattering)
+        group.attrs['forced_first_scattering_algorithm'] = np.string_(self.forced_first_scattering_algorithm.encode('utf-8'))
+        group.attrs['forced_first_scattering_baes16_eta'] = self.forced_first_scattering_baes16_eta
 
     def set_enforce_energy_range(self, enforce):
         '''
