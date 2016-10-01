@@ -4,7 +4,13 @@ Version History
 0.9.9 (unreleased)
 ------------------
 
-- No changes yet
+- Improved the accuracy of the Wood and Reynolds (1999) forced first scattering
+  algorithm for very small optical depths, and implemented the Baes et al (2016)
+  composite biasing algorithm for forced first interaction. In addition, the
+  ``Model.set_forced_first_scattering`` method has been renamed to
+  ``Model.set_forced_first_interaction``, and this method now optionally takes
+  the algorithm to use (``wr99`` or ``baes16``) and in the case of the ``baes16``
+  algorithm, ``baes16_xi`` can be passed. [#189]
 
 0.9.8 (2016-09-27)
 ------------------
