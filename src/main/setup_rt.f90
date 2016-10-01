@@ -13,6 +13,7 @@ module setup
   use binned_images
   use peeled_images
   use settings
+  use forced_scattering, only : WR99, BAES16, baes16_eta
 
   implicit none
   save
@@ -32,6 +33,7 @@ contains
     integer :: physics_io_bytes
     type(version) :: python_version
     integer :: idust
+    character(len=10) :: forced_first_scattering_algorithm_str
 
     if(mp_exists_keyword(input_handle, '/', 'python_version')) then
        call mp_read_keyword(input_handle, '/', 'python_version', python_version%string)
@@ -86,13 +88,22 @@ contains
     call mp_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_scattering)
 
     if(forced_first_scattering) then
-      if(mp_exists_keyword(input_handle, '/', 'forced_first_scattering_algorithm')) then
-         call mp_read_keyword(input_handle, '/', 'forced_first_scattering_algorithm', forced_first_scattering_algorithm)
-      else
-         forced_first_scattering_algorithm = 'wr99'
-      end if
+       if(mp_exists_keyword(input_handle, '/', 'forced_first_scattering_algorithm')) then
+          call mp_read_keyword(input_handle, '/', 'forced_first_scattering_algorithm', forced_first_scattering_algorithm_str)
+          select case(trim(forced_first_scattering_algorithm_str))
+          case('wr99')
+             forced_first_scattering_algorithm = WR99
+          case('baes16')
+             forced_first_scattering_algorithm = baes16
+             call mp_read_keyword(input_handle, '/', 'forced_first_scattering_baes16_eta', baes16_eta)
+          case default
+             call error('setup_initial', 'Unknown forced first scattering algorithm: '//trim(forced_first_scattering_algorithm_str))
+          end select
+       else
+          forced_first_scattering_algorithm = WR99
+       end if
     else
-      forced_first_scattering_algorithm = 'none'
+       forced_first_scattering_algorithm = 0
     end if
 
     if(mp_exists_keyword(input_handle, '/', 'propagation_check_frequency')) then

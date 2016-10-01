@@ -41,6 +41,7 @@ module iteration_lucy
   use grid_pda, only : solve_pda
 
   use settings, only : forced_first_scattering, &
+       &               forced_first_scattering_algorithm, &
        &               kill_on_absorb, kill_on_scatter, &
        &               n_inter_max, &
        &               n_inter_max_warn, &
@@ -55,6 +56,8 @@ module iteration_lucy
   use performance, only : perf_header, perf_footer
 
   use counters, only : killed_photons_int
+
+  use forced_scattering, only : forced_scattering_baes16, WR99, BAES16
 
   implicit none
   save
@@ -83,6 +86,11 @@ contains
 
     ! Optical depth to travel
     real(dp) :: tau
+
+    ! Used for the forced first scattering
+    real(dp) :: tau_escape, weight
+    type(photon) :: p_tmp
+    logical :: killed
 
     ! REMOVE
     real(dp) :: tau_achieved
@@ -133,7 +141,10 @@ contains
           ! Propagate photon
           do interactions=1, n_inter_max+1
 
-             if(use_mrw.and.interactions > 1) then
+             ! If this is not the first interaction, and the user requested to
+             ! use the MRW, do the MRW to get out of the optically thick region
+
+             if(interactions > 1 .and. use_mrw) then
                 do mrw_steps=1,n_mrw_max
                    if(tau_inv_planck_to_closest_wall(p) > mrw_gamma) then
                       call grid_do_mrw(p)
@@ -149,8 +160,35 @@ contains
                 end if
              end if
 
-             ! Sample a random optical depth and propagate that optical depth
-             call random_exp(tau)
+             ! If this is the first interaction and the user requested forced
+             ! first scattering, we sample tau and modify the photon energy
+             ! using a forced first scattering algorith - otherwise we sample
+             ! tau the normal way.
+
+             if(interactions == 1 .and. forced_first_scattering) then
+                select case(forced_first_scattering_algorithm)
+                case(WR99)
+                   ! Note that we don't do anything for the wr99 algorithm
+                   ! because that algorithm only matters for small optical depths
+                   ! but since we use the Lucy algorithm for the temperature,
+                   ! in cases of low optical depths, all cells along the path
+                   ! to escape will get contributions to the energy, so we
+                   ! won't improve things by forcing a scattering.
+                case(BAES16)
+                   p_tmp = p
+                   call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
+                   if(.not. killed) then
+                      call forced_scattering_baes16(tau_escape, tau, weight)
+                      p%energy = p%energy * weight
+                   end if
+                case default
+                   call error("propagate", "Unknown forced first scattering algorithm")
+                end select
+             else
+                call random_exp(tau)
+             end if
+
+             ! Propagate the optical depth sampled
              call grid_integrate(p,tau,tau_achieved)
 
              if(p%reabsorbed) then
@@ -185,8 +223,8 @@ contains
              ! Check whether the photon has escaped the grid or was killed
              if(p%killed.or.escaped(p)) exit
 
-             ! We do the following check here rather than after the loop, 
-             ! because if we limit for example to one interaction, we need to 
+             ! We do the following check here rather than after the loop,
+             ! because if we limit for example to one interaction, we need to
              ! allow propagation, interaction, propagation.
              if(interactions==n_inter_max + 1) then
                 if(n_inter_max_warn) call warn("do_lucy","photon exceeded maximum number of interactions - killing")

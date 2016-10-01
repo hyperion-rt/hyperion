@@ -34,12 +34,17 @@ module iteration_final_mono
        &               n_reabs_max,  &
        &               n_reabs_max_warn,  &
        &               forced_first_scattering, &
+       &               forced_first_scattering_algorithm, &
        &               kill_on_scatter
 
   use performance, only : perf_header, &
        &                  perf_footer
 
   use counters, only : killed_photons_int
+
+  use forced_scattering, only : forced_scattering_wr99, &
+       &                        forced_scattering_baes16, &
+       &                         WR99, BAES16
 
   implicit none
   save
@@ -238,18 +243,27 @@ contains
     ! Propagate photon
     do interactions=1, n_inter_max+1
 
-       ! Sample a random optical depth and propagate that optical depth
-       call random_exp(tau)
+       ! If this is the first interaction and the user requested forced
+       ! first scattering, we sample tau and modify the photon energy
+       ! using a forced first scattering algorith - otherwise we sample
+       ! tau the normal way.
 
-       if(interactions == 1) then
-         if(forced_first_scattering .and. forced_first_scattering_algorithm == 'wr99') then
-            p_tmp = p
-            call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
-            if(tau_escape > 1.e-10_dp .and. .not. killed) then
-               call forced_scattering_wr99(tau_escape, tau, weight)
-               p%energy = p%energy * weight
-            end if
-         end if
+       if(interactions == 1 .and. forced_first_scattering) then
+          p_tmp = p
+          call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
+          if(.not. killed) then
+             select case(forced_first_scattering_algorithm)
+             case(WR99)
+                call forced_scattering_wr99(tau_escape, tau, weight)
+             case(BAES16)
+                call forced_scattering_baes16(tau_escape, tau, weight)
+             case default
+                call error("propagate", "Unknown forced first scattering algorithm")
+             end select
+             p%energy = p%energy * weight
+          end if
+       else
+          call random_exp(tau)
        end if
 
        call grid_integrate_noenergy(p,tau,tau_achieved)
