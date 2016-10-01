@@ -24,6 +24,7 @@ module settings
   logical, public :: kill_on_absorb, kill_on_scatter
   real(dp),public :: mrw_gamma
   logical, public :: forced_first_scattering
+  character(len=10), public :: forced_first_scattering_algorithm
 
   logical :: use_exact_nu = .false.
   real(dp),allocatable :: frequencies(:)

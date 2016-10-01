@@ -85,6 +85,16 @@ contains
 
     call mp_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_scattering)
 
+    if(forced_first_scattering) then
+      if(mp_exists_keyword(input_handle, '/', 'forced_first_scattering_algorithm')) then
+         call mp_read_keyword(input_handle, '/', 'forced_first_scattering_algorithm', forced_first_scattering_algorithm)
+      else
+         forced_first_scattering_algorithm = 'wr99'
+      end if
+    else
+      forced_first_scattering_algorithm = 'none'
+    end if
+
     if(mp_exists_keyword(input_handle, '/', 'propagation_check_frequency')) then
        call mp_read_keyword(input_handle, '/', 'propagation_check_frequency', propagation_check_frequency)
     else

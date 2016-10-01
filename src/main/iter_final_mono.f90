@@ -231,7 +231,7 @@ contains
     integer(idp) :: interactions
     real(dp) :: tau_achieved, tau, tau_escape
     type(photon) :: p_tmp
-    real(dp) :: xi
+    real(dp) :: xi, weight
     logical :: killed
     integer :: ia
 
@@ -241,16 +241,15 @@ contains
        ! Sample a random optical depth and propagate that optical depth
        call random_exp(tau)
 
-       if(interactions==1) then
-          if(forced_first_scattering) then
-             p_tmp = p
-             call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
-             if(tau_escape > 1.e-10_dp .and. .not. killed) then
-                call random(xi)
-                tau = -log(1._dp-xi*(1._dp - exp(-tau_escape)))
-                p%energy = p%energy * (1._dp - exp(-tau_escape))
-             end if
-          end if
+       if(interactions == 1) then
+         if(forced_first_scattering .and. forced_first_scattering_algorithm == 'wr99') then
+            p_tmp = p
+            call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
+            if(tau_escape > 1.e-10_dp .and. .not. killed) then
+               call forced_scattering_wr99(tau_escape, tau, weight)
+               p%energy = p%energy * weight
+            end if
+         end if
        end if
 
        call grid_integrate_noenergy(p,tau,tau_achieved)
