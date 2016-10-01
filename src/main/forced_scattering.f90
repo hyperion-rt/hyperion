@@ -1,4 +1,4 @@
-module forced_scattering
+module forced_interaction
 
   use core_lib, only : dp, random
 
@@ -8,13 +8,13 @@ module forced_scattering
   private
   public :: forced_scattering_wr99
   public :: forced_scattering_baes16
-  public :: baes16_eta
+  public :: baes16_xi
   public :: WR99, BAES16
 
   ! The optical depth at which we transition to approximating (1 - exp(-tau))
   ! by simply tau
   real(dp), parameter :: TAU_THRES = 1.e-7_dp
-  real(dp) :: baes16_eta = 0.5_dp
+  real(dp) :: baes16_xi = 0.5_dp
 
   integer, parameter :: WR99=1, BAES16=2
 
@@ -68,24 +68,24 @@ contains
     ! defined between 0 and infinity to being a composite of a truncated
     ! decaying exponential and a constant. The PDF is thus:
     !
-    ! PDF = (1 - eta) * exp(-tau) / (1 - exp(-tau_escape)) + eta / tau_escape
+    ! PDF = (1 - xi) * exp(-tau) / (1 - exp(-tau_escape)) + xi / tau_escape
     !
     ! where eta is in the range [0:1], and the CDF is
     !
-    ! CDF = (1 - eta) * (1 - exp(-tau)) / (1 - exp(-tau_escape)) + eta * tau / tau_escape
+    ! CDF = (1 - xi) * (1 - exp(-tau)) / (1 - exp(-tau_escape)) + xi * tau / tau_escape
     !
-    ! For simplicity, we define:
+    ! Note that the xi parameter here is different from the xi used to sample
+    ! random numbers. For simplicity, we define:
     !
-    ! alpha = (1 - eta) / (1 - exp(-tau_escape))
-    ! beta = eta / tau_escape
+    ! alpha = (1 - xi) / (1 - exp(-tau_escape))
+    ! beta = xi / tau_escape
     !
     ! so that the CDF becomes:
     !
     ! CDF = alpha * (1 - exp(-tau)) + beta * tau
     !
-    ! Unfortunately, we cannot solve CDF = xi analytically for tau (where xi is
-    ! a random number in the range [0:1]), so instead we solve this by searching
-    ! the CDF by bisection.
+    ! Unfortunately, we cannot solve CDF = random number analytically for tau,
+    ! so instead we solve this by searching the CDF by bisection.
 
     implicit none
 
@@ -101,8 +101,8 @@ contains
     end if
 
     ! Pre-define alpha and beta for convenience and performance
-    alpha = (1._dp - baes16_eta) / one_minus_exp
-    beta = baes16_eta / tau_escape
+    alpha = (1._dp - baes16_xi) / one_minus_exp
+    beta = baes16_xi / tau_escape
 
     ! Search tau by bisection - we know in advance it will be in the range
     ! 0 to tau_escape, so we use this as initial limits
@@ -132,4 +132,4 @@ contains
 
   end subroutine forced_scattering_baes16
 
-end module forced_scattering
+end module forced_interaction

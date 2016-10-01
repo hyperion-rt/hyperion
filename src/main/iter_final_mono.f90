@@ -42,7 +42,7 @@ module iteration_final_mono
 
   use counters, only : killed_photons_int
 
-  use forced_scattering, only : forced_scattering_wr99, &
+  use forced_interaction, only : forced_scattering_wr99, &
        &                        forced_scattering_baes16, &
        &                         WR99, BAES16
 

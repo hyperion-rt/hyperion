@@ -57,7 +57,7 @@ module iteration_lucy
 
   use counters, only : killed_photons_int
 
-  use forced_scattering, only : forced_scattering_baes16, WR99, BAES16
+  use forced_interaction, only : forced_scattering_baes16, WR99, BAES16
 
   implicit none
   save

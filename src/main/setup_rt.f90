@@ -13,7 +13,7 @@ module setup
   use binned_images
   use peeled_images
   use settings
-  use forced_scattering, only : WR99, BAES16, baes16_eta
+  use forced_interaction, only : WR99, BAES16, baes16_xi
 
   implicit none
   save
@@ -96,7 +96,7 @@ contains
          forced_first_interaction_algorithm = WR99
       case('baes16')
          forced_first_interaction_algorithm = BAES16
-         call mp_read_keyword(input_handle, '/', 'forced_first_interaction_baes16_eta', baes16_eta)
+         call mp_read_keyword(input_handle, '/', 'forced_first_interaction_baes16_xi', baes16_xi)
       case default
          call error('setup_initial', 'Unknown forced first interaction algorithm: '//trim(forced_first_interaction_algorithm_str))
       end select

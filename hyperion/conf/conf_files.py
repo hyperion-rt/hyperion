@@ -523,7 +523,7 @@ class RunConf(object):
     def _write_kill_on_scatter(self, group):
         group.attrs['kill_on_scatter'] = bool2str(self.kill_on_scatter)
 
-    def set_forced_first_interaction(self, forced_first_interaction, algorithm='wr99', baes16_eta=0.5):
+    def set_forced_first_interaction(self, forced_first_interaction, algorithm='wr99', baes16_xi=0.5):
         '''
         Set whether to ensure that photons scatter at least once before
         escaping the grid.
@@ -534,7 +534,7 @@ class RunConf(object):
             Whether to force at least one scattering before escaping the
             grid
         algorithm : 'wr99' or 'baes16'
-            Which algorithm to use for the forced first scattering. The
+            Which algorithm to use for the forced first interaction. The
             algorithms are described in the notes below.
 
         Notes
@@ -559,18 +559,18 @@ class RunConf(object):
         probability anywhere along the photon escape path. This is useful for
         cases where there are shadowed regions that otherwise would not receive
         many photons. The relative weight of the truncated exponential versus
-        the constant is given by baes16_eta, which should be in the range 0 to 1
+        the constant is given by baes16_xi, which should be in the range 0 to 1.
         '''
 
-        if baes16_eta < 0 or baes16_eta > 1:
-            raise ValueError('baes16_eta should be in the range 0 to 1')
+        if baes16_xi < 0 or baes16_xi > 1:
+            raise ValueError('baes16_xi should be in the range 0 to 1')
 
         if algorithm not in ('wr99', 'baes16'):
             raise ValueError('algorithm should be wr99 or baes16')
 
         self.forced_first_interaction = forced_first_interaction
         self.forced_first_interaction_algorithm = algorithm
-        self.forced_first_interaction_baes16_eta = baes16_eta
+        self.forced_first_interaction_baes16_xi = baes16_xi
 
     set_forced_first_scattering = set_forced_first_interaction
 
@@ -578,16 +578,16 @@ class RunConf(object):
         if 'forced_first_scattering' in group.attrs:  # old API
             self.forced_first_interaction = str2bool(group.attrs['forced_first_scattering'])
             self.forced_first_interaction_algorithm = 'wr99'
-            self.forced_first_interaction_baes16_eta = 0.5
+            self.forced_first_interaction_baes16_xi = 0.5
         else:
             self.forced_first_interaction = str2bool(group.attrs['forced_first_interaction'])
             self.forced_first_interaction_algorithm = group.attrs['forced_first_interaction_algorithm'].decode()
-            self.forced_first_interaction_baes16_eta = group.attrs['forced_first_interaction_baes16_eta']
+            self.forced_first_interaction_baes16_xi = group.attrs['forced_first_interaction_baes16_xi']
 
     def _write_forced_first_interaction(self, group):
         group.attrs['forced_first_interaction'] = bool2str(self.forced_first_interaction)
         group.attrs['forced_first_interaction_algorithm'] = np.string_(self.forced_first_interaction_algorithm.encode('utf-8'))
-        group.attrs['forced_first_interaction_baes16_eta'] = self.forced_first_interaction_baes16_eta
+        group.attrs['forced_first_interaction_baes16_xi'] = self.forced_first_interaction_baes16_xi
 
     def set_enforce_energy_range(self, enforce):
         '''
