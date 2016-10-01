@@ -348,7 +348,10 @@ contains
     real(dp) :: xi
     integer :: source_id
 
-    real(dp),parameter :: tau_max = 20._dp
+    ! FIXME: to test the Baes et al (2016) algorithm we need to make sure that
+    !        tau_max is infinity to make sure we get the correct value of
+    !        tau_escape
+    real(dp),parameter :: tau_max = 1e300_dp
 
     p = p_orig
 
