@@ -6,8 +6,8 @@ module forced_interaction
   save
 
   private
-  public :: forced_scattering_wr99
-  public :: forced_scattering_baes16
+  public :: forced_interaction_wr99
+  public :: forced_interaction_baes16
   public :: baes16_xi
   public :: WR99, BAES16
 
@@ -20,7 +20,7 @@ module forced_interaction
 
 contains
 
-  subroutine forced_scattering_wr99(tau_escape, tau, weight)
+  subroutine forced_interaction_wr99(tau_escape, tau, weight)
 
     ! Simple forced first interaction from Wood & Reynolds, 1999, The
     ! Astrophysical Journal, 525, 799:
@@ -55,9 +55,9 @@ contains
     tau = -log(1._dp - xi * one_minus_exp)
     weight = one_minus_exp
 
-  end subroutine forced_scattering_wr99
+  end subroutine forced_interaction_wr99
 
-  subroutine forced_scattering_baes16(tau_escape, tau, weight)
+  subroutine forced_interaction_baes16(tau_escape, tau, weight)
 
     ! Forced first interaction with composite biasing from Baes et al. 2019,
     ! Astronomy and Astrophysics, 590, A55:
@@ -130,6 +130,6 @@ contains
 
     weight = 1._dp / (alpha + beta * exp(tau))
 
-  end subroutine forced_scattering_baes16
+  end subroutine forced_interaction_baes16
 
 end module forced_interaction

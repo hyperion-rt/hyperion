@@ -57,7 +57,7 @@ module iteration_lucy
 
   use counters, only : killed_photons_int
 
-  use forced_interaction, only : forced_scattering_baes16, WR99, BAES16
+  use forced_interaction, only : forced_interaction_baes16, WR99, BAES16
 
   implicit none
   save
@@ -179,7 +179,7 @@ contains
                    p_tmp = p
                    call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
                    if(tau_escape > 1.e-10 .and. .not. killed) then
-                      call forced_scattering_baes16(tau_escape, tau, weight)
+                      call forced_interaction_baes16(tau_escape, tau, weight)
                       p%energy = p%energy * weight
                    else
                      ! Fall back to normal sampling. In particular, if the

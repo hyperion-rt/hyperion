@@ -42,8 +42,8 @@ module iteration_final_mono
 
   use counters, only : killed_photons_int
 
-  use forced_interaction, only : forced_scattering_wr99, &
-       &                        forced_scattering_baes16, &
+  use forced_interaction, only : forced_interaction_wr99, &
+       &                        forced_interaction_baes16, &
        &                         WR99, BAES16
 
   implicit none
@@ -254,9 +254,9 @@ contains
           if(tau_escape > 1.e-10 .and. .not. killed) then
              select case(forced_first_interaction_algorithm)
              case(WR99)
-                call forced_scattering_wr99(tau_escape, tau, weight)
+                call forced_interaction_wr99(tau_escape, tau, weight)
              case(BAES16)
-                call forced_scattering_baes16(tau_escape, tau, weight)
+                call forced_interaction_baes16(tau_escape, tau, weight)
              case default
                 call error("propagate", "Unknown forced first interaction algorithm")
              end select
