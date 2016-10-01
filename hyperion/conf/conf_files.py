@@ -579,9 +579,9 @@ class RunConf(object):
         else:
             self.forced_first_scattering_algorithm = 'wr99'
         if 'forced_first_scattering_baes16_eta' in group.attrs:
-            self.forced_first_scattering_algorithm = group.attrs['forced_first_scattering_baes16_eta']
+            self.forced_first_scattering_baes16_eta = group.attrs['forced_first_scattering_baes16_eta']
         else:
-            self.forced_first_scattering_algorithm = 0.5
+            self.forced_first_scattering_baes16_eta = 0.5
 
     def _write_forced_first_scattering(self, group):
         group.attrs['forced_first_scattering'] = bool2str(self.forced_first_scattering)

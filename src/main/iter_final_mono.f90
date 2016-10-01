@@ -251,7 +251,7 @@ contains
        if(interactions == 1 .and. forced_first_scattering) then
           p_tmp = p
           call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
-          if(.not. killed) then
+          if(tau_escape > 1.e-10 .and. .not. killed) then
              select case(forced_first_scattering_algorithm)
              case(WR99)
                 call forced_scattering_wr99(tau_escape, tau, weight)
@@ -261,6 +261,8 @@ contains
                 call error("propagate", "Unknown forced first scattering algorithm")
              end select
              p%energy = p%energy * weight
+           else
+              call random_exp(tau)
           end if
        else
           call random_exp(tau)

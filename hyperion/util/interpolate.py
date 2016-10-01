@@ -45,7 +45,7 @@ class check_bounds(object):
                         yval[outside] = fill_value
                         return yval
                     else:
-                        return np.repeat(fill_value, xval.shape)
+                        return fill_value * np.ones(xval.shape)
             else:  # all values are in the bounds
                 return self.f(x, y, xval)
 

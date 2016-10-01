@@ -91,5 +91,5 @@ class TestFilters(object):
 
     def test_image_values(self):
         image = self.m.get_image(units='MJy/sr', distance=1)
-        np.testing.assert_allclose(np.sum(image.val[:, :, :, 0]), 3830.715625936475, rtol=0.1)
-        np.testing.assert_allclose(np.sum(image.val[:, :, :, 1]), 1894.932507841974, rtol=0.1)
+        np.testing.assert_allclose(np.sum(image.val[:, :, :, 0]), 3438.059082285024, rtol=0.1)
+        np.testing.assert_allclose(np.sum(image.val[:, :, :, 1]), 2396.4803378036186, rtol=0.1)

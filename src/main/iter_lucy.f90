@@ -174,12 +174,20 @@ contains
                    ! in cases of low optical depths, all cells along the path
                    ! to escape will get contributions to the energy, so we
                    ! won't improve things by forcing a scattering.
+                   call random_exp(tau)
                 case(BAES16)
                    p_tmp = p
                    call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
-                   if(.not. killed) then
+                   if(tau_escape > 1.e-10 .and. .not. killed) then
                       call forced_scattering_baes16(tau_escape, tau, weight)
                       p%energy = p%energy * weight
+                   else
+                     ! Fall back to normal sampling. In particular, if the
+                     ! optical depth to escape is zero, we need to make sure
+                     ! tau > 0 so the integration succeeds. In the test
+                     ! photon was killed, we can't trust tau_escape and
+                     ! therefore should just default back to this.
+                     call random_exp(tau)
                    end if
                 case default
                    call error("propagate", "Unknown forced first scattering algorithm")
