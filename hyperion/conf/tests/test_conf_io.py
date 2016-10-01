@@ -292,15 +292,15 @@ def test_io_run_conf_kill_on_scatter(value):
 
 
 @pytest.mark.parametrize(('value'), [True, False])
-def test_io_run_conf_forced_first_scattering(value):
+def test_io_run_conf_forced_first_interaction(value):
     r1 = RunConf()
-    r1.set_forced_first_scattering(value)
+    r1.set_forced_first_interaction(value)
     r1.set_n_photons(1, 2)
     v = virtual_file()
     r1.write_run_conf(v)
     r2 = RunConf()
     r2.read_run_conf(v)
-    assert r2.forced_first_scattering == r1.forced_first_scattering
+    assert r2.forced_first_interaction == r1.forced_first_interaction
 
 
 @pytest.mark.parametrize(('value'), [4, 8])

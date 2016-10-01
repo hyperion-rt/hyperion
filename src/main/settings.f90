@@ -23,8 +23,8 @@ module settings
   logical,public :: use_raytracing, use_mrw, use_pda
   logical, public :: kill_on_absorb, kill_on_scatter
   real(dp),public :: mrw_gamma
-  logical, public :: forced_first_scattering
-  integer, public :: forced_first_scattering_algorithm
+  logical, public :: forced_first_interaction
+  integer, public :: forced_first_interaction_algorithm
 
   logical :: use_exact_nu = .false.
   real(dp),allocatable :: frequencies(:)

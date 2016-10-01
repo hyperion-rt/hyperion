@@ -375,7 +375,7 @@ def test_model_minimal(tmpdir):
     m.run()
 
 
-def test_binned_forced_first_scattering(tmpdir):
+def test_binned_forced_first_interaction(tmpdir):
 
     m = Model()
 
@@ -389,4 +389,4 @@ def test_binned_forced_first_scattering(tmpdir):
 
     with pytest.raises(Exception) as exc:
         m.write(tmpdir.join(random_id()).strpath)
-    assert exc.value.args[0] == "can't use binned images with forced first scattering - use set_forced_first_scattering(False) to disable"
+    assert exc.value.args[0] == "can't use binned images with forced first interaction - use set_forced_first_interaction(False) to disable"

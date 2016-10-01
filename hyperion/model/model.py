@@ -570,8 +570,8 @@ class Model(FreezableClass, RunConf):
 
         # Output configuration for binned images/SEDs
         if self.binned_output is not None:
-            if self.forced_first_scattering:
-                raise Exception("can't use binned images with forced first scattering - use set_forced_first_scattering(False) to disable")
+            if self.forced_first_interaction:
+                raise Exception("can't use binned images with forced first interaction - use set_forced_first_interaction(False) to disable")
             self.binned_output.write(g_binned.create_group('group_00001'))
 
         # Write monochromatic configuration

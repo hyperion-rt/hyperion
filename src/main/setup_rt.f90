@@ -33,7 +33,7 @@ contains
     integer :: physics_io_bytes
     type(version) :: python_version
     integer :: idust
-    character(len=10) :: forced_first_scattering_algorithm_str
+    character(len=10) :: forced_first_interaction_algorithm_str
 
     if(mp_exists_keyword(input_handle, '/', 'python_version')) then
        call mp_read_keyword(input_handle, '/', 'python_version', python_version%string)
@@ -85,25 +85,21 @@ contains
        kill_on_scatter = .false.
     end if
 
-    call mp_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_scattering)
-
-    if(forced_first_scattering) then
-       if(mp_exists_keyword(input_handle, '/', 'forced_first_scattering_algorithm')) then
-          call mp_read_keyword(input_handle, '/', 'forced_first_scattering_algorithm', forced_first_scattering_algorithm_str)
-          select case(trim(forced_first_scattering_algorithm_str))
-          case('wr99')
-             forced_first_scattering_algorithm = WR99
-          case('baes16')
-             forced_first_scattering_algorithm = baes16
-             call mp_read_keyword(input_handle, '/', 'forced_first_scattering_baes16_eta', baes16_eta)
-          case default
-             call error('setup_initial', 'Unknown forced first scattering algorithm: '//trim(forced_first_scattering_algorithm_str))
-          end select
-       else
-          forced_first_scattering_algorithm = WR99
-       end if
+    if(mp_exists_keyword(input_handle, '/', 'forced_first_scattering')) then
+      call mp_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_interaction)
+      forced_first_interaction_algorithm = WR99
     else
-       forced_first_scattering_algorithm = 0
+      call mp_read_keyword(input_handle, '/', 'forced_first_interaction', forced_first_interaction)
+      call mp_read_keyword(input_handle, '/', 'forced_first_interaction_algorithm', forced_first_interaction_algorithm_str)
+      select case(trim(forced_first_interaction_algorithm_str))
+      case('wr99')
+         forced_first_interaction_algorithm = WR99
+      case('baes16')
+         forced_first_interaction_algorithm = BAES16
+         call mp_read_keyword(input_handle, '/', 'forced_first_interaction_baes16_eta', baes16_eta)
+      case default
+         call error('setup_initial', 'Unknown forced first interaction algorithm: '//trim(forced_first_interaction_algorithm_str))
+      end select
     end if
 
     if(mp_exists_keyword(input_handle, '/', 'propagation_check_frequency')) then
@@ -295,7 +291,7 @@ contains
 
     if(make_binned_images) then
        if(use_exact_nu) call error("setup_final_iteration","can't use binned images in exact wavelength mode")
-       if(forced_first_scattering) call error("setup_final_iteration", "can't use binned images with forced first scattering")
+       if(forced_first_interaction) call error("setup_final_iteration", "can't use binned images with forced first interaction")
        call binned_images_setup(g_binned, group_names(1))
     end if
 

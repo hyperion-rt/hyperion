@@ -33,8 +33,8 @@ module iteration_final_mono
        &               n_inter_max_warn, &
        &               n_reabs_max,  &
        &               n_reabs_max_warn,  &
-       &               forced_first_scattering, &
-       &               forced_first_scattering_algorithm, &
+       &               forced_first_interaction, &
+       &               forced_first_interaction_algorithm, &
        &               kill_on_scatter
 
   use performance, only : perf_header, &
@@ -244,21 +244,21 @@ contains
     do interactions=1, n_inter_max+1
 
        ! If this is the first interaction and the user requested forced
-       ! first scattering, we sample tau and modify the photon energy
-       ! using a forced first scattering algorith - otherwise we sample
+       ! first interaction, we sample tau and modify the photon energy
+       ! using a forced first interaction algorith - otherwise we sample
        ! tau the normal way.
 
-       if(interactions == 1 .and. forced_first_scattering) then
+       if(interactions == 1 .and. forced_first_interaction) then
           p_tmp = p
           call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
           if(tau_escape > 1.e-10 .and. .not. killed) then
-             select case(forced_first_scattering_algorithm)
+             select case(forced_first_interaction_algorithm)
              case(WR99)
                 call forced_scattering_wr99(tau_escape, tau, weight)
              case(BAES16)
                 call forced_scattering_baes16(tau_escape, tau, weight)
              case default
-                call error("propagate", "Unknown forced first scattering algorithm")
+                call error("propagate", "Unknown forced first interaction algorithm")
              end select
              p%energy = p%energy * weight
            else

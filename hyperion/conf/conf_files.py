@@ -55,7 +55,7 @@ class RunConf(object):
         self.set_convergence(False)
         self.set_kill_on_absorb(False)
         self.set_kill_on_scatter(False)
-        self.set_forced_first_scattering(True)
+        self.set_forced_first_interaction(True)
         self.set_output_bytes(8)
         self.set_sample_sources_evenly(False)
         self.set_enforce_energy_range(True)
@@ -523,14 +523,14 @@ class RunConf(object):
     def _write_kill_on_scatter(self, group):
         group.attrs['kill_on_scatter'] = bool2str(self.kill_on_scatter)
 
-    def set_forced_first_scattering(self, forced_first_scattering, algorithm='wr99', baes16_eta=0.5):
+    def set_forced_first_interaction(self, forced_first_interaction, algorithm='wr99', baes16_eta=0.5):
         '''
         Set whether to ensure that photons scatter at least once before
         escaping the grid.
 
         Parameters
         ----------
-        forced_first_scattering : bool
+        forced_first_interaction : bool
             Whether to force at least one scattering before escaping the
             grid
         algorithm : 'wr99' or 'baes16'
@@ -568,25 +568,26 @@ class RunConf(object):
         if algorithm not in ('wr99', 'baes16'):
             raise ValueError('algorithm should be wr99 or baes16')
 
-        self.forced_first_scattering = forced_first_scattering
-        self.forced_first_scattering_algorithm = algorithm
-        self.forced_first_scattering_baes16_eta = baes16_eta
+        self.forced_first_interaction = forced_first_interaction
+        self.forced_first_interaction_algorithm = algorithm
+        self.forced_first_interaction_baes16_eta = baes16_eta
 
-    def _read_forced_first_scattering(self, group):
-        self.forced_first_scattering = str2bool(group.attrs['forced_first_scattering'])
-        if 'forced_first_scattering_algorithm' in group.attrs:
-            self.forced_first_scattering_algorithm = group.attrs['forced_first_scattering_algorithm'].decode()
-        else:
-            self.forced_first_scattering_algorithm = 'wr99'
-        if 'forced_first_scattering_baes16_eta' in group.attrs:
-            self.forced_first_scattering_baes16_eta = group.attrs['forced_first_scattering_baes16_eta']
-        else:
-            self.forced_first_scattering_baes16_eta = 0.5
+    set_forced_first_scattering = set_forced_first_interaction
 
-    def _write_forced_first_scattering(self, group):
-        group.attrs['forced_first_scattering'] = bool2str(self.forced_first_scattering)
-        group.attrs['forced_first_scattering_algorithm'] = np.string_(self.forced_first_scattering_algorithm.encode('utf-8'))
-        group.attrs['forced_first_scattering_baes16_eta'] = self.forced_first_scattering_baes16_eta
+    def _read_forced_first_interaction(self, group):
+        if 'forced_first_scattering' in group.attrs:  # old API
+            self.forced_first_interaction = str2bool(group.attrs['forced_first_scattering'])
+            self.forced_first_interaction_algorithm = 'wr99'
+            self.forced_first_interaction_baes16_eta = 0.5
+        else:
+            self.forced_first_interaction = str2bool(group.attrs['forced_first_interaction'])
+            self.forced_first_interaction_algorithm = group.attrs['forced_first_interaction_algorithm'].decode()
+            self.forced_first_interaction_baes16_eta = group.attrs['forced_first_interaction_baes16_eta']
+
+    def _write_forced_first_interaction(self, group):
+        group.attrs['forced_first_interaction'] = bool2str(self.forced_first_interaction)
+        group.attrs['forced_first_interaction_algorithm'] = np.string_(self.forced_first_interaction_algorithm.encode('utf-8'))
+        group.attrs['forced_first_interaction_baes16_eta'] = self.forced_first_interaction_baes16_eta
 
     def set_enforce_energy_range(self, enforce):
         '''
@@ -721,7 +722,7 @@ class RunConf(object):
         self._read_convergence(group)
         self._read_kill_on_absorb(group)
         self._read_kill_on_scatter(group)
-        self._read_forced_first_scattering(group)
+        self._read_forced_first_interaction(group)
         self._read_output_bytes(group)
         self._read_sample_sources_evenly(group)
         self._read_enforce_energy_range(group)
@@ -749,7 +750,7 @@ class RunConf(object):
         self._write_convergence(group)
         self._write_kill_on_absorb(group)
         self._write_kill_on_scatter(group)
-        self._write_forced_first_scattering(group)
+        self._write_forced_first_interaction(group)
         self._write_output_bytes(group)
         self._write_sample_sources_evenly(group)
         self._write_enforce_energy_range(group)

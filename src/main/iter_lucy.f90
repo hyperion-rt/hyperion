@@ -40,8 +40,8 @@ module iteration_lucy
 
   use grid_pda, only : solve_pda
 
-  use settings, only : forced_first_scattering, &
-       &               forced_first_scattering_algorithm, &
+  use settings, only : forced_first_interaction, &
+       &               forced_first_interaction_algorithm, &
        &               kill_on_absorb, kill_on_scatter, &
        &               n_inter_max, &
        &               n_inter_max_warn, &
@@ -87,7 +87,7 @@ contains
     ! Optical depth to travel
     real(dp) :: tau
 
-    ! Used for the forced first scattering
+    ! Used for the forced first interaction
     real(dp) :: tau_escape, weight
     type(photon) :: p_tmp
     logical :: killed
@@ -161,12 +161,12 @@ contains
              end if
 
              ! If this is the first interaction and the user requested forced
-             ! first scattering, we sample tau and modify the photon energy
-             ! using a forced first scattering algorith - otherwise we sample
+             ! first interaction, we sample tau and modify the photon energy
+             ! using a forced first interaction algorith - otherwise we sample
              ! tau the normal way.
 
-             if(interactions == 1 .and. forced_first_scattering) then
-                select case(forced_first_scattering_algorithm)
+             if(interactions == 1 .and. forced_first_interaction) then
+                select case(forced_first_interaction_algorithm)
                 case(WR99)
                    ! Note that we don't do anything for the wr99 algorithm
                    ! because that algorithm only matters for small optical depths
@@ -190,7 +190,7 @@ contains
                      call random_exp(tau)
                    end if
                 case default
-                   call error("propagate", "Unknown forced first scattering algorithm")
+                   call error("propagate", "Unknown forced first interaction algorithm")
                 end select
              else
                 call random_exp(tau)

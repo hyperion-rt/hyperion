@@ -22,7 +22,7 @@ contains
 
   subroutine forced_scattering_wr99(tau_escape, tau, weight)
 
-    ! Simple forced first scattering from Wood & Reynolds, 1999, The
+    ! Simple forced first interaction from Wood & Reynolds, 1999, The
     ! Astrophysical Journal, 525, 799:
     !
     ! http://dx.doi.org/10.1086/307939
@@ -59,7 +59,7 @@ contains
 
   subroutine forced_scattering_baes16(tau_escape, tau, weight)
 
-    ! Forced first scattering with composite biasing from Baes et al. 2019,
+    ! Forced first interaction with composite biasing from Baes et al. 2019,
     ! Astronomy and Astrophysics, 590, A55:
     !
     ! http://dx.doi.org/10.1086/307939
