@@ -12,6 +12,13 @@ Version History
   the algorithm to use (``wr99`` or ``baes16``) and in the case of the ``baes16``
   algorithm, ``baes16_xi`` can be passed. [#189]
 
+- Improved the efficiency of monochromatic radiative transfer: instead of
+  propagating photons until they are absorbed, photon packets are forced to
+  scatter and their energy is lowered at every interaction by the albedo until
+  the energy goes below a threshold. This threshold defaults to 1.e-10, but this
+  can be changed using the ``energy_threshold`` argument to
+  ``Model.set_monochromatic``. [#158]
+
 0.9.8 (2016-09-27)
 ------------------
 
