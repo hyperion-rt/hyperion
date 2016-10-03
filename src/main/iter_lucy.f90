@@ -40,9 +40,7 @@ module iteration_lucy
 
   use grid_pda, only : solve_pda
 
-  use settings, only : forced_first_interaction, &
-       &               forced_first_interaction_algorithm, &
-       &               kill_on_absorb, kill_on_scatter, &
+  use settings, only : kill_on_absorb, kill_on_scatter, &
        &               n_inter_max, &
        &               n_inter_max_warn, &
        &               mrw_gamma, &
@@ -56,8 +54,6 @@ module iteration_lucy
   use performance, only : perf_header, perf_footer
 
   use counters, only : killed_photons_int
-
-  use forced_interaction, only : forced_interaction_baes16, WR99, BAES16
 
   implicit none
   save
@@ -160,41 +156,7 @@ contains
                 end if
              end if
 
-             ! If this is the first interaction and the user requested forced
-             ! first interaction, we sample tau and modify the photon energy
-             ! using a forced first interaction algorith - otherwise we sample
-             ! tau the normal way.
-
-             if(interactions == 1 .and. forced_first_interaction) then
-                select case(forced_first_interaction_algorithm)
-                case(WR99)
-                   ! Note that we don't do anything for the wr99 algorithm
-                   ! because that algorithm only matters for small optical depths
-                   ! but since we use the Lucy algorithm for the temperature,
-                   ! in cases of low optical depths, all cells along the path
-                   ! to escape will get contributions to the energy, so we
-                   ! won't improve things by forcing a scattering.
-                   call random_exp(tau)
-                case(BAES16)
-                   p_tmp = p
-                   call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
-                   if(tau_escape > 1.e-10 .and. .not. killed) then
-                      call forced_interaction_baes16(tau_escape, tau, weight)
-                      p%energy = p%energy * weight
-                   else
-                     ! Fall back to normal sampling. In particular, if the
-                     ! optical depth to escape is zero, we need to make sure
-                     ! tau > 0 so the integration succeeds. In the test
-                     ! photon was killed, we can't trust tau_escape and
-                     ! therefore should just default back to this.
-                     call random_exp(tau)
-                   end if
-                case default
-                   call error("propagate", "Unknown forced first interaction algorithm")
-                end select
-             else
-                call random_exp(tau)
-             end if
+             call random_exp(tau)
 
              ! Propagate the optical depth sampled
              call grid_integrate(p,tau,tau_achieved)
