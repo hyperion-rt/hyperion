@@ -83,11 +83,6 @@ contains
     ! Optical depth to travel
     real(dp) :: tau
 
-    ! Used for the forced first interaction
-    real(dp) :: tau_escape, weight
-    type(photon) :: p_tmp
-    logical :: killed
-
     ! REMOVE
     real(dp) :: tau_achieved
 
@@ -140,7 +135,7 @@ contains
              ! If this is not the first interaction, and the user requested to
              ! use the MRW, do the MRW to get out of the optically thick region
 
-             if(interactions > 1 .and. use_mrw) then
+             if(use_mrw.and.interactions > 1) then
                 do mrw_steps=1,n_mrw_max
                    if(tau_inv_planck_to_closest_wall(p) > mrw_gamma) then
                       call grid_do_mrw(p)
@@ -156,9 +151,8 @@ contains
                 end if
              end if
 
+             ! Sample a random optical depth and propagate that optical depth
              call random_exp(tau)
-
-             ! Propagate the optical depth sampled
              call grid_integrate(p,tau,tau_achieved)
 
              if(p%reabsorbed) then
