@@ -33,6 +33,8 @@ module iteration_final_mono
        &               n_inter_max_warn, &
        &               n_reabs_max,  &
        &               n_reabs_max_warn,  &
+       &               forced_first_interaction, &
+       &               forced_first_interaction_algorithm, &
        &               kill_on_scatter, &
        &               monochromatic_energy_threshold
 
@@ -119,7 +121,7 @@ contains
                 end if
 
                 ! Propagate until photon is absorbed again
-                call propagate(p, peeloff_scattering_only)
+                call propagate(p)
 
              end do
 
@@ -191,7 +193,7 @@ contains
                       end if
 
                       ! Propagate until photon is absorbed again
-                      call propagate(p, peeloff_scattering_only)
+                      call propagate(p)
 
                    end if
 
@@ -227,12 +229,11 @@ contains
 
   end subroutine do_final_mono
 
-  subroutine propagate(p, peeloff_scattering_only)
+  subroutine propagate(p)
 
     implicit none
 
     type(photon), intent(inout) :: p
-    logical,intent(in) :: peeloff_scattering_only
     integer(idp) :: interactions
     real(dp) :: tau_achieved, tau, tau_escape
     type(photon) :: p_tmp
