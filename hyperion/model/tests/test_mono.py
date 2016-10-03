@@ -57,7 +57,7 @@ def test_check_weighting(tmpdir):
 
     m.set_n_initial_iterations(0)
 
-    m.set_n_photons(imaging_sources=0, imaging_dust=10000)
+    m.set_n_photons(imaging_sources=0, imaging_dust=50000)
 
     m.write(tmpdir.join(random_id()).strpath)
     mo1 = m.run(tmpdir.join(random_id()).strpath)
@@ -77,7 +77,7 @@ def test_check_weighting(tmpdir):
 
     m.set_n_initial_iterations(0)
 
-    m.set_n_photons(imaging_sources=0, imaging_dust=10000)
+    m.set_n_photons(imaging_sources=0, imaging_dust=50000)
 
     m.write(tmpdir.join(random_id()).strpath)
     mo2 = m.run(tmpdir.join(random_id()).strpath)
