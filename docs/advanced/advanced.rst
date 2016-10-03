@@ -17,6 +17,7 @@ transfer.
    peeloff.rst
    use_grid_from_disk.rst
    voronoi_sampling.rst
+   forced_interaction.rst
 
 The following features are experimental:
 
