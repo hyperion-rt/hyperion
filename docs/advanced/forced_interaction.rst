@@ -2,16 +2,14 @@ Forced interactions
 ===================
 
 Hyperion includes several algorithms for forcing first interactions during the
-photon propagation. In classical Monte-Carlo propagation, the pathlength for
-photon packets to travel is sampled from :math:`e^{-\tau}`. However, this can be
-inefficient in the following situations:
+photon propagation when making images. In classical Monte-Carlo propagation, the
+pathlength for photon packets to travel is sampled from :math:`e^{-\tau}`.
+However, this can be inefficient in the following situations:
 
 * If the optical depths in the model are very low, photons may escape
-  the grid without ever interacting with the dust. This is not an issue for the
-  temperature calculation, because we use the Lucy (1999) algorithm which uses
-  the pathlength of photons through all the cells, but this will be an issue
-  when computing images with the peeling-off method, since this method relies
-  on interactions of the photon packets with the dust. For very optically thin
+  the grid without ever interacting with the dust. This is an issue when
+  computing images with the peeling-off method, since this method relies on
+  interactions of the photon packets with the dust. For very optically thin
   models, unrealistically large numbers of photons may therefore be needed to
   get an acceptable signal-to-noise in the images.
 
@@ -26,6 +24,10 @@ To mitigate these effects, various algorithms have been designed to modify the
 sampling of the pathlengths to travel. These algorithms implemented in Hyperion
 are described in detail below. In both cases, the energy of the photon packets
 are adjusted during the forcing to make sure that energy is conserved.
+
+.. note:: These algorithms only affect the iteration of the radiative transfer
+          during which the images are generated, not the initial iterations
+          during which the temperatures are computed.
 
 Wood and Reynolds (1999)
 ------------------------
