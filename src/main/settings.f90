@@ -27,6 +27,7 @@ module settings
   integer, public :: forced_first_interaction_algorithm
 
   logical :: use_exact_nu = .false.
+  real(dp) :: monochromatic_energy_threshold
   real(dp),allocatable :: frequencies(:)
 
   integer :: physics_io_type

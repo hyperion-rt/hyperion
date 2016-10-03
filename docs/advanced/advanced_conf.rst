@@ -22,21 +22,47 @@ because it may be that 99% of the photons end up at a different wavelength and
 do not contribute to the images. In order to get around this problem, Hyperion
 also implements the concept of monochromatic radiative transfer (see section
 2.6.4 of the `Hyperion paper <http://adsabs.harvard.edu/abs/2011A%26A...536A..79R>`_).
-In short, the way this algorithm works is that since the temperature has
-already been computed by the time the images are being computed, it is
-possible to consider only the propagation, scattering, and absorption of
-photons at the specific wavelengths/frequencies of interest.
+In short, the way this algorithm works is the following:
+
+* The temperature is first computed as usual in the initial iterations.
+
+* Photons are then emitted from the source at the wavelengths of interest and
+  propagated until they are absorbed, at which point they are terminated. In
+  practice, this process can be inefficient in cases where the albedo is low,
+  because photons may not often scatter. Therefore, we instead force the photon
+  to scatter continuously, but decrease its energy by the albedo at each
+  interaction to make sure energy is conserved. Once the energy of the photon
+  has decreased below a certain threshold, it is terminated.
+
+* Photons are then emitted from the dust and propagated until they are
+  terminated, as for the source photons described above.
+
+* If raytracing is not used, then the photons are peeled off both when the
+  photons are emitted from the source or dust, as well as when they scatter.
+  Otherwise, they are peeled off only when they scatter, and the source and dust
+  components are computed in the raytracing phase.
+
+.. note:: The algorithm that forces scatterings and lowers the energy of the
+          photon packets is new in Hyperion v0.9.9. Prior to this, the photons
+          were simply propagated until they were absorbed.
 
 To enable monochromatic radiative transfer, before setting the number of
 photons, you should call the :meth:`~hyperion.model.Model.set_monochromatic`
-method. For example, to compute images at 1, 1.2, and 1.4 microns, you would need to do::
+method. For example, to compute images at 1, 1.2, and 1.4 microns, you would
+need to do::
 
     m.set_monochromatic(True, wavelengths=[1., 1.2, 1.4])
 
-where the ``wavelength`` arguments takes a list of wavelengths in microns. When
-using the monochromatic mode, it is then necessary to set the number of photons
-separately for the photons emitted from sources and the photons emitted from
-dust::
+where the ``wavelength`` arguments takes a list of wavelengths in microns. By
+default, the energy threshold for termination is set to 1.e-10 of the original
+photon energy, but this can be changed using the ``energy_threshold`` argument::
+
+    m.set_monochromatic(True, wavelengths=[1., 1.2, 1.4],
+                        energy_threshold=1.e-20)
+
+When using the monochromatic mode, it is then necessary to set the number of
+photons separately for the photons emitted from sources and the photons emitted
+from dust::
 
     m.set_n_photons(..., imaging_sources=1000, imaging_dust=1000, ...)
 
