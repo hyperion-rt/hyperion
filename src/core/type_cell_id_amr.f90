@@ -18,10 +18,15 @@ module type_grid_cell
   type(grid_cell),parameter,public :: invalid_cell = grid_cell(-1, -1, -1, -1, -1, -1)
   type(grid_cell),parameter,public :: outside_cell = grid_cell(-2, -2, -2, -2, -2, -2)
 
+  ! Note: if one of the module procedures for .eq. is called equal, this causes
+  !       issues with ifort 16 due a bug (because lib_version also defines
+  !       equal). Therefore, we call the functions equal_grid_cell and
+  !       equall_wall_id instead.
+
   public :: operator(.eq.)
   interface operator(.eq.)
-     module procedure equal
-     module procedure equal_wall
+     module procedure equal_grid_cell
+     module procedure equal_wall_id
   end interface operator(.eq.)
 
   public :: new_grid_cell
@@ -42,11 +47,11 @@ module type_grid_cell
 
 contains
 
-  logical function equal_wall(a,b)
+  logical function equal_wall_id(a,b)
     implicit none
     type(wall_id), intent(in) :: a,b
-    equal_wall = a%w1 == b%w1 .and. a%w2 == b%w2 .and. a%w3 == b%w3
-  end function equal_wall
+    equal_wall_id = a%w1 == b%w1 .and. a%w2 == b%w2 .and. a%w3 == b%w3
+  end function equal_wall_id
 
   subroutine preset_cell_id(geo)
 
@@ -85,11 +90,11 @@ contains
 
   end subroutine preset_cell_id
 
-  logical function equal(a,b)
+  logical function equal_grid_cell(a,b)
     implicit none
     type(grid_cell), intent(in) :: a,b
-    equal = a%ic == b%ic
-  end function equal
+    equal_grid_cell = a%ic == b%ic
+  end function equal_grid_cell
 
   type(grid_cell) function new_grid_cell_5d(i1, i2, i3, ilevel, igrid, geo) result(cell)
     implicit none
