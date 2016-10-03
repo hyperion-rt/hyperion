@@ -4,6 +4,8 @@ Version History
 0.9.9 (unreleased)
 ------------------
 
+- Added a workaround for a bug in ifort v16 that prevented compilation. [#190]
+
 - Improved the accuracy of the Wood and Reynolds (1999) forced first scattering
   algorithm for very small optical depths, and implemented the Baes et al (2016)
   composite biasing algorithm for forced first interaction. In addition, the
