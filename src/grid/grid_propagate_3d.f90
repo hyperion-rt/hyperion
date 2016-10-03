@@ -348,8 +348,6 @@ contains
     real(dp) :: xi
     integer :: source_id
 
-    real(dp),parameter :: tau_max = 20._dp
-
     p = p_orig
 
     killed = .false.
@@ -412,11 +410,6 @@ contains
        end do
 
        if(finished) return
-
-       if(tau > tau_max) then
-          killed = .true.
-          return
-       end if
 
        p%on_wall = .true.
        p%icell = next_cell(p%icell, id_min, intersection=p%r)

@@ -60,7 +60,7 @@ hyperion.model.Model
       ~Model.set_mrw
       ~Model.set_convergence
       ~Model.set_kill_on_absorb
-      ~Model.set_forced_first_scattering
+      ~Model.set_forced_first_interaction
       ~Model.set_output_bytes
       ~Model.set_sample_sources_evenly
       ~Model.set_enforce_energy_range
@@ -127,7 +127,7 @@ hyperion.model.Model
    .. automethod:: Model.set_mrw
    .. automethod:: Model.set_convergence
    .. automethod:: Model.set_kill_on_absorb
-   .. automethod:: Model.set_forced_first_scattering
+   .. automethod:: Model.set_forced_first_interaction
    .. automethod:: Model.set_output_bytes
    .. automethod:: Model.set_sample_sources_evenly
    .. automethod:: Model.set_enforce_energy_range

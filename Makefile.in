@@ -35,6 +35,7 @@ OBJECTS2 =	src/grid/grid_physics_3d.f90 \
 		src/grid/grid_generic.f90 \
 		src/images/images_binned.f90 \
 		src/images/images_peeled.f90 \
+		src/main/forced_interaction.f90 \
 		src/main/setup_rt.f90
 
 OBJECTS3 =	src/main/iter_lucy.f90 \
@@ -290,7 +291,7 @@ vor_serial:	$(OBJECTS_VOR_SER)
 
 vor_mpi:	$(OBJECTS_VOR_MPI)
 		$(FCMPI) $(OBJECTS_VOR_MPI) -o bin/hyperion_vor_mpi
-    
+
 install:	bin/hyperion_*
 		mkdir -p @prefix@/bin
 		cp bin/hyperion_* @prefix@/bin/

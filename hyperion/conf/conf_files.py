@@ -55,7 +55,7 @@ class RunConf(object):
         self.set_convergence(False)
         self.set_kill_on_absorb(False)
         self.set_kill_on_scatter(False)
-        self.set_forced_first_scattering(True)
+        self.set_forced_first_interaction(True)
         self.set_output_bytes(8)
         self.set_sample_sources_evenly(False)
         self.set_enforce_energy_range(True)
@@ -523,28 +523,71 @@ class RunConf(object):
     def _write_kill_on_scatter(self, group):
         group.attrs['kill_on_scatter'] = bool2str(self.kill_on_scatter)
 
-    def set_forced_first_scattering(self, forced_first_scattering):
+    def set_forced_first_interaction(self, forced_first_interaction, algorithm='wr99', baes16_xi=0.5):
         '''
         Set whether to ensure that photons scatter at least once before
         escaping the grid.
 
         Parameters
         ----------
-        forced_first_scattering : bool
+        forced_first_interaction : bool
             Whether to force at least one scattering before escaping the
             grid
+        algorithm : 'wr99' or 'baes16'
+            Which algorithm to use for the forced first interaction. The
+            algorithms are described in the notes below.
 
-        References
-        ----------
-        Wood & Reynolds, 1999, The Astrophysical Journal, 525, 799
+        Notes
+        -----
+
+        The 'wr99' algorithm refers to that described in Wood & Reynolds, 1999,
+        The Astrophysical Journal, 525, 799. During normal un-forced photon
+        propagation, we sample the optical depth from a probability density
+        function (PDF) that follows exp(-tau) from tau=0 to infinity. The Wood
+        and Reynolds algorithm modifies the PDF to be truncated at tau_escape
+        (the optical depth for the photon to escape the grid). This ensures that
+        all photons interact at least once before leaving the system. This
+        algorithm is ideal for cases where the optical depths are very small
+        and you are interested in making images. Note that this algorithm does
+        not apply to the temperature calculation iterations since it is not
+        needed there.
+
+        The 'baes16' algorithm refers to that described in Baes et al. 2019,
+        Astronomy and Astrophysics, 590, A55. In this algorithm, the PDF is
+        the weighted combination of a truncated decaying exponential and a
+        constant, which ensures that interactions will occur with a reasonable
+        probability anywhere along the photon escape path. This is useful for
+        cases where there are shadowed regions that otherwise would not receive
+        many photons. The relative weight of the truncated exponential versus
+        the constant is given by baes16_xi, which should be in the range 0 to 1.
         '''
-        self.forced_first_scattering = forced_first_scattering
 
-    def _read_forced_first_scattering(self, group):
-        self.forced_first_scattering = str2bool(group.attrs['forced_first_scattering'])
+        if baes16_xi < 0 or baes16_xi > 1:
+            raise ValueError('baes16_xi should be in the range 0 to 1')
 
-    def _write_forced_first_scattering(self, group):
-        group.attrs['forced_first_scattering'] = bool2str(self.forced_first_scattering)
+        if algorithm not in ('wr99', 'baes16'):
+            raise ValueError('algorithm should be wr99 or baes16')
+
+        self.forced_first_interaction = forced_first_interaction
+        self.forced_first_interaction_algorithm = algorithm
+        self.forced_first_interaction_baes16_xi = baes16_xi
+
+    set_forced_first_scattering = set_forced_first_interaction
+
+    def _read_forced_first_interaction(self, group):
+        if 'forced_first_scattering' in group.attrs:  # old API
+            self.forced_first_interaction = str2bool(group.attrs['forced_first_scattering'])
+            self.forced_first_interaction_algorithm = 'wr99'
+            self.forced_first_interaction_baes16_xi = 0.5
+        else:
+            self.forced_first_interaction = str2bool(group.attrs['forced_first_interaction'])
+            self.forced_first_interaction_algorithm = group.attrs['forced_first_interaction_algorithm'].decode()
+            self.forced_first_interaction_baes16_xi = group.attrs['forced_first_interaction_baes16_xi']
+
+    def _write_forced_first_interaction(self, group):
+        group.attrs['forced_first_interaction'] = bool2str(self.forced_first_interaction)
+        group.attrs['forced_first_interaction_algorithm'] = np.string_(self.forced_first_interaction_algorithm.encode('utf-8'))
+        group.attrs['forced_first_interaction_baes16_xi'] = self.forced_first_interaction_baes16_xi
 
     def set_enforce_energy_range(self, enforce):
         '''
@@ -679,7 +722,7 @@ class RunConf(object):
         self._read_convergence(group)
         self._read_kill_on_absorb(group)
         self._read_kill_on_scatter(group)
-        self._read_forced_first_scattering(group)
+        self._read_forced_first_interaction(group)
         self._read_output_bytes(group)
         self._read_sample_sources_evenly(group)
         self._read_enforce_energy_range(group)
@@ -707,7 +750,7 @@ class RunConf(object):
         self._write_convergence(group)
         self._write_kill_on_absorb(group)
         self._write_kill_on_scatter(group)
-        self._write_forced_first_scattering(group)
+        self._write_forced_first_interaction(group)
         self._write_output_bytes(group)
         self._write_sample_sources_evenly(group)
         self._write_enforce_energy_range(group)

@@ -40,8 +40,7 @@ module iteration_lucy
 
   use grid_pda, only : solve_pda
 
-  use settings, only : forced_first_scattering, &
-       &               kill_on_absorb, kill_on_scatter, &
+  use settings, only : kill_on_absorb, kill_on_scatter, &
        &               n_inter_max, &
        &               n_inter_max_warn, &
        &               mrw_gamma, &
@@ -133,6 +132,9 @@ contains
           ! Propagate photon
           do interactions=1, n_inter_max+1
 
+             ! If this is not the first interaction, and the user requested to
+             ! use the MRW, do the MRW to get out of the optically thick region
+
              if(use_mrw.and.interactions > 1) then
                 do mrw_steps=1,n_mrw_max
                    if(tau_inv_planck_to_closest_wall(p) > mrw_gamma) then
@@ -185,8 +187,8 @@ contains
              ! Check whether the photon has escaped the grid or was killed
              if(p%killed.or.escaped(p)) exit
 
-             ! We do the following check here rather than after the loop, 
-             ! because if we limit for example to one interaction, we need to 
+             ! We do the following check here rather than after the loop,
+             ! because if we limit for example to one interaction, we need to
              ! allow propagation, interaction, propagation.
              if(interactions==n_inter_max + 1) then
                 if(n_inter_max_warn) call warn("do_lucy","photon exceeded maximum number of interactions - killing")

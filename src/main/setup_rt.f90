@@ -13,6 +13,7 @@ module setup
   use binned_images
   use peeled_images
   use settings
+  use forced_interaction, only : WR99, BAES16, baes16_xi
 
   implicit none
   save
@@ -32,6 +33,7 @@ contains
     integer :: physics_io_bytes
     type(version) :: python_version
     integer :: idust
+    character(len=10) :: forced_first_interaction_algorithm_str
 
     if(mp_exists_keyword(input_handle, '/', 'python_version')) then
        call mp_read_keyword(input_handle, '/', 'python_version', python_version%string)
@@ -83,7 +85,22 @@ contains
        kill_on_scatter = .false.
     end if
 
-    call mp_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_scattering)
+    if(mp_exists_keyword(input_handle, '/', 'forced_first_scattering')) then
+      call mp_read_keyword(input_handle, '/', 'forced_first_scattering', forced_first_interaction)
+      forced_first_interaction_algorithm = WR99
+    else
+      call mp_read_keyword(input_handle, '/', 'forced_first_interaction', forced_first_interaction)
+      call mp_read_keyword(input_handle, '/', 'forced_first_interaction_algorithm', forced_first_interaction_algorithm_str)
+      select case(trim(forced_first_interaction_algorithm_str))
+      case('wr99')
+         forced_first_interaction_algorithm = WR99
+      case('baes16')
+         forced_first_interaction_algorithm = BAES16
+         call mp_read_keyword(input_handle, '/', 'forced_first_interaction_baes16_xi', baes16_xi)
+      case default
+         call error('setup_initial', 'Unknown forced first interaction algorithm: '//trim(forced_first_interaction_algorithm_str))
+      end select
+    end if
 
     if(mp_exists_keyword(input_handle, '/', 'propagation_check_frequency')) then
        call mp_read_keyword(input_handle, '/', 'propagation_check_frequency', propagation_check_frequency)
@@ -274,7 +291,7 @@ contains
 
     if(make_binned_images) then
        if(use_exact_nu) call error("setup_final_iteration","can't use binned images in exact wavelength mode")
-       if(forced_first_scattering) call error("setup_final_iteration", "can't use binned images with forced first scattering")
+       if(forced_first_interaction) call error("setup_final_iteration", "can't use binned images with forced first interaction")
        call binned_images_setup(g_binned, group_names(1))
     end if
 

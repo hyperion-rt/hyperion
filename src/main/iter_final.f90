@@ -29,7 +29,8 @@ module iteration_final
 
   use grid_mrw, only : prepare_mrw, grid_do_mrw_noenergy
 
-  use settings, only : forced_first_scattering, &
+  use settings, only : forced_first_interaction, &
+       &               forced_first_interaction_algorithm, &
        &               kill_on_absorb, kill_on_scatter, &
        &               n_inter_max, &
        &               n_inter_max_warn, &
@@ -43,6 +44,10 @@ module iteration_final
   use performance, only : perf_header, perf_footer
 
   use counters, only : killed_photons_int
+
+  use forced_interaction, only : forced_interaction_wr99, &
+       &                        forced_interaction_baes16, &
+       &                         WR99, BAES16
 
   implicit none
   save
@@ -148,7 +153,7 @@ contains
     integer(idp) :: interactions
     real(dp) :: tau_achieved, tau, tau_escape
     type(photon) :: p_tmp
-    real(dp) :: xi
+    real(dp) :: xi, weight
     logical :: killed
     integer :: mrw_steps
     integer :: ia
@@ -156,40 +161,54 @@ contains
     ! Propagate photon
     do interactions=1, n_inter_max+1
 
-       ! Sample a random optical depth and propagate that optical depth
-       call random_exp(tau)
+       ! If this is not the first interaction, and the user requested to
+       ! use the MRW, do the MRW to get out of the optically thick region
 
-       if(interactions==1) then
-          if(forced_first_scattering) then
-             p_tmp = p
-             call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
-             if(tau_escape > 1.e-10_dp .and. .not. killed) then
-                call random(xi)
-                tau = -log(1._dp-xi*(1._dp - exp(-tau_escape)))
-                p%energy = p%energy * (1._dp - exp(-tau_escape))
-             end if
-          end if
-       else
-          if(use_mrw) then
-             do mrw_steps=1,n_mrw_max
-                if(tau_inv_planck_to_closest_wall(p) > mrw_gamma) then
-                   call grid_do_mrw_noenergy(p)
-                   if(make_peeled_images) then
-                      if(.not.peeloff_scattering_only) call peeloff_photon(p, polychromatic=.false.)
-                   end if
-                else
-                   exit
+       if(interactions > 1 .and. use_mrw) then
+          do mrw_steps=1,n_mrw_max
+             if(tau_inv_planck_to_closest_wall(p) > mrw_gamma) then
+                call grid_do_mrw_noenergy(p)
+                if(make_peeled_images) then
+                   if(.not.peeloff_scattering_only) call peeloff_photon(p, polychromatic=.false.)
                 end if
-             end do
-             if(mrw_steps == n_mrw_max + 1) then
-                if(n_mrw_max_warn) call warn("do_final","maximum number of MRW steps exceeded - killing")
-                killed_photons_int = killed_photons_int + 1
-                p%killed = .true.
+             else
                 exit
              end if
+          end do
+          if(mrw_steps == n_mrw_max + 1) then
+             if(n_mrw_max_warn) call warn("do_final","maximum number of MRW steps exceeded - killing")
+             killed_photons_int = killed_photons_int + 1
+             p%killed = .true.
+             exit
           end if
        end if
 
+       ! If this is the first interaction and the user requested forced
+       ! first interaction, we sample tau and modify the photon energy
+       ! using a forced first interaction algorith - otherwise we sample
+       ! tau the normal way.
+
+       if(interactions == 1 .and. forced_first_interaction) then
+          p_tmp = p
+          call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
+          if(tau_escape > 1.e-10 .and. .not. killed) then
+             select case(forced_first_interaction_algorithm)
+             case(WR99)
+                call forced_interaction_wr99(tau_escape, tau, weight)
+             case(BAES16)
+                call forced_interaction_baes16(tau_escape, tau, weight)
+             case default
+                call error("propagate", "Unknown forced first interaction algorithm")
+             end select
+             p%energy = p%energy * weight
+          else
+            call random_exp(tau)
+          end if
+       else
+          call random_exp(tau)
+       end if
+
+       ! Propagate the optical depth sampled
        call grid_integrate_noenergy(p,tau,tau_achieved)
 
        if(p%reabsorbed) then

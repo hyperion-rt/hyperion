@@ -467,7 +467,7 @@ Miscellaneous
 -------------
 
 
-* ``forced_first_scattering``: whether to use the forced first scattering
+* ``forced_first_interaction``: whether to use the forced first interaction
   algorithm. Should be one of ``yes`` or ``no`` (string).
 
 * ``kill_on_absorb``: whether to kill photons when they are absorbed rather

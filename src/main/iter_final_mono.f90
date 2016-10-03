@@ -33,13 +33,18 @@ module iteration_final_mono
        &               n_inter_max_warn, &
        &               n_reabs_max,  &
        &               n_reabs_max_warn,  &
-       &               forced_first_scattering, &
+       &               forced_first_interaction, &
+       &               forced_first_interaction_algorithm, &
        &               kill_on_scatter
 
   use performance, only : perf_header, &
        &                  perf_footer
 
   use counters, only : killed_photons_int
+
+  use forced_interaction, only : forced_interaction_wr99, &
+       &                        forced_interaction_baes16, &
+       &                         WR99, BAES16
 
   implicit none
   save
@@ -231,26 +236,36 @@ contains
     integer(idp) :: interactions
     real(dp) :: tau_achieved, tau, tau_escape
     type(photon) :: p_tmp
-    real(dp) :: xi
+    real(dp) :: xi, weight
     logical :: killed
     integer :: ia
 
     ! Propagate photon
     do interactions=1, n_inter_max+1
 
-       ! Sample a random optical depth and propagate that optical depth
-       call random_exp(tau)
+       ! If this is the first interaction and the user requested forced
+       ! first interaction, we sample tau and modify the photon energy
+       ! using a forced first interaction algorith - otherwise we sample
+       ! tau the normal way.
 
-       if(interactions==1) then
-          if(forced_first_scattering) then
-             p_tmp = p
-             call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
-             if(tau_escape > 1.e-10_dp .and. .not. killed) then
-                call random(xi)
-                tau = -log(1._dp-xi*(1._dp - exp(-tau_escape)))
-                p%energy = p%energy * (1._dp - exp(-tau_escape))
-             end if
+       if(interactions == 1 .and. forced_first_interaction) then
+          p_tmp = p
+          call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
+          if(tau_escape > 1.e-10 .and. .not. killed) then
+             select case(forced_first_interaction_algorithm)
+             case(WR99)
+                call forced_interaction_wr99(tau_escape, tau, weight)
+             case(BAES16)
+                call forced_interaction_baes16(tau_escape, tau, weight)
+             case default
+                call error("propagate", "Unknown forced first interaction algorithm")
+             end select
+             p%energy = p%energy * weight
+           else
+              call random_exp(tau)
           end if
+       else
+          call random_exp(tau)
        end if
 
        call grid_integrate_noenergy(p,tau,tau_achieved)
