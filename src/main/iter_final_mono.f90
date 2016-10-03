@@ -256,7 +256,7 @@ contains
        if(interactions == 1 .and. forced_first_interaction) then
           p_tmp = p
           call grid_escape_tau(p_tmp, huge(1._dp), tau_escape, killed)
-          if(tau_escape > 1.e-10 .and. .not. killed) then
+          if(tau_escape > 1.e-10_dp .and. .not. killed) then
              select case(forced_first_interaction_algorithm)
              case(WR99)
                 call forced_interaction_wr99(tau_escape, tau, weight)

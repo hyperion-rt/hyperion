@@ -51,7 +51,7 @@ contains
         if(mp_exists_keyword(input_handle, '/', 'monochromatic_energy_threshold')) then
             call mp_read_keyword(input_handle, '/', 'monochromatic_energy_threshold', monochromatic_energy_threshold)
         else
-            monochromatic_energy_threshold = 1e-10
+            monochromatic_energy_threshold = 1e-10_dp
         end if
     end if
     call mp_read_keyword(input_handle, '/', 'raytracing', use_raytracing)

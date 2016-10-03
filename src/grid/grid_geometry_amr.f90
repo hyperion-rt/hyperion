@@ -512,7 +512,7 @@ contains
     real(dp),intent(in) :: xmin, xmax, x
     integer,intent(in) :: nbin
     real(dp) :: eps
-    eps = (xmax-xmin) * 1.e-10
+    eps = (xmax-xmin) * 1.e-10_dp
     ipos2 = ipos(xmin, xmax, x, nbin)
     if(ipos2==0 .and. abs(x - xmin) < eps) ipos2 = 1
     if(ipos2==nbin+1 .and. abs(x - xmax) < eps) ipos2 = nbin
