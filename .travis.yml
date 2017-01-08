@@ -4,6 +4,8 @@ os:
   - linux
   - osx
 
+osx_image: beta-xcode6.1
+
 env:
     global:
         - SETUP_XVFB=True
