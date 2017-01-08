@@ -21,6 +21,8 @@ Version History
   can be changed using the ``energy_threshold`` argument to
   ``Model.set_monochromatic``. [#158]
 
+- Remove bundled numpydoc and fix Python 3.6 compatibility. [#192]
+
 0.9.8 (2016-09-27)
 ------------------
 
