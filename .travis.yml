@@ -10,7 +10,7 @@ env:
     global:
         - SETUP_XVFB=True
         - CONDA_DEPENDENCIES
-        - CONDA_CHANNELS='conda-forge conda-forge/label/test'
+        - CONDA_CHANNELS='conda-forge'
         - CONDA_DEPENDENCIES='numpy astropy h5py matplotlib yt mpich hdf5 gcc'
         - SETUP_CMD='test'
     matrix:
