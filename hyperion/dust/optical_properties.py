@@ -105,7 +105,7 @@ class OpticalProperties(FreezableClass):
 
             # Find scattering and absorption opacities
             sigma_nu = self.chi[inu] * self.albedo[inu]
-            kappa_nu = self.chi[inu] - sigma
+            kappa_nu = self.chi[inu] - sigma_nu
 
             # Decrease scattering opacity, total opacity, and hence albedo
             sigma_nu *= frac
