@@ -19,13 +19,6 @@ env:
         - PYTHON_VERSION=3.5
         - PYTHON_VERSION=3.6
 
-matrix:
-    allow_failures:
-        # We need to mark this as an allowed failure until yt is available for
-        # 3.6 in conda-forge: https://github.com/conda-forge/yt-feedstock/issues/16
-        - os: linux
-          env: PYTHON_VERSION=3.6
-
 install:
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda.sh
