@@ -8,7 +8,6 @@ osx_image: beta-xcode6.1
 
 env:
     global:
-        - CONDA_VERSION=4.1.12
         - SETUP_XVFB=True
         - CONDA_CHANNELS='conda-forge'
         - CONDA_DEPENDENCIES='numpy astropy h5py matplotlib yt mpich hdf5 gcc'
