@@ -8,7 +8,6 @@ osx_image: beta-xcode6.1
 
 env:
     global:
-        - CONDA_VERSION=4.1.12
         - SETUP_XVFB=True
         - CONDA_CHANNELS='conda-forge'
         - CONDA_DEPENDENCIES='numpy astropy h5py matplotlib yt mpich hdf5 gcc'
@@ -18,13 +17,6 @@ env:
         - PYTHON_VERSION=3.4
         - PYTHON_VERSION=3.5
         - PYTHON_VERSION=3.6
-
-matrix:
-    allow_failures:
-        # We need to mark this as an allowed failure until yt is available for
-        # 3.6 in conda-forge: https://github.com/conda-forge/yt-feedstock/issues/16
-        - os: linux
-          env: PYTHON_VERSION=3.6
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
