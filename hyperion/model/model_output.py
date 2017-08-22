@@ -160,7 +160,7 @@ class ModelOutput(FreezableClass):
                 ns = group.attrs['n_sources']
                 nd = group.attrs['n_dust']
 
-                io = ((io - (io + 1) % 2 + 1) * ns + (io - io % 2) * nd) / 2
+                io = ((io - (io + 1) % 2 + 1) * ns + (io - io % 2) * nd) // 2
 
                 if component.startswith('source'):
                     if source_id is None or source_id == 'all':

@@ -589,7 +589,7 @@ class AnalyticalYSOModel(Model):
             if zmin is not None:
 
                 if n_z % 2 == 0:
-                    n_zn = n_z / 2
+                    n_zn = n_z // 2
                     z_wall1 = np.linspace(zmin * 0.1, zmin * 0.9, 10)
                     z_wall2 = np.logspace(np.log10(zmin),
                                           np.log10(zmax),
@@ -597,7 +597,7 @@ class AnalyticalYSOModel(Model):
                     z_wall = np.hstack([z_wall1, z_wall2])
                     z_wall = np.hstack([-z_wall[::-1], z_wall])
                 else:
-                    n_zn = (n_z - 1) / 2
+                    n_zn = (n_z - 1) // 2
                     z_wall1 = np.linspace(zmin * 0.1, zmin * 0.9, 10)
                     z_wall2 = np.logspace(np.log10(zmin),
                                           np.log10(zmax),
