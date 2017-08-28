@@ -1,7 +1,7 @@
 Version History
 ===============
 
-0.9.9 (unreleased)
+0.9.9 (2017-08-28)
 ------------------
 
 - Added a workaround for a bug in ifort v16 that prevented compilation. [#190]
