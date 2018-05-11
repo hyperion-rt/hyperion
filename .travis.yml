@@ -10,11 +10,11 @@ env:
     global:
         - SETUP_XVFB=True
         - CONDA_CHANNELS='conda-forge'
+        - HDF5_VERSION=1.8
         - CONDA_DEPENDENCIES='numpy astropy h5py matplotlib yt mpich hdf5 gcc'
         - SETUP_CMD='test'
     matrix:
         - PYTHON_VERSION=2.7
-        - PYTHON_VERSION=3.4
         - PYTHON_VERSION=3.5
         - PYTHON_VERSION=3.6
 
