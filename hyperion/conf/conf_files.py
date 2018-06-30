@@ -707,7 +707,7 @@ class RunConf(object):
 
         Parameters
         ----------
-        group : h5py.highlevel.File or h5py.highlevel.Group
+        group : h5py.File or h5py.Group
             The HDF5 group to read the configuration from
         '''
         self._read_propagation_check_frequency(group)
@@ -735,7 +735,7 @@ class RunConf(object):
 
         Parameters
         ----------
-        group : h5py.highlevel.File or h5py.highlevel.Group
+        group : h5py.File or h5py.Group
             The HDF5 group to write the configuration to
         '''
         self._write_propagation_check_frequency(group)

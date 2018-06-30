@@ -293,7 +293,7 @@ class SphericalDust(FreezableClass):
         check_for_nans(dt)
 
         # Close dust file
-        if isinstance(dt, h5py.highlevel.File):
+        if isinstance(dt, h5py.File):
             dt.close()
 
         self._file = (filename, self.hash())
