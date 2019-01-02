@@ -4,7 +4,8 @@ Version History
 1.0.0 (unreleased)
 ------------------
 
-- No changes yet
+- Simplify installation instructions, remove custom installer for Fortran
+  dependencies, and remove CMake build system. [#206]
 
 0.9.9 (2017-08-28)
 ------------------
