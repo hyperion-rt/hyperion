@@ -310,7 +310,7 @@ class TestPascucciBenchmark(object):
             '''
 
         # Read in dust
-        from StringIO import StringIO
+        from io import StringIO
         data = np.loadtxt(StringIO(optSi), comments=';',
                           dtype=[('wav', float), ('csca', float),
                                  ('cext', float)])
