@@ -66,10 +66,10 @@ has been defined, you can do::
 To explicitly set the algorithm to `Wood and Reynolds (1999)`_ (to guard against
 future changes in the default), you can do::
 
-    m.set_forced_first_interaction(False, algorithm='wr99')
+    m.set_forced_first_interaction(True, algorithm='wr99')
 
 Finally, to explicitly set the algorithm to `Baes et al. (2016)`_, you can do::
 
-    m.set_forced_first_interaction(False, algorithm='baes16', baes16_xi=0.3)
+    m.set_forced_first_interaction(True, algorithm='baes16', baes16_xi=0.3)
 
 where ``baes16_xi`` is the :math:`\xi` parameter described above.

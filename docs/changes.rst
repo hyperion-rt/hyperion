@@ -4,7 +4,7 @@ Version History
 1.0.0 (unreleased)
 ------------------
 
-- No changes yet
+- Removed custom installer for Fortran dependencies.
 
 0.9.9 (2017-08-28)
 ------------------
