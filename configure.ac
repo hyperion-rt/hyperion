@@ -7,6 +7,7 @@ AC_INIT(rt,version-1.0)
 AC_ARG_ENABLE(profiling, [  --enable-profiling      Enables the profiling flags])
 AC_ARG_ENABLE(debug, [  --enable-debug          Enables the full debugging flags])
 AC_ARG_ENABLE(static, [  --enable-static         Enables static compilation])
+AC_ARG_VAR(HYPERION_HDF5_VERSION, [By default, we assume that HDF5 1.10 is being used. This environment variable can be set to 18 or 110 to explicitly request compatibility with HDF5 1.8.x and 1.10.x respectively.])
 
 # Static flags
 
@@ -131,6 +132,16 @@ then
   AC_SUBST(extra_serial, "$extra_g95")
 else
   AC_MSG_ERROR([Could not determine HDF5 compiler: $hdf_compiler])
+fi
+
+if test -z "$HYPERION_HDF5_VERSION"; then
+  HYPERION_HDF5_VERSION=110
+elif test "$HYPERION_HDF5_VERSION" == 18; then
+  : # nothing to do
+elif test "$HYPERION_HDF5_VERSION" == 110; then
+  : # nothing to do
+else
+  AC_MSG_ERROR([HYPERION_HDF5_VERSION should be 18 or 110])
 fi
 
 # MPI CODE

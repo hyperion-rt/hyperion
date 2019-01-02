@@ -4,6 +4,8 @@ Version History
 1.0.0 (unreleased)
 ------------------
 
+- Fixed compatibility with HDF5 1.10.x. [#188]
+
 - Simplify installation instructions, remove custom installer for Fortran
   dependencies, and remove CMake build system. [#206]
 

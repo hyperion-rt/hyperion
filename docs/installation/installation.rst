@@ -41,7 +41,7 @@ The packages required for the Fortran part of Hyperion are:
   * ifort 11 and later
   * pgfortran 11 and above
 
-* `HDF5 <http://www.hdfgroup.org/HDF5/>`_ 1.8.x with the Fortran bindings
+* `HDF5 <http://www.hdfgroup.org/HDF5/>`_ 1.8.x or 1.10.x with the Fortran bindings
 
 * An MPI installation (e.g. `MPICH2 <http://www.mpich.org/>`_ or `OpenMPI
   <http://www.open-mpi.org/>`_) with the Fortran bindings
@@ -140,9 +140,15 @@ The path listed (excluding ``hyperion`` at the end) should be in your
 Fortran binaries
 ^^^^^^^^^^^^^^^^
 
-Compile the Fortran code with::
+If you are using HDF5 1.10.x, compile the Fortran code with::
 
     ./configure
+    make
+    make install
+
+If you are using HDF5 1.8.x, compile the Fortran code with::
+
+    HYPERION_HDF5_VERSION=18 ./configure
     make
     make install
 
