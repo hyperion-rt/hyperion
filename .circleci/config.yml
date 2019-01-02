@@ -18,6 +18,9 @@ jobs:
               make
               make install
       - run:
+          name: Installing Numpy
+          command: pip install numpy
+      - run:
           name: Installing Python package
           command: pip install .
       - run:
