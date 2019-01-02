@@ -1,6 +1,6 @@
 from distutils.version import LooseVersion
 
-from astropy.tests.helper import pytest
+import pytest
 import numpy as np
 
 from .. import Model, ModelOutput

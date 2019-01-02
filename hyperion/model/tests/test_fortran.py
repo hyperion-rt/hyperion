@@ -1,4 +1,4 @@
-from astropy.tests.helper import pytest
+import pytest
 import numpy as np
 
 from ...dust import IsotropicDust

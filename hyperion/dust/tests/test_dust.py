@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.testing import assert_allclose
-from astropy.tests.helper import pytest
+import pytest
 
 from .. import SphericalDust, IsotropicDust
 from ...util.functions import random_id, B_nu

@@ -1,6 +1,6 @@
 import numpy as np
 
-from astropy.tests.helper import pytest
+import pytest
 from numpy.testing import assert_allclose
 
 from ..model import Model

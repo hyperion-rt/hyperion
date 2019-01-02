@@ -9,7 +9,7 @@ import os
 import shutil
 import itertools
 
-from astropy.tests.helper import pytest
+import pytest
 import numpy as np
 
 from .test_helpers import random_id, assert_identical_results

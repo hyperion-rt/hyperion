@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_almost_equal_nulp
 
-from astropy.tests.helper import pytest
+import pytest
 
 from ..optical_properties import OpticalProperties
 from ...util.constants import c

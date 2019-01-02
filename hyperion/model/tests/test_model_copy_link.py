@@ -5,7 +5,7 @@ import shutil
 import tempfile
 
 import h5py
-from astropy.tests.helper import pytest
+import pytest
 import numpy as np
 
 from ...util.functions import random_id

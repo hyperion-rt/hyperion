@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 
 from numpy.testing import assert_equal
-from astropy.tests.helper import pytest
+import pytest
 
 from .. import Model
 from ...util.functions import virtual_file

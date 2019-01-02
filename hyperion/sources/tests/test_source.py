@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-from astropy.tests.helper import pytest
+import pytest
 import numpy as np
 from astropy.table import Table, Column
 

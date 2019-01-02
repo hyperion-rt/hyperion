@@ -5,7 +5,7 @@ from __future__ import print_function, division
 from itertools import product
 
 from numpy.testing import assert_equal
-from astropy.tests.helper import pytest
+import pytest
 
 from .. import OutputConf, RunConf, ImageConf, BinnedImageConf, PeeledImageConf
 from ...util.functions import virtual_file

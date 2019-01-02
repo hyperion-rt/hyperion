@@ -1,6 +1,6 @@
 import warnings
 
-from astropy.tests.helper import pytest
+import pytest
 
 from .util.nans import NaNWarning
 

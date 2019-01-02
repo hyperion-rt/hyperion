@@ -4,7 +4,7 @@ from copy import deepcopy
 from distutils.version import LooseVersion
 import h5py
 import numpy as np
-from astropy.tests.helper import pytest
+import pytest
 
 from ...util.functions import random_id
 from ...model import Model

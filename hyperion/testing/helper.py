@@ -102,7 +102,7 @@ class TestRunner(object):
         all_args = shlex.split(all_args,
                                posix=not sys.platform.startswith('win'))
 
-        from astropy.tests.helper import pytest
+        import pytest
 
         try:
             return pytest.main(args=all_args, plugins=plugins)
