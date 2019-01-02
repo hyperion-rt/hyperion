@@ -7,6 +7,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Initialize submodule
+          command: |
+              git submodule init
+              git submodule update
+      - run:
           name: Compiling Fortran code
           command: |
               ./configure
