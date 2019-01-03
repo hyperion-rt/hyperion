@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 from itertools import product
 
-from astropy.tests.helper import pytest
+import pytest
 import numpy as np
 
 from .. import Model

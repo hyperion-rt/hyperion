@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import h5py
 import numpy as np
-from astropy.tests.helper import pytest
+import pytest
 from astropy.extern import six
 
 from ...util.functions import random_id

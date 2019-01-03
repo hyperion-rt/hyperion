@@ -5,7 +5,7 @@ import struct
 import numpy as np
 from numpy.testing import assert_array_almost_equal_nulp
 
-from astropy.tests.helper import pytest
+import pytest
 from astropy.extern import six
 
 from ..integrate import *

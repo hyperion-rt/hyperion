@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 import numpy as np
 from numpy.testing import assert_equal
-from astropy.tests.helper import pytest
+import pytest
 
 from .. import (Source, PointSource, PointSourceCollection, SpotSource,
                 SphericalSource, ExternalSphericalSource, ExternalBoxSource,

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 from numpy.testing import assert_allclose
-from astropy.tests.helper import pytest
+import pytest
 
 from ..optical_properties import OpticalProperties
 from ..mean_opacities import MeanOpacities

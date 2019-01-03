@@ -4,7 +4,7 @@ import tempfile
 
 import numpy as np
 
-from astropy.tests.helper import pytest
+import pytest
 from numpy.testing import assert_array_almost_equal_nulp
 
 from .test_helpers import get_test_model_noimaging, random_id, get_test_dust

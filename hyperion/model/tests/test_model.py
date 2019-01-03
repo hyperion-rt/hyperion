@@ -6,7 +6,7 @@ import shutil
 from copy import deepcopy
 
 import numpy as np
-from astropy.tests.helper import pytest
+import pytest
 
 from .. import Model
 from .test_helpers import random_id, get_test_dust, get_realistic_test_dust

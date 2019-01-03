@@ -9,7 +9,7 @@ import os
 import shutil
 import itertools
 
-from astropy.tests.helper import pytest
+import pytest
 import numpy as np
 
 from .test_helpers import random_id, assert_identical_results
@@ -522,15 +522,15 @@ class TestPinteBenchmark(object):
                        293.477, 359.220, 439.691, 538.188, 658.751, 806.321,
                        986.948, 1208.04, 1478.66, 1809.90, 2215.34, 2711.61]
 
-        m.set_monochromatic(True, wavelengths=wavelengths)
+        m.set_monochromatic(True, wavelengths=wavelengths, energy_threshold=1e-2)
 
         m.set_mrw(True, gamma=2.)
         # Don't use the PDA here because it's too slow when there are too few photons
 
-        m.set_n_photons(initial=5000, imaging_sources=100, imaging_dust=2000,
+        m.set_n_photons(initial=5000, imaging_sources=100, imaging_dust=200,
                         raytracing_sources=1000, raytracing_dust=1000)
 
-        m.set_max_interactions(10000000)
+        m.set_max_interactions(1000, warn=False)
 
         m.set_copy_input(False)
         m.write(tmpdir.join(random_id()).strpath, copy=False, absolute_paths=True)
@@ -613,15 +613,15 @@ class TestPinteBenchmark(object):
 
         m.set_cylindrical_polar_grid_auto(100, 30, 1)
 
-        m.set_monochromatic(True, wavelengths=[1.])
+        m.set_monochromatic(True, wavelengths=[1.], energy_threshold=1.e-2)
 
         m.set_mrw(True, gamma=2.)
         # Don't use the PDA here because it's too slow when there are too few photons
 
-        m.set_n_photons(initial=10000, imaging_sources=250000, imaging_dust=500000,
+        m.set_n_photons(initial=10000, imaging_sources=10000, imaging_dust=10000,
                         raytracing_sources=100000, raytracing_dust=100000)
 
-        m.set_max_interactions(10000000)
+        m.set_max_interactions(1000, warn=False)
 
         m.set_copy_input(False)
         m.write(tmpdir.join(random_id()).strpath, copy=False, absolute_paths=True)
@@ -687,7 +687,7 @@ class TestPinteBenchmark(object):
 
         m.set_n_photons(initial=50000, imaging=0)
 
-        m.set_max_interactions(10000000)
+        m.set_max_interactions(1000, warn=False)
 
         m.set_copy_input(False)
         m.write(tmpdir.join(random_id()).strpath, copy=False, absolute_paths=True)

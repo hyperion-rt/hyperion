@@ -8,7 +8,7 @@ else:
     import __builtin__ as builtins
 builtins._HYPERION_SETUP_ = True
 
-from distutils.core import setup, Extension
+from setuptools import setup, Extension, find_packages
 from distutils.command.sdist import sdist
 from distutils.command.build_py import build_py
 
@@ -81,31 +81,14 @@ setup(name='Hyperion',
       author='Thomas Robitaille',
       author_email='thomas.robitaille@gmail.com',
       license='BSD',
-      packages=['hyperion',
-                'hyperion.conf',
-                'hyperion.conf.tests',
-                'hyperion.densities',
-                'hyperion.densities.tests',
-                'hyperion.dust',
-                'hyperion.dust.tests',
-                'hyperion.filter',
-                'hyperion.filter.tests',
-                'hyperion.grid',
-                'hyperion.grid.tests',
-                'hyperion.importers',
-                'hyperion.importers.tests',
-                'hyperion.model',
-                'hyperion.model.tests',
-                'hyperion.sources',
-                'hyperion.sources.tests',
-                'hyperion.testing',
-                'hyperion.util',
-                'hyperion.util.tests'],
-      package_data={'hyperion.model.tests':['data/*.rtout', 'data/*.hdf5'],
-                    'hyperion.importers.tests':['data/*.hdf5'],
-                    'hyperion.grid.tests':['data/*.hdf5', 'data/DD0010/*'],
-                    'hyperion.testing':['coveragerc']},
+      packages=find_packages(),
+      package_data={'hyperion.model.tests': ['data/*.rtout', 'data/*.hdf5'],
+                    'hyperion.importers.tests': ['data/*.hdf5'],
+                    'hyperion.grid.tests': ['data/*.hdf5', 'data/DD0010/*'],
+                    'hyperion.testing': ['coveragerc']},
       scripts=['scripts/' + x for x in scripts],
       cmdclass=cmdclass,
-      ext_modules=ext_modules
+      ext_modules=ext_modules,
+      install_requires=['numpy', 'matplotlib', 'astropy', 'h5py'],
+      extras_require={'test': ['pytest']}
      )
