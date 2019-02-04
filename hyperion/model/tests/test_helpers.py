@@ -127,9 +127,9 @@ def assert_identical_results(file1, file2):
     for item in ['/'] + data1 + group1:
 
         # Find all attributes
-        attr1 = f1[item].attrs.keys()
+        attr1 = list(f1[item].attrs.keys())
         attr1.sort()
-        attr2 = f2[item].attrs.keys()
+        attr2 = list(f2[item].attrs.keys())
         attr2.sort()
 
         for e in EXCLUDE_ATTR:
