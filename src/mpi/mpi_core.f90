@@ -15,7 +15,7 @@ module mpi_core
   integer :: ierr
 
   ! Whether MPI is enabled
-  logical :: mpi_enabled = .true.
+  logical,public :: mpi_enabled = .true.
 
   ! Number of active processes
   integer,public :: nproc
