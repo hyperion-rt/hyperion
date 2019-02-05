@@ -70,10 +70,10 @@ Python dependencies
 
 The packages required for the Python code (in addition to Python itself) are:
 
-* `NumPy <http://www.scipy.org/>`_
-* `Matplotlib <http://matplotlib.org/>`_
-* `h5py <http://h5py.alfven.org/>`_
-* `Astropy <http://www.astropy.org>`_
+* `NumPy <http://www.scipy.org/>`_ 1.11 or later
+* `Matplotlib <http://matplotlib.org/>`_ 2.0 or later
+* `h5py <http://h5py.alfven.org/>`_ 2.4 or later
+* `Astropy <http://www.astropy.org>`_ 2.0 or later
 
 These dependencies will be automatically installed when installing the Python
 component of Hyperion if they are not already present.
