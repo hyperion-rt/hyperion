@@ -28,7 +28,7 @@ jobs:
           command: python setup.py test --enable-bit-level-tests
   hdf5-110:
     docker:
-      - image: astrofrog/hyperion-ci-hdf5-110:1.5
+      - image: astrofrog/hyperion-ci-hdf5-110:1.6
     steps:
       - checkout
       - run:
