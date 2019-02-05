@@ -203,7 +203,7 @@ class Source(FreezableClass):
 
             # Check if spectrum needs sorting
             if not monotonically_increasing(nu):
-                logger.warn("Spectrum is being re-sorted in order of increasing frequency")
+                logger.warning("Spectrum is being re-sorted in order of increasing frequency")
                 order = np.argsort(nu)
                 nu = nu[order]
                 fnu = fnu[order]

@@ -131,26 +131,40 @@ def test_grid_cartesian_ranges():
 
 
 def test_grid_cylindrical_ranges():
-    g = CylindricalPolarGrid([-10., 10.], [-10., 10.], [0., 2. * np.pi])
+    g = CylindricalPolarGrid([0., 10.], [-10., 10.], [0., 2. * np.pi])
 
 
-def test_grid_cylindrical_ranges_invalid():
+def test_grid_cylindrical_ranges_invalid1():
+
     with pytest.raises(ValueError) as e:
-        g = CylindricalPolarGrid([-10., 10.], [-10., 10.], [-10., 10.])
-    assert e.value.args[0] == 'p_wall values be in the range [0:2*pi]'
+        CylindricalPolarGrid([-10., 10.], [-10., 10.], [-10., 10.])
+    assert e.value.args[0] == 'w_wall values should be positive'
+
+
+def test_grid_cylindrical_ranges_invalid2():
+
+    with pytest.raises(ValueError) as e:
+        CylindricalPolarGrid([0., 10.], [-10., 10.], [-10., 10.])
+    assert e.value.args[0] == 'p_wall values should be in the range [0:2*pi]'
 
 
 def test_grid_spherical_ranges():
-    g = SphericalPolarGrid([-10., 10.], [0., np.pi], [0., 2. * np.pi])
+    g = SphericalPolarGrid([0., 10.], [0., np.pi], [0., 2. * np.pi])
 
 
 def test_grid_spherical_ranges_invalid1():
     with pytest.raises(ValueError) as e:
         g = SphericalPolarGrid([-10., 10.], [-10., 10.], [0., 2. * np.pi])
-    assert e.value.args[0] == 't_wall values be in the range [0:pi]'
+    assert e.value.args[0] == 'r_wall values should be positive'
 
 
 def test_grid_spherical_ranges_invalid2():
     with pytest.raises(ValueError) as e:
-        g = SphericalPolarGrid([-10., 10.], [0., np.pi], [-10., 10.])
-    assert e.value.args[0] == 'p_wall values be in the range [0:2*pi]'
+        g = SphericalPolarGrid([0., 10.], [-10., 10.], [0., 2. * np.pi])
+    assert e.value.args[0] == 't_wall values should be in the range [0:pi]'
+
+
+def test_grid_spherical_ranges_invalid3():
+    with pytest.raises(ValueError) as e:
+        g = SphericalPolarGrid([0., 10.], [0., np.pi], [-10., 10.])
+    assert e.value.args[0] == 'p_wall values should be in the range [0:2*pi]'

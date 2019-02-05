@@ -278,7 +278,7 @@ class Model(FreezableClass, RunConf):
             if only_initial:
                 logger.info("Reading input quantities")
             elif max_iteration == 0:
-                logger.warn("No iterations found in file - only the input quantities will be used")
+                logger.warning("No iterations found in file - only the input quantities will be used")
                 last_iteration = None
             else:
                 logger.info("Retrieving quantities from iteration %i" % max_iteration)

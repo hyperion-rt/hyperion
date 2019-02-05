@@ -223,7 +223,7 @@ class UlrichEnvelope(Envelope):
         if value is not None:
             validate_scalar('mdot', value, domain='positive')
             if self._rho_0 is not None:
-                logger.warn("Overriding value of rho_0 with value derived from mdot")
+                logger.warning("Overriding value of rho_0 with value derived from mdot")
                 self._rho_0 = None
         self._mdot = value
 
@@ -247,7 +247,7 @@ class UlrichEnvelope(Envelope):
         if value is not None:
             validate_scalar('rho_0', value, domain='positive')
             if self._mdot is not None:
-                logger.warn("Overriding value of mdot with value derived from rho_0")
+                logger.warning("Overriding value of mdot with value derived from rho_0")
                 self._mdot = None
         self._rho_0 = value
 
@@ -344,7 +344,7 @@ class UlrichEnvelope(Envelope):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            logger.warn("Ignoring Ulrich envelope, since rmax < rmin")
+            logger.warning("Ignoring Ulrich envelope, since rmax < rmin")
             return np.zeros(grid.shape)
 
         # Find mu_0, the cosine of the angle of a streamline of infalling
@@ -420,7 +420,7 @@ class UlrichEnvelope(Envelope):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            logger.warn("Ignoring Ulrich envelope, since rmax < rmin")
+            logger.warning("Ignoring Ulrich envelope, since rmax < rmin")
             return np.zeros(r.shape)
 
         gamma_0 = self.rmin / self.rc

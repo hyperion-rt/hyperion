@@ -490,7 +490,7 @@ class AMRGrid(FreezableClass):
     def __setitem__(self, item, value):
         if isinstance(value, AMRGridView):
             if self.levels == [] and value.levels != []:
-                logger.warn("No geometry in target grid - copying from original grid")
+                logger.warning("No geometry in target grid - copying from original grid")
                 for level in value.levels:
                     level_ref = self.add_level()
                     for grid in level.grids:

@@ -403,7 +403,7 @@ class CartesianGrid(FreezableClass):
     def __setitem__(self, item, value):
         if isinstance(value, CartesianGridView):
             if self.x_wall is None and self.y_wall is None and self.z_wall is None:
-                logger.warn("No geometry in target grid - copying from original grid")
+                logger.warning("No geometry in target grid - copying from original grid")
                 self.set_walls(value.x_wall, value.y_wall, value.z_wall)
             self.quantities[item] = deepcopy(value.quantities[value.viewed_quantity])
         elif isinstance(value, h5py.ExternalLink):

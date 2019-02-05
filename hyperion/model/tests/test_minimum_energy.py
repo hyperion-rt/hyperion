@@ -32,8 +32,8 @@ def test_minimum_temperature_scalar(tmpdir):
     model.set_minimum_temperature(10.)
     model.write(input_file)
     out = model.run(output_file)
-    t = out.get_physical_grid('temperature')
-    assert_array_almost_equal_nulp(t[0][0, 0, 0], 10., 10)
+    t = out.get_quantities()['temperature']
+    assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 10., 10)
 
 
 def test_minimum_temperature_scalar_list(tmpdir):
@@ -46,8 +46,8 @@ def test_minimum_temperature_scalar_list(tmpdir):
     model.set_minimum_temperature([10.])
     model.write(input_file)
     out = model.run(output_file)
-    t = out.get_physical_grid('temperature')
-    assert_array_almost_equal_nulp(t[0][0, 0, 0], 10., 10)
+    t = out.get_quantities()['temperature']
+    assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 10., 10)
 
 
 def test_minimum_temperature_scalar_invalid1():
@@ -109,9 +109,9 @@ def test_minimum_temperature_scalar_2(tmpdir):
     model.set_minimum_temperature(10.)
     model.write(input_file)
     out = model.run(output_file)
-    t = out.get_physical_grid('temperature')
-    assert_array_almost_equal_nulp(t[0][0, 0, 0], 10., 10)
-    assert_array_almost_equal_nulp(t[0][0, 0, 0], 10., 10)
+    t = out.get_quantities()['temperature']
+    assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 10., 10)
+    assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 10., 10)
 
 
 def test_minimum_temperature_scalar_list_2(tmpdir):
@@ -125,9 +125,9 @@ def test_minimum_temperature_scalar_list_2(tmpdir):
     model.set_minimum_temperature([10., 8.])
     model.write(input_file)
     out = model.run(output_file)
-    t = out.get_physical_grid('temperature')
-    assert_array_almost_equal_nulp(t[0][0, 0, 0], 10., 10)
-    assert_array_almost_equal_nulp(t[1][0, 0, 0], 8., 10)
+    t = out.get_quantities()['temperature']
+    assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 10., 10)
+    assert_array_almost_equal_nulp(t[1].array[0, 0, 0], 8., 10)
 
 
 def test_minimum_temperature_scalar_list_2_invalid(tmpdir):
@@ -153,8 +153,8 @@ def test_minimum_specific_energy_scalar(tmpdir):
     model.set_minimum_specific_energy(2.)
     model.write(input_file)
     out = model.run(output_file)
-    t = out.get_physical_grid('specific_energy')
-    assert_array_almost_equal_nulp(t[0][0, 0, 0], 2., 10)
+    t = out.get_quantities()['specific_energy']
+    assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 2., 10)
 
 
 def test_minimum_specific_energy_scalar_list(tmpdir):
@@ -167,8 +167,8 @@ def test_minimum_specific_energy_scalar_list(tmpdir):
     model.set_minimum_specific_energy([2.])
     model.write(input_file)
     out = model.run(output_file)
-    t = out.get_physical_grid('specific_energy')
-    assert_array_almost_equal_nulp(t[0][0, 0, 0], 2., 10)
+    t = out.get_quantities()['specific_energy']
+    assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 2., 10)
 
 
 def test_minimum_specific_energy_scalar_invalid1():
@@ -230,9 +230,9 @@ def test_minimum_specific_energy_scalar_2(tmpdir):
     model.set_minimum_specific_energy(2.)
     model.write(input_file)
     out = model.run(output_file)
-    t = out.get_physical_grid('specific_energy')
-    assert_array_almost_equal_nulp(t[0][0, 0, 0], 2., 10)
-    assert_array_almost_equal_nulp(t[0][0, 0, 0], 2., 10)
+    t = out.get_quantities()['specific_energy']
+    assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 2., 10)
+    assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 2., 10)
 
 
 def test_minimum_specific_energy_scalar_list_2(tmpdir):
@@ -246,9 +246,9 @@ def test_minimum_specific_energy_scalar_list_2(tmpdir):
     model.set_minimum_specific_energy([2., 3.])
     model.write(input_file)
     out = model.run(output_file)
-    t = out.get_physical_grid('specific_energy')
-    assert_array_almost_equal_nulp(t[0][0, 0, 0], 2., 10)
-    assert_array_almost_equal_nulp(t[1][0, 0, 0], 3., 10)
+    t = out.get_quantities()['specific_energy']
+    assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 2., 10)
+    assert_array_almost_equal_nulp(t[1].array[0, 0, 0], 3., 10)
 
 
 def test_minimum_specific_energy_scalar_list_2_invalid(tmpdir):

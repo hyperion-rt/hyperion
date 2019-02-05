@@ -62,7 +62,7 @@ def link_or_copy(group, name, link, copy, absolute_paths=False):
         try:
             group[name]
         except KeyError:  # indicates linking failed (h5py < 2.1.0)
-            logger.warn("Linking failed, copying instead (indicates an outdated version of h5py)")
+            logger.warning("Linking failed, copying instead (indicates an outdated version of h5py)")
             del group[name]
             f = h5py.File(link.filename, 'r')
             f.copy(link.path, group, name=name)

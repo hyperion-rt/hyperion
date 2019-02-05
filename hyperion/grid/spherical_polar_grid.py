@@ -107,10 +107,12 @@ class SphericalPolarGrid(FreezableClass):
         if not monotonically_increasing(p_wall):
             raise ValueError("p_wall should be monotonically increasing")
 
+        if np.any(r_wall < 0.):
+            raise ValueError("r_wall values should be positive")
         if np.any(t_wall < 0.) or np.any(t_wall > np.pi):
-            raise ValueError("t_wall values be in the range [0:pi]")
+            raise ValueError("t_wall values should be in the range [0:pi]")
         if np.any(p_wall < 0.) or np.any(p_wall > 2. * np.pi):
-            raise ValueError("p_wall values be in the range [0:2*pi]")
+            raise ValueError("p_wall values should be in the range [0:2*pi]")
 
         # Find number of grid cells
         self.shape = (len(p_wall) - 1, len(t_wall) - 1, len(r_wall) - 1)
@@ -439,7 +441,7 @@ class SphericalPolarGrid(FreezableClass):
     def __setitem__(self, item, value):
         if isinstance(value, SphericalPolarGridView):
             if self.r_wall is None and self.t_wall is None and self.p_wall is None:
-                logger.warn("No geometry in target grid - copying from original grid")
+                logger.warning("No geometry in target grid - copying from original grid")
                 self.set_walls(value.r_wall, value.t_wall, value.p_wall)
             self.quantities[item] = deepcopy(value.quantities[value.viewed_quantity])
         elif isinstance(value, h5py.ExternalLink):

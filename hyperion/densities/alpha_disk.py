@@ -132,7 +132,7 @@ class AlphaDisk(Disk):
         if value is not None:
             validate_scalar('mass', value, domain='positive')
             if self._rho_0 is not None:
-                logger.warn("Overriding value of rho_0 with value derived from mass")
+                logger.warning("Overriding value of rho_0 with value derived from mass")
                 self._rho_0 = None
         self._mass = value
 
@@ -167,7 +167,7 @@ class AlphaDisk(Disk):
         if value is not None:
             validate_scalar('rho_0', value, domain='positive')
             if self._mass is not None:
-                logger.warn("Overriding value of mass with value derived from rho_0")
+                logger.warning("Overriding value of mass with value derived from rho_0")
                 self._mass = None
         self._rho_0 = value
 
@@ -293,7 +293,7 @@ class AlphaDisk(Disk):
         if value is not None:
             validate_scalar('mdot', value, domain='positive')
             if self._lvisc is not None:
-                logger.warn("Overriding value of lvisc with value derived from mdot")
+                logger.warning("Overriding value of lvisc with value derived from mdot")
                 self._lvisc = None
         self._mdot = value
 
@@ -319,7 +319,7 @@ class AlphaDisk(Disk):
         if value is not None:
             validate_scalar('lvisc', value, domain='positive')
             if self._mdot is not None:
-                logger.warn("Overriding value of mdot with value derived from lvisc")
+                logger.warning("Overriding value of mdot with value derived from lvisc")
                 self._mdot = None
         self._lvisc = value
 
@@ -418,7 +418,7 @@ class AlphaDisk(Disk):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            logger.warn("Ignoring disk, since rmax < rmin")
+            logger.warning("Ignoring disk, since rmax < rmin")
             return np.zeros(grid.shape)
 
         if self.mass == 0:
@@ -453,7 +453,7 @@ class AlphaDisk(Disk):
         logger.info("Disk density is being re-scaled by a factor of %.2f to give the correct mass." % norm)
 
         if norm > 1.1 or norm < 1. / 1.1:
-            logger.warn("Re-scaling factor is significantly different from 1, which indicates that the grid may be too coarse to properly resolve the disk.")
+            logger.warning("Re-scaling factor is significantly different from 1, which indicates that the grid may be too coarse to properly resolve the disk.")
 
         # Normalize to total disk mass
         rho = rho * norm
@@ -482,7 +482,7 @@ class AlphaDisk(Disk):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            logger.warn("Ignoring disk, since rmax < rmin")
+            logger.warning("Ignoring disk, since rmax < rmin")
             return np.zeros(r.shape)
 
         int1 = integrate_powerlaw(self.rmin, r.clip(self.rmin, self.rmax), self.p - self.beta)
@@ -498,7 +498,7 @@ class AlphaDisk(Disk):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            logger.warn("Ignoring disk, since rmax < rmin")
+            logger.warning("Ignoring disk, since rmax < rmin")
             return np.zeros(theta.shape)
 
         # Convert coordinates to cylindrical polars
@@ -566,7 +566,7 @@ class AlphaDisk(Disk):
         '''
 
         if self.rmax <= self.rmin:
-            logger.warn("Ignoring disk, since rmax < rmin")
+            logger.warning("Ignoring disk, since rmax < rmin")
             return np.zeros(grid.shape)
 
         if self.lvisc == 0.:

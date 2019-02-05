@@ -105,7 +105,7 @@ class FlaredDisk(Disk):
         if value is not None:
             validate_scalar('mass', value, domain='positive')
             if self._rho_0 is not None:
-                logger.warn("Overriding value of rho_0 with value derived from mass")
+                logger.warning("Overriding value of rho_0 with value derived from mass")
                 self._rho_0 = None
         self._mass = value
 
@@ -137,7 +137,7 @@ class FlaredDisk(Disk):
         if value is not None:
             validate_scalar('rho_0', value, domain='positive')
             if self._mass is not None:
-                logger.warn("Overriding value of mass with value derived from rho_0")
+                logger.warning("Overriding value of mass with value derived from rho_0")
                 self._mass = None
         self._rho_0 = value
 
@@ -308,7 +308,7 @@ class FlaredDisk(Disk):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            logger.warn("Ignoring disk, since rmax < rmin")
+            logger.warning("Ignoring disk, since rmax < rmin")
             return np.zeros(grid.shape)
 
         if self.mass == 0:
@@ -343,7 +343,7 @@ class FlaredDisk(Disk):
         logger.info("Disk density is being re-scaled by a factor of %.2f to give the correct mass." % norm)
 
         if norm > 1.1 or norm < 1. / 1.1:
-            logger.warn("Re-scaling factor is significantly different from 1, which indicates that the grid may be too coarse to properly resolve the disk.")
+            logger.warning("Re-scaling factor is significantly different from 1, which indicates that the grid may be too coarse to properly resolve the disk.")
 
         # Normalize to total disk mass
         rho = rho * norm
@@ -372,7 +372,7 @@ class FlaredDisk(Disk):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            logger.warn("Ignoring disk, since rmax < rmin")
+            logger.warning("Ignoring disk, since rmax < rmin")
             return np.zeros(r.shape)
 
         int1 = integrate_powerlaw(self.rmin, r.clip(self.rmin, self.rmax), self.p - self.beta)
@@ -385,7 +385,7 @@ class FlaredDisk(Disk):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            logger.warn("Ignoring disk, since rmax < rmin")
+            logger.warning("Ignoring disk, since rmax < rmin")
             return np.zeros(theta.shape)
 
         # Convert coordinates to cylindrical polars

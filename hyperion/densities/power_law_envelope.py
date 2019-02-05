@@ -128,7 +128,7 @@ class PowerLawEnvelope(Envelope):
         if value is not None:
             validate_scalar('mass', value, domain='positive')
             if self._rho_0 is not None:
-                logger.warn("Overriding value of rho_0 with value derived from mass")
+                logger.warning("Overriding value of rho_0 with value derived from mass")
                 self._rho_0 = None
         self._mass = value
 
@@ -151,7 +151,7 @@ class PowerLawEnvelope(Envelope):
         if value is not None:
             validate_scalar('rho_0', value, domain='positive')
             if self._mass is not None:
-                logger.warn("Overriding value of mass with value derived from rho_0")
+                logger.warning("Overriding value of mass with value derived from rho_0")
                 self._mass = None
         self._rho_0 = value
 
@@ -229,7 +229,7 @@ class PowerLawEnvelope(Envelope):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            logger.warn("Ignoring power-law envelope, since rmax < rmin")
+            logger.warning("Ignoring power-law envelope, since rmax < rmin")
             return np.zeros(grid.shape)
 
         rho = self.rho_0 * (r / self.r_0) ** self.power
@@ -287,7 +287,7 @@ class PowerLawEnvelope(Envelope):
         self._check_all_set()
 
         if self.rmax <= self.rmin:
-            logger.warn("Ignoring power-law envelope, since rmax < rmin")
+            logger.warning("Ignoring power-law envelope, since rmax < rmin")
             return np.zeros(r.shape)
 
         return self.rho_0 * integrate_powerlaw(self.rmin, r.clip(self.rmin, self.rmax), self.power) / self.r_0 ** self.power

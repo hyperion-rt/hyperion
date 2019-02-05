@@ -236,7 +236,7 @@ class OctreeGrid(FreezableClass):
         logger.info("Setting refined with maximum depth of {0} levels".format(max_level))
 
         if max_level > 20:
-            logger.warn("Number of levels in octree is high ({0})".format(max_level))
+            logger.warning("Number of levels in octree is high ({0})".format(max_level))
 
         self._validate_cache[value_hash] = True
 
@@ -500,7 +500,7 @@ class OctreeGrid(FreezableClass):
     def __setitem__(self, item, value):
         if isinstance(value, OctreeGridView):
             if self.refined is None:
-                logger.warn("No geometry in target grid - copying from original grid")
+                logger.warning("No geometry in target grid - copying from original grid")
                 self.set_walls(value.x, value.y, value.z, value.dx, value.dy, value.dz, value.refined)
             self.quantities[item] = deepcopy(value.quantities[value.viewed_quantity])
         elif isinstance(value, h5py.ExternalLink):

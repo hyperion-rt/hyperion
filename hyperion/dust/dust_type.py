@@ -336,7 +336,7 @@ class SphericalDust(FreezableClass):
 
         # Read in the planck and rosseland mean opacities
         if dt.attrs['version'] == 1:
-            logger.warn("Version 1 dust file detected - discarding mean opacities and recomputing them")
+            logger.warning("Version 1 dust file detected - discarding mean opacities and recomputing them")
             self.mean_opacities.compute(self.optical_properties)
         else:
             self.mean_opacities.from_hdf5_group(dt)
@@ -745,7 +745,7 @@ class MieXDust(SphericalDust):
             values = self.optical_properties.__dict__[quantity]
 
             if np.any(np.isnan(values)):
-                logger.warn("NaN values found inside MieX %s file - interpolating" % quantity)
+                logger.warning("NaN values found inside MieX %s file - interpolating" % quantity)
                 invalid = np.isnan(values)
                 values[invalid] = interp1d_fast_loglog(wav[~invalid], values[~invalid], wav[invalid])
                 if np.any(np.isnan(values)):
@@ -806,7 +806,7 @@ class MieXDust(SphericalDust):
                 values = self.optical_properties.__dict__[quantity]
 
                 if np.any(np.isnan(values[:, i])):
-                    logger.warn("NaN values found inside MieX %s file - interpolating" % quantity)
+                    logger.warning("NaN values found inside MieX %s file - interpolating" % quantity)
                     invalid = np.isnan(values[:, i])
                     values[:, i][invalid] = interp1d_fast_loglog(wav[~invalid], values[:, i][~invalid], wav[invalid])
                     if np.any(np.isnan(values[:, i])):

@@ -80,10 +80,11 @@ class OpticalProperties(FreezableClass):
 
             norm = interp1d_fast_linlog(self.mu, self.P1[inu, :], 0.)
 
-            self.P1[inu, :] /= norm
-            self.P2[inu, :] /= norm
-            self.P3[inu, :] /= norm
-            self.P4[inu, :] /= norm
+            with np.errstate(invalid='ignore'):
+                self.P1[inu, :] /= norm
+                self.P2[inu, :] /= norm
+                self.P3[inu, :] /= norm
+                self.P4[inu, :] /= norm
 
     def truncate_scattering_matrix(self, mu_max):
         '''

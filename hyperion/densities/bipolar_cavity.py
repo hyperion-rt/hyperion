@@ -202,7 +202,7 @@ class BipolarCavity(Density):
             # reset
             reset = rho > envelope_density
             if np.all(reset):
-                logger.warn("Bipolar cavity is denser than envelope everywhere, so will have no effect")
+                logger.warning("Bipolar cavity is denser than envelope everywhere, so will have no effect")
             rho[reset] = envelope_density[reset]
 
         return rho
