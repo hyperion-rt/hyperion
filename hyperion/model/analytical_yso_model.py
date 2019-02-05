@@ -1,6 +1,10 @@
 from __future__ import print_function, division
 
-from collections.abc import Mapping
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
+
 from copy import deepcopy
 
 import numpy as np
