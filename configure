@@ -591,6 +591,7 @@ extra_serial
 posix_module_serial
 serial_fc
 hdf_compiler
+HYPERION_HDF5_VERSION
 target_alias
 host_alias
 build_alias
@@ -638,7 +639,8 @@ enable_static
 '
       ac_precious_vars='build_alias
 host_alias
-target_alias'
+target_alias
+HYPERION_HDF5_VERSION'
 
 
 # Initialize some variables set by options.
@@ -1252,6 +1254,15 @@ Optional Features:
   --enable-debug          Enables the full debugging flags
   --enable-static         Enables static compilation
 
+Some influential environment variables:
+  HYPERION_HDF5_VERSION
+              By default, we assume that HDF5 1.10 is being used. This
+              environment variable can be set to 18 or 110 to explicitly
+              request compatibility with HDF5 1.8.x and 1.10.x respectively.
+
+Use these variables to override the choices made by `configure' or to help
+it to find libraries and programs with nonstandard names/locations.
+
 Report bugs to the package provider.
 _ACEOF
 ac_status=$?
@@ -1699,6 +1710,7 @@ if test "${enable_static+set}" = set; then :
 fi
 
 
+
 # Static flags
 
 if test "$enable_static" == "yes"
@@ -1823,7 +1835,8 @@ else
   fi
 fi
 
-# gfortran sometimes includes version number, so check whether this is the case
+# gfortran sometimes includes version number and/or platform info
+# (e.g., x86_64-pc-linux-gnu-gfortran-4.8.2), so check whether this is the case
 hdf_compiler_short=`echo $hdf_compiler | sed s/'.*gfortran.*'/gfortran/`
 if test "$hdf_compiler_short" == gfortran
 then
@@ -1880,6 +1893,16 @@ then
 
 else
   as_fn_error $? "Could not determine HDF5 compiler: $hdf_compiler" "$LINENO" 5
+fi
+
+if test -z "$HYPERION_HDF5_VERSION"; then
+  HYPERION_HDF5_VERSION=110
+elif test "$HYPERION_HDF5_VERSION" == 18; then
+  : # nothing to do
+elif test "$HYPERION_HDF5_VERSION" == 110; then
+  : # nothing to do
+else
+  as_fn_error $? "HYPERION_HDF5_VERSION should be 18 or 110" "$LINENO" 5
 fi
 
 # MPI CODE
@@ -1948,7 +1971,8 @@ else
   as_fn_error $? "\"h5pfc or mpif90 need to be present\"" "$LINENO" 5
 fi
 
-# gfortran sometimes includes version number, so check whether this is the case
+# gfortran sometimes includes version number and/or platform info
+# (e.g., x86_64-pc-linux-gnu-gfortran-4.8.2), so check whether this is the case
 mpi_compiler_short=`echo $mpi_compiler | sed s/'.*gfortran.*'/gfortran/`
 if test "$mpi_compiler_short" == gfortran
 then
@@ -3165,3 +3189,4 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
+

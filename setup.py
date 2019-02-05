@@ -69,6 +69,7 @@ ext_modules = [Extension("hyperion.util._integrate_core",
                           'hyperion/grid/voro++/v_compute.cc',
                           'hyperion/grid/voro++/wall.cc'],
                          extra_compile_args = ['-O2', '-Wno-error=declaration-after-statement'],
+                         extra_link_args=['-lstdc++'],
                          include_dirs=[numpy_includes])]
 
 scripts = ['hyperion', 'hyperion2fits']

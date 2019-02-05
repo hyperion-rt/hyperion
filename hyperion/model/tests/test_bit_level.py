@@ -12,6 +12,7 @@ import itertools
 import pytest
 import numpy as np
 
+from astropy.extern.six import StringIO
 from .test_helpers import random_id, assert_identical_results
 from .. import Model, AnalyticalYSOModel
 from ...util.constants import pc, lsun, c, au, msun, pi, sigma, rsun
@@ -310,7 +311,6 @@ class TestPascucciBenchmark(object):
             '''
 
         # Read in dust
-        from StringIO import StringIO
         data = np.loadtxt(StringIO(optSi), comments=';',
                           dtype=[('wav', float), ('csca', float),
                                  ('cext', float)])

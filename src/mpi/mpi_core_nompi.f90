@@ -10,7 +10,7 @@ module mpi_core
   public :: main_process
 
   ! Whether MPI is enabled
-  logical :: mpi_enabled = .false.
+  logical, public :: mpi_enabled = .false.
 
   ! Rank of current process
   integer, parameter, public :: rank = 0

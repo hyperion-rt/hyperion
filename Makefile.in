@@ -10,7 +10,7 @@ COMMON = 	fortranlib/src/base_types.f90 \
 		fortranlib/src/lib_array.f90 \
 		fortranlib/src/lib_statistics.f90 \
 		fortranlib/src/lib_random.f90 \
-		fortranlib/src/lib_hdf5.f90 \
+		fortranlib/src/lib_hdf5_@HYPERION_HDF5_VERSION@.f90 \
 		fortranlib/src/lib_constants.f90 \
 		fortranlib/src/type_angle3d.f90 \
 		fortranlib/src/type_vector3d.f90 \
