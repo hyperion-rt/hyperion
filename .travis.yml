@@ -10,7 +10,7 @@ env:
         - CONDA_CHANNELS='conda-forge'
         - HDF5_VERSION=1.8
         - HYPERION_HDF5_VERSION=18
-        - CONDA_DEPENDENCIES='numpy astropy h5py matplotlib yt mpich hdf5 gcc'
+        - CONDA_DEPENDENCIES='numpy astropy h5py matplotlib yt mpich hdf5 gcc_linux-64'
         - SETUP_CMD='test'
         - MPLBACKEND='Agg'
     matrix:
