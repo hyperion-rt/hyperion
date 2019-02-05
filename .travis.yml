@@ -19,7 +19,7 @@ env:
 install:
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda.sh
-    - conda install gcc_$TRAVIS_OS_NAME-64 gfortran_$TRAVIS_OS_NAME-64
+    - conda install gcc_$TRAVIS_OS_NAME-64 gxx_$TRAVIS_OS_NAME-64 gfortran_$TRAVIS_OS_NAME-64
 
 script:
    - ./configure
