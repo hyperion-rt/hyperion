@@ -21,7 +21,7 @@ env:
         # Test with oldest supported version
         - PYTHON_VERSION=2.7
           HYPERION_HDF5_VERSION=18
-          CONDA_DEPENDENCIES='numpy=1.9 astropy=1.0 h5py=2.4 matplotlib=1.4 yt=3.1 mpich hdf5=1.8'
+          CONDA_DEPENDENCIES='numpy=1.11 astropy=2.0 h5py=2.6 matplotlib=2.0 yt=3.2 hdf5=1.8 mpich'
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
