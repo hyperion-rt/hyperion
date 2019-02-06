@@ -71,9 +71,9 @@ Python dependencies
 The packages required for the Python code (in addition to Python itself) are:
 
 * `NumPy <http://www.numpy.org>`_ 1.11 or later
-* `Matplotlib <http://matplotlib.org>`_ 2.0 or later
-* `h5py <http://www.h5py.org>`_ 2.6 or later
-* `Astropy <http://www.astropy.org>`_ 2.0 or later
+* `Matplotlib <http://matplotlib.org>`_ 1.5 or later
+* `h5py <http://www.h5py.org>`_ 2.4 or later
+* `Astropy <http://www.astropy.org>`_ 1.2 or later
 * `yt <http://yt-project.org/>`_ 3.3 or later
 
 These dependencies will be automatically installed when installing the Python
