@@ -74,7 +74,7 @@ The packages required for the Python code (in addition to Python itself) are:
 * `Matplotlib <http://matplotlib.org>`_ 2.0 or later
 * `h5py <http://www.h5py.org>`_ 2.6 or later
 * `Astropy <http://www.astropy.org>`_ 2.0 or later
-* `yt <http://yt-project.org/>`_ 3.2 or later
+* `yt <http://yt-project.org/>`_ 3.3 or later
 
 These dependencies will be automatically installed when installing the Python
 component of Hyperion if they are not already present.
