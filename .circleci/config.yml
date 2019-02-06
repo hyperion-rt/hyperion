@@ -25,6 +25,9 @@ jobs:
           name: Installing Numpy
           command: pip install numpy==1.11.3
       - run:
+          name: Installing Cython
+          command: pip install Cython==0.24.1
+      - run:
           name: Installing Python package
           command: pip install .[test] matplotlib==1.5.3 astropy==1.2.2 h5py==2.4.0 yt==3.2.3
       - run:
