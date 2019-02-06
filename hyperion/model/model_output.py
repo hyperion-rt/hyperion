@@ -20,17 +20,17 @@ STOKESD['U'] = 2
 STOKESD['V'] = 3
 
 LABEL = {}
-LABEL['I'] = '$\lambda\, F_\lambda$'
-LABEL['Q'] = '$\lambda\, F_\lambda$ [stokes=Q]'
-LABEL['U'] = '$\lambda\, F_\lambda$ [stokes=U]'
-LABEL['V'] = '$\lambda\, F_\lambda$ [stokes=V]'
-LABEL['linpol'] = "Total linear polarization fraction"
-LABEL['circpol'] = "Total circular polarization fraction"
+LABEL['I'] = r'$\lambda\, F_\lambda$'
+LABEL['Q'] = r'$\lambda\, F_\lambda$ [stokes=Q]'
+LABEL['U'] = r'$\lambda\, F_\lambda$ [stokes=U]'
+LABEL['V'] = r'$\lambda\, F_\lambda$ [stokes=V]'
+LABEL['linpol'] = 'Total linear polarization fraction'
+LABEL['circpol'] = 'Total circular polarization fraction'
 
 UNITS_LABEL = {}
 UNITS_LABEL['ergs/s'] = '(ergs/s)'
-UNITS_LABEL['ergs/cm^2/s'] = '(ergs/cm$^2$/s)'
-UNITS_LABEL['ergs/cm^2/s/Hz'] = '(ergs/cm$^2$/s/Hz)'
+UNITS_LABEL['ergs/cm^2/s'] = r'(ergs/cm$^2$/s)'
+UNITS_LABEL['ergs/cm^2/s/Hz'] = r'(ergs/cm$^2$/s/Hz)'
 UNITS_LABEL['Jy'] = 'Jy'
 UNITS_LABEL['mJy'] = 'mJy'
 UNITS_LABEL['MJy/sr'] = 'MJy/sr'
