@@ -51,11 +51,11 @@ class MeanOpacities(FreezableClass):
         nu = nu_common(planck_nu, optical_properties.nu)
 
         if planck_nu.min() < optical_properties.nu.min():
-            logger.warn("Planck function for lowest temperature not completely covered by opacity function")
+            logger.warning("Planck function for lowest temperature not completely covered by opacity function")
             nu = nu[nu >= optical_properties.nu.min()]
 
         if planck_nu.max() > optical_properties.nu.max():
-            logger.warn("Planck function for highest temperature not completely covered by opacity function")
+            logger.warning("Planck function for highest temperature not completely covered by opacity function")
             nu = nu[nu <= optical_properties.nu.max()]
 
         # Interpolate opacity to new frequency grid

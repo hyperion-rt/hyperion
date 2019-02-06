@@ -28,12 +28,12 @@ def test_output_grids_exist(tmpdir, output):
 
     # Check that component is available in output
     assert output in model_out.get_available_components()
-    model_out.get_physical_grid(output)
+    model_out.get_quantities()[output]
 
     # If component is specific_energy, check that temperature is also available
     if output == 'specific_energy':
         assert 'temperature' in model_out.get_available_components()
-        model_out.get_physical_grid('temperature')
+        model_out.get_quantities()['temperature']
 
 
 def test_output_grids_density(tmpdir):
@@ -57,9 +57,5 @@ def test_output_grids_density(tmpdir):
     model_out = model.run(tmpdir.join(random_id()).strpath)
 
     # Extract density
-    density_out = model_out.get_physical_grid('density', dust_id=0)
+    density_out = model_out.get_quantities()['density'][0].array
     assert density_in == density_out
-
-    # Extract density (without specifying dust_id)
-    density_out = model_out.get_physical_grid('density')
-    assert density_in == density_out[0]

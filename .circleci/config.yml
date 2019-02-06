@@ -1,6 +1,40 @@
 version: 2
 
+
+
 jobs:
+
+  # Build with oldest supported version of dependencies
+  hdf5-18-legacy:
+    docker:
+      - image: astrofrog/hyperion-ci-hdf5-18:1.4
+    steps:
+      - checkout
+      - run:
+          name: Initialize submodule
+          command: |
+              git submodule init
+              git submodule update
+      - run:
+          name: Compiling Fortran code
+          command: |
+              HYPERION_HDF5_VERSION=18 ./configure
+              make
+              make install
+      - run:
+          name: Installing Numpy
+          command: pip install numpy==1.11.3
+      - run:
+          name: Installing Cython
+          command: pip install Cython==0.24.1
+      - run:
+          name: Installing Python package
+          command: pip install .[test] matplotlib==1.5.3 astropy==1.2.2 h5py==2.4.0 yt==3.2.3
+      - run:
+          name: Run full test suite (including bit-level tests)
+          command: python setup.py test --enable-bit-level-tests
+
+  # Build with HDF5 1.8
   hdf5-18:
     docker:
       - image: astrofrog/hyperion-ci-hdf5-18:1.4
@@ -26,6 +60,8 @@ jobs:
       - run:
           name: Run full test suite (including bit-level tests)
           command: python setup.py test --enable-bit-level-tests
+
+  # Build with HDF5 1.10
   hdf5-110:
     docker:
       - image: astrofrog/hyperion-ci-hdf5-110:1.6
@@ -56,5 +92,6 @@ workflows:
   version: 2
   tests_and_docs:
     jobs:
+      - hdf5-18-legacy
       - hdf5-18
       - hdf5-110

@@ -104,8 +104,10 @@ class CylindricalPolarGrid(FreezableClass):
         if not monotonically_increasing(p_wall):
             raise ValueError("p_wall should be monotonically increasing")
 
+        if np.any(w_wall < 0.):
+            raise ValueError("w_wall values should be positive")
         if np.any(p_wall < 0.) or np.any(p_wall > 2. * np.pi):
-            raise ValueError("p_wall values be in the range [0:2*pi]")
+            raise ValueError("p_wall values should be in the range [0:2*pi]")
 
         # Find grid shape
         self.shape = (len(p_wall) - 1, len(z_wall) - 1, len(w_wall) - 1)
@@ -429,7 +431,7 @@ class CylindricalPolarGrid(FreezableClass):
     def __setitem__(self, item, value):
         if isinstance(value, CylindricalPolarGridView):
             if self.w_wall is None and self.z_wall is None and self.p_wall is None:
-                logger.warn("No geometry in target grid - copying from original grid")
+                logger.warning("No geometry in target grid - copying from original grid")
                 self.set_walls(value.w_wall, value.z_wall, value.p_wall)
             self.quantities[item] = deepcopy(value.quantities[value.viewed_quantity])
         elif isinstance(value, h5py.ExternalLink):

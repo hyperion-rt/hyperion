@@ -359,7 +359,7 @@ class ModelOutput(FreezableClass):
 
         # Set up wavelength space
         if 'use_filters' in g.attrs and g.attrs['use_filters'].decode('utf-8').lower() == 'yes':
-            nu = g['filt_nu0'].value
+            nu = g['filt_nu0'][()]
             wav = c / nu * 1.e4
         elif 'numin' in g['seds'].attrs:
             numin = g['seds'].attrs['numin']
@@ -371,9 +371,9 @@ class ModelOutput(FreezableClass):
             nu = g['frequencies']['nu']
             wav = c / nu * 1.e4
 
-        flux = g['seds'].value
+        flux = g['seds'][()]
         if uncertainties:
-            unc = g['seds_unc'].value
+            unc = g['seds_unc'][()]
 
         try:
             inside_observer = g.attrs['inside_observer'].decode('utf-8').lower() == 'yes'
@@ -497,13 +497,15 @@ class ModelOutput(FreezableClass):
             if uncertainties:
                 flux, unc = mc_linear_polarization(flux[0], unc[0], flux[1], unc[1], flux[2], unc[2])
             else:
-                flux = np.sqrt((flux[1] ** 2 + flux[2] ** 2) / flux[0] ** 2)
+                with np.errstate(invalid='ignore'):
+                    flux = np.sqrt((flux[1] ** 2 + flux[2] ** 2) / flux[0] ** 2)
                 flux[np.isnan(flux)] = 0.
         elif stokes == 'circpol':
             if uncertainties:
                 flux, unc = mc_circular_polarization(flux[0], unc[0], flux[3], unc[3])
             else:
-                flux = np.abs(flux[3] / flux[0])
+                with np.errstate(invalid='ignore'):
+                    flux = np.abs(flux[3] / flux[0])
                 flux[np.isnan(flux)] = 0.
         else:
             raise ValueError("Unknown Stokes parameter: %s" % stokes)
@@ -679,7 +681,7 @@ class ModelOutput(FreezableClass):
 
         # Set up wavelength space
         if 'use_filters' in g.attrs and g.attrs['use_filters'].decode('utf-8').lower() == 'yes':
-            nu = g['filt_nu0'].value
+            nu = g['filt_nu0'][()]
             wav = c / nu * 1.e4
         elif 'numin' in g['images'].attrs:
             numin = g['images'].attrs['numin']
@@ -691,9 +693,9 @@ class ModelOutput(FreezableClass):
             nu = g['frequencies']['nu']
             wav = c / nu * 1.e4
 
-        flux = g['images'].value
+        flux = g['images'][()]
         if uncertainties:
-            unc = g['images_unc'].value
+            unc = g['images_unc'][()]
 
         try:
             inside_observer = g.attrs['inside_observer'].decode('utf-8').lower() == 'yes'
@@ -874,13 +876,15 @@ class ModelOutput(FreezableClass):
             if uncertainties:
                 flux, unc = mc_linear_polarization(flux[0], unc[0], flux[1], unc[1], flux[2], unc[2])
             else:
-                flux = np.sqrt((flux[1] ** 2 + flux[2] ** 2) / flux[0] ** 2)
+                with np.errstate(invalid='ignore'):
+                    flux = np.sqrt((flux[1] ** 2 + flux[2] ** 2) / flux[0] ** 2)
                 flux[np.isnan(flux)] = 0.
         elif stokes == 'circpol':
             if uncertainties:
                 flux, unc = mc_circular_polarization(flux[0], unc[0], flux[3], unc[3])
             else:
-                flux = np.abs(flux[3] / flux[0])
+                with np.errstate(invalid='ignore'):
+                    flux = np.abs(flux[3] / flux[0])
                 flux[np.isnan(flux)] = 0.
         else:
             raise ValueError("Unknown Stokes parameter: %s" % stokes)

@@ -96,7 +96,7 @@ setup(name='Hyperion',
       scripts=['scripts/' + x for x in scripts],
       cmdclass=cmdclass,
       ext_modules=ext_modules,
-      setup_requires=['numpy'],
-      install_requires=['numpy', 'matplotlib', 'astropy', 'h5py', 'yt'],
-      extras_require={'test': ['pytest'], 'docs': ['sphinx', 'numpydoc']}
-     )
+      setup_requires=['numpy>=1.11'],
+      install_requires=['numpy>=1.11', 'matplotlib>=1.5', 'astropy>=1.2', 'h5py>=2.4', 'yt>=3.2'],
+      extras_require={'test': ['pytest'],
+                      'docs': ['sphinx', 'numpydoc']})

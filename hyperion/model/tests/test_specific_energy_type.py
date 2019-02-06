@@ -36,8 +36,8 @@ class TestSpecificEnergyType(object):
         self.model.write(input_file)
         model_out = self.model.run(output_file)
 
-        t = model_out.get_physical_grid('specific_energy')
-        assert_allclose(t[0][0, 0, 0], 0.5)
+        t = model_out.get_quantities()['specific_energy']
+        assert_allclose(t[0].array[0, 0, 0], 0.5)
 
     def test_specific_energy_additional(self, tmpdir):
 
@@ -51,8 +51,8 @@ class TestSpecificEnergyType(object):
         self.model.write(input_file)
         model_out = self.model.run(output_file)
 
-        t = model_out.get_physical_grid('specific_energy')
-        assert_allclose(t[0][0, 0, 0], 2.08583984422)
+        t = model_out.get_quantities()['specific_energy']
+        assert_allclose(t[0].array[0, 0, 0], 2.08583984422)
 
     def test_specific_energy_additional_noiter(self, tmpdir):
 

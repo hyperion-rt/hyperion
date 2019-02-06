@@ -378,7 +378,7 @@ class VoronoiGrid(FreezableClass):
 
         # Avoid re-computing Voronoi table
         self.voronoi_table = Table.read(group['cells'], format='hdf5')
-        self._sparse_neighbors = group['sparse_neighs'].value, group['sparse_idx'].value
+        self._sparse_neighbors = group['sparse_neighs'][()], group['sparse_idx'][()]
 
     def read_quantities(self, group, quantities='all'):
         '''
@@ -544,7 +544,7 @@ class VoronoiGrid(FreezableClass):
     def __setitem__(self, item, value):
         if isinstance(value, VoronoiGridView):
             if self.refined is None:
-                logger.warn("No geometry in target grid - copying from original grid")
+                logger.warning("No geometry in target grid - copying from original grid")
                 self.set_points(value.x, value.y, value.z)
             self.quantities[item] = deepcopy(value.quantities[value.viewed_quantity])
         elif isinstance(value, h5py.ExternalLink):
