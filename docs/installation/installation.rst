@@ -96,11 +96,11 @@ Python module
 
 Install the Python module with::
 
-    python setup.py install
+    pip install .
 
 or::
 
-    python setup.py install --user
+    pip install . --user
 
 if you do not have root access. Check that the module installed correctly::
 
@@ -124,7 +124,6 @@ should contain something like this::
 
 The path listed (excluding ``hyperion`` at the end) should be in your
 ``$PATH``. On Linux systems, this path will often be ``$HOME/.local/bin``.
-
 
 .. note:: On recent versions of MacOS X, you may encounter the following error
           when trying to install the Python library for Hyperion::
