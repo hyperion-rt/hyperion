@@ -14,7 +14,7 @@ from distutils.command.build_py import build_py
 from distutils.command.build_ext import build_ext
 
 from hyperion.testing.helper import HyperionTest
-from hyperion.version import __version__, __dev__
+from hyperion.version import __version__
 
 
 class custom_sdist(sdist):
@@ -81,25 +81,7 @@ else:
                              extra_compile_args = ['-O2', '-Wno-error=declaration-after-statement'],
                              extra_link_args=['-lstdc++'])]
 
-scripts = ['hyperion', 'hyperion2fits']
-
-setup(name='Hyperion',
-      version=__version__,
-      url='http://www.hyperion-rt.org',
-      description='Monte-Carlo Radiative Transfer Code',
-      long_description='Monte-Carlo Radiative Transfer Code',
-      author='Thomas Robitaille',
-      author_email='thomas.robitaille@gmail.com',
-      license='BSD',
-      packages=find_packages(),
-      package_data={'hyperion.model.tests': ['data/*.rtout', 'data/*.hdf5'],
-                    'hyperion.importers.tests': ['data/*.hdf5'],
-                    'hyperion.grid.tests': ['data/*.hdf5', 'data/DD0010/*'],
-                    'hyperion.testing': ['coveragerc']},
-      scripts=['scripts/' + x for x in scripts],
+setup(version=__version__,
+      scripts=['scripts/hyperion', 'scripts/hyperion2fits'],
       cmdclass=cmdclass,
-      ext_modules=ext_modules,
-      setup_requires=['numpy>=1.11'],
-      install_requires=['numpy>=1.11', 'matplotlib>=1.5', 'astropy>=1.2', 'h5py>=2.4', 'yt>=3.2', 'six'],
-      extras_require={'test': ['pytest'],
-                      'docs': ['sphinx', 'numpydoc']})
+      ext_modules=ext_modules)
