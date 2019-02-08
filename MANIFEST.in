@@ -1,3 +1,5 @@
+include README.md
+
 include configure Makefile.in src/modules/empty.txt bin/empty.txt LICENSE
 exclude scripts/mctherm2hyperion
 

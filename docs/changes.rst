@@ -1,13 +1,17 @@
 Version History
 ===============
 
-1.0.0 (unreleased)
-------------------
+0.9.10 (2019-02-08)
+-------------------
 
 - Fixed compatibility with HDF5 1.10.x. [#188]
 
 - Simplify installation instructions, remove custom installer for Fortran
   dependencies, and remove CMake build system. [#206]
+
+- Fixed compatibility with latest version of h5py. [#201]
+
+- Fixed bug in method to truncate scattering matrix in dust properties. [#199]
 
 0.9.9 (2017-08-28)
 ------------------
