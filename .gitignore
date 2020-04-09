@@ -13,3 +13,6 @@ htmlcov
 *.rtout
 build_cmake
 .vscode
+dist
+Hyperion.egg-info
+

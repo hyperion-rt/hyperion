@@ -28,7 +28,10 @@ contains
     real(dp) :: xi,albedo
     real(dp) :: energy_scaling
     logical,optional :: force_scatter
+    logical :: force_scatter_val = .false.
 
+    if(present(force_scatter)) force_scatter_val = force_scatter
+    
     ! given the density and energy of each dust type, process a photon
     ! this means finding out whether to scatter or aborb the photon, and to do
     ! whatever needs doing
@@ -43,7 +46,7 @@ contains
     p%s_prev = p%s
 
     ! Decide whether to absorb or scatter
-    if(present(force_scatter) .and. force_scatter) then
+    if(force_scatter_val) then
       xi = 0._dp
     else
       call random(xi)
@@ -69,7 +72,7 @@ contains
 
     call angle3d_to_vector3d(p%a,p%v)
 
-    if(present(force_scatter) .and. force_scatter) then
+    if(force_scatter_val) then
       p%energy = p%energy * albedo
     end if
 
