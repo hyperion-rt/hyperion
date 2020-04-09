@@ -12,3 +12,4 @@ htmlcov
 *.rtin
 *.rtout
 build_cmake
+.vscode

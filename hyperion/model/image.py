@@ -1,6 +1,9 @@
 import numpy as np
 
-from astropy.extern import six
+try:
+    import six
+except:
+    from astropy.extern import six
 
 from ..util.functions import FreezableClass, is_numpy_array
 from ..util.constants import c

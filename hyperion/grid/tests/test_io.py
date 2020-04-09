@@ -3,7 +3,10 @@ from copy import deepcopy
 import h5py
 import numpy as np
 import pytest
-from astropy.extern import six
+try:
+    import six
+except:
+    from astropy.extern import six
 
 from ...util.functions import random_id
 from .. import (CartesianGrid,

@@ -1,7 +1,10 @@
 import numpy as np
 
 from astropy import units as u
-from astropy.extern import six
+try:
+    import six
+except:
+    from astropy.extern import six
 
 
 def validate_physical_type(name, value, physical_type):
