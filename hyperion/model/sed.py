@@ -1,9 +1,6 @@
 import numpy as np
 
-try:
-    import six
-except:
-    from astropy.extern import six
+import six
 
 from ..util.functions import FreezableClass
 from ..util.constants import c

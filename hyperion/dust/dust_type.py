@@ -17,10 +17,7 @@ import hashlib
 import h5py
 import numpy as np
 from astropy import log as logger
-try:
-    import six
-except:
-    from astropy.extern import six
+import six
 
 from ..version import __version__
 

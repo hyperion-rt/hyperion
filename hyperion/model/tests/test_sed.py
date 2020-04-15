@@ -8,10 +8,7 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal_nulp
 
 import pytest
-try:
-    import six
-except:
-    from astropy.extern import six
+import six
 
 from .. import Model
 from ..sed import SED

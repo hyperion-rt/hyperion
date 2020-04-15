@@ -5,10 +5,7 @@ import warnings
 
 import numpy as np
 from astropy import log as logger
-try:
-    import six
-except:
-    from astropy.extern import six
+import six
 
 from ..util.constants import c, pi
 from ..util.functions import FreezableClass

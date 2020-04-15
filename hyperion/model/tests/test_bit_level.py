@@ -15,10 +15,7 @@ except:
     from astropy.tests.helper import pytest
 import numpy as np
 
-try:
-    from six import StringIO
-except:
-    from astropy.extern.six import StringIO
+from six import StringIO
 from .test_helpers import random_id, assert_identical_results
 from .. import Model, AnalyticalYSOModel
 from ...util.constants import pc, lsun, c, au, msun, pi, sigma, rsun
