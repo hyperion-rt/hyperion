@@ -9,10 +9,8 @@ import os
 import shutil
 import itertools
 
-try:
-    import pytest
-except:
-    from astropy.tests.helper import pytest
+import pytest
+
 import numpy as np
 
 from six import StringIO
@@ -26,7 +24,6 @@ GRID_TYPES = ['car', 'cyl', 'sph', 'amr', 'oct']
 
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
-bit_level = pytest.mark.skipif(str(not pytest.config.getoption('enable_bit_level_tests')))
 
 @pytest.fixture(scope="module")
 def generate(request):
@@ -137,7 +134,7 @@ class TestBasic(object):
         setup_all_grid_types(self, pc, 1.e-20)
         self.dust_file = os.path.join(DATA, 'kmh_lite.hdf5')
 
-    @bit_level
+    @pytest.mark.bitlevel
     @pytest.mark.parametrize(('grid_type', 'sample_sources_evenly', 'multiple_densities'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
     def test_specific_energy(self, tmpdir, grid_type, sample_sources_evenly, multiple_densities, generate):
 
@@ -175,7 +172,7 @@ class TestBasic(object):
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
 
-    @bit_level
+    @pytest.mark.bitlevel
     @pytest.mark.parametrize(('grid_type', 'raytracing', 'sample_sources_evenly'), list(itertools.product(GRID_TYPES, [False, True], [False, True])))
     def test_peeloff(self, tmpdir, grid_type, raytracing, sample_sources_evenly, generate):
 
@@ -339,7 +336,7 @@ class TestPascucciBenchmark(object):
     def teardown_class(self):
         shutil.rmtree(self.tmpdir)
 
-    @bit_level
+    @pytest.mark.bitlevel
     @pytest.mark.parametrize(('tau'), [0.1, 1, 10, 100])
     def test_pascucci(self, tmpdir, tau, generate):
 
@@ -445,7 +442,7 @@ class TestPinteBenchmark(object):
     The current tests do not test the imaging part of the Pinte benchmark.
     '''
 
-    @bit_level
+    @pytest.mark.bitlevel
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
     def test_pinte_seds(self, tmpdir, tau, generate):
 
@@ -547,7 +544,7 @@ class TestPinteBenchmark(object):
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
 
-    @bit_level
+    @pytest.mark.bitlevel
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
     def test_pinte_images(self, tmpdir, tau, generate):
 
@@ -638,7 +635,7 @@ class TestPinteBenchmark(object):
             reference_file = os.path.join(DATA, function_name() + ".rtout")
             assert_identical_results(output_file, reference_file)
 
-    @bit_level
+    @pytest.mark.bitlevel
     @pytest.mark.parametrize(('tau'), [1000, 10000, 100000, 1000000])
     def test_pinte_specific_energy(self, tmpdir, tau, generate):
 
