@@ -22,6 +22,9 @@ jobs:
               make
               make install
       - run:
+          name: Upgrade setuptools and pip
+          command: pip install setuptools pip --upgrade
+      - run:
           name: Installing Numpy
           command: pip install numpy==1.11.3
       - run:
@@ -51,6 +54,9 @@ jobs:
               HYPERION_HDF5_VERSION=18 ./configure
               make
               make install
+      - run:
+          name: Upgrade setuptools and pip
+          command: pip install setuptools pip --upgrade
       - run:
           name: Installing Numpy
           command: pip install numpy
