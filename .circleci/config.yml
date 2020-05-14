@@ -29,10 +29,10 @@ jobs:
           command: pip install Cython==0.24.1
       - run:
           name: Installing Python package
-          command: pip install .[test] matplotlib==1.5.3 astropy==1.2.2 h5py==2.4.0 yt==3.2.3
+          command: pip install -e .[test] matplotlib==1.5.3 astropy==1.2.2 h5py==2.4.0 yt==3.2.3
       - run:
           name: Run full test suite (including bit-level tests)
-          command: python setup.py test --enable-bit-level-tests
+          command: pytest hyperion --enable-bit-level-tests
 
   # Build with HDF5 1.8
   hdf5-18:
@@ -56,10 +56,10 @@ jobs:
           command: pip install numpy
       - run:
           name: Installing Python package
-          command: pip install .[test]
+          command: pip install -e .[test]
       - run:
           name: Run full test suite (including bit-level tests)
-          command: python setup.py test --enable-bit-level-tests
+          command: pytest hyperion --enable-bit-level-tests
 
   # Build with HDF5 1.10
   hdf5-110:
@@ -83,10 +83,10 @@ jobs:
           command: pip3 install numpy
       - run:
           name: Installing Python package
-          command: pip3 install .[test]
+          command: pip3 install -e .[test]
       - run:
           name: Run full test suite (including bit-level tests)
-          command: python3 setup.py test --enable-bit-level-tests
+          command: pytest hyperion --enable-bit-level-tests
 
 workflows:
   version: 2

@@ -8,7 +8,7 @@ env:
     global:
         - SETUP_XVFB=True
         - CONDA_CHANNELS='conda-forge'
-        - CONDA_DEPENDENCIES='numpy astropy h5py matplotlib yt mpich hdf5'
+        - CONDA_DEPENDENCIES='numpy astropy h5py matplotlib yt mpich hdf5 hdf5-static'
         - SETUP_CMD='test'
         - MPLBACKEND='Agg'
     matrix:
@@ -23,8 +23,9 @@ install:
     - if [[ $TRAVIS_OS_NAME == osx ]]; then conda install clang_osx-64 clangxx_osx-64 gfortran_osx-64; fi
 
 script:
+   - set -e
    - ./configure
    - make serial
    - sudo make install
-   - python setup.py install  # to get the hyperion script installed
-   - python setup.py $SETUP_CMD
+   - pip install -e .[test]
+   - pytest hyperion
