@@ -59,7 +59,7 @@ jobs:
           command: pip install setuptools pip --upgrade
       - run:
           name: Installing Numpy
-          command: pip install numpy
+          command: pip install numpy Cython
       - run:
           name: Installing Python package
           command: pip install -e .[test]
