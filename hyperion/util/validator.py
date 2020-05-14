@@ -1,7 +1,7 @@
 import numpy as np
 
 from astropy import units as u
-from astropy.extern import six
+import six
 
 
 def validate_physical_type(name, value, physical_type):

@@ -453,7 +453,7 @@ contains
 
     write(*,*)
     write(*,'("     -> Percentile: ",F7.2)') convergence_percentile
-    write(*,'("     -> Value @ Percentile: ",F10.2)') value
+    write(*,'("     -> Value @ Percentile: ",E10.3)') value
     if(value_prev < huge(1._dp)) then
        if(value == 0._dp) then
           write(*,'("     -> Exact convergence")')

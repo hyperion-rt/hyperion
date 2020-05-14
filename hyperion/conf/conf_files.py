@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import warnings
 import numpy as np
 from astropy import log as logger
-from astropy.extern import six
+import six
 
 from ..util.functions import FreezableClass, bool2str, str2bool, is_numpy_array
 from ..filter import Filter

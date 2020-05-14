@@ -9,7 +9,7 @@ import h5py
 import numpy as np
 
 from astropy import log as logger
-from astropy.extern import six
+import six
 
 from ..version import __version__
 from ..util.functions import delete_file

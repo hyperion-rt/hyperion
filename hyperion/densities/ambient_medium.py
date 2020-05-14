@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 
 import numpy as np
-from astropy.extern import six
+import six
 
 from ..dust import SphericalDust
 from ..grid import SphericalPolarGrid

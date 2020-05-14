@@ -6,7 +6,7 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal_nulp
 
 import pytest
-from astropy.extern import six
+import six
 
 from ..integrate import *
 

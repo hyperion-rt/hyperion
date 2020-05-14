@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import numpy as np
 import pytest
-from astropy.extern import six
+import six
 
 from hyperion.grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid, AMRGrid, OctreeGrid
 

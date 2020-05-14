@@ -9,10 +9,13 @@ import os
 import shutil
 import itertools
 
-import pytest
+try:
+    import pytest
+except:
+    from astropy.tests.helper import pytest
 import numpy as np
 
-from astropy.extern.six import StringIO
+from six import StringIO
 from .test_helpers import random_id, assert_identical_results
 from .. import Model, AnalyticalYSOModel
 from ...util.constants import pc, lsun, c, au, msun, pi, sigma, rsun
@@ -24,7 +27,6 @@ GRID_TYPES = ['car', 'cyl', 'sph', 'amr', 'oct']
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
 bit_level = pytest.mark.skipif(str(not pytest.config.getoption('enable_bit_level_tests')))
-
 
 @pytest.fixture(scope="module")
 def generate(request):
