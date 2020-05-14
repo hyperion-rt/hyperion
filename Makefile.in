@@ -294,6 +294,7 @@ vor_mpi:	$(OBJECTS_VOR_MPI)
 
 install:	bin/hyperion_*
 		mkdir -p @prefix@/bin
-		cp bin/hyperion_* @prefix@/bin/
+		cp bin/hyperion_??? @prefix@/bin/
+		cp bin/hyperion_???_mpi @prefix@/bin/
 
 clean:;		rm *.mod src/*.mod src/*/*.mod *.o */*.o bin/* *~ */*~ fort.* ; echo "This file can be deleted." > bin/empty.txt ; echo "This file can be deleted." > src/modules/empty.txt

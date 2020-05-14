@@ -64,6 +64,9 @@ jobs:
           name: Installing Python package
           command: pip install -e .[test]
       - run:
+          name: Ensure an old version of pytest is available
+          command: pip install "pytest<3.7,>=2.8"
+      - run:
           name: Run full test suite (including bit-level tests)
           command: pytest hyperion --enable-bit-level-tests
 
