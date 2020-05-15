@@ -9,7 +9,7 @@ import pytest
 from ..optical_properties import OpticalProperties
 from ..mean_opacities import MeanOpacities
 from ...util.functions import virtual_file, B_nu
-from ...util.constants import sigma
+from ...util.constants import sigma, c
 
 
 class TestMeanOpacities(object):
@@ -65,3 +65,17 @@ class TestMeanOpacities(object):
         m.plot(fig, 111)
 
         plt.close(fig)
+
+
+def test_zero_emissivities():
+
+    wav = np.array([2.0, 0.5])
+    nu = c / (wav * 1.e-4)
+
+    o = OpticalProperties()
+    o.nu = nu
+    o.chi = np.array([1.e-2, 1])
+    o.albedo = np.array([0., 0.5])
+
+    m = MeanOpacities()
+    m.compute(o)

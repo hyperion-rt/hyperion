@@ -64,9 +64,6 @@ class MeanOpacities(FreezableClass):
         kappa_nu = interp1d_fast_loglog(optical_properties.nu,
                                         optical_properties.kappa, nu)
 
-        # Set mean opacity variable
-        self.var_name = 'specific_energy'
-
         # Initialize mean opacity arrays
         self.chi_planck = np.zeros(n_temp)
         self.kappa_planck = np.zeros(n_temp)
@@ -82,29 +79,31 @@ class MeanOpacities(FreezableClass):
             b_nu = B_nu(nu, T)
             db_nu_dt = dB_nu_dT(nu, T)
 
+            # We use np.divide here to do the right thing with division by zero
+
             # Compute planck mean opacity
-            self.chi_planck[it] = (integrate_loglog(nu, b_nu * chi_nu) /
-                                   integrate_loglog(nu, b_nu))
+            self.chi_planck[it] = np.divide(integrate_loglog(nu, b_nu * chi_nu),
+                                            integrate_loglog(nu, b_nu))
 
             # Compute planck mean absoptive opacity
-            self.kappa_planck[it] = (integrate_loglog(nu, b_nu * kappa_nu) /
-                                     integrate_loglog(nu, b_nu))
+            self.kappa_planck[it] = np.divide(integrate_loglog(nu, b_nu * kappa_nu),
+                                              integrate_loglog(nu, b_nu))
 
             # Compute reciprocal planck mean opacity
-            self.chi_inv_planck[it] = (integrate_loglog(nu, b_nu) /
-                                       integrate_loglog(nu, b_nu / chi_nu))
+            self.chi_inv_planck[it] = np.divide(integrate_loglog(nu, b_nu),
+                                                integrate_loglog(nu, b_nu / chi_nu))
 
             # Compute reciprocal planck mean aborptive opacity
-            self.kappa_inv_planck[it] = (integrate_loglog(nu, b_nu) /
-                                         integrate_loglog(nu, b_nu / kappa_nu))
+            self.kappa_inv_planck[it] = np.divide(integrate_loglog(nu, b_nu),
+                                                  integrate_loglog(nu, b_nu / kappa_nu))
 
             # Compute rosseland mean opacity
-            self.chi_rosseland[it] = (integrate_loglog(nu, db_nu_dt) /
-                                      integrate_loglog(nu, db_nu_dt / chi_nu))
+            self.chi_rosseland[it] = np.divide(integrate_loglog(nu, db_nu_dt),
+                                               integrate_loglog(nu, db_nu_dt / chi_nu))
 
             # Compute rosseland mean aborptive opacity
-            self.kappa_rosseland[it] = (integrate_loglog(nu, db_nu_dt) /
-                                        integrate_loglog(nu, db_nu_dt / kappa_nu))
+            self.kappa_rosseland[it] = np.divide(integrate_loglog(nu, db_nu_dt),
+                                                 integrate_loglog(nu, db_nu_dt / kappa_nu))
 
         self.temperature = temperatures
         self.specific_energy = 4. * sigma * temperatures ** 4. * self.kappa_planck
