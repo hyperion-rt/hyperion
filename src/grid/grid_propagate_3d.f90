@@ -5,7 +5,7 @@ module grid_propagate
   use type_grid_cell
   use dust_main, only : n_dust
   use grid_geometry, only : escaped, find_wall, in_correct_cell, next_cell, opposite_wall
-  use grid_physics, only : specific_energy_sum, density, n_photons, last_photon_id
+  use grid_physics, only : specific_energy_sum, specific_energy_sum_nu, density, n_photons, last_photon_id
   use sources
   use counters
   use settings, only : frac_check => propagation_check_frequency
@@ -131,12 +131,30 @@ contains
           tau_achieved = tau_achieved + tau_cell
 
           ! NEED INDIVIDUAL ALPHA HERE
+          
+          !print *,'[grid_propagate_3d] p%energy=',p%energy
+          !print *,'[grid_propagate_3d] p%nu=',p%nu
+
+          !DN CRAZY ADDITIONS
+          !print *,'[grid_propagate_3d] p%nu=',p%nu
+          !print *,' ',minloc(abs(energy_frequency_bins-p%nu))
+          
+          !DN CRAZY ADDITIONS
+          !idx = minloc(abs(energy_frequency_bins-p%nu),DIM=1)
 
           do id=1,n_dust
              if(density(p%icell%ic, id) > 0._dp) then
                 specific_energy_sum(p%icell%ic, id) = &
                      & specific_energy_sum(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
              end if
+
+             !if(density(p%icell%ic,id) > 0._dp) then
+
+
+             !specific_energy_sum_nu(p%icell%ic,id,1) = &
+             !        & specific_energy_sum_nu(p%icell%ic,id,idx) + tmin * p%current_kappa(id) * p%energy
+
+             !end if
           end do
 
           p%on_wall = .true.
@@ -221,6 +239,22 @@ contains
 
     integer :: source_id
 
+    !DN CRAZY ADDITIONS
+    integer :: idx
+    !DN CRAZY ADDITIONS
+    real, dimension(10) :: energy_frequency_bins
+    energy_frequency_bins(1) = 10.**14.4768207
+    energy_frequency_bins(2) = 10.**14.59237683
+    energy_frequency_bins(3) = 10.**14.70793296
+    energy_frequency_bins(4) = 10.**14.82348909
+    energy_frequency_bins(5) = 10.**14.93904522
+    energy_frequency_bins(6) = 10.**15.05460135
+    energy_frequency_bins(7) = 10.**15.17015748
+    energy_frequency_bins(8) = 10.**15.28571361
+    energy_frequency_bins(9) = 10.**15.40126974
+    energy_frequency_bins(10) = 10.**15.51682586
+
+
     radial = (p%r .dot. p%v) > 0.
 
     if(debug) write(*,'(" [debug] start grid_integrate_noenergy")')
@@ -268,9 +302,28 @@ contains
        end if
 
        chi_rho_total = 0._dp
+
+
+       
+       !DN CRAZY ADDITIONS
+       !idx = minloc(abs(energy_frequency_bins-p%nu),DIM=1)
+       !print *,'[grid_propagate_3d last iteration] p%energy=',p%energy
+       !print *,'[grid_propagate_3d last iteration] p%nu=',p%nu
+       idx = minloc(abs(energy_frequency_bins-p%nu),DIM=1)
+
        do id=1,n_dust
           chi_rho_total = chi_rho_total + p%current_chi(id) * density(p%icell%ic, id)
+
+          !DN CRAZY ADDITIONS
+          if(density(p%icell%ic,id) > 0._dp) then
+             specific_energy_sum_nu(p%icell%ic,id,1) = &
+                  & specific_energy_sum_nu(p%icell%ic,id,idx) + tmin * p%current_kappa(id) * p%energy
+             print *,'[grid_propage_3d last iteration] specific_energy_sum_nu=',specific_energy_sum_nu
+          end if
+
        end do
+
+
        tau_cell = chi_rho_total * tmin
 
        if(tau_cell < tau_needed) then
