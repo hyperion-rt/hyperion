@@ -6,7 +6,7 @@ module grid_generic
 
   use grid_io, only : write_grid_3d, write_grid_4d
   use grid_geometry, only : geo
-  use grid_physics, only : n_photons, last_photon_id, specific_energy_sum, specific_energy, density, density_original
+  use grid_physics, only : n_photons, last_photon_id, specific_energy_sum, specific_energy_sum_nu, specific_energy, density, density_original
   use settings, only : output_n_photons, output_specific_energy, output_density, output_density_diff, physics_io_type
 
   implicit none
@@ -23,6 +23,7 @@ contains
     if(allocated(n_photons)) n_photons = 0
     if(allocated(last_photon_id)) last_photon_id = 0
     if(allocated(specific_energy_sum)) specific_energy_sum = 0._dp
+    if(allocated(specific_energy_sum_nu)) specific_energy_sum_nu = 0._dp
   end subroutine grid_reset_energy
 
   subroutine output_grid(group, iter, n_iter)
@@ -60,6 +61,27 @@ contains
           call warn("output_grid","specific_energy array is not allocated")
        end if
     end if
+
+
+    
+    ! ENERGY/PATH LENGTHS
+    
+    if(trim(output_specific_energy)=='all' .or. (trim(output_specific_energy)=='last'.and.iter==n_iter)) then
+       if(allocated(specific_energy)) then
+          select case(physics_io_type)
+          case(sp)
+             call write_grid_4d(group, 'specific_energy_sum_nu', real(specific_energy_sum, sp), geo)
+          case(dp)
+             call write_grid_4d(group, 'specific_energy_sum_nu', real(specific_energy_sum, dp), geo)
+          case default
+             call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
+          end select
+       else
+          call warn("output_grid","specific_energy array is not allocated")
+       end if
+    end if
+
+
 
     ! DENSITY
 
