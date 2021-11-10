@@ -318,7 +318,7 @@ contains
           if(density(p%icell%ic,id) > 0._dp) then
              specific_energy_sum_nu(p%icell%ic,id,1) = &
                   & specific_energy_sum_nu(p%icell%ic,id,idx) + tmin * p%current_kappa(id) * p%energy
-             print *,'[grid_propage_3d last iteration] specific_energy_sum_nu=',specific_energy_sum_nu
+             !print *,'[grid_propage_3d last iteration] specific_energy_sum_nu=',specific_energy_sum_nu
           end if
 
        end do
