@@ -195,7 +195,7 @@ contains
 
     allocate(specific_energy_sum_nu(geo%n_cells, n_dust, 10))
     specific_energy_sum_nu = 0._dp
-
+    
     ! Total energy absorbed
     allocate(energy_abs_tot(n_dust))
     energy_abs_tot = 0._dp

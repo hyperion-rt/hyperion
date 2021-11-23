@@ -313,6 +313,10 @@ class Model(FreezableClass, RunConf):
                 if 'specific_energy' in f['/Grid/Quantities']:
                     quantities_path['specific_energy'] = '/Grid/Quantities'
 
+            if 'specific_energy_nu' in quantities:
+                if 'specific_energy_nu' in f['/Grid/Quantities']:
+                    quantities_path['specific_energy_nu'] = '/Grid/Quantities'
+
             # Minimum specific energy
             if use_minimum_specific_energy:
                 minimum_specific_energy_path = '/Grid/Quantities'
