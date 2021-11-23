@@ -11,8 +11,11 @@ module grid_io
   public :: grid_exists
   public :: read_grid_3d
   public :: read_grid_4d
+  public :: read_grid_5d
   public :: write_grid_3d
   public :: write_grid_4d
+  public :: write_grid_5d
+
 
   interface read_grid_3d
      module procedure read_grid_3d_sp
@@ -28,6 +31,13 @@ module grid_io
      module procedure read_grid_4d_int8
   end interface read_grid_4d
 
+  interface read_grid_5d
+     module procedure read_grid_5d_sp
+     module procedure read_grid_5d_dp
+     module procedure read_grid_5d_int
+     module procedure read_grid_5d_int8
+  end interface read_grid_5d
+
   interface write_grid_3d
      module procedure write_grid_3d_sp
      module procedure write_grid_3d_dp
@@ -42,6 +52,14 @@ module grid_io
      module procedure write_grid_4d_int8
   end interface write_grid_4d
 
+  interface write_grid_5d
+     module procedure write_grid_5d_sp
+     module procedure write_grid_5d_dp
+     module procedure write_grid_5d_int
+     module procedure write_grid_5d_int8
+  end interface write_grid_5d
+  
+
 contains
 
   logical function grid_exists(group, name)
@@ -52,6 +70,38 @@ contains
   end function grid_exists
 
   !!@FOR real(sp):sp real(dp):dp integer:int integer(idp):int8
+
+
+  subroutine read_grid_5d_<T>(group, path, array, geo)
+      
+    implicit none
+
+    integer(hid_t), intent(in) :: group
+    character(len=*), intent(in) :: path
+    @T, intent(out) :: array(:,:,:)
+    type(grid_geometry_desc),intent(in) :: geo
+    @T, allocatable :: array5d(:,:,:,:,:)
+    integer :: n_cells, n_dust, n_isrf_lam
+
+    character(len=32) :: geometry_id_check
+
+    call mp_read_keyword(group,path, 'geometry', geometry_id_check)
+    if(geometry_id_check.ne.geo%id) then
+       call error("read_grid", "geometry IDs do not match")
+    end if
+    call mp_read_array_auto(group,path, array5d)
+
+    if(any(is_nan(array5d))) call error("read_grid_5d", "NaN values in 5D array")
+
+    n_cells = size(array, 1)
+    n_dust = size(array, 2)
+    n_isrf_lam = size(array,3)
+
+    array = reshape(array5d, (/n_cells, n_dust, n_isrf_lam/))
+
+  end subroutine read_grid_5d_<T>
+  
+
 
   subroutine read_grid_4d_<T>(group, path, array, geo)
 
@@ -107,6 +157,22 @@ contains
     array = reshape(array3d, (/n_cells/))
 
   end subroutine read_grid_3d_<T>
+  
+  subroutine write_grid_5d_<T>(group, path, array, geo)
+    
+    implicit none
+
+    integer(hid_t), intent(in) :: group
+    character(len=*), intent(in) :: path
+    @T, intent(in) :: array(:,:,:)
+    type(grid_geometry_desc),intent(in) :: geo
+
+    call mp_write_array(group, path, reshape(array, (/geo%n1, geo%n2, geo%n3, size(array,2), size(array,3)/)))
+    call mp_write_keyword(group, path, 'geometry', geo%id)
+
+  end subroutine write_grid_5d_<T>
+
+
 
   subroutine write_grid_4d_<T>(group, path, array, geo)
 

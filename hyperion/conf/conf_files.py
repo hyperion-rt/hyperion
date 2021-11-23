@@ -18,6 +18,7 @@ class OutputConf(FreezableClass):
         self.output_density = 'none'
         self.output_density_diff = 'none'
         self.output_specific_energy = 'last'
+        self.output_specific_energy_nu = 'last'
         self.output_n_photons = 'none'
         self._freeze()
 
@@ -27,6 +28,7 @@ class OutputConf(FreezableClass):
         self.output_density = group.attrs['output_density'].decode('utf-8')
         self.output_density_diff = group.attrs['output_density_diff'].decode('utf-8')
         self.output_specific_energy = group.attrs['output_specific_energy'].decode('utf-8')
+        self.output_specific_energy_nu = group.attrs['output_specific_energy_nu'].decode('utf-8')
         self.output_n_photons = group.attrs['output_n_photons'].decode('utf-8')
         return self
 
@@ -34,6 +36,7 @@ class OutputConf(FreezableClass):
         group.attrs['output_density'] = np.string_(self.output_density.encode('utf-8'))
         group.attrs['output_density_diff'] = np.string_(self.output_density_diff.encode('utf-8'))
         group.attrs['output_specific_energy'] = np.string_(self.output_specific_energy.encode('utf-8'))
+        group.attrs['output_specific_energy_nu'] = np.string_(self.output_specific_energ_nu.encode('utf-8'))
         group.attrs['output_n_photons'] = np.string_(self.output_n_photons.encode('utf-8'))
 
 
