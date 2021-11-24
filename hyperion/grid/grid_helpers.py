@@ -22,7 +22,7 @@ def single_grid_dims(data, ndim=3):
     '''
 
     if type(data) in [list, tuple]:
-
+        
         n_pop = len(data)
         shape = None
         for item in data:
@@ -34,14 +34,22 @@ def single_grid_dims(data, ndim=3):
         if shape is not None and len(shape) != ndim:
             raise ValueError("Grids should be %i-dimensional" % ndim)
 
-    elif isinstance(data, np.ndarray):
 
+
+    elif isinstance(data, np.ndarray):
         if data.ndim == ndim:
             n_pop = None
             shape = data.shape
         elif data.ndim == ndim + 1:
             n_pop = data.shape[0]
             shape = data[0].shape
+            
+        #DN CRAZY ADDITIONS
+        elif data.ndim == ndim+2:
+            n_pop = data.shape[1]
+            shape = data.shape[-1]
+            shape = tuple(map(int,str(shape).split(' ')))
+
         else:
             raise Exception("Unexpected number of dimensions: %i" % data.ndim)
 
