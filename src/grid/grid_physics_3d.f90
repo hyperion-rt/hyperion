@@ -193,6 +193,8 @@ contains
     allocate(specific_energy_sum(geo%n_cells, n_dust))
     specific_energy_sum = 0._dp
 
+
+    !DN CRAZY ADDITION
     allocate(specific_energy_sum_nu(geo%n_cells, n_dust, 10))
     specific_energy_sum_nu = 0._dp
     
