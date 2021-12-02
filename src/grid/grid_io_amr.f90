@@ -31,6 +31,21 @@ module grid_io
      module procedure read_grid_4d_int8
   end interface read_grid_4d
 
+!  The 5d grid reading is commented out currently becuase the compilation crashes in read_grid_5d, owing to some issue in the where statement.  we get an error:
+
+!src/grid/grid_io_amr.f90(113): error #6783: The variable being defined does not conform with the mask-expr of the where-construct or where-stmt.   [ARRAY5D]
+!                array5d(:,:,:,:,:) = 0
+
+!i think this could be due to something that needs to be updated in type_grid_amr.f90 
+
+!  interface read_grid_5d
+!     module procedure read_grid_5d_sp
+!     module procedure read_grid_5d_dp
+!     module procedure read_grid_5d_int
+!     module procedure read_grid_5d_int8
+!  end interface read_grid_5d
+
+
   interface write_grid_3d
      module procedure write_grid_3d_sp
      module procedure write_grid_3d_dp
@@ -76,6 +91,47 @@ contains
        grid_exists = .false.
     end if
   end function grid_exists
+
+
+! subroutine read_grid_5d_int8(group, path, array, geo)
+
+!    implicit none
+
+!    integer(hid_t), intent(in) :: group
+!    character(len=*), intent(in) :: path
+!    integer(idp), intent(out) :: array(:,:,:)
+!    type(grid_geometry_desc),intent(in),target :: geo
+!    integer(idp), allocatable :: array5d(:,:,:,:,:)
+!    character(len=100) :: full_path
+!    integer :: ilevel, igrid, idust
+!    type(level_desc), pointer :: level
+!    type(grid_desc), pointer :: grid
+
+!    do ilevel=1,size(geo%levels)
+!       level => geo%levels(ilevel)
+!       do igrid=1,size(level%grids)
+!          grid => level%grids(igrid)
+!          write(full_path, '("level_", I5.5, "/grid_", I5.5,"/")') ilevel, igrid
+!          full_path = trim(full_path)//trim(path)
+!          call mp_read_array_auto(group, full_path, array5d)
+!          if(any(is_nan(array5d))) call error("read_grid_5d", "NaN values in 5D array")
+!          do idust=1,size(array5d, 5)
+!             where(grid%goto_grid(1:grid%n1,1:grid%n2,1:grid%n3) > 0)
+!                array5d(:,:,:,:,idust) = 0
+!             end where
+!          end do
+!          array(grid%start_id:grid%start_id + grid%n_cells - 1, :, :) = reshape(array5d, (/grid%n_cells, size(array, 2), size(array,3)/))
+!       end do
+!    end do
+
+!    ! The following three lines provide a workaround for the PGI Fortran
+!    ! compiler, which otherwise crashes with the following error:
+!    ! 0: RESHAPE: result type != SOURCE type
+!  contains
+!    subroutine test()
+!    end subroutine test
+
+!  end subroutine read_grid_5d_int8
 
 
   subroutine read_grid_4d_int8(group, path, array, geo)
@@ -188,7 +244,8 @@ contains
           else
              g_grid = mp_create_group(g_level, name)
           end if
-          call mp_write_array(g_grid, path, reshape(array(grid%start_id:grid%start_id + grid%n_cells - 1, :), &
+
+          call mp_write_array(g_grid, path, reshape(array(grid%start_id:grid%start_id + grid%n_cells - 1, :,:), &
                &                                     (/grid%n1, grid%n2, grid%n3, size(array,2), size(array,3)/)))
           call mp_close_group(g_grid)
        end do
@@ -281,6 +338,48 @@ contains
   end subroutine write_grid_3d_int8
 
 
+
+!  subroutine read_grid_5d_int(group, path, array, geo)
+
+!    implicit none
+
+!    integer(hid_t), intent(in) :: group
+!    character(len=*), intent(in) :: path
+!    integer, intent(out) :: array(:,:,:)
+!    type(grid_geometry_desc),intent(in),target :: geo
+!    integer, allocatable :: array5d(:,:,:,:,:)
+!    character(len=100) :: full_path
+!    integer :: ilevel, igrid, idust
+!    type(level_desc), pointer :: level
+!    type(grid_desc), pointer :: grid
+
+!    do ilevel=1,size(geo%levels)
+!       level => geo%levels(ilevel)
+!       do igrid=1,size(level%grids)
+!          grid => level%grids(igrid)
+!          write(full_path, '("level_", I5.5, "/grid_", I5.5,"/")') ilevel, igrid
+!          full_path = trim(full_path)//trim(path)
+!          call mp_read_array_auto(group, full_path, array5d)
+!          if(any(is_nan(array5d))) call error("read_grid_5d", "NaN values in 5D array")
+!          do idust=1,size(array5d, 5)
+!             where(grid%goto_grid(1:grid%n1,1:grid%n2,1:grid%n3) > 0)
+!                array5d(:,:,:,:,idust) = 0
+!             end where
+!          end do
+!          array(grid%start_id:grid%start_id + grid%n_cells - 1, :, :) = reshape(array5d, (/grid%n_cells, size(array, 2), size(array,3)/))
+!       end do
+!    end do
+
+!    ! The following three lines provide a workaround for the PGI Fortran
+!    ! compiler, which otherwise crashes with the following error:
+!    ! 0: RESHAPE: result type != SOURCE type
+!  contains
+!    subroutine test()
+!    end subroutine test
+
+!  end subroutine read_grid_5d_int
+
+
   subroutine read_grid_4d_int(group, path, array, geo)
 
     implicit none
@@ -359,7 +458,7 @@ contains
 
   end subroutine read_grid_3d_int
 
-
+  !DN CRAZY ADDITIONS
   subroutine write_grid_5d_int(group, path, array, geo)
 
     implicit none
@@ -390,7 +489,7 @@ contains
           else
              g_grid = mp_create_group(g_level, name)
           end if
-          call mp_write_array(g_grid, path, reshape(array(grid%start_id:grid%start_id + grid%n_cells - 1, :), &
+          call mp_write_array(g_grid, path, reshape(array(grid%start_id:grid%start_id + grid%n_cells - 1, :,:), &
                &                                     (/grid%n1, grid%n2, grid%n3, size(array,2), size(array,3)/)))
           call mp_close_group(g_grid)
        end do
@@ -479,6 +578,46 @@ contains
 
   end subroutine write_grid_3d_int
 
+
+!  subroutine read_grid_5d_dp(group, path, array, geo)
+
+!    implicit none
+
+!    integer(hid_t), intent(in) :: group
+!    character(len=*), intent(in) :: path
+!    real(dp), intent(out) :: array(:,:,:)
+!    type(grid_geometry_desc),intent(in),target :: geo
+!    real(dp), allocatable :: array5d(:,:,:,:,:)
+!    character(len=100) :: full_path
+!    integer :: ilevel, igrid, idust
+!    type(level_desc), pointer :: level
+!    type(grid_desc), pointer :: grid
+
+!    do ilevel=1,size(geo%levels)
+!       level => geo%levels(ilevel)
+!       do igrid=1,size(level%grids)
+!          grid => level%grids(igrid)
+!          write(full_path, '("level_", I5.5, "/grid_", I5.5,"/")') ilevel, igrid
+!          full_path = trim(full_path)//trim(path)
+!          call mp_read_array_auto(group, full_path, array5d)
+!          if(any(is_nan(array5d))) call error("read_grid_5d", "NaN values in 5D array")
+!          do idust=1,size(array5d, 5)
+!             where(grid%goto_grid(1:grid%n1,1:grid%n2,1:grid%n3) > 0)
+!                array5d(:,:,:,:,idust) = 0
+!             end where
+!          end do
+!          array(grid%start_id:grid%start_id + grid%n_cells - 1, :, :) = reshape(array5d, (/grid%n_cells, size(array, 2), size(array,3)/))
+!       end do
+!    end do
+
+!    ! The following three lines provide a workaround for the PGI Fortran
+!    ! compiler, which otherwise crashes with the following error:
+!    ! 0: RESHAPE: result type != SOURCE type
+!  contains
+!    subroutine test()
+!    end subroutine test
+
+!  end subroutine read_grid_5d_dp
 
   subroutine read_grid_4d_dp(group, path, array, geo)
 
@@ -590,7 +729,7 @@ contains
           else
              g_grid = mp_create_group(g_level, name)
           end if
-          call mp_write_array(g_grid, path, reshape(array(grid%start_id:grid%start_id + grid%n_cells - 1, :), &
+          call mp_write_array(g_grid, path, reshape(array(grid%start_id:grid%start_id + grid%n_cells - 1, :, :), &
                &                                     (/grid%n1, grid%n2, grid%n3, size(array,2), size(array,3)/)))
           call mp_close_group(g_grid)
        end do
@@ -679,6 +818,45 @@ contains
 
   end subroutine write_grid_3d_dp
 
+!  subroutine read_grid_5d_sp(group, path, array, geo)
+
+!    implicit none
+
+!    integer(hid_t), intent(in) :: group
+!    character(len=*), intent(in) :: path
+!    real(sp), intent(out) :: array(:,:,:)
+!    type(grid_geometry_desc),intent(in),target :: geo
+!    real(sp), allocatable :: array5d(:,:,:,:,:)
+!    character(len=100) :: full_path
+!    integer :: ilevel, igrid, idust
+!    type(level_desc), pointer :: level
+!    type(grid_desc), pointer :: grid
+
+!    do ilevel=1,size(geo%levels)
+!       level => geo%levels(ilevel)
+!       do igrid=1,size(level%grids)
+!          grid => level%grids(igrid)
+!          write(full_path, '("level_", I5.5, "/grid_", I5.5,"/")') ilevel, igrid
+!          full_path = trim(full_path)//trim(path)
+!          call mp_read_array_auto(group, full_path, array5d)
+!          if(any(is_nan(array5d))) call error("read_grid_5d", "NaN values in 5D array")
+!          do idust=1,size(array5d, 5)
+!             where(grid%goto_grid(1:grid%n1,1:grid%n2,1:grid%n3) > 0)
+!                array5d(:,:,:,:,idust) = 0
+!             end where
+!          end do
+!          array(grid%start_id:grid%start_id + grid%n_cells - 1, :,:) = reshape(array5d, (/grid%n_cells, size(array, 2),size(array,3)/))
+!       end do
+!    end do
+
+!    ! The following three lines provide a workaround for the PGI Fortran
+!    ! compiler, which otherwise crashes with the following error:
+!    ! 0: RESHAPE: result type != SOURCE type
+!  contains
+!    subroutine test()
+!    end subroutine test
+
+!  end subroutine read_grid_5d_sp
 
   subroutine read_grid_4d_sp(group, path, array, geo)
 
@@ -790,7 +968,7 @@ contains
           else
              g_grid = mp_create_group(g_level, name)
           end if
-          call mp_write_array(g_grid, path, reshape(array(grid%start_id:grid%start_id + grid%n_cells - 1, :), &
+          call mp_write_array(g_grid, path, reshape(array(grid%start_id:grid%start_id + grid%n_cells - 1, :, :), &
                &                                     (/grid%n1, grid%n2, grid%n3, size(array,2),size(array,3)/)))
           call mp_close_group(g_grid)
        end do
