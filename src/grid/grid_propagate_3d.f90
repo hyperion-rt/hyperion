@@ -3,7 +3,7 @@ module grid_propagate
   use core_lib
   use type_photon, only : photon
   use type_grid_cell
-  use dust_main, only : n_dust
+  use dust_main, only : n_dust,d
   use grid_geometry, only : escaped, find_wall, in_correct_cell, next_cell, opposite_wall
   use grid_physics, only : specific_energy_sum, specific_energy_sum_nu, density, n_photons, last_photon_id
   use sources
@@ -63,19 +63,14 @@ contains
 
     !DN CRAZY ADDITIONS
     integer :: idx
-    real, dimension(10) :: energy_frequency_bins
-    energy_frequency_bins(1) = 10.**14.4768207
-    energy_frequency_bins(2) = 10.**14.59237683
-    energy_frequency_bins(3) = 10.**14.70793296
-    energy_frequency_bins(4) = 10.**14.82348909
-    energy_frequency_bins(5) = 10.**14.93904522
-    energy_frequency_bins(6) = 10.**15.05460135
-    energy_frequency_bins(7) = 10.**15.17015748
-    energy_frequency_bins(8) = 10.**15.28571361
-    energy_frequency_bins(9) = 10.**15.40126974
-    energy_frequency_bins(10) = 10.**15.51682586
     
+    real, dimension(d(1)%n_nu) :: energy_frequency_bins
 
+    
+    do id=1,d(1)%n_nu
+       energy_frequency_bins(id) = d(1)%nu(id)
+    end do
+   
 
     radial = (p%r .dot. p%v) > 0.
 
@@ -163,10 +158,8 @@ contains
           idx = minloc(abs(energy_frequency_bins-p%nu),DIM=1)
 
 
-
-
-
           do id=1,n_dust
+
              if(density(p%icell%ic, id) > 0._dp) then
                 specific_energy_sum(p%icell%ic, id) = &
                      & specific_energy_sum(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
@@ -266,20 +259,14 @@ contains
     integer :: source_id
 
     !DN CRAZY ADDITIONS
+    integer :: id
     integer :: idx
-    !DN CRAZY ADDITIONS
-    real, dimension(10) :: energy_frequency_bins
-    energy_frequency_bins(1) = 10.**14.4768207
-    energy_frequency_bins(2) = 10.**14.59237683
-    energy_frequency_bins(3) = 10.**14.70793296
-    energy_frequency_bins(4) = 10.**14.82348909
-    energy_frequency_bins(5) = 10.**14.93904522
-    energy_frequency_bins(6) = 10.**15.05460135
-    energy_frequency_bins(7) = 10.**15.17015748
-    energy_frequency_bins(8) = 10.**15.28571361
-    energy_frequency_bins(9) = 10.**15.40126974
-    energy_frequency_bins(10) = 10.**15.51682586
+    real, dimension(d(0)%n_nu) :: energy_frequency_bins
 
+    do id=1,d(0)%n_nu
+       energy_frequency_bins(id) = d(0)%nu(id)
+       print *,'[grid_propagate_3d last iteration] energy_frequency_bins(id) = ',energy_frequency_bins(id)
+    end do
 
     radial = (p%r .dot. p%v) > 0.
 
