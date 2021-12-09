@@ -71,14 +71,14 @@ contains
     n_cells = size(specific_energy_sum_nu, 1)
     n_dust = size(specific_energy_sum_nu, 2)
     n_isrf_lam = size(specific_energy_sum_nu,3)
-    do i=1,n_cells
-       do j=1,n_dust
+    !do i=1,n_cells
+    !   do j=1,n_dust
           !print *, "specific_energy_sum = ",specific_energy_sum(i,j)
-          do k=1,n_isrf_lam
-          print *, "specific_energy_sum_nu = ",specific_energy_sum_nu(i,j,k)
-          end do
-       end do
-    end do
+          !do k=1,n_isrf_lam
+          !print *, "specific_energy_sum_nu = ",specific_energy_sum_nu(i,j,k)
+     !     end do
+     !  end do
+    !end do
     
 
     
