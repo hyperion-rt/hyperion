@@ -213,7 +213,7 @@ contains
   end subroutine read_grid_3d_int8
 
 
-  !DN CRAZY ADDITIONS
+
     subroutine write_grid_5d_int8(group, path, array, geo)
 
     implicit none
@@ -458,7 +458,7 @@ contains
 
   end subroutine read_grid_3d_int
 
-  !DN CRAZY ADDITIONS
+
   subroutine write_grid_5d_int(group, path, array, geo)
 
     implicit none
@@ -698,7 +698,7 @@ contains
   end subroutine read_grid_3d_dp
 
 
-!DN CRAZY ADDITIONS
+
   subroutine write_grid_5d_dp(group, path, array, geo)
 
     implicit none
@@ -937,7 +937,7 @@ contains
   end subroutine read_grid_3d_sp
 
 
-!DN CRAZY ADDITIONS
+
   subroutine write_grid_5d_sp(group, path, array, geo)
 
     implicit none

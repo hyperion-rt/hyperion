@@ -196,8 +196,7 @@ contains
     allocate(specific_energy_sum(geo%n_cells, n_dust))
     specific_energy_sum = 0._dp
 
-
-    !DN CRAZY ADDITION
+    ! Set up basics for ISRF calculation
     n_isrf_wavelengths = d(1)%n_nu
     allocate(specific_energy_sum_nu(geo%n_cells, n_dust, n_isrf_wavelengths))
     specific_energy_sum_nu = 0._dp
