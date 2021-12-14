@@ -70,7 +70,7 @@ contains
     grid_exists = mp_path_exists(group, name)
   end function grid_exists
 
-  !DN CRAZY ADDITIONS
+
   subroutine read_grid_5d_int8(group, path, array, geo)
     
     implicit none
@@ -158,7 +158,7 @@ contains
 
 
 
-  !DN CRAZY ADDITIONS
+
   subroutine write_grid_5d_int8(group, path, array, geo)
 
     implicit none
@@ -204,7 +204,7 @@ contains
 
   end subroutine write_grid_3d_int8
 
-  !DN CRAZY ADDITIONS
+
   subroutine read_grid_5d_int(group, path, array, geo)
 
     implicit none
@@ -292,7 +292,7 @@ contains
   end subroutine read_grid_3d_int
 
 
-  !DN CRAZY ADDITION
+
 
   subroutine write_grid_5d_int(group, path, array, geo)
 
@@ -337,7 +337,7 @@ contains
 
   end subroutine write_grid_3d_int
 
-  !DN CRAZY ADDITIONS
+
   subroutine read_grid_5d_dp(group, path, array, geo)
 
     implicit none
@@ -424,7 +424,7 @@ contains
   end subroutine read_grid_3d_dp
 
 
-  !CRAZY DN ADDITIONS
+
   subroutine write_grid_5d_dp(group, path, array, geo)
 
     implicit none

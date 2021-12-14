@@ -266,7 +266,7 @@ contains
     real(dp) :: tmp
     real(dp) :: dummy_dp
     integer(idp) :: dummy_idp
-    !DN crazy additions
+
     real(dp),allocatable :: tmp_3d(:,:,:)
     real(dp),allocatable :: tmp_2d(:,:)
     integer(idp),allocatable :: tmp_int_1d(:)
