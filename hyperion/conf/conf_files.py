@@ -55,6 +55,9 @@ class RunConf(object):
         self.set_max_reabsorptions(1000000)
         self.set_pda(False)
         self.set_mrw(False)
+        #DN CRAZY ADDITION
+        self.compute_isrf(False)
+
         self.set_convergence(False)
         self.set_kill_on_absorb(False)
         self.set_kill_on_scatter(False)
@@ -394,6 +397,27 @@ class RunConf(object):
     def _write_pda(self, group):
         group.attrs['pda'] = bool2str(self.pda)
 
+    def _read_isrf(self,group):
+        self.isrf = str2bool(group.attrs['isrf'])
+        
+    def _write_isrf(self,group):
+        group.attrs['isrf'] = bool2str(self.isrf)
+
+
+    #DN CRAZY ADDITIONS
+    def compute_isrf(self,isrf):
+
+        '''
+
+        Set whether or not to compute and save the ISRF in each cell
+
+        If enabled, the ISRF is computed in every cell at the
+        frequencies of the dust opacity tables.
+
+        '''
+        self.isrf = isrf
+
+
     def set_mrw(self, mrw, gamma=1.0, inter_max=1000, warn=True):
         '''
         Set whether to use the Modified Random Walk (MRW) approximation
@@ -722,6 +746,7 @@ class RunConf(object):
         self._read_max_reabsorptions(group)
         self._read_pda(group)
         self._read_mrw(group)
+        self._reada_isrf(group)
         self._read_convergence(group)
         self._read_kill_on_absorb(group)
         self._read_kill_on_scatter(group)
@@ -750,6 +775,7 @@ class RunConf(object):
         self._write_max_reabsorptions(group)
         self._write_pda(group)
         self._write_mrw(group)
+        self._write_isrf(group)
         self._write_convergence(group)
         self._write_kill_on_absorb(group)
         self._write_kill_on_scatter(group)

@@ -249,6 +249,16 @@ def test_io_run_conf_mrw(value):
     r2.read_run_conf(v)
     assert r2.mrw == r1.mrw
 
+@pytest.mark.parametrize(('value'), [True, False])
+def test_io_run_conf_isrf(value):
+    r1 = RunConf()
+    r1.compute_isrf(value)
+    r1.set_n_photons(1, 2)
+    v = virtual_file()
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
+    assert r2.isrf == r1.isrf
 
 @pytest.mark.parametrize(('value'), [False, True])
 def test_io_run_conf_convergence(value):

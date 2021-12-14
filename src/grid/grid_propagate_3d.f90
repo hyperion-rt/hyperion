@@ -8,7 +8,7 @@ module grid_propagate
   use grid_physics, only : specific_energy_sum, specific_energy_sum_nu, density, n_photons, last_photon_id
   use sources
   use counters
-  use settings, only : frac_check => propagation_check_frequency
+  use settings, only : frac_check => propagation_check_frequency, compute_isrf
 
   !DN CRAZY ADDITIONS
   use grid_geometry, only : geo
@@ -63,7 +63,6 @@ contains
 
     !DN CRAZY ADDITIONS
     integer :: idx
-    
     real, dimension(d(1)%n_nu) :: energy_frequency_bins
 
     
@@ -145,36 +144,29 @@ contains
           p%r = p%r + tmin * p%v
           tau_achieved = tau_achieved + tau_cell
 
-          ! NEED INDIVIDUAL ALPHA HERE
-          
-          !print *,'[grid_propagate_3d] p%energy=',p%energy
-          !print *,'[grid_propagate_3d] p%nu=',p%nu
-
           !DN CRAZY ADDITIONS
-          !print *,'[grid_propagate_3d] p%nu=',p%nu
-          !print *,' ',minloc(abs(energy_frequency_bins-p%nu))
-          
-          !DN CRAZY ADDITIONS
-          idx = minloc(abs(energy_frequency_bins-p%nu),DIM=1)
+          if (compute_isrf) then 
 
+             idx = minloc(abs(energy_frequency_bins-p%nu),DIM=1)
 
-          do id=1,n_dust
-
-             if(density(p%icell%ic, id) > 0._dp) then
-                specific_energy_sum(p%icell%ic, id) = &
-                     & specific_energy_sum(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
-             end if
              
-             
-             !DN CRAZY ADDITIONS
-             if(density(p%icell%ic,id) > 0._dp) then
-                specific_energy_sum_nu(p%icell%ic,id,idx) = &
-                     & specific_energy_sum_nu(p%icell%ic,id,idx) + tmin * p%current_kappa(id) * p%energy
-             end if
+             do id=1,n_dust
+                
+                if(density(p%icell%ic, id) > 0._dp) then
+                   specific_energy_sum(p%icell%ic, id) = &
+                        & specific_energy_sum(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
+                end if
+                
+                
+                !DN CRAZY ADDITIONS
+                if(density(p%icell%ic,id) > 0._dp) then
+                   specific_energy_sum_nu(p%icell%ic,id,idx) = &
+                        & specific_energy_sum_nu(p%icell%ic,id,idx) + tmin * p%current_kappa(id) * p%energy
+                end if
+             end do
+          endif
 
 
-
-          end do
 
           p%on_wall = .true.
           p%icell = next_cell(p%icell, id_min, intersection=p%r)

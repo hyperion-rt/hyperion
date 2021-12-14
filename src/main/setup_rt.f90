@@ -75,6 +75,9 @@ contains
     call mp_read_keyword(input_handle, '/', 'pda', use_pda)
     call mp_read_keyword(input_handle, '/', 'mrw', use_mrw)
 
+    !DN CRAZY ADDITIONS
+    call mp_read_keyword(input_handle, '/', 'isrf', compute_isrf)
+
     if(use_mrw) then
        call mp_read_keyword(input_handle, '/', 'mrw_gamma', mrw_gamma)
        call mp_read_keyword(input_handle, '/', 'n_inter_mrw_max', n_mrw_max)
@@ -173,7 +176,7 @@ contains
     call mp_close_group(g_geometry)
 
     g_physics = mp_open_group(input_handle, '/Grid/Quantities')
-    call setup_grid_physics(g_physics, use_mrw, use_pda)
+    call setup_grid_physics(g_physics, use_mrw, use_pda, compute_isrf)
     call mp_close_group(g_physics)
 
     call mp_read_keyword(input_handle, '/', 'physics_io_bytes', physics_io_bytes)

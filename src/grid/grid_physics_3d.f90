@@ -93,12 +93,12 @@ contains
     id_select = sample_pdf(absorption)
   end function select_dust_specific_energy_rho
 
-  subroutine setup_grid_physics(group, use_mrw, use_pda)
+  subroutine setup_grid_physics(group, use_mrw, use_pda, compute_isrf)
 
     implicit none
 
     integer(hid_t),intent(in) :: group
-    logical,intent(in) :: use_mrw, use_pda
+    logical,intent(in) :: use_mrw, use_pda, compute_isrf
     integer :: n_isrf_wavelengths
 
     ! Density
