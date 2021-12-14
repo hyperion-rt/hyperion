@@ -9,7 +9,6 @@ module grid_generic
   use grid_physics, only : n_photons, last_photon_id, specific_energy_sum, specific_energy_sum_nu, specific_energy, density, density_original
   use settings, only : output_n_photons, output_specific_energy, output_density, output_density_diff, physics_io_type, compute_isrf
 
-  !DN Crazy Additions
   use dust_main, only: d
   
 
@@ -36,7 +35,6 @@ contains
 
     integer(hid_t),intent(in) :: group
     integer,intent(in) :: iter, n_iter
-    !DN CRAZY ADDITION
     integer :: n_cells, n_dust, n_isrf_lam
     integer :: i,j,k
     real, dimension(d(1)%n_nu) :: energy_frequency_bins
@@ -72,7 +70,6 @@ contains
 
 
     
-    ! DN Crazy Additions
     ! WRITE THE ISRF
     if (compute_isrf) then 
        

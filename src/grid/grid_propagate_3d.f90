@@ -10,7 +10,6 @@ module grid_propagate
   use counters
   use settings, only : frac_check => propagation_check_frequency, compute_isrf
 
-  !DN CRAZY ADDITIONS
   use grid_geometry, only : geo
 
   implicit none
@@ -60,8 +59,6 @@ contains
 
     integer :: source_id
 
-
-    !DN CRAZY ADDITIONS
     integer :: idx
     real, dimension(d(1)%n_nu) :: energy_frequency_bins
 
@@ -144,7 +141,8 @@ contains
           p%r = p%r + tmin * p%v
           tau_achieved = tau_achieved + tau_cell
 
-          !DN CRAZY ADDITIONS
+
+          ! Compute the ISRF 
           if (compute_isrf) then 
 
              idx = minloc(abs(energy_frequency_bins-p%nu),DIM=1)
@@ -158,7 +156,6 @@ contains
                 end if
                 
                 
-                !DN CRAZY ADDITIONS
                 if(density(p%icell%ic,id) > 0._dp) then
                    specific_energy_sum_nu(p%icell%ic,id,idx) = &
                         & specific_energy_sum_nu(p%icell%ic,id,idx) + tmin * p%current_kappa(id) * p%energy
@@ -250,7 +247,6 @@ contains
 
     integer :: source_id
 
-    !DN CRAZY ADDITIONS
     integer :: id
     integer :: idx
     real, dimension(d(0)%n_nu) :: energy_frequency_bins
@@ -309,20 +305,14 @@ contains
        chi_rho_total = 0._dp
 
 
-       
-       !DN CRAZY ADDITIONS
-       !idx = minloc(abs(energy_frequency_bins-p%nu),DIM=1)
-       !print *,'[grid_propagate_3d last iteration] p%energy=',p%energy
-       !print *,'[grid_propagate_3d last iteration] p%nu=',p%nu
-       !print *, "shape(specific_energy_sum_nu", shape(specific_energy_sum_nu)
+       !Compute the ISRF
 
-
+       !Figure out what frequency bin in the ISRF calculation the current photon's frequency is closest to
        idx = minloc(abs(energy_frequency_bins-p%nu),DIM=1)
 
        do id=1,n_dust
           chi_rho_total = chi_rho_total + p%current_chi(id) * density(p%icell%ic, id)
 
-          !DN CRAZY ADDITIONS
           if(density(p%icell%ic,id) > 0._dp) then
              specific_energy_sum_nu(p%icell%ic,id,idx) = &
                   & specific_energy_sum_nu(p%icell%ic,id,idx) + tmin * p%current_kappa(id) * p%energy

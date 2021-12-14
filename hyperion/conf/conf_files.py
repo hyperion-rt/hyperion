@@ -55,7 +55,6 @@ class RunConf(object):
         self.set_max_reabsorptions(1000000)
         self.set_pda(False)
         self.set_mrw(False)
-        #DN CRAZY ADDITION
         self.compute_isrf(False)
 
         self.set_convergence(False)
@@ -403,8 +402,6 @@ class RunConf(object):
     def _write_isrf(self,group):
         group.attrs['isrf'] = bool2str(self.isrf)
 
-
-    #DN CRAZY ADDITIONS
     def compute_isrf(self,isrf):
 
         '''

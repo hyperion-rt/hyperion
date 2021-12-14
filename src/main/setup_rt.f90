@@ -74,8 +74,6 @@ contains
 
     call mp_read_keyword(input_handle, '/', 'pda', use_pda)
     call mp_read_keyword(input_handle, '/', 'mrw', use_mrw)
-
-    !DN CRAZY ADDITIONS
     call mp_read_keyword(input_handle, '/', 'isrf', compute_isrf)
 
     if(use_mrw) then
