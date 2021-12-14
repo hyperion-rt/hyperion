@@ -7,7 +7,7 @@ module grid_generic
   use grid_io, only : write_grid_3d, write_grid_4d, write_grid_5d
   use grid_geometry, only : geo
   use grid_physics, only : n_photons, last_photon_id, specific_energy_sum, specific_energy_sum_nu, specific_energy, density, density_original
-  use settings, only : output_n_photons, output_specific_energy, output_density, output_density_diff, physics_io_type
+  use settings, only : output_n_photons, output_specific_energy, output_density, output_density_diff, physics_io_type, compute_isrf
 
   !DN Crazy Additions
   use dust_main, only: d
@@ -74,39 +74,42 @@ contains
     
     ! DN Crazy Additions
     ! WRITE THE ISRF
-    n_cells = size(specific_energy_sum_nu, 1)
-    n_dust = size(specific_energy_sum_nu, 2)
-    n_isrf_lam = size(specific_energy_sum_nu,3)
-    
-    do i=1,d(1)%n_nu
-       energy_frequency_bins(i) = d(1)%nu(i)
-    end do
-
-    if(trim(output_specific_energy)=='all' .or. (trim(output_specific_energy)=='last'.and.iter==n_iter)) then
-       !if(allocated(energy_frequency_bins)) then
+    if (compute_isrf) then 
+       
+       n_cells = size(specific_energy_sum_nu, 1)
+       n_dust = size(specific_energy_sum_nu, 2)
+       n_isrf_lam = size(specific_energy_sum_nu,3)
+       
+       do i=1,d(1)%n_nu
+          energy_frequency_bins(i) = d(1)%nu(i)
+       end do
+       
+       if(trim(output_specific_energy)=='all' .or. (trim(output_specific_energy)=='last'.and.iter==n_iter)) then
+          !if(allocated(energy_frequency_bins)) then
           call write_grid_3d(group, 'ISRF_frequency_bins',energy_frequency_bins, geo)
        else
           call warn("output_grid","energy_frequency bins [ISRF wavelengths] array is not allocated")
-       !end if
-    end if
-    
-    if(trim(output_specific_energy)=='all' .or. (trim(output_specific_energy)=='last'.and.iter==n_iter)) then
-       if(allocated(specific_energy_sum_nu)) then
-  
-          select case(physics_io_type)
-
-          case(sp)
-             call write_grid_5d(group, 'specific_energy_sum_nu', real(specific_energy_sum_nu, sp), geo)
-          case(dp)
-             call write_grid_5d(group, 'specific_energy_sum_nu', real(specific_energy_sum_nu, dp), geo)
-          case default
-             call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
-          end select
-       else
-          call warn("output_grid","specific_energy_sum_nu array is not allocated")
+          !end if
        end if
-    end if
-
+       
+       if(trim(output_specific_energy)=='all' .or. (trim(output_specific_energy)=='last'.and.iter==n_iter)) then
+          if(allocated(specific_energy_sum_nu)) then
+             
+             select case(physics_io_type)
+                
+             case(sp)
+                call write_grid_5d(group, 'specific_energy_sum_nu', real(specific_energy_sum_nu, sp), geo)
+             case(dp)
+                call write_grid_5d(group, 'specific_energy_sum_nu', real(specific_energy_sum_nu, dp), geo)
+             case default
+                call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
+             end select
+          else
+             call warn("output_grid","specific_energy_sum_nu array is not allocated")
+          end if
+       end if
+       
+    endif
 
 
     ! DENSITY
