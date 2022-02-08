@@ -21,7 +21,7 @@ def random_id(length=32):
 
 
 def virtual_file():
-    return h5py.File(random_id(), driver='core', backing_store=False)
+    return h5py.File(random_id(), driver='core', backing_store=False, mode='w')
 
 
 def str2bool(value):
