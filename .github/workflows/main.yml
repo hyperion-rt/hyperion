@@ -48,8 +48,6 @@ jobs:
         ./configure
         make serial
         sudo make install
-        pip install -e .[test]
-        pytest hyperion
     - name: Install Hyperion Python package
       run: pip install -e .[test]
     - name: Run tests
