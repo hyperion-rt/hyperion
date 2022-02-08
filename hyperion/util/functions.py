@@ -32,6 +32,13 @@ def bool2str(value):
     return np.string_('yes'.encode('utf-8')) if value else np.string_('no'.encode('utf-8'))
 
 
+def as_str(value):
+    if isinstance(value, bytes):
+        return value.decode('utf-8')
+    else:
+        return value
+
+
 def link_or_copy(group, name, link, copy, absolute_paths=False):
     '''
     Link or copy a dataset or group

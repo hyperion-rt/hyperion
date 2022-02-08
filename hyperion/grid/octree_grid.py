@@ -7,7 +7,7 @@ from copy import deepcopy
 import h5py
 import numpy as np
 
-from ..util.functions import FreezableClass, is_numpy_array, link_or_copy
+from ..util.functions import FreezableClass, is_numpy_array, link_or_copy, as_str
 from astropy import log as logger
 from .grid_helpers import single_grid_dims
 
@@ -341,7 +341,7 @@ class OctreeGrid(FreezableClass):
             The HDF5 group to read the grid geometry from.
         '''
 
-        if group.attrs['grid_type'].decode('utf-8') != 'oct':
+        if as_str(group.attrs['grid_type']) != 'oct':
             raise ValueError("Grid is not an octree")
 
         self.set_walls(group.attrs['x'],
@@ -353,7 +353,7 @@ class OctreeGrid(FreezableClass):
                        group['cells']['refined'].astype(bool))
 
         # Check that advertised hash matches real hash
-        if group.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
+        if as_str(group.attrs['geometry']) != self.get_geometry_id():
             raise Exception("Calculated geometry hash does not match hash in file")
 
     def read_quantities(self, group, quantities='all'):

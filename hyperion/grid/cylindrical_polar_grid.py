@@ -7,7 +7,7 @@ import h5py
 import numpy as np
 
 from ..util.meshgrid import meshgrid_nd
-from ..util.functions import FreezableClass, is_numpy_array, monotonically_increasing, link_or_copy
+from ..util.functions import FreezableClass, is_numpy_array, monotonically_increasing, link_or_copy, as_str
 from astropy import log as logger
 from .grid_helpers import single_grid_dims
 
@@ -280,7 +280,7 @@ class CylindricalPolarGrid(FreezableClass):
             The HDF5 group to read the grid geometry from.
         '''
 
-        if group.attrs['grid_type'].decode('utf-8') != 'cyl_pol':
+        if as_str(group.attrs['grid_type']) != 'cyl_pol':
             raise ValueError("Grid is not cylindrical polar")
 
         self.set_walls(group['walls_1']['w'],
@@ -288,7 +288,7 @@ class CylindricalPolarGrid(FreezableClass):
                        group['walls_3']['p'])
 
         # Check that advertised hash matches real hash
-        if group.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
+        if as_str(group.attrs['geometry']) != self.get_geometry_id():
             raise Exception("Calculated geometry hash does not match hash in file")
 
     def read_quantities(self, group, quantities='all'):

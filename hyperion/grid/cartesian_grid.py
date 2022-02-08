@@ -8,7 +8,7 @@ import numpy as np
 from astropy import log as logger
 
 from ..util.meshgrid import meshgrid_nd
-from ..util.functions import FreezableClass, is_numpy_array, monotonically_increasing, link_or_copy
+from ..util.functions import FreezableClass, is_numpy_array, monotonically_increasing, link_or_copy, as_str
 from .grid_helpers import single_grid_dims
 
 
@@ -252,7 +252,7 @@ class CartesianGrid(FreezableClass):
             The HDF5 group to read the grid geometry from.
         '''
 
-        if group.attrs['grid_type'].decode('utf-8') != 'car':
+        if as_str(group.attrs['grid_type']) != 'car':
             raise ValueError("Grid is not cartesian")
 
         self.set_walls(group['walls_1']['x'],
@@ -260,7 +260,7 @@ class CartesianGrid(FreezableClass):
                        group['walls_3']['z'])
 
         # Check that advertised hash matches real hash
-        if group.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
+        if as_str(group.attrs['geometry']) != self.get_geometry_id():
             raise Exception("Calculated geometry hash does not match hash in file")
 
     def read_quantities(self, group, quantities='all'):
