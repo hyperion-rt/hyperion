@@ -10,7 +10,7 @@ import numpy as np
 from astropy import log as logger
 from astropy.table import Table
 
-from ..util.functions import FreezableClass, is_numpy_array, link_or_copy
+from ..util.functions import FreezableClass, is_numpy_array, link_or_copy, as_str
 from .grid_helpers import single_grid_dims
 
 
@@ -362,7 +362,7 @@ class VoronoiGrid(FreezableClass):
             The HDF5 group to read the grid geometry from.
         '''
 
-        if group.attrs['grid_type'].decode('utf-8') != 'vor':
+        if as_str(group.attrs['grid_type']) != 'vor':
             raise ValueError("Grid is not an voronoi")
 
         coords = group['cells']['coordinates']
@@ -373,7 +373,7 @@ class VoronoiGrid(FreezableClass):
                         zmin=group.attrs['zmin'], zmax=group.attrs['zmax'])
 
         # Check that advertised hash matches real hash
-        if group.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
+        if as_str(group.attrs['geometry']) != self.get_geometry_id():
             raise Exception("Calculated geometry hash does not match hash in file")
 
         # Avoid re-computing Voronoi table

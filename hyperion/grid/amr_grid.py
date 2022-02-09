@@ -9,7 +9,7 @@ import h5py
 import numpy as np
 
 from ..util.meshgrid import meshgrid_nd
-from ..util.functions import FreezableClass, link_or_copy
+from ..util.functions import FreezableClass, link_or_copy, as_str
 from astropy import log as logger
 from .grid_helpers import single_grid_dims
 
@@ -245,7 +245,7 @@ class AMRGrid(FreezableClass):
         '''
 
         # Check that grid is indeed AMR
-        if group.attrs['grid_type'].decode('utf-8') != 'amr':
+        if as_str(group.attrs['grid_type']) != 'amr':
             raise Exception("Grid is not an AMR grid")
 
         # Initialize levels list
@@ -285,7 +285,7 @@ class AMRGrid(FreezableClass):
                 grid.nz = int(g_grid.attrs['n3'])
 
         # Check that advertised hash matches real hash
-        if group.attrs['geometry'].decode('utf-8') != self.get_geometry_id():
+        if as_str(group.attrs['geometry']) != self.get_geometry_id():
             raise Exception("Calculated geometry hash does not match hash in file")
 
     def read_quantities(self, group, quantities='all'):
