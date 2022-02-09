@@ -43,5 +43,7 @@ jobs:
     - name: Install HDF5 and MPI
       if: startsWith(matrix.os, 'ubuntu')
       run: sudo apt-get install libhdf5-serial-dev libmpich-dev
+    - name: Install tox
+      run: pip install tox
     - name: Run tests
       run: tox -e test
