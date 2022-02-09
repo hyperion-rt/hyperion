@@ -43,12 +43,5 @@ jobs:
     - name: Install HDF5 and MPI
       if: startsWith(matrix.os, 'ubuntu')
       run: sudo apt-get install libhdf5-serial-dev libmpich-dev
-    - name: Install Hyperion Fortran executables
-      run: |
-        ./configure
-        make serial
-        sudo make install
-    - name: Install Hyperion Python package
-      run: pip install -e .[test]
     - name: Run tests
-      run: pytest hyperion
+      run: tox -e test
