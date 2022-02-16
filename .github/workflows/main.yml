@@ -17,25 +17,26 @@ jobs:
       matrix:
         include:
           - name: Python 3.6
-            os: ubuntu-latest
+            os: ubuntu-20.04
             python: '3.6'
           - name: Python 3.7
-            os: ubuntu-latest
+            os: ubuntu-20.04
             python: '3.7'
           - name: Python 3.8
-            os: ubuntu-latest
+            os: ubuntu-20.04
             python: '3.8'
           - name: Python 3.9
-            os: ubuntu-latest
+            os: ubuntu-20.04
             python: '3.9'
           - name: Python 3.10
-            os: ubuntu-latest
+            os: ubuntu-20.04
             python: '3.10'
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
         submodules: 'true'
+        fetch-depth: 0
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
@@ -43,12 +44,7 @@ jobs:
     - name: Install HDF5 and MPI
       if: startsWith(matrix.os, 'ubuntu')
       run: sudo apt-get install libhdf5-serial-dev libmpich-dev
-    - name: Install Hyperion Fortran executables
-      run: |
-        ./configure
-        make serial
-        sudo make install
-    - name: Install Hyperion Python package
-      run: pip install -e .[test]
+    - name: Install tox
+      run: pip install tox
     - name: Run tests
-      run: pytest hyperion
+      run: tox -e test-bitlevel
