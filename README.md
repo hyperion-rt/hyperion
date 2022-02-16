@@ -1,8 +1,7 @@
 About
 -----
 
-[![Build Status](https://travis-ci.org/hyperion-rt/hyperion.svg)](https://travis-ci.org/hyperion-rt/hyperion?branch=master)
-[![CircleCI](https://circleci.com/gh/hyperion-rt/hyperion/tree/master.svg?style=svg)](https://circleci.com/gh/hyperion-rt/hyperion/tree/master)
+[![Continuous Integration](https://github.com/hyperion-rt/hyperion/actions/workflows/main.yml/badge.svg)](https://github.com/hyperion-rt/hyperion/actions/workflows/main.yml)
 [![Documentation Status](https://readthedocs.org/projects/hyperion/badge/?version=stable)](http://docs.hyperion-rt.org/en/stable/?badge=stable)
 
 Hyperion is a 3D Monte-Carlo radiation transfer code - see http://www.hyperion-rt.org
