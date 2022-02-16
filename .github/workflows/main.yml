@@ -17,19 +17,19 @@ jobs:
       matrix:
         include:
           - name: Python 3.6
-            os: ubuntu-latest
+            os: ubuntu-18.04
             python: '3.6'
           - name: Python 3.7
-            os: ubuntu-latest
+            os: ubuntu-18.04
             python: '3.7'
           - name: Python 3.8
-            os: ubuntu-latest
+            os: ubuntu-18.04
             python: '3.8'
           - name: Python 3.9
-            os: ubuntu-latest
+            os: ubuntu-18.04
             python: '3.9'
           - name: Python 3.10
-            os: ubuntu-latest
+            os: ubuntu-18.04
             python: '3.10'
     steps:
     - name: Checkout code
