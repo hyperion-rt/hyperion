@@ -163,10 +163,12 @@ contains
 
     implicit none
 
+
     integer(hid_t), intent(in) :: group
     character(len=*), intent(in) :: path
     integer(idp), intent(in) :: array(:,:,:)
     type(grid_geometry_desc),intent(in) :: geo
+
 
     call mp_write_array(group, path, reshape(array, (/geo%n1, geo%n2, geo%n3, size(array,2), size(array,3)/)))
     call mp_write_keyword(group, path, 'geometry', geo%id)
@@ -433,6 +435,7 @@ contains
     character(len=*), intent(in) :: path
     real(dp), intent(in) :: array(:,:,:)
     type(grid_geometry_desc),intent(in) :: geo
+
 
     call mp_write_array(group, path, reshape(array, (/geo%n1, geo%n2, geo%n3, size(array,2), size(array,3)/)))
     call mp_write_keyword(group, path, 'geometry', geo%id)
