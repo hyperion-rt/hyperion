@@ -93,24 +93,28 @@ contains
        if(trim(output_specific_energy)=='all' .or. (trim(output_specific_energy)=='last'.and.iter==n_iter)) then
           if(allocated(specific_energy_nu)) then
              
-             print *,'[GRID_GENERIC.F90] ENTERING BLOCK FOR WRITING SPECIFIC_ENERGY_NU'
 
-             select case(physics_io_type)
+             if (compute_isrf) then
+                print *,'[GRID_GENERIC.F90] ENTERING BLOCK FOR WRITING SPECIFIC_ENERGY_NU'
                 
-             case(sp)
-                print *,'[GRID_GENERIC.F90] diving into write_grid_5d sp'
-                call write_grid_5d(group, 'specific_energy_nu', real(specific_energy_nu, sp), geo)
+                select case(physics_io_type)
+                   
+                case(sp)
+                   print *,'[GRID_GENERIC.F90] diving into write_grid_5d sp'
+                   call write_grid_5d(group, 'specific_energy_nu', real(specific_energy_nu, sp), geo)
 
-             case(dp)
-                print *,'[GRID_GENERIC.F90] diving into write_grid_5d dp'
-                call write_grid_5d(group, 'specific_energy_nu', real(specific_energy_nu, dp), geo)
-                print *,'[GRID_GENERIC.F90] finished with write_grid_5d dp'
+                case(dp)
+                   print *,'[GRID_GENERIC.F90] diving into write_grid_5d dp'
+                   call write_grid_5d(group, 'specific_energy_nu', real(specific_energy_nu, dp), geo)
+                   print *,'[GRID_GENERIC.F90] finished with write_grid_5d dp'
 
-             case default
-                call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
-             end select
-          else
-             call warn("output_grid","specific_energy_nu array is not allocated")
+                case default
+                   call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
+                end select
+             else
+                call warn("output_grid","specific_energy_nu array is not allocated")
+
+             end if
           end if
        end if
        
