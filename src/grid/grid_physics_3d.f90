@@ -3,7 +3,7 @@ module grid_physics
   use core_lib
   use type_photon
   use type_grid_cell
-  use grid_io, only : read_grid_4d, grid_exists
+  use grid_io, only : read_grid_4d, grid_exists, read_grid_5d
   use dust_main ! many variables and routines
   use type_dust
   use grid_geometry
@@ -36,10 +36,12 @@ module grid_physics
   integer(idp),allocatable, public :: n_photons(:)
   integer(idp),allocatable, public :: last_photon_id(:)
   real(dp),allocatable, public :: specific_energy(:,:)
+  real(dp),allocatable, public :: specific_energy_nu(:,:,:) 
   real(dp),allocatable, public :: specific_energy_sum(:,:)
   real(dp),allocatable, public :: specific_energy_sum_nu(:,:,:)
 
   real(dp),allocatable, public :: specific_energy_additional(:,:)
+  real(dp),allocatable, public :: specific_energy_additional_nu(:,:,:)
   real(dp),allocatable, public :: energy_abs_tot(:)
   real(dp),allocatable, public :: minimum_specific_energy(:)
 
@@ -53,7 +55,9 @@ module grid_physics
   ! Temporary variables (used for convenience in external modules)
   real(dp), allocatable, public :: tmp_column_density(:)
 
+  !Counting indices
   integer :: id
+  integer :: idx 
 
   logical :: debug = .false.
 
@@ -101,9 +105,11 @@ contains
     logical,intent(in) :: use_mrw, use_pda, compute_isrf
     integer :: n_isrf_wavelengths
 
+    n_isrf_wavelengths = d(1)%n_nu
     ! Density
     allocate(density(geo%n_cells, n_dust))
     allocate(specific_energy(geo%n_cells, n_dust))
+    allocate(specific_energy_nu(geo%n_cells,n_dust,n_isrf_wavelengths))
 
     if(n_dust > 0) then
 
@@ -147,9 +153,12 @@ contains
 
           ! Read in specific_energy
           call read_grid_4d(group, 'specific_energy', specific_energy, geo)
+          call read_grid_5d(group, 'specific_energy_nu', specific_energy_nu, geo)
 
           ! Check number of dust types for specific_energy
           if(size(specific_energy, 2).ne.n_dust) call error("setup_grid","specific_energy array has wrong number of dust types")
+
+
 
           ! Reset specific energy to zero in masked cells
           if(geo%masked) then
@@ -158,19 +167,39 @@ contains
                 where(.not.geo%mask)
                    specific_energy(:, id) = 0.
                 end where
+                
+                if (compute_isrf) then
+                   do idx=1,n_isrf_wavelengths
+                      where(.not.geo%mask)
+                         specific_energy_nu(:, id, idx) = 0.
+                      endwhere
+                   end do
+                end if
+
              end do
           end if
 
           if(trim(specific_energy_type) == 'additional') then
              allocate(specific_energy_additional(geo%n_cells, n_dust))
+             if (compute_isrf) then 
+                allocate(specific_energy_additional_nu(geo%n_cells,n_dust,n_isrf_wavelengths))
+             end if
              ! We store a copy of the initial specific energy in a separate
              ! array, and we set the specific energy to the minimum specific
              ! energy. After the first iteration, specific_energy will get
              ! re-calculated and we will then add specific_energy_additional
              specific_energy_additional = specific_energy
+             specific_energy_additional_nu = specific_energy_nu
              do id=1,n_dust
                 specific_energy(:,id) = minimum_specific_energy(id)
-             end do
+                
+                if (compute_isrf) then
+                   do idx=1,n_isrf_wavelengths
+                      specific_energy_nu(:,id,idx) = minimum_specific_energy(id)
+                   end do
+                end if
+
+            end do
           end if
 
 
@@ -183,6 +212,13 @@ contains
           ! Set all specific_energy to minimum requested
           do id=1,n_dust
              specific_energy(:,id) = minimum_specific_energy(id)
+
+             if (compute_isrf) then
+                do idx = 1,n_isrf_wavelengths
+                   specific_energy_nu(:,id,idx) = minimum_specific_energy(id)
+                end do
+             end if
+
           end do
 
        end if
@@ -197,7 +233,7 @@ contains
     specific_energy_sum = 0._dp
 
     ! Set up basics for ISRF calculation
-    n_isrf_wavelengths = d(1)%n_nu
+    !n_isrf_wavelengths = d(1)%n_nu
     allocate(specific_energy_sum_nu(geo%n_cells, n_dust, n_isrf_wavelengths))
     specific_energy_sum_nu = 0._dp
     
@@ -267,6 +303,9 @@ contains
     implicit none
     integer :: ic, id
     integer :: reset
+    integer :: n_isrf_wavelengths
+
+    n_isrf_wavelengths = d(1)%n_nu
 
     reset = 0
 
@@ -280,7 +319,15 @@ contains
                 density(ic, id) = 0.
                 specific_energy(ic, id) = minimum_specific_energy(id)
                 reset = reset + 1
+
+                if (compute_isrf) then
+                   do idx=1,n_isrf_wavelengths
+                      specific_energy_nu(ic,id,idx) = minimum_specific_energy(id)
+                   end do
+                end if
+
              end if
+             
           end do
           if(reset > 0) write(*,'(" [sublimate_dust] dust removed in ",I0," cells")') reset
 
@@ -294,6 +341,14 @@ contains
                      & / chi_rosseland(id, d(id)%sublimation_specific_energy))**2
                 specific_energy(ic,id) = d(id)%sublimation_specific_energy
                 reset = reset + 1
+
+
+                if (compute_isrf) then
+                   do idx=1,n_isrf_wavelengths
+                      specific_energy_nu(ic,id,idx) = minimum_specific_energy(id)
+                   end do
+                end if
+                   
              end if
           end do
 
@@ -306,6 +361,14 @@ contains
                 specific_energy(ic, id) = d(id)%sublimation_specific_energy
                 reset = reset + 1
              end if
+
+             
+             if (compute_isrf) then
+                do idx=1,n_isrf_wavelengths
+                   specific_energy_nu(ic,id,idx) = minimum_specific_energy(id)
+                end do
+             end if
+
           end do
 
           if(reset > 0) write(*,'(" [sublimate_dust] capping dust specific_energy in ",I0," cells")') reset
@@ -326,12 +389,23 @@ contains
 
     real(dp), intent(in) :: scale
 
-    integer :: id
+    integer :: id,idx
+    integer :: n_isrf_wavelengths
+    
+    n_isrf_wavelengths = d(1)%n_nu
 
     if(main_process()) write(*,'(" [grid_physics] updating energy_abs")')
 
     do id=1,n_dust
        specific_energy(:,id) = specific_energy_sum(:,id) * scale / geo%volume
+       
+       if (compute_isrf) then
+          do idx=1,n_isrf_wavelengths
+             specific_energy_nu(:,id,idx) = specific_energy_sum_nu(:,id,idx) * scale/geo%volume
+          end do
+       end if
+          
+          
        where(geo%volume == 0._dp)
           specific_energy(:,id) = 0._dp
        end where
@@ -341,10 +415,17 @@ contains
        write(*,'(" [update_energy_abs] ",I0," cells have no energy")') count(specific_energy==0.and.density>0.)
     end if
 
+
     ! Add in additional source of heating
     if(trim(specific_energy_type) == 'additional') then
        if(main_process()) write(*,'(" [grid_physics] adding additional heating source")')
        specific_energy = specific_energy + specific_energy_additional
+
+       
+       if (compute_isrf) then 
+          specific_energy_nu = specific_energy_nu + specific_energy_additional_nu
+       end if
+
     end if
 
     call update_energy_abs_tot()
@@ -367,7 +448,10 @@ contains
           if(main_process()) call warn("update_energy_abs","specific_energy below minimum requested in some cells - resetting")
           where(specific_energy(:,id) < minimum_specific_energy(id))
              specific_energy(:,id) = minimum_specific_energy(id)
+             
+ 
           end where
+
        end if
 
        if(any(specific_energy(:,id) < d(id)%specific_energy(1))) then
@@ -375,7 +459,8 @@ contains
              if(main_process()) call warn("update_energy_abs","specific_energy below minimum allowed in some cells - resetting")
              where(specific_energy(:,id) < d(id)%specific_energy(1))
                 specific_energy(:,id) = d(id)%specific_energy(1)
-             end where
+                
+              end where
           else
              if(main_process()) call warn("update_energy_abs","specific_energy below minimum allowed in some cells - will pick closest emissivities")
           end if
@@ -386,6 +471,7 @@ contains
              if(main_process()) call warn("update_energy_abs","specific_energy above maximum allowed in some cells - resetting")
              where(specific_energy(:,id) > d(id)%specific_energy(d(id)%n_e))
                 specific_energy(:,id) = d(id)%specific_energy(d(id)%n_e)
+
              end where
           else
              if(main_process()) call warn("update_energy_abs","specific_energy above maximum allowed in some cells - will pick closest emissivities")
