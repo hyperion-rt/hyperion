@@ -153,7 +153,6 @@ contains
 
           ! Read in specific_energy
           call read_grid_4d(group, 'specific_energy', specific_energy, geo)
-          call read_grid_5d(group, 'specific_energy_nu', specific_energy_nu, geo)
 
           ! Check number of dust types for specific_energy
           if(size(specific_energy, 2).ne.n_dust) call error("setup_grid","specific_energy array has wrong number of dust types")
