@@ -3,7 +3,7 @@ module grid_physics
   use core_lib
   use type_photon
   use type_grid_cell
-  use grid_io, only : read_grid_4d, grid_exists, read_grid_5d
+  use grid_io, only : read_grid_4d, grid_exists
   use dust_main ! many variables and routines
   use type_dust
   use grid_geometry
