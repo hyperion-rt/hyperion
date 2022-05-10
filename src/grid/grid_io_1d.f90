@@ -12,7 +12,6 @@ module grid_io
   public :: grid_exists
   public :: read_grid_3d
   public :: read_grid_4d
-  public :: read_grid_5d
   public :: write_grid_3d
   public :: write_grid_4d
   public :: write_grid_5d
@@ -31,14 +30,6 @@ module grid_io
      module procedure read_grid_4d_int
      module procedure read_grid_4d_int8
   end interface read_grid_4d
-
-  interface read_grid_5d
-     module procedure read_grid_5d_sp
-     module procedure read_grid_5d_dp
-     module procedure read_grid_5d_int
-     module procedure read_grid_5d_int8
-  end interface read_grid_5d
-
 
   interface write_grid_3d
      module procedure write_grid_3d_sp
@@ -70,28 +61,6 @@ contains
     character(len=*),intent(in) :: name
     grid_exists = mp_path_exists(group, name)
   end function grid_exists
-
-
-  subroutine read_grid_5d_int8(group, path, array, geo)
-
-    implicit none
-
-    integer(hid_t), intent(in) :: group
-    character(len=*), intent(in) :: path
-    integer(idp), intent(out) :: array(:,:,:)
-    type(grid_geometry_desc),intent(in) :: geo
-
-    character(len=32) :: geometry_id_check
-
-    call mp_read_keyword(group,path, 'geometry', geometry_id_check)
-    if(geometry_id_check.ne.geo%id) then
-       call error("read_grid", "geometry IDs do not match")
-    end if
-    call mp_read_array(group, path, array)
-
-    if(any(is_nan(array))) call error("read_grid_5d", "NaN values in 5D array")
-
-  end subroutine read_grid_5d_int8
 
 
   subroutine read_grid_4d_int8(group, path, array, geo)
@@ -180,28 +149,6 @@ contains
     call mp_write_keyword(group,path, 'geometry', geo%id)
 
   end subroutine write_grid_3d_int8
-
-
-  subroutine read_grid_5d_int(group, path, array, geo)
-
-    implicit none
-
-    integer(hid_t), intent(in) :: group
-    character(len=*), intent(in) :: path
-    integer, intent(out) :: array(:,:,:)
-    type(grid_geometry_desc),intent(in) :: geo
-
-    character(len=32) :: geometry_id_check
-
-    call mp_read_keyword(group,path, 'geometry', geometry_id_check)
-    if(geometry_id_check.ne.geo%id) then
-       call error("read_grid", "geometry IDs do not match")
-    end if
-    call mp_read_array(group, path, array)
-
-    if(any(is_nan(array))) call error("read_grid_5d", "NaN values in 5D array")
-
-  end subroutine read_grid_5d_int
 
 
   subroutine read_grid_4d_int(group, path, array, geo)
@@ -294,28 +241,6 @@ contains
   end subroutine write_grid_3d_int
 
  
-  subroutine read_grid_5d_dp(group, path, array, geo)
-    
-    implicit none
-    
-    integer(hid_t), intent(in) :: group
-    character(len=*), intent(in) :: path
-    real(dp), intent(out) :: array(:,:,:)
-    type(grid_geometry_desc),intent(in) :: geo
-
-    character(len=32) :: geometry_id_check
-
-    call mp_read_keyword(group,path, 'geometry', geometry_id_check)
-    if(geometry_id_check.ne.geo%id) then
-       call error("read_grid", "geometry IDs do not match")
-    end if
-    call mp_read_array(group, path, array)
-
-    if(any(is_nan(array))) call error("read_grid_5d", "NaN values in 5D array")
-
-  end subroutine read_grid_5d_dp
-
-
   subroutine read_grid_4d_dp(group, path, array, geo)
 
     implicit none
@@ -404,29 +329,6 @@ contains
   end subroutine write_grid_3d_dp
 
   
-
-  subroutine read_grid_5d_sp(group, path, array, geo)
-
-    implicit none
-
-    integer(hid_t), intent(in) :: group
-    character(len=*), intent(in) :: path
-    real(sp), intent(out) :: array(:,:,:)
-    type(grid_geometry_desc),intent(in) :: geo
-
-    character(len=32) :: geometry_id_check
-
-    call mp_read_keyword(group,path, 'geometry', geometry_id_check)
-    if(geometry_id_check.ne.geo%id) then
-       call error("read_grid", "geometry IDs do not match")
-    end if
-    call mp_read_array(group, path, array)
-
-    if(any(is_nan(array))) call error("read_grid_5d", "NaN values in 5D array")
-
-  end subroutine read_grid_5d_sp
-
-
   subroutine read_grid_4d_sp(group, path, array, geo)
 
     implicit none
