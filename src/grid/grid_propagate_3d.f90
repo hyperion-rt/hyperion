@@ -249,11 +249,11 @@ contains
 
     integer :: id
     integer :: idx
-    real, dimension(d(0)%n_nu) :: energy_frequency_bins
+    real, dimension(d(1)%n_nu) :: energy_frequency_bins
 
-    do id=1,d(0)%n_nu
-       energy_frequency_bins(id) = d(0)%nu(id)
-       print *,'[grid_propagate_3d last iteration] energy_frequency_bins(id) = ',energy_frequency_bins(id)
+    do id=1,d(1)%n_nu
+       energy_frequency_bins(id) = d(1)%nu(id)
+       !print *,'[grid_propagate_3d last iteration] energy_frequency_bins(id) = ',energy_frequency_bins(id)
     end do
 
     radial = (p%r .dot. p%v) > 0.
