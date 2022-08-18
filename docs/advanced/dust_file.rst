@@ -91,7 +91,7 @@ The resulting hdf5 file will end up with [8 columns](https://github.com/hyperion
 ``kappa_inv_planck``, ``chi_rosseland``, ``kappa_rosseland``.
 The ``_inv`` columns are the inverse (reciprocal) of their counterparts.
 
-
+``emissivities``
 ----------------
 
 This dataset should consist of a table specifying the emissivities. The
