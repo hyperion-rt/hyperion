@@ -90,6 +90,8 @@ The resulting hdf5 file will end up with [8 columns](https://github.com/hyperion
 ``temperature``, ``specific_energy``, ``chi_planck``, ``kappa_planck``, ``chi_inv_planck``,
 ``kappa_inv_planck``, ``chi_rosseland``, ``kappa_rosseland``.
 The ``_inv`` columns are the inverse (reciprocal) of their counterparts.
+Where the Planck mean is $$\frac{\int \kappa_\nu B_\nu d \nu}{\int B_\nu d\nu}$$,
+the inverse is $$\frac{\int B_\nu d \nu}{\int \kappa_\nu^{-1}  B_\nu d\nu}$$.
 
 ``emissivities``
 ----------------
