@@ -101,7 +101,7 @@ def test_from_yt(tmpdir):
     def _dust_density(field, data):
         return data["density"].in_units('g/cm**3') * 0.01
 
-    ds.add_field(("gas", "dust_density"), function=_dust_density, units='g/cm**3')
+    ds.add_field(("gas", "dust_density"), function=_dust_density, units='g/cm**3', sampling_type='cell')
 
     amr = AMRGrid.from_yt(ds, quantity_mapping={'density': ('gas', 'dust_density')})
 
