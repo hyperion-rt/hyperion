@@ -58,7 +58,7 @@ def interp1d_fast(x, y, xval):
     if x.dtype != float or y.dtype != float:
         x, y = x.astype(float), y.astype(float)
     if np.isscalar(xval):
-        return interp1d_linear_scalar(x, y, np.float(xval))
+        return interp1d_linear_scalar(x, y, float(xval))
     else:
         if xval.ndim > 1:
             return interp1d_linear_array(x, y, xval.flatten()).reshape(xval.shape)
@@ -74,7 +74,7 @@ def interp1d_fast_loglog(x, y, xval):
     if x.dtype != float or y.dtype != float:
         x, y = x.astype(float), y.astype(float)
     if np.isscalar(xval):
-        return interp1d_loglog_scalar(x, y, np.float(xval))
+        return interp1d_loglog_scalar(x, y, float(xval))
     else:
         if xval.ndim > 1:
             return interp1d_loglog_array(x, y, xval.flatten()).reshape(xval.shape)
@@ -90,7 +90,7 @@ def interp1d_fast_linlog(x, y, xval):
     if x.dtype != float or y.dtype != float:
         x, y = x.astype(float), y.astype(float)
     if np.isscalar(xval):
-        return interp1d_linlog_scalar(x, y, np.float(xval))
+        return interp1d_linlog_scalar(x, y, float(xval))
     else:
         if xval.ndim > 1:
             return interp1d_linlog_array(x, y, xval.flatten()).reshape(xval.shape)
@@ -106,7 +106,7 @@ def interp1d_fast_loglin(x, y, xval):
     if x.dtype != float or y.dtype != float:
         x, y = x.astype(float), y.astype(float)
     if np.isscalar(xval):
-        return interp1d_loglin_scalar(x, y, np.float(xval))
+        return interp1d_loglin_scalar(x, y, float(xval))
     else:
         if xval.ndim > 1:
             return interp1d_loglin_array(x, y, xval.flatten()).reshape(xval.shape)
