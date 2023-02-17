@@ -527,9 +527,9 @@ class VoronoiGrid(FreezableClass):
     def get_geometry_id(self):
         # The grid is uniquely defined by the points and the bounds
         geo_hash = hashlib.md5()
-        geo_hash.update(self.x.tostring())
-        geo_hash.update(self.y.tostring())
-        geo_hash.update(self.z.tostring())
+        geo_hash.update(self.x.tobytes())
+        geo_hash.update(self.y.tobytes())
+        geo_hash.update(self.z.tobytes())
         geo_hash.update(struct.pack('>d', self.xmin))
         geo_hash.update(struct.pack('>d', self.xmax))
         geo_hash.update(struct.pack('>d', self.ymin))

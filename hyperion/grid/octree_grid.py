@@ -196,7 +196,7 @@ class OctreeGrid(FreezableClass):
 
     def _validate(self, value):
 
-        value_hash = hashlib.md5(value.tostring()).hexdigest()
+        value_hash = hashlib.md5(value.tobytes()).hexdigest()
 
         if value_hash in self._validate_cache:
             return value
@@ -205,7 +205,7 @@ class OctreeGrid(FreezableClass):
 
         # Check that refined array reduces to a single False if removing all
         # levels of refinement.
-        refined_str = value.tostring()
+        refined_str = value.tobytes()
         previous = ''
         while True:
             refined_str = refined_str.replace(b'\x01\x00\x00\x00\x00\x00\x00\x00\x00', b'\x00')
@@ -491,7 +491,7 @@ class OctreeGrid(FreezableClass):
         geo_hash.update(struct.pack('>d', self.dx))
         geo_hash.update(struct.pack('>d', self.dy))
         geo_hash.update(struct.pack('>d', self.dz))
-        geo_hash.update(self.refined.tostring())
+        geo_hash.update(self.refined.tobytes())
         return geo_hash.hexdigest()
 
     def __getitem__(self, item):

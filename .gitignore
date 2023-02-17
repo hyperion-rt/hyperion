@@ -1,3 +1,4 @@
+hyperion/_version.py
 hyperion/data/*
 build
 docs/_build
@@ -15,4 +16,5 @@ build_cmake
 .vscode
 dist
 Hyperion.egg-info
-
+*.so
+pip-wheel-metadata

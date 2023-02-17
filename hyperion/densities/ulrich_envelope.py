@@ -20,10 +20,10 @@ def delta_neg(r, q):
     rho = np.sqrt(-q.real ** 3)
     theta = np.arccos(r.real / rho)
 
-    s = (rho ** (1. / 3.) * np.cos(theta / 3.)).astype(np.complex)
+    s = (rho ** (1. / 3.) * np.cos(theta / 3.)).astype(complex)
     s.imag = rho ** (1. / 3.) * np.sin(theta / 3.)
 
-    t = (rho ** (1. / 3.) * np.cos(-theta / 3.)).astype(np.complex)
+    t = (rho ** (1. / 3.) * np.cos(-theta / 3.)).astype(complex)
     t.imag = rho ** (1. / 3.) * np.sin(-theta / 3.)
 
     return s, t
@@ -49,8 +49,8 @@ def cubic(c, d):
     Solve x**3 + c * x + d = 0
     '''
 
-    c = c.astype(np.complex)
-    d = d.astype(np.complex)
+    c = c.astype(complex)
+    d = d.astype(complex)
 
     q = c / 3.
     r = - d / 2.
@@ -59,8 +59,8 @@ def cubic(c, d):
 
     pos = delta >= 0.
 
-    s = np.zeros(c.shape, dtype=np.complex)
-    t = np.zeros(c.shape, dtype=np.complex)
+    s = np.zeros(c.shape, dtype=complex)
+    t = np.zeros(c.shape, dtype=complex)
 
     if np.sum(pos) > 0:
         s[pos], t[pos] = delta_pos(r[pos], delta[pos])
@@ -69,8 +69,8 @@ def cubic(c, d):
         s[~pos], t[~pos] = delta_neg(r[~pos], q[~pos])
 
     x1 = s + t
-    x2 = - (s + t) / 2. + np.sqrt(3.) / 2. * (s - t) * np.complex(0., 1.)
-    x3 = - (s + t) / 2. - np.sqrt(3.) / 2. * (s - t) * np.complex(0., 1.)
+    x2 = - (s + t) / 2. + np.sqrt(3.) / 2. * (s - t) * complex(0., 1.)
+    x3 = - (s + t) / 2. - np.sqrt(3.) / 2. * (s - t) * complex(0., 1.)
 
     return x1, x2, x3
 

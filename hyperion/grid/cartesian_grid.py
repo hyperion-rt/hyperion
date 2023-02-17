@@ -392,9 +392,9 @@ class CartesianGrid(FreezableClass):
 
     def get_geometry_id(self):
         geo_hash = hashlib.md5()
-        geo_hash.update(self.x_wall.tostring())
-        geo_hash.update(self.y_wall.tostring())
-        geo_hash.update(self.z_wall.tostring())
+        geo_hash.update(self.x_wall.tobytes())
+        geo_hash.update(self.y_wall.tobytes())
+        geo_hash.update(self.z_wall.tobytes())
         return geo_hash.hexdigest()
 
     def __getitem__(self, item):
