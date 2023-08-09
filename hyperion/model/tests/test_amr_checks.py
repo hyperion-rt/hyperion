@@ -224,7 +224,7 @@ def test_shadowing_regression(tmpdir):
     m.write(tmpdir.join(random_id()).strpath)
     mo = m.run(tmpdir.join(random_id()).strpath)
 
-    from yt.mods import SlicePlot
+    from yt import SlicePlot
 
     g = mo.get_quantities()
 
