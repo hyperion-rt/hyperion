@@ -107,7 +107,7 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
 
     bbox = np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])
 
-    from yt.mods import load_amr_grids
+    from yt import load_amr_grids
 
     spf = load_amr_grids(grid_data, domain_dimensions, bbox=bbox,
                          geometry=('cartesian', ('x', 'y', 'z')))
@@ -154,7 +154,7 @@ def octree_grid_to_yt_stream(grid, dust_id=0):
     zmin = grid.z - grid.dz
     zmax = grid.z + grid.dz
 
-    from yt.mods import load_octree
+    from yt import load_octree
 
     quantities = {}
     for field in grid.quantities:
@@ -183,7 +183,7 @@ def cartesian_grid_to_yt_stream(grid, xmin, xmax, ymin, ymax, zmin, zmax, dust_i
         data[field] = grid.quantities[field][dust_id].transpose(), ''
 
     # Load cartesian grid into yt
-    from yt.mods import load_uniform_grid
+    from yt import load_uniform_grid
     spf = load_uniform_grid(data=data,
                             domain_dimensions=np.array(grid.shape[::-1], dtype=np.int32),
                             bbox=np.array([(xmin, xmax), (ymin, ymax), (zmin, zmax)]),
@@ -240,7 +240,7 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
         >>> ds = load('DD0010/moving7_0010')
         >>> def _dust_density(field, data):
         ...     return data[('gas', 'density')].in_units('g/cm**3') * 0.01
-        >>> ds.add_field(('gas', 'dust_density'), function=_dust_density, units='g/cm**3')
+        >>> ds.add_field(('gas', 'dust_density'), function=_dust_density, units='g/cm**3', sampling_type='cell')
 
         >>> amr = yt_dataset_to_amr_grid(ds, quantity_mapping={'density':('gas', 'dust_density')})
     """

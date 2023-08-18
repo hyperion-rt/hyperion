@@ -430,9 +430,9 @@ class SphericalPolarGrid(FreezableClass):
 
     def get_geometry_id(self):
         geo_hash = hashlib.md5()
-        geo_hash.update(self.r_wall.tostring())
-        geo_hash.update(self.t_wall.tostring())
-        geo_hash.update(self.p_wall.tostring())
+        geo_hash.update(self.r_wall.tobytes())
+        geo_hash.update(self.t_wall.tobytes())
+        geo_hash.update(self.p_wall.tobytes())
         return geo_hash.hexdigest()
 
     def __getitem__(self, item):

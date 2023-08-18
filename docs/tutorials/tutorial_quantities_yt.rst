@@ -26,7 +26,7 @@ where ``pf`` is a ``StaticOutput`` yt object! This can then be used as a
 normal dataset in yt. For example, we can easily make projections of density
 and temperature along the y-axis::
 
-    from yt.mods import ProjectionPlot
+    from yt import ProjectionPlot
 
     prj = ProjectionPlot(pf, 'y', ['density', 'temperature'], 
                          center=[0.0, 0.0, 0.0])

@@ -2,49 +2,22 @@ name: Continuous Integration
 
 on:
   push:
-    branches:
-    - '*'
-    tags:
-    - '*'
   pull_request:
 
 jobs:
   tests:
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Python 3.6
-            os: ubuntu-20.04
-            python: '3.6'
-          - name: Python 3.7
-            os: ubuntu-20.04
-            python: '3.7'
-          - name: Python 3.8
-            os: ubuntu-20.04
-            python: '3.8'
-          - name: Python 3.9
-            os: ubuntu-20.04
-            python: '3.9'
-          - name: Python 3.10
-            os: ubuntu-20.04
-            python: '3.10'
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        submodules: 'true'
-        fetch-depth: 0
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python }}
-    - name: Install HDF5 and MPI
-      if: startsWith(matrix.os, 'ubuntu')
-      run: sudo apt-get install libhdf5-serial-dev libmpich-dev
-    - name: Install tox
-      run: pip install tox
-    - name: Run tests
-      run: tox -e test-bitlevel
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
+    with:
+      libraries: |
+        apt:
+          - libhdf5-serial-dev
+          - libmpich-dev
+      envs: |
+        - linux: py37-test-bitlevel
+          runs-on: ubuntu-20.04
+        - linux: py38-test-bitlevel
+          runs-on: ubuntu-20.04
+        - linux: py39-test-bitlevel
+          runs-on: ubuntu-20.04
+        - linux: py310-test-bitlevel
+          runs-on: ubuntu-20.04
