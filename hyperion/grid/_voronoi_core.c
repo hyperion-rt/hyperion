@@ -1,3 +1,5 @@
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+
 #include <Python.h>
 #include <limits.h>
 #include <string.h>
@@ -83,8 +85,8 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
     }
 
     /* Interpret the input objects as `numpy` arrays. */
-    PyObject *s_array = PyArray_FROM_OTF(sites_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *d_array = PyArray_FROM_OTF(domain_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+    PyObject *s_array = PyArray_FROM_OTF(sites_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *d_array = PyArray_FROM_OTF(domain_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
 
     /* Handle invalid input. */
     if (s_array == NULL || d_array == NULL) {

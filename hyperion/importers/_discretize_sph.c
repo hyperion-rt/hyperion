@@ -1,3 +1,5 @@
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+
 #include <Python.h>
 #include <numpy/arrayobject.h>
 #include <numpy/npy_math.h>
@@ -77,17 +79,17 @@ static PyObject *_discretize_sph_func(PyObject *self, PyObject *args)
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
-    PyObject *xmin_array = PyArray_FROM_OTF(xmin_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *xmax_array = PyArray_FROM_OTF(xmax_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *ymin_array = PyArray_FROM_OTF(ymin_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *ymax_array = PyArray_FROM_OTF(ymax_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *zmin_array = PyArray_FROM_OTF(zmin_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *zmax_array = PyArray_FROM_OTF(zmax_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *mu_x_array = PyArray_FROM_OTF(mu_x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *mu_y_array = PyArray_FROM_OTF(mu_y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *mu_z_array = PyArray_FROM_OTF(mu_z_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *sigma_array = PyArray_FROM_OTF(sigma_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *mass_array = PyArray_FROM_OTF(mass_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+    PyObject *xmin_array = PyArray_FROM_OTF(xmin_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *xmax_array = PyArray_FROM_OTF(xmax_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *ymin_array = PyArray_FROM_OTF(ymin_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *ymax_array = PyArray_FROM_OTF(ymax_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *zmin_array = PyArray_FROM_OTF(zmin_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *zmax_array = PyArray_FROM_OTF(zmax_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *mu_x_array = PyArray_FROM_OTF(mu_x_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *mu_y_array = PyArray_FROM_OTF(mu_y_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *mu_z_array = PyArray_FROM_OTF(mu_z_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *sigma_array = PyArray_FROM_OTF(sigma_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *mass_array = PyArray_FROM_OTF(mass_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
     if (xmin_array == NULL || xmax_array == NULL ||
@@ -236,7 +238,7 @@ static PyObject *_get_positions_widths(PyObject *self, PyObject *args)
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
-    PyObject *refined_array = PyArray_FROM_OTF(refined_obj, NPY_LONGLONG, NPY_IN_ARRAY);
+    PyObject *refined_array = PyArray_FROM_OTF(refined_obj, NPY_LONGLONG, NPY_ARRAY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
     if (refined_array == NULL) {
