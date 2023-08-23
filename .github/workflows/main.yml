@@ -13,6 +13,13 @@ jobs:
           - libhdf5-serial-dev
           - libmpich-dev
       envs: |
+        # Main tests
+        - linux: py37-test
+        - linux: py38-test
+        - linux: py39-test
+        - linux: py310-test
+        - linux: py311-test
+        # Bit-level tests
         - linux: py37-test-bitlevel
           runs-on: ubuntu-20.04
         - linux: py38-test-bitlevel
