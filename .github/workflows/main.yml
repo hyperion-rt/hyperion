@@ -12,12 +12,15 @@ jobs:
         apt:
           - libhdf5-serial-dev
           - libmpich-dev
+        brew:
+          - mpich
+          - hdf5@1.10
       envs: |
         # Main tests
         - linux: py37-test
-        - linux: py38-test
+        - macos: py38-test
         - linux: py39-test
-        - linux: py310-test
+        - macos: py310-test
         - linux: py311-test
         # Bit-level tests
         - linux: py37-test-bitlevel
