@@ -5,6 +5,9 @@
 #include <numpy/arrayobject.h>
 #include <numpy/npy_math.h>
 
+/* Workaround for gcc<10 */
+struct _typeobject {int _placeholder;};
+
 /* Define constants */
 double const LN10 = 2.30258509299404590109;
 

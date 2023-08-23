@@ -5,6 +5,9 @@
 #include <numpy/arrayobject.h>
 #include <numpy/npy_math.h>
 
+/* Workaround for gcc<10 */
+struct _typeobject {int _placeholder;};
+
 /* Define docstrings */
 static char module_docstring[] = "Fast trapezium integration";
 static char interp1d_linear_scalar_docstring[] = "Interpolate in linear-linear space";

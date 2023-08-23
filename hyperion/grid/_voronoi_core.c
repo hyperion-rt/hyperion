@@ -7,6 +7,9 @@
 #include <numpy/arrayobject.h>
 #include <numpy/npy_math.h>
 
+/* Workaround for gcc<10 */
+struct _typeobject {int _placeholder;};
+
 // Declaration of the voro++ wrapping function.
 const char *hyperion_voropp_wrap(int **sparse_neighbours, int **neigh_pos, int *nn, double **volumes, double **bb_min, double **bb_max, double **vertices, int *max_nv,
                   double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double const *points, int npoints, int with_vertices, const char *wall_str, const double *wall_args_arr,

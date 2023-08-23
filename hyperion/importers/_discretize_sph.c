@@ -6,6 +6,9 @@
 #include <numpy/npy_math.h>
 #include <math.h>
 
+/* Workaround for gcc<10 */
+struct _typeobject {int _placeholder;};
+
 /* Define docstrings */
 static char module_docstring[] = "Helpers for discretizing SPH particles";
 static char discretize_sph_docstring[] = "Discretize SPH particles onto given cells";
