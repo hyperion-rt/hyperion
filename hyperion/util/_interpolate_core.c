@@ -1,3 +1,5 @@
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+
 #include <Python.h>
 #include <numpy/arrayobject.h>
 #include <numpy/npy_math.h>
@@ -97,8 +99,8 @@ static PyObject *interp1d_linear_scalar(PyObject *self, PyObject *args)
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
-    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
     if (x_array == NULL || y_array == NULL) {
@@ -164,9 +166,9 @@ static PyObject *interp1d_linear_array(PyObject *self, PyObject *args)
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
-    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *xval_array = PyArray_FROM_OTF(xval_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *xval_array = PyArray_FROM_OTF(xval_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
     if (x_array == NULL || y_array == NULL || xval_array == NULL) {
@@ -248,8 +250,8 @@ static PyObject *interp1d_loglog_scalar(PyObject *self, PyObject *args)
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
-    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
     if (x_array == NULL || y_array == NULL) {
@@ -322,9 +324,9 @@ static PyObject *interp1d_loglog_array(PyObject *self, PyObject *args)
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
-    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *xval_array = PyArray_FROM_OTF(xval_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *xval_array = PyArray_FROM_OTF(xval_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
     if (x_array == NULL || y_array == NULL || xval_array == NULL) {
@@ -413,8 +415,8 @@ static PyObject *interp1d_linlog_scalar(PyObject *self, PyObject *args)
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
-    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
     if (x_array == NULL || y_array == NULL) {
@@ -487,9 +489,9 @@ static PyObject *interp1d_linlog_array(PyObject *self, PyObject *args)
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
-    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *xval_array = PyArray_FROM_OTF(xval_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *xval_array = PyArray_FROM_OTF(xval_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
     if (x_array == NULL || y_array == NULL || xval_array == NULL) {
@@ -578,8 +580,8 @@ static PyObject *interp1d_loglin_scalar(PyObject *self, PyObject *args)
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
-    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
     if (x_array == NULL || y_array == NULL) {
@@ -648,9 +650,9 @@ static PyObject *interp1d_loglin_array(PyObject *self, PyObject *args)
         return NULL;
 
     /* Interpret the input objects as `numpy` arrays. */
-    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_IN_ARRAY);
-    PyObject *xval_array = PyArray_FROM_OTF(xval_obj, NPY_DOUBLE, NPY_IN_ARRAY);
+    PyObject *x_array = PyArray_FROM_OTF(x_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *y_array = PyArray_FROM_OTF(y_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    PyObject *xval_array = PyArray_FROM_OTF(xval_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
 
     /* If that didn't work, throw an `Exception`. */
     if (x_array == NULL || y_array == NULL || xval_array == NULL) {
