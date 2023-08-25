@@ -66,54 +66,6 @@ static inline bool size_cmp(const std::vector<T> &a, const std::vector<T> &b)
 // Global string used for reporting errors back to Python.
 static std::string error_message;
 
-// Wall utilities.
-// Need to store this statically as the wall object needs to exist outside the scope
-// in which it is created.
-static std::auto_ptr<wall> wall_ptr;
-
-// Helper function to add the wall.
-static inline void add_walls(container &con,const char *wall_str,const double *wall_args_arr,int n_wall_args,int verbose)
-{
-    if (verbose) {
-        std::cout << "Wall type: " << wall_str << '\n';
-        std::cout << "Wall number of args: " << n_wall_args << '\n';
-        std::cout << "Wall params: [";
-        for (int i = 0; i < n_wall_args; ++i) {
-            std::cout << wall_args_arr[i];
-            if (i != n_wall_args - 1) {
-                std::cout << ',';
-            }
-        }
-        std::cout << "]\n";
-    }
-
-    // Allowed walls: 'sphere','cylinder','cone','plane'.
-    if (std::strcmp(wall_str,"sphere") == 0) {
-        // Some checks.
-        if (n_wall_args != 4) {
-            throw std::invalid_argument("invalid number of arguments for a 'sphere' wall, exactly 4 are needed");
-        }
-        if (wall_args_arr[3] <= 0.) {
-            throw std::invalid_argument("the radius of a 'sphere' wall must be strictly positive");
-        }
-        wall_ptr.reset(new wall_sphere(wall_args_arr[0],wall_args_arr[1],wall_args_arr[2],wall_args_arr[3]));
-        con.add_wall(wall_ptr.get());
-    }
-    if (std::strcmp(wall_str,"cylinder") == 0) {
-        // Some checks.
-        if (n_wall_args != 7) {
-            throw std::invalid_argument("invalid number of arguments for a 'cylinder' wall, exactly 7 are needed");
-        }
-        if (wall_args_arr[6] <= 0.) {
-            throw std::invalid_argument("the radius of a 'cylinder' wall must be strictly positive");
-        }
-        wall_ptr.reset(new wall_cylinder(wall_args_arr[0],wall_args_arr[1],wall_args_arr[2],wall_args_arr[3],wall_args_arr[4],
-            wall_args_arr[5],wall_args_arr[6]
-        ));
-        con.add_wall(wall_ptr.get());
-    }
-}
-
 // Compute the volume of a tetrahedron.
 template <typename It>
 static inline double tetra_volume(It v0, It v1, It v2, It v3)
@@ -226,9 +178,6 @@ const char *hyperion_voropp_wrap(int **sparse_neighbours, int **neigh_pos, int *
     for(int i = 0; i < nsites; ++i) {
             con.put(i,points[i*3],points[i*3 + 1],points[i*3 + 2]);
     }
-
-    // Handle the walls.
-    add_walls(con,wall_str,wall_args_arr,n_wall_args,verbose);
 
     // Initialise the looping variables and the temporary cell object used for computation.
     voronoicell_neighbor c;

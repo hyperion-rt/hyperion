@@ -47,20 +47,10 @@ class voronoi_grid(object):
         The vertices of the cells are not needed for RT simulations,
         and they add a considerable overhead in terms of memory requirements.
         Required for plotting and useful for debugging.
-    wall : a string or ``None``
-        If not ``None``, it must be one of
-        ``['sphere','cylinder','cone','plane']``. It will define an additional
-        wall of the desired shape within the domain.
-    wall_args : a tuple of floats or ``None``
-        Meaningful only if ``wall`` is not None, it represents the parameters
-        to be used to construct the wall (e.g., in case of a spherical wall,
-        the centre position and the radius of the sphere). Different construction
-        arguments are required for different types of wall, see the voro++
-        documentation for more information.
     '''
 
     def __init__(self, sites, domain, n_samples=0, min_cell_samples=10, with_vertices=False,
-                 wall=None, wall_args=None, verbose=False, seed=0):
+                 verbose=False, seed=0):
         import numpy as np
         from ._voronoi_core import _voropp_wrapper
         from astropy.table import Table
@@ -101,28 +91,18 @@ class voronoi_grid(object):
         if not isinstance(min_cell_samples, int) or min_cell_samples < 0:
             raise TypeError(
                 'the \'min_cell_samples\' parameter must be a non-negative int')
-        # Wall checks.
-        allowed_walls = ['sphere', 'cylinder', 'cone', 'plane']
-        if not wall is None and not wall in allowed_walls:
-            raise ValueError('the \'wall\' parameter must be None or one of ' + str(allowed_walls))
-        if not wall_args is None and (not isinstance(wall_args, tuple) or not all([isinstance(_, float) for _ in wall_args])):
-            raise ValueError('the \'wall_args\' parameter must be None or a tuple of floats')
         # Seed checks.
         if not isinstance(seed, int):
             raise TypeError(
                 'the \'seed\' parameter must be an int')
         self._seed = seed
 
-        # Redefine wall params in order to pass it to the C++ routine.
-        wall = "" if wall is None else wall
-        wall_args = () if wall_args is None else wall_args
-
         # Store the vertices flag.
         self._with_vertices = with_vertices
 
         logger.info("Computing the tessellation via voro++")
         with_sampling = 1 if n_samples > 0 else 0
-        tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, with_sampling, n_samples,
+        tup = _voropp_wrapper(sites, domain, with_vertices, with_sampling, n_samples,
                               min_cell_samples, seed, 1 if verbose else 0)
         names = ['coordinates', 'volume', 'bb_min', 'bb_max']
         if with_vertices:
