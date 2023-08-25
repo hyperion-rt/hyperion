@@ -56,33 +56,18 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
 {
     PyObject *sites_obj, *domain_obj, *wall_args_obj;
     int with_vertices;
-    const char *wall_str;
+    const char *wall_str = "";
     int verbose;
     int with_sampling, n_samples, min_cell_samples, seed;
 
-    if (!PyArg_ParseTuple(args, "OOisOiiiii", &sites_obj, &domain_obj, &with_vertices,&wall_str,&wall_args_obj,
+    if (!PyArg_ParseTuple(args, "OOiiiiii", &sites_obj, &domain_obj, &with_vertices,
         &with_sampling, &n_samples, &min_cell_samples, &seed, &verbose))
     {
         return NULL;
     }
 
-    // Handle the wall-related arguments.
-    // NOTE: at the moment, the walls implemented in voro++ have at most 7 doubles as construction params.
     double wall_args_arr[7];
-    // The actual number of construction arguments.
-    int n_wall_args = (int)PyTuple_GET_SIZE(wall_args_obj);
-    if (n_wall_args > 7) {
-        PyErr_SetString(PyExc_TypeError, "Too many construction arguments for the wall object.");
-        return NULL;
-    }
-    {
-        // Read the wall construction arguments.
-        int i;
-        for (i = 0; i < n_wall_args; ++i) {
-            // NOTE: PyTuple_GetItem returns a borrowed reference, no need to handle refcount.
-            wall_args_arr[i] = PyFloat_AS_DOUBLE(PyTuple_GetItem(wall_args_obj,(Py_ssize_t)i));
-        }
-    }
+    int n_wall_args = 0;
 
     /* Interpret the input objects as `numpy` arrays. */
     PyObject *s_array = PyArray_FROM_OTF(sites_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
