@@ -18,6 +18,7 @@ class OutputConf(FreezableClass):
         self.output_density = 'none'
         self.output_density_diff = 'none'
         self.output_specific_energy = 'last'
+        self.output_specific_energy_nu = 'last'
         self.output_n_photons = 'none'
         self._freeze()
 
@@ -27,6 +28,7 @@ class OutputConf(FreezableClass):
         self.output_density = group.attrs['output_density'].decode('utf-8')
         self.output_density_diff = group.attrs['output_density_diff'].decode('utf-8')
         self.output_specific_energy = group.attrs['output_specific_energy'].decode('utf-8')
+        self.output_specific_energy_nu = group.attrs['output_specific_energy_nu'].decode('utf-8')
         self.output_n_photons = group.attrs['output_n_photons'].decode('utf-8')
         return self
 
@@ -34,6 +36,7 @@ class OutputConf(FreezableClass):
         group.attrs['output_density'] = np.string_(self.output_density.encode('utf-8'))
         group.attrs['output_density_diff'] = np.string_(self.output_density_diff.encode('utf-8'))
         group.attrs['output_specific_energy'] = np.string_(self.output_specific_energy.encode('utf-8'))
+        group.attrs['output_specific_energy_nu'] = np.string_(self.output_specific_energy_nu.encode('utf-8'))
         group.attrs['output_n_photons'] = np.string_(self.output_n_photons.encode('utf-8'))
 
 
@@ -52,6 +55,8 @@ class RunConf(object):
         self.set_max_reabsorptions(1000000)
         self.set_pda(False)
         self.set_mrw(False)
+        self.compute_isrf(False)
+
         self.set_convergence(False)
         self.set_kill_on_absorb(False)
         self.set_kill_on_scatter(False)
@@ -391,6 +396,25 @@ class RunConf(object):
     def _write_pda(self, group):
         group.attrs['pda'] = bool2str(self.pda)
 
+    def _read_isrf(self,group):
+        self.isrf = str2bool(group.attrs['isrf'])
+        
+    def _write_isrf(self,group):
+        group.attrs['isrf'] = bool2str(self.isrf)
+
+    def compute_isrf(self,isrf):
+
+        '''
+
+        Set whether or not to compute and save the ISRF in each cell
+
+        If enabled, the ISRF is computed in every cell at the
+        frequencies of the dust opacity tables.
+
+        '''
+        self.isrf = isrf
+
+
     def set_mrw(self, mrw, gamma=1.0, inter_max=1000, warn=True):
         '''
         Set whether to use the Modified Random Walk (MRW) approximation
@@ -719,6 +743,7 @@ class RunConf(object):
         self._read_max_reabsorptions(group)
         self._read_pda(group)
         self._read_mrw(group)
+        self._reada_isrf(group)
         self._read_convergence(group)
         self._read_kill_on_absorb(group)
         self._read_kill_on_scatter(group)
@@ -747,6 +772,7 @@ class RunConf(object):
         self._write_max_reabsorptions(group)
         self._write_pda(group)
         self._write_mrw(group)
+        self._write_isrf(group)
         self._write_convergence(group)
         self._write_kill_on_absorb(group)
         self._write_kill_on_scatter(group)
