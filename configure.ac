@@ -87,6 +87,9 @@ else
   if test "$hdf_compiler" == "mpif90"
   then
     hdf_compiler=`basename $(mpif90 -show | awk {'print $1'})`
+  elif test "$hdf_compiler" == "mpifort"
+  then
+    hdf_compiler=`basename $(mpifort -show | awk {'print $1'})`
   fi
 fi
 
