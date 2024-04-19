@@ -13,7 +13,6 @@ jobs:
           - libhdf5-serial-dev
           - libmpich-dev
         brew:
-          - mpich
           - hdf5-mpi
       envs: |
         # Main tests
