@@ -17,16 +17,11 @@ jobs:
           - hdf5@1.10
       envs: |
         # Main tests
-        - linux: py37-test
-        - macos: py38-test
         - linux: py39-test
         - macos: py310-test
         - linux: py311-test
+        - macos: py312-test
         # Bit-level tests
-        - linux: py37-test-bitlevel
-          runs-on: ubuntu-20.04
-        - linux: py38-test-bitlevel
-          runs-on: ubuntu-20.04
         - linux: py39-test-bitlevel
           runs-on: ubuntu-20.04
         - linux: py310-test-bitlevel
