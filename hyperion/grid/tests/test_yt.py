@@ -91,6 +91,7 @@ class TestToYt(object):
         p.save(tmpdir.join('test.png').strpath)
 
 
+@pytest.mark.requires_hyperion_binaries
 @pytest.mark.skipif("YT_VERSION is None or YT_VERSION < 3")
 def test_from_yt(tmpdir):
 

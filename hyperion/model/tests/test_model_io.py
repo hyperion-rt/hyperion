@@ -130,6 +130,7 @@ def test_io_voronoi(tmpdir):
     m2 = Model.read(filename)
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_read_then_monochromatic(tmpdir):
 
     # If we run a model then read in the output and make a new model with

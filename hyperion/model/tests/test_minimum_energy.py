@@ -22,6 +22,7 @@ def teardown_module(module):
     shutil.rmtree(module.tmpdir)
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_minimum_temperature_scalar(tmpdir):
 
     input_file = tmpdir.join(random_id()).strpath
@@ -36,6 +37,7 @@ def test_minimum_temperature_scalar(tmpdir):
     assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 10., 10)
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_minimum_temperature_scalar_list(tmpdir):
 
     input_file = tmpdir.join(random_id()).strpath
@@ -98,6 +100,7 @@ def test_minimum_temperature_scalar_invalid5(tmpdir):
     assert exc.value.args[0] == 'Number of minimum_temperature values should match number of dust types'
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_minimum_temperature_scalar_2(tmpdir):
 
     input_file = tmpdir.join(random_id()).strpath
@@ -114,6 +117,7 @@ def test_minimum_temperature_scalar_2(tmpdir):
     assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 10., 10)
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_minimum_temperature_scalar_list_2(tmpdir):
 
     input_file = tmpdir.join(random_id()).strpath
@@ -143,6 +147,7 @@ def test_minimum_temperature_scalar_list_2_invalid(tmpdir):
     assert exc.value.args[0] == 'Number of minimum_temperature values should match number of dust types'
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_minimum_specific_energy_scalar(tmpdir):
 
     input_file = tmpdir.join(random_id()).strpath
@@ -157,6 +162,7 @@ def test_minimum_specific_energy_scalar(tmpdir):
     assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 2., 10)
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_minimum_specific_energy_scalar_list(tmpdir):
 
     input_file = tmpdir.join(random_id()).strpath
@@ -219,6 +225,7 @@ def test_minimum_specific_energy_scalar_invalid5(tmpdir):
     assert exc.value.args[0] == 'Number of minimum_specific_energy values should match number of dust types'
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_minimum_specific_energy_scalar_2(tmpdir):
 
     input_file = tmpdir.join(random_id()).strpath
@@ -235,6 +242,7 @@ def test_minimum_specific_energy_scalar_2(tmpdir):
     assert_array_almost_equal_nulp(t[0].array[0, 0, 0], 2., 10)
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_minimum_specific_energy_scalar_list_2(tmpdir):
 
     input_file = tmpdir.join(random_id()).strpath

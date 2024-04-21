@@ -7,6 +7,7 @@ from ..model import Model
 from .test_helpers import random_id, get_test_dust
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestSpecificEnergyType(object):
 
     def setup_method(self, method):

@@ -14,6 +14,7 @@ from ...util.functions import random_id
 from .test_helpers import get_test_dust, get_highly_reflective_dust
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestImageSimpleModel(object):
 
     def setup_class(self):
@@ -109,6 +110,7 @@ class TestImageSimpleModel(object):
             wav, nufnu = self.m.get_image(units=units)
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestImageSimpleModelTrackingDetailed(object):
 
     def setup_class(self):
@@ -197,6 +199,7 @@ class TestImageSimpleModelTrackingDetailed(object):
         assert exc.value.args[0] == 'dust_id should be between 0 and 0'
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestImageSimpleModelTrackingScatterings(object):
 
     def setup_class(self):
@@ -282,6 +285,7 @@ class TestImageSimpleModelTrackingScatterings(object):
                 assert image.val.sum() == 0.
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestSimpleModelInside(object):
 
     def setup_class(self):
@@ -320,6 +324,7 @@ class TestSimpleModelInside(object):
         assert e.value.args[0] == 'Cannot specify distance for inside observers'
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_regression_depth_bug(tmpdir):
     """
     This is a regression test for issue #21 reported by T. Bowers. If multiple
@@ -377,6 +382,7 @@ def test_regression_depth_bug(tmpdir):
     assert image3.sum() == image2.sum()
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestImage(object):
 
     def setup_class(self):
@@ -504,6 +510,7 @@ class TestImage(object):
         assert_array_almost_equal_nulp((ref.val / ref.nu), MJy_per_sr.val * 1.e-17 * MJy_per_sr.pix_area_sr, 10)
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestInsideImage(object):
 
     def setup_class(self):
@@ -625,6 +632,7 @@ class TestInsideImage(object):
         assert_array_almost_equal_nulp((ref.val / ref.nu), MJy_per_sr.val * 1.e-17 * MJy_per_sr.pix_area_sr[:, :, np.newaxis], 10)
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_flux_preserved_scatterings(tmpdir):
     # Regression test for issue #102 to ensure that flux is preserved when in
     # 'scatterings' mode
@@ -670,6 +678,7 @@ def test_flux_preserved_scatterings(tmpdir):
     np.testing.assert_allclose(image1.val, source.val + dust.val)
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestImageStokesOption(object):
 
     def setup_class(self):

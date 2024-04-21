@@ -1,9 +1,12 @@
+import pytest
+
 import numpy as np
 
 from ..model import Model
 from .test_helpers import random_id, get_test_dust
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_mono_zero_prob(tmpdir):
 
     # Check that when total probability is zero in a given dust type for a given wavelength, the code doesn't crash
@@ -32,6 +35,7 @@ def test_mono_zero_prob(tmpdir):
     m.run(tmpdir.join(random_id()).strpath)
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_check_weighting(tmpdir):
     '''
     This is a regression test for a bug that caused incorrect weighting of the

@@ -22,6 +22,7 @@ class TestWriteDustCopy(object):
 
         self.model = get_test_model_noimaging()
 
+    @pytest.mark.requires_hyperion_binaries
     def test_copy_filename(self, tmpdir):
         dust_file = tmpdir.join(random_id()).strpath
         self.dust.write(dust_file)
@@ -29,11 +30,13 @@ class TestWriteDustCopy(object):
         self.model.write(tmpdir.join(random_id()).strpath, copy=True)
         self.model.run(tmpdir.join(random_id()).strpath)
 
+    @pytest.mark.requires_hyperion_binaries
     def test_copy_object(self, tmpdir):
         self.model.add_density_grid(self.density, self.dust)
         self.model.write(tmpdir.join(random_id()).strpath, copy=True)
         self.model.run(tmpdir.join(random_id()).strpath)
 
+    @pytest.mark.requires_hyperion_binaries
     def test_link_filename(self, tmpdir):
         dust_file = tmpdir.join(random_id()).strpath
         self.dust.write(dust_file)
@@ -48,6 +51,7 @@ class TestWriteDustCopy(object):
         assert e.value.args[0] == 'Dust properties are not located in a file, so cannot link. Use copy=True or write the dust properties to a file first'
 
 
+@pytest.mark.requires_hyperion_binaries
 @pytest.mark.parametrize(('write_copy'), [True, False])
 def test_input_link(write_copy, tmpdir):
 
@@ -74,6 +78,7 @@ def test_input_link(write_copy, tmpdir):
     f.close()
 
 
+@pytest.mark.requires_hyperion_binaries
 @pytest.mark.parametrize(('write_copy'), [True, False])
 def test_input_copy(write_copy, tmpdir):
 

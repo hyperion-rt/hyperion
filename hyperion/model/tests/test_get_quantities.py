@@ -1,3 +1,5 @@
+import pytest
+
 import numpy as np
 
 from .. import Model
@@ -5,6 +7,7 @@ from ...util.functions import random_id
 from .test_helpers import get_test_dust
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_no_initial(tmpdir):
     m = Model()
     m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
