@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
 import numpy
+import sys
 from setuptools import setup, Extension
 
 kwargs = {}
 kwargs['py_limited_api'] = True
 kwargs['include_dirs'] = [numpy.get_include()]
-kwargs['extra_compile_args'] = ['-Wno-error=declaration-after-statement']
+if sys.platform != "win32":
+    kwargs['extra_compile_args'] = ['-Wno-error=declaration-after-statement']
 
 ext_modules = [Extension("hyperion.util._integrate_core",
                          ['hyperion/util/_integrate_core.c'],
