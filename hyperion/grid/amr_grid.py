@@ -608,10 +608,6 @@ class AMRGrid(FreezableClass):
         """
 
         import yt
-        from distutils.version import LooseVersion
-
-        if not LooseVersion(yt.__version__) >= LooseVersion('3'):
-            raise ImportError("yt 3.0 or later is required")
 
         from .yt_wrappers import yt_dataset_to_amr_grid
         return yt_dataset_to_amr_grid(ds, quantity_mapping=quantity_mapping)

@@ -1,5 +1,3 @@
-from distutils.version import LooseVersion
-
 import pytest
 import numpy as np
 
@@ -12,10 +10,7 @@ try:
 except:
     YT_VERSION = None
 else:
-    if LooseVersion(yt.__version__) >= LooseVersion('3'):
-        YT_VERSION = 3
-    else:
-        YT_VERSION = 2
+    YT_VERSION = 3
 
 
 @pytest.mark.requires_hyperion_binaries
