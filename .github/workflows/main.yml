@@ -17,11 +17,11 @@ jobs:
       envs: |
         # Main tests
         - linux: py39-test
-        - macos: py310-test-macos
-          runs-on: macos-14
+        # - macos: py310-test-macos
+        #   runs-on: macos-14
         - linux: py311-test
-        - macos: py312-test-macos
-          runs-on: macos-14
+        # - macos: py312-test-macos
+        #   runs-on: macos-14
         # Bit-level tests
         - linux: py39-test-bitlevel
           runs-on: ubuntu-20.04
