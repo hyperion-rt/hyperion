@@ -51,6 +51,6 @@ jobs:
       targets: |
         - linux
         - macos
-        - windows
+        #- windows
     secrets:
       pypi_token: ${{ secrets.pypi_token }}
