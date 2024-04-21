@@ -1,6 +1,6 @@
 # Info
 
-AC_INIT(rt,version-1.0)
+AC_INIT([rt],[version-1.0])
 
 # Docstring for options
 
@@ -72,7 +72,7 @@ AC_CHECK_PROGS(hdf_compiler, [h5fc h5pfc], none)
 
 if test "$hdf_compiler" == none
 then
-  AC_ERROR("The HDF5 library with support for Fortran needs to be installed")
+  AC_MSG_ERROR("The HDF5 library with support for Fortran needs to be installed")
 else
   AC_SUBST(serial_fc, "$hdf_compiler")
 fi
@@ -87,6 +87,9 @@ else
   if test "$hdf_compiler" == "mpif90"
   then
     hdf_compiler=`basename $(mpif90 -show | awk {'print $1'})`
+  elif test "$hdf_compiler" == "mpifort"
+  then
+    hdf_compiler=`basename $(mpifort -show | awk {'print $1'})`
   fi
 fi
 
@@ -157,14 +160,21 @@ then
   if test "$mpi_compiler" == mpif90
   then
     mpi_compiler=`basename $(mpif90 -show | awk {'print $1'})`
+  elif test "$mpi_compiler" == mpifort
+  then
+    mpi_compiler=`basename $(mpifort -show | awk {'print $1'})`
   fi
   AC_SUBST(mpi_fc, 'h5pfc')
 elif test "$parallel_compiler" == mpif90
 then
   mpi_compiler=`basename $(mpif90 -show | awk {'print $1'})`
   AC_SUBST(mpi_fc, 'HDF5_FLINKER=mpif90 HDF5_FC=mpif90 h5fc')
+elif test "$parallel_compiler" == mpifort
+then
+  mpi_compiler=`basename $(mpifort -show | awk {'print $1'})`
+  AC_SUBST(mpi_fc, 'HDF5_FLINKER=mpifort HDF5_FC=mpifort h5fc')
 else
-  AC_ERROR(["h5pfc or mpif90 need to be present"])
+  AC_MSG_ERROR("h5pfc or mpif90 need to be present")
 fi
 
 # gfortran sometimes includes version number and/or platform info
@@ -213,4 +223,5 @@ fi
 
 # Output final Makefile
 
-AC_OUTPUT(Makefile)
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT

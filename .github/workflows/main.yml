@@ -12,11 +12,17 @@ jobs:
         apt:
           - libhdf5-serial-dev
           - libmpich-dev
+        brew:
+          - hdf5-mpi
       envs: |
-        - linux: py37-test-bitlevel
-          runs-on: ubuntu-20.04
-        - linux: py38-test-bitlevel
-          runs-on: ubuntu-20.04
+        # Main tests
+        - linux: py39-test
+        # - macos: py310-test-macos
+        #   runs-on: macos-14
+        - linux: py311-test
+        # - macos: py312-test-macos
+        #   runs-on: macos-14
+        # Bit-level tests
         - linux: py39-test-bitlevel
           runs-on: ubuntu-20.04
         - linux: py310-test-bitlevel
