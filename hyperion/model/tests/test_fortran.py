@@ -9,6 +9,7 @@ from .. import Model
 from .test_helpers import random_id, get_test_dust
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_point_source_outside_grid(tmpdir):
 
     dust = get_test_dust()
@@ -30,6 +31,7 @@ def test_point_source_outside_grid(tmpdir):
     assert 'photon was not emitted inside a cell' in open(log_file).read()
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_unsorted_spectrum(tmpdir):
 
     m = Model()
@@ -47,6 +49,7 @@ def test_unsorted_spectrum(tmpdir):
     assert 'spectrum frequency should be monotonically increasing' in open(log_file).read()
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_spectrum_dust_nooverlap(tmpdir):
 
     # Set up dust with a narrow frequency range

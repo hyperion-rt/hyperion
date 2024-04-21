@@ -16,6 +16,7 @@ from ...util.functions import random_id
 from .test_helpers import get_test_dust
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestSEDSimpleModel(object):
 
     def setup_class(self):
@@ -136,6 +137,7 @@ class TestSEDSimpleModel(object):
         assert exc.value.args[0] == 'Since distance= is not specified, units should be set to ergs/s'
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestSEDSimpleModelTrackingDetailed(object):
 
     def setup_class(self):
@@ -218,6 +220,7 @@ class TestSEDSimpleModelTrackingDetailed(object):
         assert exc.value.args[0] == 'dust_id should be between 0 and 0'
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestSEDSimpleModelTrackingScatterings(object):
 
     def setup_class(self):
@@ -302,6 +305,7 @@ class TestSEDSimpleModelTrackingScatterings(object):
                 assert sed.val.sum() == 0.
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestSED(object):
 
     def setup_class(self):
@@ -398,6 +402,7 @@ class TestSED(object):
         assert_array_almost_equal_nulp((ref.val / ref.nu), mJy.val * 1.e-26, 10)
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestSEDStokesOption(object):
 
     def setup_class(self):

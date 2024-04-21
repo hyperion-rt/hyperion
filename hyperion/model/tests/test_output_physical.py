@@ -7,6 +7,7 @@ from ...util.functions import random_id
 from .test_helpers import get_test_model_noimaging, get_test_dust
 
 
+@pytest.mark.requires_hyperion_binaries
 @pytest.mark.parametrize(('output'), ['density', 'density_diff',
                                       'n_photons', 'specific_energy'])
 def test_output_grids_exist(tmpdir, output):
@@ -36,6 +37,7 @@ def test_output_grids_exist(tmpdir, output):
         model_out.get_quantities()['temperature']
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_output_grids_density(tmpdir):
 
     # Get a dust object

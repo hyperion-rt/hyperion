@@ -29,6 +29,7 @@ T_REF = [24.75280,
          21211.08]
 
 
+@pytest.mark.requires_hyperion_binaries
 @pytest.mark.parametrize(('density_ref', 'temperature_ref'), zip(D_REF, T_REF))
 def test_single_temperature(tmpdir, density_ref, temperature_ref):
 
@@ -62,6 +63,7 @@ def test_single_temperature(tmpdir, density_ref, temperature_ref):
     assert temperature_ref / temperature < 1.1 and temperature / temperature_ref < 1.1
 
 
+@pytest.mark.requires_hyperion_binaries
 @pytest.mark.parametrize(('density_ref', 'temperature_ref'), zip(D_REF, T_REF))
 def test_multi_temperature(tmpdir, density_ref, temperature_ref):
 

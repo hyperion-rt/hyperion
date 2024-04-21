@@ -137,6 +137,7 @@ def test_analytical_yso_add_density():
     assert exc.value.args[0] == 'add_density_grid cannot be used for AnalyticalYSOModel'
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_analytical_yso_use_quantities_invalid(tmpdir):
 
     output_file = tmpdir.join(random_id()).strpath
@@ -155,6 +156,7 @@ def test_analytical_yso_use_quantities_invalid(tmpdir):
     assert exc.value.args[0] == "use_quantities cannot be used for AnalyticalYSOModel"
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_analytical_yso_use_geometry_invalid(tmpdir):
 
     output_file = tmpdir.join(random_id()).strpath

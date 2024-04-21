@@ -4,10 +4,7 @@ import sys
 import subprocess
 import os
 
-if sys.version_info[0] == 2:
-    from ConfigParser import SafeConfigParser
-else:
-    from configparser import SafeConfigParser
+from configparser import ConfigParser
 
 if (sys.version_info[0] == 2 and sys.version_info[1] < 7) or \
    (sys.version_info[0] == 3 and sys.version_info[1] <= 1):
@@ -66,7 +63,7 @@ if n_cores is None:
 else:
 
     filename = os.path.expanduser('~/.hyperionrc')
-    config = SafeConfigParser()
+    config = ConfigParser()
     config.read(filename)
 
     if config.has_option('mpi', 'command'):

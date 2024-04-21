@@ -11,6 +11,7 @@ from ...util.functions import random_id
 from .test_helpers import get_test_dust
 
 
+@pytest.mark.requires_hyperion_binaries
 @pytest.mark.parametrize(('grid_type', 'copy'), list(product(['car', 'sph', 'cyl', 'amr', 'oct'], [(True, True), (False, True), (False, False)])))
 def test_use_quantities(tmpdir, grid_type, copy):
 

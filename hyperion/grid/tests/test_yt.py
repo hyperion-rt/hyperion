@@ -1,7 +1,6 @@
 import os
 import sys
 from copy import deepcopy
-from distutils.version import LooseVersion
 import h5py
 import numpy as np
 import pytest
@@ -21,10 +20,7 @@ try:
 except:
     YT_VERSION = None
 else:
-    if LooseVersion(yt.__version__) >= LooseVersion('3'):
-        YT_VERSION = 3
-    else:
-        YT_VERSION = 2
+    YT_VERSION = 3
 
 DATA = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -91,7 +87,8 @@ class TestToYt(object):
         p.save(tmpdir.join('test.png').strpath)
 
 
-@pytest.mark.skipif("YT_VERSION is None or YT_VERSION < 3")
+@pytest.mark.requires_hyperion_binaries
+@pytest.mark.skipif("YT_VERSION is None")
 def test_from_yt(tmpdir):
 
     from yt import load

@@ -1,5 +1,3 @@
-from distutils.version import LooseVersion
-
 import pytest
 import numpy as np
 
@@ -12,12 +10,10 @@ try:
 except:
     YT_VERSION = None
 else:
-    if LooseVersion(yt.__version__) >= LooseVersion('3'):
-        YT_VERSION = 3
-    else:
-        YT_VERSION = 2
+    YT_VERSION = 3
 
 
+@pytest.mark.requires_hyperion_binaries
 @pytest.mark.parametrize(('direction'), ['x', 'y', 'z'])
 def test_amr_differing_widths(tmpdir, direction):
 
@@ -57,6 +53,7 @@ def test_amr_differing_widths(tmpdir, direction):
     assert ('Grids 1 and 2 in level 1 have differing cell widths in the %s \n           direction ( 5.0000E+00 and  5.0250E+00 respectively)' % direction) in open(log_file).read()
 
 
+@pytest.mark.requires_hyperion_binaries
 @pytest.mark.parametrize(('direction'), ['x', 'y', 'z'])
 def test_amr_misaligned_grids_same_level(tmpdir, direction):
 
@@ -97,6 +94,7 @@ def test_amr_misaligned_grids_same_level(tmpdir, direction):
     assert ('Grids 1 and 2 in level 1 have edges that are not separated by \n           an integer number of cells in the %s direction' % direction) in open(log_file).read()
 
 
+@pytest.mark.requires_hyperion_binaries
 @pytest.mark.parametrize(('direction'), ['x', 'y', 'z'])
 def test_amr_non_integer_refinement(tmpdir, direction):
 
@@ -138,6 +136,7 @@ def test_amr_non_integer_refinement(tmpdir, direction):
     assert ('Refinement factor in the %s direction between level 1 and \n           level 2 is not an integer (1.818)' % direction) in open(log_file).read()
 
 
+@pytest.mark.requires_hyperion_binaries
 @pytest.mark.parametrize(('direction'), ['x', 'y', 'z'])
 def test_amr_not_aligned_across_levels(tmpdir, direction):
 
@@ -180,6 +179,7 @@ def test_amr_not_aligned_across_levels(tmpdir, direction):
     assert ('Grid 1 in level 2 is not aligned with cells in level 1 in the \n           %s direction' % direction) in open(log_file).read()
 
 
+@pytest.mark.requires_hyperion_binaries
 @pytest.mark.skipif("YT_VERSION is None")
 def test_shadowing_regression(tmpdir):
 

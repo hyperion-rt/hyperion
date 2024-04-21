@@ -15,13 +15,26 @@ jobs:
         brew:
           - hdf5-mpi
       envs: |
-        # Main tests
+        # Tests that don't rely on Fortran binaries
+        - linux: py39-test-nobinaries
+        - linux: py310-test-nobinaries
+        - linux: py311-test-nobinaries
+        - linux: py312-test-nobinaries
+        - macos: py39-test-nobinaries
+        - macos: py310-test-nobinaries
+        - macos: py311-test-nobinaries
+        - macos: py312-test-nobinaries
+        - windows: py39-test-nobinaries
+        - windows: py310-test-nobinaries
+        - windows: py311-test-nobinaries
+        - windows: py312-test-nobinaries
+
+        # Main tests including Fortran binaries
         - linux: py39-test
-        # - macos: py310-test-macos
-        #   runs-on: macos-14
+        - linux: py310-test
         - linux: py311-test
-        # - macos: py312-test-macos
-        #   runs-on: macos-14
+        - linux: py312-test
+
         # Bit-level tests
         - linux: py39-test-bitlevel
           runs-on: ubuntu-20.04

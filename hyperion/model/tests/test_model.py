@@ -115,6 +115,7 @@ class TestAllGridTypes(object):
             m.write(tmpdir.join(random_id()).strpath)
         assert exc.value.args[0] == "Not all dust lists in the grid have the same size"
 
+    @pytest.mark.requires_hyperion_binaries
     @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
     def test_add_density(self, tmpdir, grid_type):
         m = Model()
@@ -127,6 +128,7 @@ class TestAllGridTypes(object):
         m.write(tmpdir.join(random_id()).strpath)
         m.run(tmpdir.join(random_id()).strpath)
 
+    @pytest.mark.requires_hyperion_binaries
     @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
     def test_add_density_from_grid(self, tmpdir, grid_type):
         m = Model()
@@ -144,6 +146,7 @@ class TestAllGridTypes(object):
         m.write(tmpdir.join(random_id()).strpath)
         m.run(tmpdir.join(random_id()).strpath)
 
+    @pytest.mark.requires_hyperion_binaries
     @pytest.mark.parametrize(('grid_type'), ['car', 'sph', 'cyl', 'amr', 'oct'])
     def test_merge_density(self, tmpdir, grid_type):
         m = Model()
@@ -275,6 +278,7 @@ class TestMerge(object):
         assert m.grid.n_dust == 2
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_dust_mix(tmpdir):
     # This is a regression test for a bug which caused the code to crash if
     # isotropic dust and non-isotropic dust were used together.
@@ -299,6 +303,7 @@ def test_dust_mix(tmpdir):
     m.run(tmpdir.join(random_id()).strpath)
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_voronoi_basics(tmpdir):
     # A test to check the interaction between C++, Fortran and Python,
     # and to test the internal consistency of the Voronoi gridding.
@@ -365,6 +370,7 @@ def test_dust_changed_save(tmpdir):
     m.write(tmpdir.join(random_id()).strpath, copy=False)
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_model_minimal(tmpdir):
 
     m = Model()

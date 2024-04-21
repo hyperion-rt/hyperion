@@ -1,24 +1,25 @@
 #!/usr/bin/env python
 
 import numpy
+import sys
 from setuptools import setup, Extension
+
+kwargs = {}
+kwargs['py_limited_api'] = True
+kwargs['include_dirs'] = [numpy.get_include()]
+if sys.platform != "win32":
+    kwargs['extra_compile_args'] = ['-Wno-error=declaration-after-statement']
 
 ext_modules = [Extension("hyperion.util._integrate_core",
                          ['hyperion/util/_integrate_core.c'],
-                         py_limited_api=True,
-                         include_dirs=[numpy.get_include()],
-                         extra_compile_args=['-Wno-error=declaration-after-statement']),
-               Extension("hyperion.util._interpolate_core",
+                         **kwargs),
+              Extension("hyperion.util._interpolate_core",
                          ['hyperion/util/_interpolate_core.c'],
-                         py_limited_api=True,
-                         include_dirs=[numpy.get_include()],
-                         extra_compile_args=['-Wno-error=declaration-after-statement']),
-               Extension("hyperion.importers._discretize_sph",
+                         **kwargs),
+              Extension("hyperion.importers._discretize_sph",
                          ['hyperion/importers/_discretize_sph.c'],
-                         py_limited_api=True,
-                         include_dirs=[numpy.get_include()],
-                         extra_compile_args=['-Wno-error=declaration-after-statement']),
-               Extension("hyperion.grid._voronoi_core",
+                         **kwargs),
+              Extension("hyperion.grid._voronoi_core",
                          ['hyperion/grid/_voronoi_core.c',
                           'hyperion/grid/voropp_wrap.cc',
                           'hyperion/grid/voro++/c_loops.cc',
@@ -31,10 +32,8 @@ ext_modules = [Extension("hyperion.util._integrate_core",
                           'hyperion/grid/voro++/v_base.cc',
                           'hyperion/grid/voro++/v_compute.cc',
                           'hyperion/grid/voro++/wall.cc'],
-                         py_limited_api=True,
-                         include_dirs=[numpy.get_include()],
-                         extra_compile_args = ['-O2', '-Wno-error=declaration-after-statement'],
-                         extra_link_args=['-lstdc++'])]
+                         extra_link_args=['-lstdc++'],
+                         **kwargs)]
 
 setup(scripts=['scripts/hyperion', 'scripts/hyperion2fits'],
       ext_modules=ext_modules)

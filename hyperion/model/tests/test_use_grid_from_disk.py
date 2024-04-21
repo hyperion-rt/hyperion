@@ -1,3 +1,5 @@
+import pytest
+
 import h5py
 
 import numpy as np
@@ -9,6 +11,7 @@ from .test_helpers import random_id, get_test_dust
 from ...grid import CartesianGrid
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_use_grid_from_file(tmpdir):
 
     grid_file = tmpdir.join(random_id()).strpath

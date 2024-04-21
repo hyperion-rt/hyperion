@@ -71,24 +71,29 @@ class TestFilters(object):
     def teardown_class(self):
         shutil.rmtree(self.tmpdir)
 
+    @pytest.mark.requires_hyperion_binaries
     def test_image_wav(self):
         image = self.m.get_image()
         np.testing.assert_allclose(image.nu, [2.60689094e+14, 1.39438353e+14])
         np.testing.assert_allclose(image.wav, [1.15, 2.15])
 
+    @pytest.mark.requires_hyperion_binaries
     def test_sed_wav(self):
         sed = self.m.get_sed()
         np.testing.assert_allclose(sed.nu, [2.60689094e+14, 1.39438353e+14])
         np.testing.assert_allclose(sed.wav, [1.15, 2.15])
 
+    @pytest.mark.requires_hyperion_binaries
     def test_image_shape(self):
         image = self.m.get_image()
         assert image.val.shape == (3, 20, 10, 2)
 
+    @pytest.mark.requires_hyperion_binaries
     def test_sed_shape(self):
         sed = self.m.get_sed()
         assert sed.val.shape == (3, 1, 2)
 
+    @pytest.mark.requires_hyperion_binaries
     def test_image_values(self):
         image = self.m.get_image(units='MJy/sr', distance=1)
         np.testing.assert_allclose(np.sum(image.val[:, :, :, 0]), 3438.059082285024, rtol=0.1)

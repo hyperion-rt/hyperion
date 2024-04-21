@@ -21,6 +21,7 @@ def any_photons_killed(handle):
             handle.attrs['killed_photons_int_raytracing'] != 0)
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestCartesianBase(object):
 
     x = np.linspace(-10., 10., 15)
@@ -148,6 +149,7 @@ class TestCartesianSmall(TestCartesianBase):
     z = np.linspace(-10.e-20, 10.e-20, 15)
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestSphericalBase(object):
 
     r = np.linspace(0., 10., 15)
@@ -350,6 +352,7 @@ class TestSphericalSmall(object):
     p = np.linspace(0., 2. * np.pi, 15)
 
 
+@pytest.mark.requires_hyperion_binaries
 class TestCylindricalBase(object):
 
     w = np.linspace(0., 10., 15)

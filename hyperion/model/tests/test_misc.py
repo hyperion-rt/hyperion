@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 
 from .. import Model
@@ -5,6 +6,7 @@ from .. import Model
 from .test_helpers import get_test_model_noimaging, random_id
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_monochromatic_wav(tmpdir):
 
     model = Model()
@@ -23,6 +25,7 @@ def test_monochromatic_wav(tmpdir):
     model.run(tmpdir.join(random_id()).strpath)
 
 
+@pytest.mark.requires_hyperion_binaries
 def test_model_spectrum(tmpdir):
 
     model = get_test_model_noimaging()
