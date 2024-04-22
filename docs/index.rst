@@ -41,6 +41,8 @@ If you need consulting on using Hyperion beyond the current documentation, then
 please `contact me <mailto:thomas.robitaille@gmail.com>`_ with details of your
 project.
 
+For details of changes between Hyperion versions, see the `changelog <https://github.com/hyperion-rt/hyperion/blob/main/CHANGES.md>`_.
+
 Note on units and constants
 ---------------------------
 
@@ -79,7 +81,6 @@ Advanced
    advanced/advanced.rst
    api/api.rst
    contributing.rst
-   changes.rst
 
 Credits
 -------
