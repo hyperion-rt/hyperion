@@ -31,29 +31,25 @@
 
 ## v0.9.7 - 2015-08-22
 
-New features
-^^^^^^^^^^^^
+### New features
 
 - Added support for on-the-fly filter convolution. [#119]
 - Power-law and Ulrich envelopes can now be used on cylindrical polar grids. [#136]
 - Provide a way to sample random positions inside Voronoi cells. [#134, #151]
 - Added the ability to load AMR grids from yt datasets. [#148]
 
-Bug fixes
-^^^^^^^^^
+### Bug fixes
 
 - Correctly raise an error if photons are emitted outside the Voronoi grid. [#127]
 - Avoid issues with number of photons when reading in models. [#145]
 - Fix a bug that caused sublimation parameters to not be correctly read in. [#133]
 - Fixed Fortran dependencies install script.
 
-API changes
-^^^^^^^^^^^
+### API changes
 
 - `set_aperture_range` has been renamed to `set_aperture_radii` to emphasize that these are radii. [#132]
 
-Other
-^^^^^
+### Other
 
 - Internal refactoring of how spectra are gridded for raytracing to make it easier to implement Doppler-shifted spectra in future. [#126]
 - Optimizations to memory and disk usage for Voronoi grids. [#128, #154, #156]
@@ -62,15 +58,13 @@ Other
 
 ## v0.9.6 - 2015-02-27
 
-Bug fixes
-^^^^^^^^^
+### Bug fixes
 
 - Fixed backward compatibility with files that don't include d_min/d_max
 
 ## v0.9.5 - 2015-02-17
 
-New features
-^^^^^^^^^^^^
+### New features
 
 - Added an importer function, `construct_octree`, to convert a list of SPH particles into an Octree grid. [#67]
 - Addded support for Voronoi grids. Voronoi grids can be set via the `~hyperion.model.Model.set_voronoi_grid` method, passing in the `x`, `y` and `z` coordinates of the sites as arguments. [#92]
@@ -83,41 +77,35 @@ New features
 - `Image` and `SED` objects now include attributes `d_min` and `d_max` that indicate the depth of the region used to contruct the image or SED. [#121]
 - Fixed a bug in the computation of the Rosseland mean opacity (it was in fact the Planck reciprocal mean opacity). Dust files have now been updated to version 2 to include both the Rosseland mean opacity and the Planck reciprocal mean opacity. [#123]
 
-Bug fixes
-^^^^^^^^^
+### Bug fixes
 
 - Fixed a minor bug in the logic for killing photons that have had too many interactions. [#100]
 - Fixed a bug that meant that BipolarCavity instances could not be subtracted from AmbientMedium instances. [#106]
 
-Other improvements
-^^^^^^^^^^^^^^^^^^
+### Other improvements
 
 - The `to_yt()` methods are now compatible with yt 3.x (3.0.1 and later recommended). [#113]
 - The `uncertainties=True` mode for `get_sed` and `get_image` has now been properly vectorized and should be faster by a factor of a few when requesting polarization results. [#114]
 
 ## v0.9.4 - 2014-01-29
 
-New features
-^^^^^^^^^^^^
+### New features
 
 - Image and SED groups now have a `set_stokes` option that allows users to specify whether to save Stokes componenets other than I. Prior to this version, all Stokes components were always saved, but this resulted in an unecessarily high memory usage in many cases, so the default is now set to `False`, and users have to explicitly set `set_stokes(True)` in order to save all Stokes components. [#61]
 - It is now possible to turn off the warnings that occur when photons are killed due to too many interactions, using the `warn=True/False` option for the :meth:`~hyperion.model.Model.set_max_interactions` method (and other similar methods). [#68]
 
-Bug fixes
-^^^^^^^^^
+### Bug fixes
 
 - Fix Fortran dependency installer for gfortran 4.5 and earlier
 - Fixed a bug that caused models using the monochromatic radiative transfer settings to not be read in correctly by :meth:`~hyperion.model.Model.read`. [#78]
 
-API Changes
-^^^^^^^^^^^
+### API Changes
 
 - When using the monochromatic radiative transfer mode, users should now use the :meth:`~hyperion.conf.PeeledImageConf.set_wavelength_index_range` method instead of :meth:`~hyperion.conf.PeeledImageConf.set_wavelength_range`. [#78]
 
 ## v0.9.3 - 2013-11-14
 
-New features
-^^^^^^^^^^^^
+### New features
 
 - For models that require many point sources with a common spectrum, a new source type (point source collection) is now available. To add a point source collection, use `source = m.add_point_source_collection()`. The `source.luminosity` attribute should be set to an array with as many elements as sources, and the `source.position` attribute should be set to a 2-d array where the first dimension matches `source.luminosity`, and with 3 elements in the second dimension (x, y, and z).
 - Sources can now be given names as strings, which can then be used as an argument to `source_id` in :meth:`~hyperion.model.ModelOutput.get_sed` and :meth:`~hyperion.model.ModelOutput.get_image` (when using photon tracking).
@@ -132,8 +120,7 @@ New features
 
 ## v0.9.2 - 2013-08-16
 
-New Features
-^^^^^^^^^^^^
+### New Features
 
 - :meth:`~hyperion.model.ModelOutput.get_sed` and :meth:`~hyperion.model.ModelOutput.get_image` now return SED and Image objects that contain meta-data in addition to the data itself. For example, images contain information about the field of view (in physical/angular units, where appropriate), and information about the units is also included. The old syntax of `wav, nufnu = m.get_sed(...)` will still work, but the meta-data will not be accessible in those cases.
 - New library of dust models, accessible in :doc:`dust/dust`
@@ -144,8 +131,7 @@ New Features
 - A new function, :func:`~hyperion.model.helpers.run_with_vertical_hseq`, is available to help with the calculation of vertical Hydrostatic equilibrium in disks. Note that this feature is still experimental and should be used with care.
 - A new function, :func:`~hyperion.model.helpers.tau_to_radius`, is available to compute, for spherical polar grids, the optical depth from infinity to a given radius.
 
-Improvements
-^^^^^^^^^^^^
+### Improvements
 
 - PyFITS, PyWCS, and ATpy are no longer required for Hyperion. Instead, the `Astropy <http://www.astropy.org>`_ package is now required as a dependency.
 - Updated download link for MPICH2
@@ -155,35 +141,30 @@ Improvements
 - The Fortran code now reads in dust models faster because it computes all cumulative distribution functions more efficiently.
 - Statistics for killed photons are now kept for each iteration rather than just summing all of them.
 
-Bug fixes
-^^^^^^^^^
+### Bug fixes
 
 - Fix compatibility with Numpy 1.8.0.dev
 - Fix coverage testing for Python 3
 - Fixed an issue which caused temporary files to not be deleted after running tests.
 
-API changes
-^^^^^^^^^^^
+### API changes
 
 - The `AnalyticalYSOModel.evaluate_optically_thin_radii()` method has been removed.
 
 ## v0.9.1 - 2012-10-26
 
-New Features
-^^^^^^^^^^^^
+### New Features
 
 - Updated hyperion2fits to extract binned images
 - Added wmax= option for AnalyticalYSOModel.set_cylindrical_grid_auto
 
-Improvements
-^^^^^^^^^^^^
+### Improvements
 
 - Made deps/fortran/install.py script more robust to architecture, and to lack of zlib library.
 - Ensure that spectrum always gets converted to floating-point values
 - Give a more explicit error message if optical properties for dust are not set.
 
-Bug fixes
-^^^^^^^^^
+### Bug fixes
 
 - Fixed bug that prevented BipolarCavity from being used
 - Ensure that get_quantities works even if no initial iterations were computed
