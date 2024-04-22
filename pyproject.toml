@@ -6,3 +6,6 @@ build-backend = 'setuptools.build_meta'
 
 [tool.setuptools_scm]
 write_to = "hyperion/_version.py"
+
+[tool.cibuildwheel]
+skip = "pp* *-musllinux* *aarch64*"
