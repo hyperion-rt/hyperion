@@ -96,11 +96,11 @@ Python module
 
 Install the Python module with::
 
-    pip install .
+    pip install ".[recommended]"
 
 or::
 
-    pip install . --user
+    pip install ".[recommended]" --user
 
 if you do not have root access. Check that the module installed correctly::
 
