@@ -5,6 +5,7 @@ on:
   pull_request:
 
 jobs:
+
   tests:
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     with:
@@ -40,3 +41,16 @@ jobs:
           runs-on: ubuntu-20.04
         - linux: py310-test-bitlevel
           runs-on: ubuntu-20.04
+
+
+  publish:
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@v1
+    with:
+      test_extras: test
+      test_command: pytest --pyargs hyperion -m "not requires_hyperion_binaries"
+      targets: |
+        - linux
+        - macos
+        #- windows
+    secrets:
+      pypi_token: ${{ secrets.pypi_token }}

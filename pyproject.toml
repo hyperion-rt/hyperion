@@ -1,9 +1,11 @@
 [build-system]
 requires = ["setuptools",
             "setuptools_scm>=6.2",
-            "wheel",
-            "oldest-supported-numpy"]
+            "numpy>=2.0.0rc1"]
 build-backend = 'setuptools.build_meta'
 
 [tool.setuptools_scm]
 write_to = "hyperion/_version.py"
+
+[tool.cibuildwheel]
+skip = "pp* *-musllinux* *aarch64* *i686*"
