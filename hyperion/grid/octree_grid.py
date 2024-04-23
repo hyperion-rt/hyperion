@@ -259,7 +259,7 @@ class OctreeGrid(FreezableClass):
     @property
     def limits(self):
         from hyperion.importers._discretize_sph import _get_positions_widths
-        xc, yc, zc, xw, yw, zw = _get_positions_widths(self.refined,
+        xc, yc, zc, xw, yw, zw = _get_positions_widths(self.refined.astype(bool),
                                                        self.x, self.y, self.z,
                                                        self.dx, self.dy, self.dz)
         return xc - xw, xc + xw, yc - yw, yc + yw, zc - zw, zc + zw
