@@ -8,4 +8,4 @@ build-backend = 'setuptools.build_meta'
 write_to = "hyperion/_version.py"
 
 [tool.cibuildwheel]
-skip = "pp* *-musllinux* *aarch64* *i686*"
+skip = "pp* *-musllinux* *aarch64* *i686* *win32*"
