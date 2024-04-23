@@ -26,7 +26,7 @@ static PyMethodDef module_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-int recursive_position_width(int i, long *refined,
+int recursive_position_width(int i, npy_bool *refined,
                              double x, double y, double z,
                              double dx, double dy, double dz,
                              double *xc, double *yc, double *zc,
