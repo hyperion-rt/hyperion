@@ -86,6 +86,13 @@ The temperatures specified should range from 0.1K (or less) to a
 temperature safely above the maximum temperature expected for the dust in
 the system.
 
+The resulting hdf5 file will end up with [8 columns](https://github.com/hyperion-rt/hyperion/blob/2159b39f5cafaeb653f2541502eef194a78102d6/hyperion/dust/mean_opacities.py#L15-L27):
+``temperature``, ``specific_energy``, ``chi_planck``, ``kappa_planck``, ``chi_inv_planck``,
+``kappa_inv_planck``, ``chi_rosseland``, ``kappa_rosseland``.
+The ``_inv`` columns are the inverse (reciprocal) of their counterparts.
+Where the Planck mean is $$\frac{\int \kappa_\nu B_\nu d \nu}{\int B_\nu d\nu}$$,
+the inverse is $$\frac{\int B_\nu d \nu}{\int \kappa_\nu^{-1}  B_\nu d\nu}$$.
+
 ``emissivities``
 ----------------
 
