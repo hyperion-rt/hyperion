@@ -3,12 +3,14 @@ module grid_propagate
   use core_lib
   use type_photon, only : photon
   use type_grid_cell
-  use dust_main, only : n_dust
+  use dust_main, only : n_dust,d
   use grid_geometry, only : escaped, find_wall, in_correct_cell, next_cell, opposite_wall
-  use grid_physics, only : specific_energy_sum, density, n_photons, last_photon_id
+  use grid_physics, only : specific_energy_sum, specific_energy_sum_nu, density, n_photons, last_photon_id
   use sources
   use counters
-  use settings, only : frac_check => propagation_check_frequency
+  use settings, only : frac_check => propagation_check_frequency, compute_isrf
+
+  use grid_geometry, only : geo
 
   implicit none
   save
@@ -56,6 +58,15 @@ contains
     real(dp) :: xi
 
     integer :: source_id
+
+    integer :: idx
+    real, dimension(d(1)%n_nu) :: energy_frequency_bins
+
+    
+    do id=1,d(1)%n_nu
+       energy_frequency_bins(id) = d(1)%nu(id)
+    end do
+   
 
     radial = (p%r .dot. p%v) > 0.
 
@@ -130,14 +141,29 @@ contains
           p%r = p%r + tmin * p%v
           tau_achieved = tau_achieved + tau_cell
 
-          ! NEED INDIVIDUAL ALPHA HERE
 
-          do id=1,n_dust
-             if(density(p%icell%ic, id) > 0._dp) then
-                specific_energy_sum(p%icell%ic, id) = &
-                     & specific_energy_sum(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
-             end if
-          end do
+          ! Compute the ISRF 
+          if (compute_isrf) then 
+
+             idx = minloc(abs(energy_frequency_bins-p%nu),DIM=1)
+
+             
+             do id=1,n_dust
+                
+                if(density(p%icell%ic, id) > 0._dp) then
+                   specific_energy_sum(p%icell%ic, id) = &
+                        & specific_energy_sum(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
+                end if
+                
+                
+                if(density(p%icell%ic,id) > 0._dp) then
+                   specific_energy_sum_nu(p%icell%ic,id,idx) = &
+                        & specific_energy_sum_nu(p%icell%ic,id,idx) + tmin * p%current_kappa(id) * p%energy
+                end if
+             end do
+          endif
+
+
 
           p%on_wall = .true.
           p%icell = next_cell(p%icell, id_min, intersection=p%r)
@@ -221,6 +247,15 @@ contains
 
     integer :: source_id
 
+    integer :: id
+    integer :: idx
+    real, dimension(d(1)%n_nu) :: energy_frequency_bins
+
+    do id=1,d(1)%n_nu
+       energy_frequency_bins(id) = d(1)%nu(id)
+       !print *,'[grid_propagate_3d last iteration] energy_frequency_bins(id) = ',energy_frequency_bins(id)
+    end do
+
     radial = (p%r .dot. p%v) > 0.
 
     if(debug) write(*,'(" [debug] start grid_integrate_noenergy")')
@@ -268,9 +303,25 @@ contains
        end if
 
        chi_rho_total = 0._dp
+
+
+       !Compute the ISRF
+
+       !Figure out what frequency bin in the ISRF calculation the current photon's frequency is closest to
+       idx = minloc(abs(energy_frequency_bins-p%nu),DIM=1)
+
        do id=1,n_dust
           chi_rho_total = chi_rho_total + p%current_chi(id) * density(p%icell%ic, id)
+
+          if(density(p%icell%ic,id) > 0._dp) then
+             specific_energy_sum_nu(p%icell%ic,id,idx) = &
+                  & specific_energy_sum_nu(p%icell%ic,id,idx) + tmin * p%current_kappa(id) * p%energy
+             !print *,'[grid_propage_3d last iteration] specific_energy_sum_nu=',specific_energy_sum_nu(p%icell%ic,id,idx)
+          end if
+
        end do
+
+
        tau_cell = chi_rho_total * tmin
 
        if(tau_cell < tau_needed) then

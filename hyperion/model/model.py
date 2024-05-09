@@ -223,7 +223,7 @@ class Model(FreezableClass, RunConf):
         # Close the file
         f.close()
 
-    def use_quantities(self, filename, quantities=['density', 'specific_energy'],
+    def use_quantities(self, filename, quantities=['density', 'specific_energy', 'specific_energy_nu'],
                        use_minimum_specific_energy=True, use_dust=True, copy=True,
                        only_initial=False):
         '''
@@ -297,6 +297,14 @@ class Model(FreezableClass, RunConf):
                 else:
                     quantities_path['specific_energy'] = last_iteration
 
+            if self.compute_isrf == True:
+                if 'specific_energy_nu' in quantities:
+                    if only_initial or last_iteration is None:
+                        if 'specific_energy_nu' in f['/Input/Grid/Quantities']:
+                            quantities_path['specific_energy_nu'] = '/Input/Grid/Quantities'
+                    else:
+                        quantities_path['specific_energy_nu'] = last_iteration
+
             # Minimum specific energy
             if use_minimum_specific_energy:
                 minimum_specific_energy_path = '/Input/Grid/Quantities'
@@ -313,6 +321,11 @@ class Model(FreezableClass, RunConf):
                 if 'specific_energy' in f['/Grid/Quantities']:
                     quantities_path['specific_energy'] = '/Grid/Quantities'
 
+            if self.compute_isrf == True:
+                if 'specific_energy_nu' in quantities:
+                    if 'specific_energy_nu' in f['/Grid/Quantities']:
+                        quantities_path['specific_energy_nu'] = '/Grid/Quantities'
+                        
             # Minimum specific energy
             if use_minimum_specific_energy:
                 minimum_specific_energy_path = '/Grid/Quantities'
@@ -808,6 +821,9 @@ class Model(FreezableClass, RunConf):
             self.grid['density'] = []
             if specific_energy is not None:
                 self.grid['specific_energy'] = []
+                
+                if self.compute_isrf == True:
+                    self.grid['specific_energy_nu'] = []
 
         # Check whether the density can be added to an existing one
         if merge_if_possible:
@@ -849,6 +865,9 @@ class Model(FreezableClass, RunConf):
         # Set specific energy if specified
         if specific_energy is not None:
             self.grid['specific_energy'].append(specific_energy)
+            
+            if self.compute_isrf == True:
+                self.grid['specific_energy_nu'].append(specific_energy)
 
     def set_cartesian_grid(self, x_wall, y_wall, z_wall):
         self.set_grid(CartesianGrid(x_wall, y_wall, z_wall))
