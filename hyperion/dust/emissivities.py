@@ -70,7 +70,7 @@ class Emissivities(FreezableClass):
 
         # Write out the emissivity variable type
         if self.var_name == 'specific_energy':
-            group.attrs['emissvar'] = np.string_('E')
+            group.attrs['emissvar'] = np.bytes_('E')
         else:
             raise Exception("Unknown emissivity variable: %s" % self.var_name)
 

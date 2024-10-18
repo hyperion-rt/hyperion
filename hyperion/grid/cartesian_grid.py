@@ -327,17 +327,17 @@ class CartesianGrid(FreezableClass):
 
         # Write out geometry
 
-        g_geometry.attrs['grid_type'] = np.string_('car'.encode('utf-8'))
-        g_geometry.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
+        g_geometry.attrs['grid_type'] = np.bytes_('car'.encode('utf-8'))
+        g_geometry.attrs['geometry'] = np.bytes_(self.get_geometry_id().encode('utf-8'))
 
         dset = g_geometry.create_dataset("walls_1", data=np.array(list(zip(self.x_wall)), dtype=[('x', wall_dtype)]), compression=compression)
-        dset.attrs['Unit'] = np.string_('cm'.encode('utf-8'))
+        dset.attrs['Unit'] = np.bytes_('cm'.encode('utf-8'))
 
         dset = g_geometry.create_dataset("walls_2", data=np.array(list(zip(self.y_wall)), dtype=[('y', wall_dtype)]), compression=compression)
-        dset.attrs['Unit'] = np.string_('cm'.encode('utf-8'))
+        dset.attrs['Unit'] = np.bytes_('cm'.encode('utf-8'))
 
         dset = g_geometry.create_dataset("walls_3", data=np.array(list(zip(self.z_wall)), dtype=[('z', wall_dtype)]), compression=compression)
-        dset.attrs['Unit'] = np.string_('cm'.encode('utf-8'))
+        dset.attrs['Unit'] = np.bytes_('cm'.encode('utf-8'))
 
         # Self-consistently check geometry and physical quantities
         self._check_array_dimensions()
@@ -352,7 +352,7 @@ class CartesianGrid(FreezableClass):
                     dset = g_quantities.create_dataset(quantity, data=self.quantities[quantity],
                                                        compression=compression,
                                                        dtype=physics_dtype)
-                    dset.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
+                    dset.attrs['geometry'] = np.bytes_(self.get_geometry_id().encode('utf-8'))
 
     def write_single_array(self, group, name, array, copy=True, absolute_paths=False, compression=True, physics_dtype=float):
         '''
@@ -388,7 +388,7 @@ class CartesianGrid(FreezableClass):
             dset = group.create_dataset(name, data=array,
                                         compression=compression,
                                         dtype=physics_dtype)
-            dset.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
+            dset.attrs['geometry'] = np.bytes_(self.get_geometry_id().encode('utf-8'))
 
     def get_geometry_id(self):
         geo_hash = hashlib.md5()

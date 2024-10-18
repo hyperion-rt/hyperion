@@ -362,7 +362,7 @@ class AMRGrid(FreezableClass):
         else:
             g_quantities = group['Quantities']
 
-        g_geometry.attrs['grid_type'] = np.string_('amr'.encode('utf-8'))
+        g_geometry.attrs['grid_type'] = np.bytes_('amr'.encode('utf-8'))
         g_geometry.attrs['nlevels'] = len(self.levels)
 
         # Self-consistently check geometry and physical quantities
@@ -410,7 +410,7 @@ class AMRGrid(FreezableClass):
                                                   compression=compression,
                                                   dtype=physics_dtype)
 
-        g_geometry.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
+        g_geometry.attrs['geometry'] = np.bytes_(self.get_geometry_id().encode('utf-8'))
 
     def write_single_array(self, group, name, amr_grid, copy=True, absolute_paths=False, compression=True, physics_dtype=float):
         '''

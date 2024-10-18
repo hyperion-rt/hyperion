@@ -420,8 +420,8 @@ class OctreeGrid(FreezableClass):
 
         # Write out geometry
 
-        g_geometry.attrs['grid_type'] = np.string_('oct'.encode('utf-8'))
-        g_geometry.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
+        g_geometry.attrs['grid_type'] = np.bytes_('oct'.encode('utf-8'))
+        g_geometry.attrs['geometry'] = np.bytes_(self.get_geometry_id().encode('utf-8'))
 
         g_geometry.attrs['x'] = self.x
         g_geometry.attrs['y'] = self.y
@@ -445,7 +445,7 @@ class OctreeGrid(FreezableClass):
                     dset = g_quantities.create_dataset(quantity, data=self.quantities[quantity],
                                                        compression=compression,
                                                        dtype=physics_dtype)
-                    dset.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
+                    dset.attrs['geometry'] = np.bytes_(self.get_geometry_id().encode('utf-8'))
 
     def write_single_array(self, group, name, array, copy=True, absolute_paths=False, compression=True, physics_dtype=float):
         '''
@@ -481,7 +481,7 @@ class OctreeGrid(FreezableClass):
             dset = group.create_dataset(name, data=array,
                                         compression=compression,
                                         dtype=physics_dtype)
-            dset.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
+            dset.attrs['geometry'] = np.bytes_(self.get_geometry_id().encode('utf-8'))
 
     def get_geometry_id(self):
         geo_hash = hashlib.md5()
