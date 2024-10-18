@@ -120,7 +120,7 @@ class Filter(object):
                                                                ('tr', float),
                                                                ('tn', float)]))
 
-        dset.attrs['name'] = np.string_(self.name)
+        dset.attrs['name'] = np.bytes_(self.name)
 
         dset.attrs['alpha'] = self.alpha
         dset.attrs['beta'] = self._beta

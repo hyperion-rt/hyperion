@@ -232,7 +232,7 @@ class SphericalDust(FreezableClass):
         self.sublimation_energy = specific_energy
 
     def _write_dust_sublimation(self, group):
-        group.attrs['sublimation_mode'] = np.string_(self.sublimation_mode)
+        group.attrs['sublimation_mode'] = np.bytes_(self.sublimation_mode)
         if self.sublimation_mode in ['slow', 'fast', 'cap']:
             group.attrs['sublimation_specific_energy'] = self.sublimation_energy
 
@@ -272,9 +272,9 @@ class SphericalDust(FreezableClass):
         # Add standard keywords to header
         dt.attrs['version'] = 2
         dt.attrs['type'] = 1
-        dt.attrs['python_version'] = np.string_(__version__)
+        dt.attrs['python_version'] = np.bytes_(__version__)
         if self.md5:
-            dt.attrs['asciimd5'] = np.string_(self.md5)
+            dt.attrs['asciimd5'] = np.bytes_(self.md5)
 
         # Add optical properties and scattering angle tables
         self.optical_properties.to_hdf5_group(dt)

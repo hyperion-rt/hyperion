@@ -29,7 +29,7 @@ def str2bool(value):
 
 
 def bool2str(value):
-    return np.string_('yes'.encode('utf-8')) if value else np.string_('no'.encode('utf-8'))
+    return np.bytes_('yes'.encode('utf-8')) if value else np.bytes_('no'.encode('utf-8'))
 
 
 def as_str(value):

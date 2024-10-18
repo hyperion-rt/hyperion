@@ -557,7 +557,7 @@ class Model(FreezableClass, RunConf):
         root = h5py.File(filename, 'w')
 
         # Add Python version
-        root.attrs['python_version'] = np.string_(__version__.encode('utf-8'))
+        root.attrs['python_version'] = np.bytes_(__version__.encode('utf-8'))
 
         # Create all the necessary groups and sub-groups
         g_sources = root.create_group('Sources')

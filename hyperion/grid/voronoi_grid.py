@@ -249,7 +249,7 @@ class VoronoiGrid(FreezableClass):
             # Store the neighbours information in sparse format.
             self._sparse_neighbors = mesh.st
             self._voronoi_table = mesh.neighbours_table
-            self._voronoi_table.meta['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
+            self._voronoi_table.meta['geometry'] = np.bytes_(self.get_geometry_id().encode('utf-8'))
 
             if self._n_samples is not None:
                 self._samples = mesh.samples
@@ -450,8 +450,8 @@ class VoronoiGrid(FreezableClass):
 
         # Write out geometry
 
-        g_geometry.attrs['grid_type'] = np.string_('vor'.encode('utf-8'))
-        g_geometry.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
+        g_geometry.attrs['grid_type'] = np.bytes_('vor'.encode('utf-8'))
+        g_geometry.attrs['geometry'] = np.bytes_(self.get_geometry_id().encode('utf-8'))
 
         g_geometry.attrs['xmin'] = self.xmin
         g_geometry.attrs['xmax'] = self.xmax
@@ -486,7 +486,7 @@ class VoronoiGrid(FreezableClass):
                     dset = g_quantities.create_dataset(quantity, data=self.quantities[quantity],
                                                        compression=compression,
                                                        dtype=physics_dtype)
-                    dset.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
+                    dset.attrs['geometry'] = np.bytes_(self.get_geometry_id().encode('utf-8'))
 
     def write_single_array(self, group, name, array, copy=True, absolute_paths=False, compression=True, physics_dtype=float):
         '''
@@ -522,7 +522,7 @@ class VoronoiGrid(FreezableClass):
             dset = group.create_dataset(name, data=array,
                                         compression=compression,
                                         dtype=physics_dtype)
-            dset.attrs['geometry'] = np.string_(self.get_geometry_id().encode('utf-8'))
+            dset.attrs['geometry'] = np.bytes_(self.get_geometry_id().encode('utf-8'))
 
     def get_geometry_id(self):
         # The grid is uniquely defined by the points and the bounds

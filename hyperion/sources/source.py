@@ -266,21 +266,21 @@ class Source(FreezableClass):
 
         self._write_luminosity(handle)
 
-        handle.attrs['name'] = np.string_(self.name.encode('utf-8'))
+        handle.attrs['name'] = np.bytes_(self.name.encode('utf-8'))
 
-        handle.attrs['peeloff'] = np.string_(bool2str(self.peeloff))
+        handle.attrs['peeloff'] = np.bytes_(bool2str(self.peeloff))
 
         if self.spectrum is not None:
-            handle.attrs['spectrum'] = np.string_('spectrum'.encode('utf-8'))
+            handle.attrs['spectrum'] = np.bytes_('spectrum'.encode('utf-8'))
             table = Table()
             table.add_column(Column(data=self.spectrum['nu'], name='nu'))
             table.add_column(Column(data=self.spectrum['fnu'], name='fnu'))
             table.write(handle, path='spectrum')
         elif self.temperature is not None:
-            handle.attrs['spectrum'] = np.string_('temperature'.encode('utf-8'))
+            handle.attrs['spectrum'] = np.bytes_('temperature'.encode('utf-8'))
             handle.attrs['temperature'] = self.temperature
         else:
-            handle.attrs['spectrum'] = np.string_('lte'.encode('utf-8'))
+            handle.attrs['spectrum'] = np.bytes_('lte'.encode('utf-8'))
 
     def has_lte_spectrum(self):
         return self.spectrum is None and self.temperature is None
@@ -355,7 +355,7 @@ class SpotSource(Source):
     def write(self, handle, name):
         self._check_all_set()
         g = handle.create_group(name)
-        g.attrs['type'] = np.string_('spot'.encode('utf-8'))
+        g.attrs['type'] = np.bytes_('spot'.encode('utf-8'))
         g.attrs['longitude'] = self.longitude
         g.attrs['latitude'] = self.latitude
         g.attrs['radius'] = self.radius
@@ -435,7 +435,7 @@ class PointSource(Source):
     def write(self, handle, name):
         self._check_all_set()
         g = handle.create_group(name)
-        g.attrs['type'] = np.string_('point'.encode('utf-8'))
+        g.attrs['type'] = np.bytes_('point'.encode('utf-8'))
         g.attrs['x'] = self.position[0]
         g.attrs['y'] = self.position[1]
         g.attrs['z'] = self.position[2]
@@ -530,7 +530,7 @@ class PointSourceCollection(Source):
     def write(self, handle, name):
         self._check_all_set()
         g = handle.create_group(name)
-        g.attrs['type'] = np.string_('point_collection'.encode('utf-8'))
+        g.attrs['type'] = np.bytes_('point_collection'.encode('utf-8'))
         g.create_dataset('position', data=self.position, compression=True)
         Source.write(self, g)
 
@@ -641,12 +641,12 @@ class SphericalSource(Source):
         self._check_all_set()
 
         g = handle.create_group(name)
-        g.attrs['type'] = np.string_('sphere'.encode('utf-8'))
+        g.attrs['type'] = np.bytes_('sphere'.encode('utf-8'))
         g.attrs['x'] = self.position[0]
         g.attrs['y'] = self.position[1]
         g.attrs['z'] = self.position[2]
         g.attrs['r'] = self.radius
-        g.attrs['limb'] = np.string_(bool2str(self.limb))
+        g.attrs['limb'] = np.bytes_(bool2str(self.limb))
         Source.write(self, g)
 
         for i, spot in enumerate(self._spots):
@@ -749,7 +749,7 @@ class ExternalSphericalSource(Source):
         self._check_all_set()
 
         g = handle.create_group(name)
-        g.attrs['type'] = np.string_('extern_sph'.encode('utf-8'))
+        g.attrs['type'] = np.bytes_('extern_sph'.encode('utf-8'))
         g.attrs['x'] = self.position[0]
         g.attrs['y'] = self.position[1]
         g.attrs['z'] = self.position[2]
@@ -827,7 +827,7 @@ class ExternalBoxSource(Source):
         self._check_all_set()
 
         g = handle.create_group(name)
-        g.attrs['type'] = np.string_('extern_box'.encode('utf-8'))
+        g.attrs['type'] = np.bytes_('extern_box'.encode('utf-8'))
         g.attrs['xmin'] = self.bounds[0][0]
         g.attrs['xmax'] = self.bounds[0][1]
         g.attrs['ymin'] = self.bounds[1][0]
@@ -896,7 +896,7 @@ class MapSource(Source):
         self._check_all_set()
 
         g = handle.create_group(name)
-        g.attrs['type'] = np.string_('map'.encode('utf-8'))
+        g.attrs['type'] = np.bytes_('map'.encode('utf-8'))
         grid.write_single_array(g, "Luminosity map", self.map,
                                 compression=compression,
                                 physics_dtype=map_dtype)
@@ -1014,7 +1014,7 @@ class PlaneParallelSource(Source):
     def write(self, handle, name):
         self._check_all_set()
         g = handle.create_group(name)
-        g.attrs['type'] = np.string_('plane_parallel'.encode('utf-8'))
+        g.attrs['type'] = np.bytes_('plane_parallel'.encode('utf-8'))
         g.attrs['x'] = self.position[0]
         g.attrs['y'] = self.position[1]
         g.attrs['z'] = self.position[2]

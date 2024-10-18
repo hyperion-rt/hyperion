@@ -31,10 +31,10 @@ class OutputConf(FreezableClass):
         return self
 
     def write(self, group):
-        group.attrs['output_density'] = np.string_(self.output_density.encode('utf-8'))
-        group.attrs['output_density_diff'] = np.string_(self.output_density_diff.encode('utf-8'))
-        group.attrs['output_specific_energy'] = np.string_(self.output_specific_energy.encode('utf-8'))
-        group.attrs['output_n_photons'] = np.string_(self.output_n_photons.encode('utf-8'))
+        group.attrs['output_density'] = np.bytes_(self.output_density.encode('utf-8'))
+        group.attrs['output_density_diff'] = np.bytes_(self.output_density_diff.encode('utf-8'))
+        group.attrs['output_specific_energy'] = np.bytes_(self.output_specific_energy.encode('utf-8'))
+        group.attrs['output_n_photons'] = np.bytes_(self.output_n_photons.encode('utf-8'))
 
 
 class RunConf(object):
@@ -586,7 +586,7 @@ class RunConf(object):
 
     def _write_forced_first_interaction(self, group):
         group.attrs['forced_first_interaction'] = bool2str(self.forced_first_interaction)
-        group.attrs['forced_first_interaction_algorithm'] = np.string_(self.forced_first_interaction_algorithm.encode('utf-8'))
+        group.attrs['forced_first_interaction_algorithm'] = np.bytes_(self.forced_first_interaction_algorithm.encode('utf-8'))
         group.attrs['forced_first_interaction_baes16_xi'] = self.forced_first_interaction_baes16_xi
 
     def set_enforce_energy_range(self, enforce):
@@ -698,7 +698,7 @@ class RunConf(object):
             self.specific_energy_type = 'initial'
 
     def _write_specific_energy_type(self, group):
-        group.attrs['specific_energy_type'] = np.string_(self.specific_energy_type.encode('utf-8'))
+        group.attrs['specific_energy_type'] = np.bytes_(self.specific_energy_type.encode('utf-8'))
         # TODO: only do this if the specific energy was specified during add_density_grid
 
     def read_run_conf(self, group):  # not a class method because inherited
@@ -1062,7 +1062,7 @@ class ImageConf(FreezableClass):
             self.track_n_scat = 0
 
     def _write_track_origin(self, group):
-        group.attrs['track_origin'] = np.string_(self.track_origin.encode('utf-8'))
+        group.attrs['track_origin'] = np.bytes_(self.track_origin.encode('utf-8'))
         group.attrs['track_n_scat'] = self.track_n_scat
 
     def set_uncertainties(self, uncertainties):
