@@ -6,9 +6,26 @@ The easy way
 ============
 
 The easiest way to install Hyperion and all the dependencies on MacOS X or Linux
-is to use the `Anaconda Distribution <https://www.anaconda.com/download/>`_
-or `Miniconda <https://conda.io/miniconda.html>`_. Once you have either
-of these set up, you can install Hyperion by simply doing::
+is to use ``conda``. If you have never used ``conda`` before, the easiest way to
+get started is to install `Miniforge <https://conda-forge.org/miniforge/>`_. You
+will need to download the appropriate **Miniforge3-*.sh** file and install it by
+running e.g.::
+
+    bash Miniforge3-24.7.1-0-Linux-x86_64.sh
+
+You should replace the name of the installer with the one you have downloaded.
+
+Press 'enter' to view the license, then 'q' to proceed, and type ``yes`` to
+accept the license. Then, accept the default location (unless you need to change
+this), and finally you likely want to answer ``yes`` to the final question so
+that conda gets activated by default. As some versions of Miniforge3 do not
+always do this properly, open a new terminal and make sure you explicitly tell
+conda to activate the base environment automatically::
+
+     conda config --set auto_activate_base true
+
+Once this is set up, or if you already have a ``conda`` distribution, you can
+install Hyperion by opening a new terminal and doing::
 
     conda install -c conda-forge hyperion
 
