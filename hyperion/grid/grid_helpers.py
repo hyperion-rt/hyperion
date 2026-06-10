@@ -43,12 +43,11 @@ def single_grid_dims(data, ndim=3):
         elif data.ndim == ndim + 1:
             n_pop = data.shape[0]
             shape = data[0].shape
-            
-        #DN CRAZY ADDITIONS
-        elif data.ndim == ndim+2:
+
+        elif data.ndim == ndim + 2:
+            # Frequency-resolved quantity, stored as (n_freq, n_pop, *grid)
             n_pop = data.shape[1]
-            shape = data.shape[-1]
-            shape = tuple(map(int,str(shape).split(' ')))
+            shape = data.shape[-ndim:]
 
         else:
             raise Exception("Unexpected number of dimensions: %i" % data.ndim)
@@ -64,6 +63,9 @@ def single_grid_dims(data, ndim=3):
         elif len(shape) == ndim + 1:
             n_pop = shape[0]
             shape = shape[1:]
+        elif len(shape) == ndim + 2:
+            n_pop = shape[1]
+            shape = shape[-ndim:]
         else:
             raise Exception("Unexpected number of dimensions: %i" % len(shape))
     else:

@@ -372,6 +372,8 @@ class OctreeGrid(FreezableClass):
         # Read in physical quantities
         if quantities is not None:
             for quantity in group:
+                if quantity == 'ISRF_frequency_bins':
+                    continue  # per-frequency metadata, not a per-cell grid quantity
                 if quantities == 'all' or quantity in quantities:
                     array = np.array(group[quantity])
                     if array.ndim == 2:  # if array is 2D, it is a list of 1D arrays
