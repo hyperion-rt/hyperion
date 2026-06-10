@@ -237,10 +237,12 @@ contains
     specific_energy_sum_nu = 0._dp
 
     ! Cache the ISRF frequency grid once so it does not have to be rebuilt for every photon
-    allocate(isrf_nu(n_isrf_wavelengths))
-    do idx=1,n_isrf_wavelengths
-       isrf_nu(idx) = d(1)%nu(idx)
-    end do
+    if (compute_isrf) then
+       allocate(isrf_nu(n_isrf_wavelengths))
+       do idx=1,n_isrf_wavelengths
+          isrf_nu(idx) = d(1)%nu(idx)
+       end do
+    end if
 
     ! Total energy absorbed
     allocate(energy_abs_tot(n_dust))
