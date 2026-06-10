@@ -3,14 +3,12 @@ module grid_propagate
   use core_lib
   use type_photon, only : photon
   use type_grid_cell
-  use dust_main, only : n_dust,d
+  use dust_main, only : n_dust
   use grid_geometry, only : escaped, find_wall, in_correct_cell, next_cell, opposite_wall
-  use grid_physics, only : specific_energy_sum, specific_energy_sum_nu, density, n_photons, last_photon_id
+  use grid_physics, only : specific_energy_sum, specific_energy_sum_nu, isrf_nu, density, n_photons, last_photon_id
   use sources
   use counters
   use settings, only : frac_check => propagation_check_frequency, compute_isrf
-
-  use grid_geometry, only : geo
 
   implicit none
   save
@@ -60,14 +58,6 @@ contains
     integer :: source_id
 
     integer :: idx
-    real, allocatable :: energy_frequency_bins(:)
-
-    if (compute_isrf .and. n_dust > 0) then
-       allocate(energy_frequency_bins(d(1)%n_nu))
-       do id=1,d(1)%n_nu
-          energy_frequency_bins(id) = d(1)%nu(id)
-       end do
-    end if
 
     radial = (p%r .dot. p%v) > 0.
 
@@ -143,7 +133,7 @@ contains
           tau_achieved = tau_achieved + tau_cell
 
 
-          if (compute_isrf) idx = minloc(abs(energy_frequency_bins - p%nu), DIM=1)
+          if (compute_isrf) idx = minloc(abs(isrf_nu - p%nu), DIM=1)
 
           do id=1,n_dust
              if(density(p%icell%ic, id) > 0._dp) then
@@ -240,17 +230,6 @@ contains
 
     integer :: source_id
 
-    integer :: id
-    integer :: idx
-    real, allocatable :: energy_frequency_bins(:)
-
-    if (compute_isrf .and. n_dust > 0) then
-       allocate(energy_frequency_bins(d(1)%n_nu))
-       do id=1,d(1)%n_nu
-          energy_frequency_bins(id) = d(1)%nu(id)
-       end do
-    end if
-
     radial = (p%r .dot. p%v) > 0.
 
     if(debug) write(*,'(" [debug] start grid_integrate_noenergy")')
@@ -298,18 +277,8 @@ contains
        end if
 
        chi_rho_total = 0._dp
-
-       ! Figure out which ISRF frequency bin the current photon is closest to
-       if (compute_isrf) idx = minloc(abs(energy_frequency_bins - p%nu), DIM=1)
-
        do id=1,n_dust
           chi_rho_total = chi_rho_total + p%current_chi(id) * density(p%icell%ic, id)
-
-          if (compute_isrf .and. density(p%icell%ic, id) > 0._dp) then
-             specific_energy_sum_nu(p%icell%ic, id, idx) = &
-                  & specific_energy_sum_nu(p%icell%ic, id, idx) + tmin * p%current_kappa(id) * p%energy
-          end if
-
        end do
 
 

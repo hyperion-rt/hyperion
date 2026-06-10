@@ -39,6 +39,7 @@ module grid_physics
   real(dp),allocatable, public :: specific_energy_nu(:,:,:) 
   real(dp),allocatable, public :: specific_energy_sum(:,:)
   real(dp),allocatable, public :: specific_energy_sum_nu(:,:,:)
+  real(dp),allocatable, public :: isrf_nu(:)
 
   real(dp),allocatable, public :: specific_energy_additional(:,:)
   real(dp),allocatable, public :: specific_energy_additional_nu(:,:,:)
@@ -232,10 +233,15 @@ contains
     specific_energy_sum = 0._dp
 
     ! Set up basics for ISRF calculation
-    !n_isrf_wavelengths = d(1)%n_nu
     allocate(specific_energy_sum_nu(geo%n_cells, n_dust, n_isrf_wavelengths))
     specific_energy_sum_nu = 0._dp
-    
+
+    ! Cache the ISRF frequency grid once so it does not have to be rebuilt for every photon
+    allocate(isrf_nu(n_isrf_wavelengths))
+    do idx=1,n_isrf_wavelengths
+       isrf_nu(idx) = d(1)%nu(idx)
+    end do
+
     ! Total energy absorbed
     allocate(energy_abs_tot(n_dust))
     energy_abs_tot = 0._dp
