@@ -428,7 +428,6 @@ contains
   end subroutine read_grid_3d_sp
 
 
-  !CRAZY DN ADDITIONS
   subroutine write_grid_5d_sp(group, path, array, geo)
 
     implicit none

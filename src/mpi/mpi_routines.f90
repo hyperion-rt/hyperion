@@ -289,8 +289,6 @@ contains
        call mpi_reduce(specific_energy_sum_nu, dummy_dp, size(specific_energy_sum_nu), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
     end if
 
-
-
     if(allocated(n_photons)) then
        if(main_process()) then
           allocate(tmp_int_1d(size(n_photons,1)))
