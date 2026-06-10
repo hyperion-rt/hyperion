@@ -142,26 +142,18 @@ contains
           tau_achieved = tau_achieved + tau_cell
 
 
-          ! Compute the ISRF 
-          if (compute_isrf) then 
+          if (compute_isrf) idx = minloc(abs(energy_frequency_bins - p%nu), DIM=1)
 
-             idx = minloc(abs(energy_frequency_bins-p%nu),DIM=1)
-
-             
-             do id=1,n_dust
-                
-                if(density(p%icell%ic, id) > 0._dp) then
-                   specific_energy_sum(p%icell%ic, id) = &
-                        & specific_energy_sum(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
+          do id=1,n_dust
+             if(density(p%icell%ic, id) > 0._dp) then
+                specific_energy_sum(p%icell%ic, id) = &
+                     & specific_energy_sum(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
+                if (compute_isrf) then
+                   specific_energy_sum_nu(p%icell%ic, id, idx) = &
+                        & specific_energy_sum_nu(p%icell%ic, id, idx) + tmin * p%current_kappa(id) * p%energy
                 end if
-                
-                
-                if(density(p%icell%ic,id) > 0._dp) then
-                   specific_energy_sum_nu(p%icell%ic,id,idx) = &
-                        & specific_energy_sum_nu(p%icell%ic,id,idx) + tmin * p%current_kappa(id) * p%energy
-                end if
-             end do
-          endif
+             end if
+          end do
 
 
 
