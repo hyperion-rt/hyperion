@@ -212,7 +212,8 @@ When it is not ``'none'``, two extra arrays are written out:
 * ``specific_energy_nu`` -- the specific energy absorbed in each cell as a
   function of frequency, in erg/s/g.
 * ``specific_energy_nu_frequencies`` -- the frequencies (in Hz) corresponding to
-  the leading axis of ``specific_energy_nu``.
+  the leading axis of ``specific_energy_nu``. These are bin centers, not edges,
+  so this array has exactly the same length as that axis (one entry per bin).
 
 This is the *absorbed* (deposited) energy spectrum, not the mean intensity: each
 contribution is weighted by the dust absorption opacity, so it is proportional
@@ -228,7 +229,8 @@ properties::
     import numpy as np
     m.set_specific_energy_nu_frequencies(np.logspace(11., 16., 100))
 
-Photons are binned to the nearest frequency in log space. This works for all
+Photons are binned to the nearest of these frequencies in log space (so the
+supplied values act as bin centers). This works for all
 grid types, including AMR and Voronoi.
 
 ``specific_energy_nu`` can be retrieved like other grid quantities, as an array

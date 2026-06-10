@@ -420,7 +420,8 @@ class RunConf(object):
         This is only relevant if ``conf.output.output_specific_energy_nu`` is set
         to ``'all'`` or ``'last'``. If this method is not called, the frequency
         grid of the first dust type is used. Photons are binned to the nearest
-        frequency in log space.
+        frequency in log space, so the supplied values are bin centers (not
+        edges) and ``specific_energy_nu`` has one entry per supplied frequency.
 
         Parameters
         ----------
