@@ -76,6 +76,13 @@ contains
     call mp_read_keyword(input_handle, '/', 'mrw', use_mrw)
     call mp_read_keyword(input_handle, '/', 'isrf', compute_isrf)
 
+    ! Optional user-specified ISRF frequency grid (otherwise the dust grid is used)
+    if(compute_isrf) then
+       if(mp_path_exists(input_handle, 'isrf_frequencies')) then
+          call mp_table_read_column_auto(input_handle, 'isrf_frequencies', 'nu', isrf_frequencies)
+       end if
+    end if
+
     if(use_mrw) then
        call mp_read_keyword(input_handle, '/', 'mrw_gamma', mrw_gamma)
        call mp_read_keyword(input_handle, '/', 'n_inter_mrw_max', n_mrw_max)

@@ -30,6 +30,10 @@ module settings
   real(dp) :: monochromatic_energy_threshold
   real(dp),allocatable :: frequencies(:)
 
+  ! Optional user-specified frequency grid for the ISRF. If not allocated, the
+  ! frequency grid of the first dust type is used instead.
+  real(dp),allocatable :: isrf_frequencies(:)
+
   integer :: physics_io_type
 
   character(len=4) :: output_density

@@ -40,6 +40,7 @@ module grid_physics
   real(dp),allocatable, public :: specific_energy_sum(:,:)
   real(dp),allocatable, public :: specific_energy_sum_nu(:,:,:)
   real(dp),allocatable, public :: isrf_nu(:)
+  real(dp),allocatable, public :: log_isrf_nu(:)
 
   real(dp),allocatable, public :: specific_energy_additional(:,:)
   real(dp),allocatable, public :: specific_energy_additional_nu(:,:,:)
@@ -106,7 +107,13 @@ contains
     logical,intent(in) :: use_mrw, use_pda, compute_isrf
     integer :: n_isrf_wavelengths
 
-    n_isrf_wavelengths = d(1)%n_nu
+    ! The ISRF is binned onto a user-specified frequency grid if one was given,
+    ! otherwise onto the frequency grid of the first dust type.
+    if (allocated(isrf_frequencies)) then
+       n_isrf_wavelengths = size(isrf_frequencies)
+    else
+       n_isrf_wavelengths = d(1)%n_nu
+    end if
     ! Density
     allocate(density(geo%n_cells, n_dust))
     allocate(specific_energy(geo%n_cells, n_dust))
@@ -236,12 +243,20 @@ contains
     allocate(specific_energy_sum_nu(geo%n_cells, n_dust, n_isrf_wavelengths))
     specific_energy_sum_nu = 0._dp
 
-    ! Cache the ISRF frequency grid once so it does not have to be rebuilt for every photon
+    ! Cache the ISRF frequency grid (and its log) once so they do not have to be
+    ! rebuilt for every photon. Photons are binned to the nearest grid point in
+    ! log-frequency space (see grid_propagate).
     if (compute_isrf) then
        allocate(isrf_nu(n_isrf_wavelengths))
-       do idx=1,n_isrf_wavelengths
-          isrf_nu(idx) = d(1)%nu(idx)
-       end do
+       if (allocated(isrf_frequencies)) then
+          isrf_nu = isrf_frequencies
+       else
+          do idx=1,n_isrf_wavelengths
+             isrf_nu(idx) = d(1)%nu(idx)
+          end do
+       end if
+       allocate(log_isrf_nu(n_isrf_wavelengths))
+       log_isrf_nu = log10(isrf_nu)
     end if
 
     ! Total energy absorbed
@@ -312,7 +327,7 @@ contains
     integer :: reset
     integer :: n_isrf_wavelengths
 
-    n_isrf_wavelengths = d(1)%n_nu
+    n_isrf_wavelengths = size(specific_energy_nu, 3)
 
     reset = 0
 
@@ -398,8 +413,8 @@ contains
 
     integer :: id,idx
     integer :: n_isrf_wavelengths
-    
-    n_isrf_wavelengths = d(1)%n_nu
+
+    n_isrf_wavelengths = size(specific_energy_nu, 3)
 
     if(main_process()) write(*,'(" [grid_physics] updating energy_abs")')
 

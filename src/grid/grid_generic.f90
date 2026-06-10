@@ -6,11 +6,8 @@ module grid_generic
   
   use grid_io, only : write_grid_3d, write_grid_4d, write_grid_5d
   use grid_geometry, only : geo
-  use grid_physics, only : n_photons, last_photon_id, specific_energy_sum, specific_energy_sum_nu, specific_energy, specific_energy_nu, density, density_original
+  use grid_physics, only : n_photons, last_photon_id, specific_energy_sum, specific_energy_sum_nu, specific_energy, specific_energy_nu, isrf_nu, density, density_original
   use settings, only : output_n_photons, output_specific_energy, output_density, output_density_diff, physics_io_type, compute_isrf
-
-  use dust_main, only: d
-  
 
   implicit none
   save
@@ -35,9 +32,6 @@ contains
 
     integer(hid_t),intent(in) :: group
     integer,intent(in) :: iter, n_iter
-    integer :: i
-    real, allocatable :: energy_frequency_bins(:)
-
 
     if(main_process()) write(*,'(" [output_grid] outputting grid arrays for iteration")')
 
@@ -77,12 +71,7 @@ contains
 
           ! ISRF frequency bins are a per-frequency quantity, not per-cell, so
           ! they are written as a plain 1-D dataset rather than a grid array.
-          allocate(energy_frequency_bins(d(1)%n_nu))
-          do i=1,d(1)%n_nu
-             energy_frequency_bins(i) = d(1)%nu(i)
-          end do
-          call mp_write_array(group, 'ISRF_frequency_bins', energy_frequency_bins)
-          deallocate(energy_frequency_bins)
+          call mp_write_array(group, 'ISRF_frequency_bins', isrf_nu)
 
           if(allocated(specific_energy_nu)) then
              select case(physics_io_type)
