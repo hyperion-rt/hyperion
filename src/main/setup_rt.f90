@@ -75,28 +75,28 @@ contains
     call mp_read_keyword(input_handle, '/', 'pda', use_pda)
     call mp_read_keyword(input_handle, '/', 'mrw', use_mrw)
     ! The frequency-resolved specific energy is computed whenever it is to be
-    ! output, i.e. unless output_specific_energy_nu is 'none'. This is read here
+    ! output, i.e. unless output_specific_energy_spectrum is 'none'. This is read here
     ! (ahead of the main OUTPUT block below) because it is needed to set up the
     ! grid physics arrays.
     g_output = mp_open_group(input_handle, '/Output')
-    if(mp_exists_keyword(g_output, '.', 'output_specific_energy_nu')) then
-       call mp_read_keyword(g_output, '.', 'output_specific_energy_nu', output_specific_energy_nu)
+    if(mp_exists_keyword(g_output, '.', 'output_specific_energy_spectrum')) then
+       call mp_read_keyword(g_output, '.', 'output_specific_energy_spectrum', output_specific_energy_spectrum)
     else
-       output_specific_energy_nu = 'none'
+       output_specific_energy_spectrum = 'none'
     end if
     call mp_close_group(g_output)
 
-    if(trim(output_specific_energy_nu).ne.'all' &
-         & .and.trim(output_specific_energy_nu).ne.'last' &
-         & .and.trim(output_specific_energy_nu).ne.'none') &
-         & call error("setup_initial","output_specific_energy_nu should be one of all/last/none")
+    if(trim(output_specific_energy_spectrum).ne.'all' &
+         & .and.trim(output_specific_energy_spectrum).ne.'last' &
+         & .and.trim(output_specific_energy_spectrum).ne.'none') &
+         & call error("setup_initial","output_specific_energy_spectrum should be one of all/last/none")
 
-    compute_specific_energy_nu = trim(output_specific_energy_nu).ne.'none'
+    compute_specific_energy_spectrum = trim(output_specific_energy_spectrum).ne.'none'
 
     ! Optional user-specified frequency grid (otherwise the dust grid is used)
-    if(compute_specific_energy_nu) then
-       if(mp_path_exists(input_handle, 'specific_energy_nu_frequencies')) then
-          call mp_table_read_column_auto(input_handle, 'specific_energy_nu_frequencies', 'nu', specific_energy_nu_frequencies)
+    if(compute_specific_energy_spectrum) then
+       if(mp_path_exists(input_handle, 'specific_energy_spectrum_frequencies')) then
+          call mp_table_read_column_auto(input_handle, 'specific_energy_spectrum_frequencies', 'nu', specific_energy_spectrum_frequencies)
        end if
     end if
 
@@ -198,7 +198,7 @@ contains
     call mp_close_group(g_geometry)
 
     g_physics = mp_open_group(input_handle, '/Grid/Quantities')
-    call setup_grid_physics(g_physics, use_mrw, use_pda, compute_specific_energy_nu)
+    call setup_grid_physics(g_physics, use_mrw, use_pda, compute_specific_energy_spectrum)
     call mp_close_group(g_physics)
 
     call mp_read_keyword(input_handle, '/', 'physics_io_bytes', physics_io_bytes)

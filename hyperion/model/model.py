@@ -223,7 +223,7 @@ class Model(FreezableClass, RunConf):
         # Close the file
         f.close()
 
-    def use_quantities(self, filename, quantities=['density', 'specific_energy', 'specific_energy_nu'],
+    def use_quantities(self, filename, quantities=['density', 'specific_energy', 'specific_energy_spectrum'],
                        use_minimum_specific_energy=True, use_dust=True, copy=True,
                        only_initial=False):
         '''
@@ -297,12 +297,12 @@ class Model(FreezableClass, RunConf):
                 else:
                     quantities_path['specific_energy'] = last_iteration
 
-            if 'specific_energy_nu' in quantities:
+            if 'specific_energy_spectrum' in quantities:
                 if only_initial or last_iteration is None:
-                    if 'specific_energy_nu' in f['/Input/Grid/Quantities']:
-                        quantities_path['specific_energy_nu'] = '/Input/Grid/Quantities'
-                elif 'specific_energy_nu' in f[last_iteration]:
-                    quantities_path['specific_energy_nu'] = last_iteration
+                    if 'specific_energy_spectrum' in f['/Input/Grid/Quantities']:
+                        quantities_path['specific_energy_spectrum'] = '/Input/Grid/Quantities'
+                elif 'specific_energy_spectrum' in f[last_iteration]:
+                    quantities_path['specific_energy_spectrum'] = last_iteration
 
             # Minimum specific energy
             if use_minimum_specific_energy:
@@ -320,9 +320,9 @@ class Model(FreezableClass, RunConf):
                 if 'specific_energy' in f['/Grid/Quantities']:
                     quantities_path['specific_energy'] = '/Grid/Quantities'
 
-            if 'specific_energy_nu' in quantities:
-                if 'specific_energy_nu' in f['/Grid/Quantities']:
-                    quantities_path['specific_energy_nu'] = '/Grid/Quantities'
+            if 'specific_energy_spectrum' in quantities:
+                if 'specific_energy_spectrum' in f['/Grid/Quantities']:
+                    quantities_path['specific_energy_spectrum'] = '/Grid/Quantities'
 
             # Minimum specific energy
             if use_minimum_specific_energy:

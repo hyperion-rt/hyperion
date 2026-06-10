@@ -18,7 +18,7 @@ class OutputConf(FreezableClass):
         self.output_density = 'none'
         self.output_density_diff = 'none'
         self.output_specific_energy = 'last'
-        self.output_specific_energy_nu = 'none'
+        self.output_specific_energy_spectrum = 'none'
         self.output_n_photons = 'none'
         self._freeze()
 
@@ -28,10 +28,10 @@ class OutputConf(FreezableClass):
         self.output_density = group.attrs['output_density'].decode('utf-8')
         self.output_density_diff = group.attrs['output_density_diff'].decode('utf-8')
         self.output_specific_energy = group.attrs['output_specific_energy'].decode('utf-8')
-        if 'output_specific_energy_nu' in group.attrs:
-            self.output_specific_energy_nu = group.attrs['output_specific_energy_nu'].decode('utf-8')
+        if 'output_specific_energy_spectrum' in group.attrs:
+            self.output_specific_energy_spectrum = group.attrs['output_specific_energy_spectrum'].decode('utf-8')
         else:
-            self.output_specific_energy_nu = 'none'
+            self.output_specific_energy_spectrum = 'none'
         self.output_n_photons = group.attrs['output_n_photons'].decode('utf-8')
         return self
 
@@ -39,7 +39,7 @@ class OutputConf(FreezableClass):
         group.attrs['output_density'] = np.bytes_(self.output_density.encode('utf-8'))
         group.attrs['output_density_diff'] = np.bytes_(self.output_density_diff.encode('utf-8'))
         group.attrs['output_specific_energy'] = np.bytes_(self.output_specific_energy.encode('utf-8'))
-        group.attrs['output_specific_energy_nu'] = np.bytes_(self.output_specific_energy_nu.encode('utf-8'))
+        group.attrs['output_specific_energy_spectrum'] = np.bytes_(self.output_specific_energy_spectrum.encode('utf-8'))
         group.attrs['output_n_photons'] = np.bytes_(self.output_n_photons.encode('utf-8'))
 
 
@@ -58,7 +58,7 @@ class RunConf(object):
         self.set_max_reabsorptions(1000000)
         self.set_pda(False)
         self.set_mrw(False)
-        self.specific_energy_nu_frequencies = None
+        self.specific_energy_spectrum_frequencies = None
 
         self.set_convergence(False)
         self.set_kill_on_absorb(False)
@@ -399,41 +399,41 @@ class RunConf(object):
     def _write_pda(self, group):
         group.attrs['pda'] = bool2str(self.pda)
 
-    def _read_specific_energy_nu_frequencies(self, group):
-        if 'specific_energy_nu_frequencies' in group:
-            self.specific_energy_nu_frequencies = np.array(group['specific_energy_nu_frequencies']['nu'])
+    def _read_specific_energy_spectrum_frequencies(self, group):
+        if 'specific_energy_spectrum_frequencies' in group:
+            self.specific_energy_spectrum_frequencies = np.array(group['specific_energy_spectrum_frequencies']['nu'])
         else:
-            self.specific_energy_nu_frequencies = None
+            self.specific_energy_spectrum_frequencies = None
 
-    def _write_specific_energy_nu_frequencies(self, group):
-        if self.specific_energy_nu_frequencies is not None:
-            group.create_dataset('specific_energy_nu_frequencies',
-                                 data=np.array(list(zip(self.specific_energy_nu_frequencies)),
+    def _write_specific_energy_spectrum_frequencies(self, group):
+        if self.specific_energy_spectrum_frequencies is not None:
+            group.create_dataset('specific_energy_spectrum_frequencies',
+                                 data=np.array(list(zip(self.specific_energy_spectrum_frequencies)),
                                                dtype=[('nu', float)]))
 
-    def set_specific_energy_nu_frequencies(self, frequencies):
+    def set_specific_energy_spectrum_frequencies(self, frequencies):
 
         '''
         Set the frequency grid onto which the frequency-resolved specific energy
-        (``specific_energy_nu``) is binned.
+        (``specific_energy_spectrum``) is binned.
 
-        This is only relevant if ``conf.output.output_specific_energy_nu`` is set
+        This is only relevant if ``conf.output.output_specific_energy_spectrum`` is set
         to ``'all'`` or ``'last'``. If this method is not called, the frequency
         grid of the first dust type is used. Photons are binned to the nearest
         frequency in log space, so the supplied values are bin centers (not
-        edges) and ``specific_energy_nu`` has one entry per supplied frequency.
+        edges) and ``specific_energy_spectrum`` has one entry per supplied frequency.
 
         Parameters
         ----------
         frequencies : iterable of float
-            The frequencies (in Hz) onto which to bin ``specific_energy_nu``.
+            The frequencies (in Hz) onto which to bin ``specific_energy_spectrum``.
         '''
         frequencies = np.asarray(frequencies, dtype=float)
         if frequencies.ndim != 1 or frequencies.size < 1:
             raise ValueError("frequencies should be a 1-d array of at least one value")
         if np.any(frequencies <= 0.):
             raise ValueError("frequencies should be positive (in Hz)")
-        self.specific_energy_nu_frequencies = np.sort(frequencies)
+        self.specific_energy_spectrum_frequencies = np.sort(frequencies)
 
 
     def set_mrw(self, mrw, gamma=1.0, inter_max=1000, warn=True):
@@ -764,7 +764,7 @@ class RunConf(object):
         self._read_max_reabsorptions(group)
         self._read_pda(group)
         self._read_mrw(group)
-        self._read_specific_energy_nu_frequencies(group)
+        self._read_specific_energy_spectrum_frequencies(group)
         self._read_convergence(group)
         self._read_kill_on_absorb(group)
         self._read_kill_on_scatter(group)
@@ -793,7 +793,7 @@ class RunConf(object):
         self._write_max_reabsorptions(group)
         self._write_pda(group)
         self._write_mrw(group)
-        self._write_specific_energy_nu_frequencies(group)
+        self._write_specific_energy_spectrum_frequencies(group)
         self._write_convergence(group)
         self._write_kill_on_absorb(group)
         self._write_kill_on_scatter(group)

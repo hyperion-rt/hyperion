@@ -203,23 +203,23 @@ In addition to the total specific energy absorbed in each cell
 a function of frequency. This is controlled in the same way as the other output
 quantities::
 
-    m.conf.output.output_specific_energy_nu = 'all'    # every iteration
+    m.conf.output.output_specific_energy_spectrum = 'all'    # every iteration
                                               # 'last'  -> only final iteration
                                               # 'none'  -> not computed or saved (default)
 
 When it is not ``'none'``, two extra arrays are written out:
 
-* ``specific_energy_nu`` -- the specific energy absorbed in each cell as a
+* ``specific_energy_spectrum`` -- the specific energy absorbed in each cell as a
   function of frequency, in erg/s/g.
-* ``specific_energy_nu_frequencies`` -- the frequencies (in Hz) corresponding to
-  the leading axis of ``specific_energy_nu``. These are bin centers, not edges,
+* ``specific_energy_spectrum_frequencies`` -- the frequencies (in Hz) corresponding to
+  the leading axis of ``specific_energy_spectrum``. These are bin centers, not edges,
   so this array has exactly the same length as that axis (one entry per bin).
 
 This is the *absorbed* (deposited) energy spectrum, not the mean intensity: each
 contribution is weighted by the dust absorption opacity, so it is proportional
 to :math:`\kappa_\nu J_\nu`. To recover the mean intensity :math:`J_\nu` (the
 radiation field), divide by the dust absorption opacity at each frequency.
-Summed over frequency, ``specific_energy_nu`` recovers the total
+Summed over frequency, ``specific_energy_spectrum`` recovers the total
 ``specific_energy``.
 
 By default the binning uses the frequency grid of the first dust type. You can
@@ -227,16 +227,16 @@ instead provide your own frequency grid (in Hz), independent of the dust
 properties::
 
     import numpy as np
-    m.set_specific_energy_nu_frequencies(np.logspace(11., 16., 100))
+    m.set_specific_energy_spectrum_frequencies(np.logspace(11., 16., 100))
 
 Photons are binned to the nearest of these frequencies in log space (so the
 supplied values act as bin centers). This works for all
 grid types, including AMR and Voronoi.
 
-``specific_energy_nu`` can be retrieved like other grid quantities, as an array
+``specific_energy_spectrum`` can be retrieved like other grid quantities, as an array
 with an extra leading frequency axis::
 
-    senu = m.get_quantities()['specific_energy_nu']
+    senu = m.get_quantities()['specific_energy_spectrum']
 
 Advanced parameters
 -------------------

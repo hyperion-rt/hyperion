@@ -36,14 +36,14 @@ module grid_physics
   integer(idp),allocatable, public :: n_photons(:)
   integer(idp),allocatable, public :: last_photon_id(:)
   real(dp),allocatable, public :: specific_energy(:,:)
-  real(dp),allocatable, public :: specific_energy_nu(:,:,:) 
+  real(dp),allocatable, public :: specific_energy_spectrum(:,:,:) 
   real(dp),allocatable, public :: specific_energy_sum(:,:)
-  real(dp),allocatable, public :: specific_energy_sum_nu(:,:,:)
+  real(dp),allocatable, public :: specific_energy_sum_spectrum(:,:,:)
   real(dp),allocatable, public :: nu_bins(:)
   real(dp),allocatable, public :: log_nu_bins(:)
 
   real(dp),allocatable, public :: specific_energy_additional(:,:)
-  real(dp),allocatable, public :: specific_energy_additional_nu(:,:,:)
+  real(dp),allocatable, public :: specific_energy_additional_spectrum(:,:,:)
   real(dp),allocatable, public :: energy_abs_tot(:)
   real(dp),allocatable, public :: minimum_specific_energy(:)
 
@@ -99,25 +99,25 @@ contains
     id_select = sample_pdf(absorption)
   end function select_dust_specific_energy_rho
 
-  subroutine setup_grid_physics(group, use_mrw, use_pda, compute_specific_energy_nu)
+  subroutine setup_grid_physics(group, use_mrw, use_pda, compute_specific_energy_spectrum)
 
     implicit none
 
     integer(hid_t),intent(in) :: group
-    logical,intent(in) :: use_mrw, use_pda, compute_specific_energy_nu
+    logical,intent(in) :: use_mrw, use_pda, compute_specific_energy_spectrum
     integer :: n_nu_bins
 
-    ! specific_energy_nu is binned onto a user-specified frequency grid if one was given,
+    ! specific_energy_spectrum is binned onto a user-specified frequency grid if one was given,
     ! otherwise onto the frequency grid of the first dust type.
-    if (allocated(specific_energy_nu_frequencies)) then
-       n_nu_bins = size(specific_energy_nu_frequencies)
+    if (allocated(specific_energy_spectrum_frequencies)) then
+       n_nu_bins = size(specific_energy_spectrum_frequencies)
     else
        n_nu_bins = d(1)%n_nu
     end if
     ! Density
     allocate(density(geo%n_cells, n_dust))
     allocate(specific_energy(geo%n_cells, n_dust))
-    allocate(specific_energy_nu(geo%n_cells,n_dust,n_nu_bins))
+    allocate(specific_energy_spectrum(geo%n_cells,n_dust,n_nu_bins))
 
     if(n_dust > 0) then
 
@@ -175,10 +175,10 @@ contains
                    specific_energy(:, id) = 0.
                 end where
                 
-                if (compute_specific_energy_nu) then
+                if (compute_specific_energy_spectrum) then
                    do idx=1,n_nu_bins
                       where(.not.geo%mask)
-                         specific_energy_nu(:, id, idx) = 0.
+                         specific_energy_spectrum(:, id, idx) = 0.
                       endwhere
                    end do
                 end if
@@ -188,21 +188,21 @@ contains
 
           if(trim(specific_energy_type) == 'additional') then
              allocate(specific_energy_additional(geo%n_cells, n_dust))
-             if (compute_specific_energy_nu) then 
-                allocate(specific_energy_additional_nu(geo%n_cells,n_dust,n_nu_bins))
+             if (compute_specific_energy_spectrum) then 
+                allocate(specific_energy_additional_spectrum(geo%n_cells,n_dust,n_nu_bins))
              end if
              ! We store a copy of the initial specific energy in a separate
              ! array, and we set the specific energy to the minimum specific
              ! energy. After the first iteration, specific_energy will get
              ! re-calculated and we will then add specific_energy_additional
              specific_energy_additional = specific_energy
-             specific_energy_additional_nu = specific_energy_nu
+             specific_energy_additional_spectrum = specific_energy_spectrum
              do id=1,n_dust
                 specific_energy(:,id) = minimum_specific_energy(id)
                 
-                if (compute_specific_energy_nu) then
+                if (compute_specific_energy_spectrum) then
                    do idx=1,n_nu_bins
-                      specific_energy_nu(:,id,idx) = minimum_specific_energy(id)
+                      specific_energy_spectrum(:,id,idx) = minimum_specific_energy(id)
                    end do
                 end if
 
@@ -220,9 +220,9 @@ contains
           do id=1,n_dust
              specific_energy(:,id) = minimum_specific_energy(id)
 
-             if (compute_specific_energy_nu) then
+             if (compute_specific_energy_spectrum) then
                 do idx = 1,n_nu_bins
-                   specific_energy_nu(:,id,idx) = minimum_specific_energy(id)
+                   specific_energy_spectrum(:,id,idx) = minimum_specific_energy(id)
                 end do
              end if
 
@@ -240,16 +240,16 @@ contains
     specific_energy_sum = 0._dp
 
     ! Set up basics for the frequency-resolved specific energy
-    allocate(specific_energy_sum_nu(geo%n_cells, n_dust, n_nu_bins))
-    specific_energy_sum_nu = 0._dp
+    allocate(specific_energy_sum_spectrum(geo%n_cells, n_dust, n_nu_bins))
+    specific_energy_sum_spectrum = 0._dp
 
     ! Cache the frequency grid (and its log) once so they do not have to be
     ! rebuilt for every photon. Photons are binned to the nearest grid point in
     ! log-frequency space (see grid_propagate).
-    if (compute_specific_energy_nu) then
+    if (compute_specific_energy_spectrum) then
        allocate(nu_bins(n_nu_bins))
-       if (allocated(specific_energy_nu_frequencies)) then
-          nu_bins = specific_energy_nu_frequencies
+       if (allocated(specific_energy_spectrum_frequencies)) then
+          nu_bins = specific_energy_spectrum_frequencies
        else
           do idx=1,n_nu_bins
              nu_bins(idx) = d(1)%nu(idx)
@@ -327,7 +327,7 @@ contains
     integer :: reset
     integer :: n_nu_bins
 
-    n_nu_bins = size(specific_energy_nu, 3)
+    n_nu_bins = size(specific_energy_spectrum, 3)
 
     reset = 0
 
@@ -342,9 +342,9 @@ contains
                 specific_energy(ic, id) = minimum_specific_energy(id)
                 reset = reset + 1
 
-                if (compute_specific_energy_nu) then
+                if (compute_specific_energy_spectrum) then
                    do idx=1,n_nu_bins
-                      specific_energy_nu(ic,id,idx) = minimum_specific_energy(id)
+                      specific_energy_spectrum(ic,id,idx) = minimum_specific_energy(id)
                    end do
                 end if
 
@@ -365,9 +365,9 @@ contains
                 reset = reset + 1
 
 
-                if (compute_specific_energy_nu) then
+                if (compute_specific_energy_spectrum) then
                    do idx=1,n_nu_bins
-                      specific_energy_nu(ic,id,idx) = minimum_specific_energy(id)
+                      specific_energy_spectrum(ic,id,idx) = minimum_specific_energy(id)
                    end do
                 end if
                    
@@ -385,9 +385,9 @@ contains
              end if
 
              
-             if (compute_specific_energy_nu) then
+             if (compute_specific_energy_spectrum) then
                 do idx=1,n_nu_bins
-                   specific_energy_nu(ic,id,idx) = minimum_specific_energy(id)
+                   specific_energy_spectrum(ic,id,idx) = minimum_specific_energy(id)
                 end do
              end if
 
@@ -414,16 +414,16 @@ contains
     integer :: id,idx
     integer :: n_nu_bins
 
-    n_nu_bins = size(specific_energy_nu, 3)
+    n_nu_bins = size(specific_energy_spectrum, 3)
 
     if(main_process()) write(*,'(" [grid_physics] updating energy_abs")')
 
     do id=1,n_dust
        specific_energy(:,id) = specific_energy_sum(:,id) * scale / geo%volume
        
-       if (compute_specific_energy_nu) then
+       if (compute_specific_energy_spectrum) then
           do idx=1,n_nu_bins
-             specific_energy_nu(:,id,idx) = specific_energy_sum_nu(:,id,idx) * scale/geo%volume
+             specific_energy_spectrum(:,id,idx) = specific_energy_sum_spectrum(:,id,idx) * scale/geo%volume
           end do
        end if
           
@@ -444,8 +444,8 @@ contains
        specific_energy = specific_energy + specific_energy_additional
 
        
-       if (compute_specific_energy_nu) then 
-          specific_energy_nu = specific_energy_nu + specific_energy_additional_nu
+       if (compute_specific_energy_spectrum) then 
+          specific_energy_spectrum = specific_energy_spectrum + specific_energy_additional_spectrum
        end if
 
     end if
