@@ -1,7 +1,7 @@
 module grid_generic
 
   use core_lib, only : sp, dp, hid_t, warn, error
-  use mpi_hdf5_io, only : mp_create_group
+  use mpi_hdf5_io, only : mp_create_group, mp_write_array
   use mpi_core, only : main_process
   
   use grid_io, only : write_grid_3d, write_grid_4d, write_grid_5d
@@ -35,9 +35,8 @@ contains
 
     integer(hid_t),intent(in) :: group
     integer,intent(in) :: iter, n_iter
-    integer :: n_cells, n_dust, n_isrf_lam
-    integer :: i,j,k
-    real, dimension(d(1)%n_nu) :: energy_frequency_bins
+    integer :: i
+    real, allocatable :: energy_frequency_bins(:)
 
 
     if(main_process()) write(*,'(" [output_grid] outputting grid arrays for iteration")')
@@ -72,52 +71,34 @@ contains
 
     
     ! WRITE THE ISRF
-    if (compute_isrf) then 
-       
-       n_cells = size(specific_energy_nu, 1)
-       n_dust = size(specific_energy_nu, 2)
-       n_isrf_lam = size(specific_energy_nu,3)
-       
-       do i=1,d(1)%n_nu
-          energy_frequency_bins(i) = d(1)%nu(i)
-       end do
-       
+    if (compute_isrf) then
+
        if(trim(output_specific_energy)=='all' .or. (trim(output_specific_energy)=='last'.and.iter==n_iter)) then
-          !if(allocated(energy_frequency_bins)) then
-          call write_grid_3d(group, 'ISRF_frequency_bins',energy_frequency_bins, geo)
-          !else
-          !call warn("output_grid","energy_frequency bins [ISRF wavelengths] array is not allocated")
-          !end if
-       end if
-       
-       if(trim(output_specific_energy)=='all' .or. (trim(output_specific_energy)=='last'.and.iter==n_iter)) then
+
+          ! ISRF frequency bins are a per-frequency quantity, not per-cell, so
+          ! they are written as a plain 1-D dataset rather than a grid array.
+          allocate(energy_frequency_bins(d(1)%n_nu))
+          do i=1,d(1)%n_nu
+             energy_frequency_bins(i) = d(1)%nu(i)
+          end do
+          call mp_write_array(group, 'ISRF_frequency_bins', energy_frequency_bins)
+          deallocate(energy_frequency_bins)
+
           if(allocated(specific_energy_nu)) then
-             
-
-             if (compute_isrf) then
-                print *,'[GRID_GENERIC.F90] ENTERING BLOCK FOR WRITING SPECIFIC_ENERGY_NU'
-                
-                select case(physics_io_type)
-                   
-                case(sp)
-                   print *,'[GRID_GENERIC.F90] diving into write_grid_5d sp'
-                   call write_grid_5d(group, 'specific_energy_nu', real(specific_energy_nu, sp), geo)
-
-                case(dp)
-                   print *,'[GRID_GENERIC.F90] diving into write_grid_5d dp'
-                   call write_grid_5d(group, 'specific_energy_nu', real(specific_energy_nu, dp), geo)
-                   print *,'[GRID_GENERIC.F90] finished with write_grid_5d dp'
-
-                case default
-                   call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
-                end select
-             else
-                call warn("output_grid","specific_energy_nu array is not allocated")
-
-             end if
+             select case(physics_io_type)
+             case(sp)
+                call write_grid_5d(group, 'specific_energy_nu', real(specific_energy_nu, sp), geo)
+             case(dp)
+                call write_grid_5d(group, 'specific_energy_nu', real(specific_energy_nu, dp), geo)
+             case default
+                call error("output_grid","unexpected value of physics_io_type (should be sp or dp)")
+             end select
+          else
+             call warn("output_grid","specific_energy_nu array is not allocated")
           end if
+
        end if
-       
+
     endif
 
 
