@@ -223,12 +223,10 @@ Photons are binned to the nearest frequency in log space. Summed over frequency,
 ``specific_energy_nu`` recovers the total ``specific_energy``. This option is
 disabled by default and works for all grid types, including AMR.
 
-``specific_energy_nu`` is not currently returned by ``get_quantities`` and
-should be read directly from the output file, e.g.::
+``specific_energy_nu`` can be retrieved like other grid quantities, as an array
+with an extra leading frequency axis::
 
-    import h5py
-    with h5py.File('output.rtout', 'r') as f:
-        senu = f['iteration_00005/specific_energy_nu'][()]
+    senu = m.get_quantities()['specific_energy_nu']
 
 Advanced parameters
 -------------------

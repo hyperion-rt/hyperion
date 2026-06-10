@@ -188,6 +188,25 @@ def test_isrf_frequencies_validation():
 
 
 @pytest.mark.requires_hyperion_binaries
+def test_isrf_get_quantities(tmpdir):
+    # specific_energy_nu should be retrievable through get_quantities, the
+    # per-frequency ISRF_frequency_bins metadata should not pollute the grid
+    # quantities, and the retrieved array should still conserve energy.
+    m = _cartesian_isrf_model(True, density=1.e-16)
+    m.write(tmpdir.join(random_id()).strpath)
+    out = m.run(tmpdir.join(random_id()).strpath)
+    g = out.get_quantities()
+    assert 'specific_energy_nu' in g.quantities
+    assert 'ISRF_frequency_bins' not in g.quantities
+    se = np.array(g.quantities['specific_energy'])       # (dust, nz, ny, nx)
+    se_nu = np.array(g.quantities['specific_energy_nu'])  # (nu, dust, nz, ny, nx)
+    assert se_nu.shape[0] == 2  # number of dust frequencies
+    nu_sum = se_nu.sum(axis=0)
+    heated = se > se.min() * (1. + 1.e-6)
+    np.testing.assert_allclose(nu_sum[heated], se[heated], rtol=1.e-6)
+
+
+@pytest.mark.requires_hyperion_binaries
 def test_isrf_mpi_matches_serial(tmpdir):
     # The saved ISRF must not depend on the number of MPI processes. We compare
     # the total ISRF energy (which is conserved, hence robust to Monte Carlo
