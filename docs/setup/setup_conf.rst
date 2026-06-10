@@ -201,7 +201,7 @@ Frequency-resolved specific energy
 In addition to the total specific energy absorbed in each cell
 (``output_specific_energy``), Hyperion can save the specific energy absorbed as
 a function of frequency. This is controlled in the same way as the other output
-quantities -- there is no separate switch to enable it::
+quantities::
 
     m.conf.output.output_specific_energy_nu = 'all'    # every iteration
                                               # 'last'  -> only final iteration
