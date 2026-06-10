@@ -232,6 +232,23 @@ def test_isrf_get_quantities(tmpdir):
 
 
 @pytest.mark.requires_hyperion_binaries
+def test_isrf_yt_export_skips_frequency_resolved(tmpdir):
+    # The frequency-resolved specific_energy_nu is not a per-cell scalar, so it
+    # must be skipped (not exported as a malformed field) when converting to yt,
+    # while the ordinary scalar quantities are still exported.
+    pytest.importorskip("yt")
+    m = _cartesian_isrf_model(True, density=1.e-16)
+    m.write(tmpdir.join(random_id()).strpath)
+    out = m.run(tmpdir.join(random_id()).strpath)
+    g = out.get_quantities()
+    assert 'specific_energy_nu' in g.quantities
+    ds = g.to_yt()
+    fields = [str(f) for f in ds.field_list]
+    assert not any('specific_energy_nu' in f for f in fields)
+    assert any(f.endswith("'density')") for f in fields)
+
+
+@pytest.mark.requires_hyperion_binaries
 def test_isrf_mpi_matches_serial(tmpdir):
     # The saved ISRF must not depend on the number of MPI processes. We compare
     # the total ISRF energy (which is conserved, hence robust to Monte Carlo

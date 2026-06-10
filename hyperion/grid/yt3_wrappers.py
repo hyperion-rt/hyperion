@@ -79,6 +79,9 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
             grid_dict['level'] = ilevel
 
             for field in grid.quantities:
+                if not isinstance(grid.quantities[field], list):
+                    logger.warning("Skipping frequency-resolved quantity '{0}' in yt export (select a single frequency first)".format(field))
+                    continue
                 grid_dict[('gas', field)] = grid.quantities[field][dust_id].transpose()
 
             grid_data.append(grid_dict)
@@ -158,6 +161,9 @@ def octree_grid_to_yt_stream(grid, dust_id=0):
 
     quantities = {}
     for field in grid.quantities:
+        if not isinstance(grid.quantities[field], list):
+            logger.warning("Skipping frequency-resolved quantity '{0}' in yt export (select a single frequency first)".format(field))
+            continue
         quantities[('gas', field)] = np.atleast_2d(grid.quantities[field][dust_id][order][~refined]).transpose()
 
     bbox = np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])
@@ -180,6 +186,9 @@ def cartesian_grid_to_yt_stream(grid, xmin, xmax, ymin, ymax, zmin, zmax, dust_i
     # Make data dict which should contain (array, unit) tuples
     data = {}
     for field in grid.quantities:
+        if not isinstance(grid.quantities[field], list):
+            logger.warning("Skipping frequency-resolved quantity '{0}' in yt export (select a single frequency first)".format(field))
+            continue
         data[field] = grid.quantities[field][dust_id].transpose(), ''
 
     # Load cartesian grid into yt
