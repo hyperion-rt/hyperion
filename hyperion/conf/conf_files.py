@@ -396,13 +396,21 @@ class RunConf(object):
     def _write_pda(self, group):
         group.attrs['pda'] = bool2str(self.pda)
 
-    def _read_isrf(self,group):
+    def _read_isrf(self, group):
         self.isrf = str2bool(group.attrs['isrf'])
-        
-    def _write_isrf(self,group):
-        group.attrs['isrf'] = bool2str(self.isrf)
+        if 'isrf_frequencies' in group:
+            self.isrf_frequencies = np.array(group['isrf_frequencies']['nu'])
+        else:
+            self.isrf_frequencies = None
 
-    def compute_isrf(self, isrf):
+    def _write_isrf(self, group):
+        group.attrs['isrf'] = bool2str(self.isrf)
+        if self.isrf and self.isrf_frequencies is not None:
+            group.create_dataset('isrf_frequencies',
+                                 data=np.array(list(zip(self.isrf_frequencies)),
+                                               dtype=[('nu', float)]))
+
+    def compute_isrf(self, isrf, frequencies=None):
 
         '''
         Set whether to compute and save the interstellar radiation field (ISRF)
@@ -411,17 +419,29 @@ class RunConf(object):
         If enabled, the specific energy absorbed is also accumulated as a
         function of frequency and saved as the ``specific_energy_nu`` quantity
         (in erg/s/g), alongside the ``ISRF_frequency_bins`` array giving the
-        corresponding frequencies (in Hz). The frequency grid is taken from the
-        first dust type, so all dust types should share the same frequency grid.
-        These arrays are written following the ``output_specific_energy``
-        setting. This is disabled by default.
+        corresponding frequencies (in Hz). Photons are binned to the nearest
+        frequency in log space. These arrays are written following the
+        ``output_specific_energy`` setting. This is disabled by default.
 
         Parameters
         ----------
         isrf : bool
             Whether to compute and save the ISRF in each cell.
+        frequencies : iterable of float, optional
+            The frequencies (in Hz) onto which to bin the ISRF. If not
+            specified, the frequency grid of the first dust type is used. Only
+            used when ``isrf`` is `True`.
         '''
         self.isrf = isrf
+        if frequencies is None:
+            self.isrf_frequencies = None
+        else:
+            frequencies = np.asarray(frequencies, dtype=float)
+            if frequencies.ndim != 1 or frequencies.size < 1:
+                raise ValueError("frequencies should be a 1-d array of at least one value")
+            if np.any(frequencies <= 0.):
+                raise ValueError("frequencies should be positive (in Hz)")
+            self.isrf_frequencies = np.sort(frequencies)
 
 
     def set_mrw(self, mrw, gamma=1.0, inter_max=1000, warn=True):
