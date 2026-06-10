@@ -402,15 +402,24 @@ class RunConf(object):
     def _write_isrf(self,group):
         group.attrs['isrf'] = bool2str(self.isrf)
 
-    def compute_isrf(self,isrf):
+    def compute_isrf(self, isrf):
 
         '''
+        Set whether to compute and save the interstellar radiation field (ISRF)
+        in each cell.
 
-        Set whether or not to compute and save the ISRF in each cell
+        If enabled, the specific energy absorbed is also accumulated as a
+        function of frequency and saved as the ``specific_energy_nu`` quantity
+        (in erg/s/g), alongside the ``ISRF_frequency_bins`` array giving the
+        corresponding frequencies (in Hz). The frequency grid is taken from the
+        first dust type, so all dust types should share the same frequency grid.
+        These arrays are written following the ``output_specific_energy``
+        setting. This is disabled by default.
 
-        If enabled, the ISRF is computed in every cell at the
-        frequencies of the dust opacity tables.
-
+        Parameters
+        ----------
+        isrf : bool
+            Whether to compute and save the ISRF in each cell.
         '''
         self.isrf = isrf
 

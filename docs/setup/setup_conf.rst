@@ -195,6 +195,35 @@ only after last iteration), or ``none`` (do not output). The default is to
 output only the last iteration of ``specific_energy``. To find out how to view
 these values, see :doc:`../postprocessing/postprocessing`
 
+Interstellar radiation field
+----------------------------
+
+By default, Hyperion saves the total specific energy absorbed in each cell. If
+you also want the frequency-resolved specific energy absorbed (the interstellar
+radiation field, ISRF), you can enable this with::
+
+    m.compute_isrf(True)
+
+When enabled, two extra arrays are written out following the same
+``output_specific_energy`` setting described above:
+
+* ``specific_energy_nu`` -- the specific energy absorbed in each cell as a
+  function of frequency, in erg/s/g.
+* ``ISRF_frequency_bins`` -- the frequencies (in Hz) corresponding to the last
+  axis of ``specific_energy_nu``.
+
+The frequency grid is taken from the first dust type, so all dust types should
+share the same frequency grid. Summed over frequency, ``specific_energy_nu``
+recovers the total ``specific_energy``. This option is disabled by default and
+works for all grid types, including AMR.
+
+``specific_energy_nu`` is not currently returned by ``get_quantities`` and
+should be read directly from the output file, e.g.::
+
+    import h5py
+    with h5py.File('output.rtout', 'r') as f:
+        senu = f['iteration_00005/specific_energy_nu'][()]
+
 Advanced parameters
 -------------------
 
