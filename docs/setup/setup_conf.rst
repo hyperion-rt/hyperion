@@ -212,10 +212,16 @@ When enabled, two extra arrays are written out following the same
 * ``ISRF_frequency_bins`` -- the frequencies (in Hz) corresponding to the last
   axis of ``specific_energy_nu``.
 
-The frequency grid is taken from the first dust type, so all dust types should
-share the same frequency grid. Summed over frequency, ``specific_energy_nu``
-recovers the total ``specific_energy``. This option is disabled by default and
-works for all grid types, including AMR.
+By default, the ISRF is binned onto the frequency grid of the first dust type.
+You can instead specify your own frequency grid (in Hz), independent of the dust
+properties, by passing the ``frequencies`` argument::
+
+    import numpy as np
+    m.compute_isrf(True, frequencies=np.logspace(11., 16., 100))
+
+Photons are binned to the nearest frequency in log space. Summed over frequency,
+``specific_energy_nu`` recovers the total ``specific_energy``. This option is
+disabled by default and works for all grid types, including AMR.
 
 ``specific_energy_nu`` is not currently returned by ``get_quantities`` and
 should be read directly from the output file, e.g.::

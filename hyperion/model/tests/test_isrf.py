@@ -40,7 +40,8 @@ def _assert_isrf_reconstructs_specific_energy(filename):
     np.testing.assert_allclose(nu_sum[heated], se[heated], rtol=1.e-6)
 
 
-def _cartesian_isrf_model(compute_isrf, n_cells=2, n_photons=100000, density=1.e-18):
+def _cartesian_isrf_model(compute_isrf, n_cells=2, n_photons=100000, density=1.e-18,
+                          frequencies=None):
     m = Model()
     edges = np.linspace(-1., 1., n_cells + 1)
     m.set_cartesian_grid(edges, edges, edges)
@@ -53,7 +54,7 @@ def _cartesian_isrf_model(compute_isrf, n_cells=2, n_photons=100000, density=1.e
     m.set_n_photons(initial=n_photons, imaging=0)
     m.set_seed(-12345)
     m.conf.output.output_specific_energy = 'last'
-    m.compute_isrf(compute_isrf)
+    m.compute_isrf(compute_isrf, frequencies=frequencies)
     return m
 
 
@@ -142,6 +143,48 @@ def test_isrf_amr(tmpdir):
     m.write(tmpdir.join(random_id()).strpath)
     out = m.run(tmpdir.join(random_id()).strpath)
     _assert_isrf_reconstructs_specific_energy(out.filename)
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_isrf_custom_frequency_grid(tmpdir):
+    # A user-specified ISRF frequency grid (independent of the dust frequency
+    # grid) should be used for the output bins, and energy must still be
+    # conserved when summing over frequency.
+    frequencies = np.logspace(10., 16., 12)
+    m = _cartesian_isrf_model(True, density=1.e-16, frequencies=frequencies)
+    m.write(tmpdir.join(random_id()).strpath)
+    out = m.run(tmpdir.join(random_id()).strpath)
+    bins = _read_dataset(out.filename, '/ISRF_frequency_bins')
+    np.testing.assert_allclose(bins, frequencies, rtol=1.e-6)
+    se_nu = _read_dataset(out.filename, '/specific_energy_nu')
+    assert se_nu.shape[0] == len(frequencies)
+    _assert_isrf_reconstructs_specific_energy(out.filename)
+
+
+def test_isrf_frequencies_roundtrip(tmpdir):
+    # The custom ISRF frequency grid should survive a write/read round-trip.
+    from ...conf.conf_files import RunConf
+    frequencies = np.logspace(10., 16., 8)
+    conf = RunConf()
+    conf.compute_isrf(True, frequencies=frequencies)
+    with h5py.File(tmpdir.join('conf.h5').strpath, 'w') as f:
+        conf._write_isrf(f)
+        conf2 = RunConf()
+        conf2._read_isrf(f)
+    assert conf2.isrf
+    np.testing.assert_allclose(conf2.isrf_frequencies, frequencies)
+
+
+def test_isrf_frequencies_validation():
+    from ...conf.conf_files import RunConf
+    conf = RunConf()
+    with pytest.raises(ValueError):
+        conf.compute_isrf(True, frequencies=[[1.e10, 1.e12], [1.e14, 1.e16]])
+    with pytest.raises(ValueError):
+        conf.compute_isrf(True, frequencies=[1.e10, -1.e12])
+    # Default (no custom grid) leaves isrf_frequencies unset
+    conf.compute_isrf(True)
+    assert conf.isrf_frequencies is None
 
 
 @pytest.mark.requires_hyperion_binaries
