@@ -189,7 +189,7 @@ contains
           else
              g_grid = mp_create_group(g_level, name)
           end if
-          call mp_write_array(g_grid, path, reshape(array(grid%start_id:grid%start_id + grid%n_cells - 1, :), &
+          call mp_write_array(g_grid, path, reshape(array(grid%start_id:grid%start_id + grid%n_cells - 1, :, :), &
                &                                     (/grid%n1, grid%n2, grid%n3, size(array,2), size(array,3)/)))
           call mp_close_group(g_grid)
        end do
