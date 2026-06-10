@@ -233,6 +233,15 @@ Photons are binned to the nearest of these frequencies in log space (so the
 supplied values act as bin centers). This works for all
 grid types, including AMR and Voronoi.
 
+.. warning:: The binning has no outer edges: the first and last bins collect
+             *all* photons below and above the outermost bin centers
+             respectively, however far away in frequency. This keeps the spectrum
+             energy-conserving (no photons are dropped), but it means a grid that
+             does not span the full frequency range will pile up out-of-range
+             flux in its end bins. When supplying a custom grid, make sure it
+             brackets the full range of frequencies present in the simulation
+             (the default dust-based grid already does this).
+
 ``specific_energy_spectrum`` can be retrieved like other grid quantities, as an array
 with an extra leading frequency axis::
 
