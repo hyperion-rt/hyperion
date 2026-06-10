@@ -39,8 +39,8 @@ module grid_physics
   real(dp),allocatable, public :: specific_energy_nu(:,:,:) 
   real(dp),allocatable, public :: specific_energy_sum(:,:)
   real(dp),allocatable, public :: specific_energy_sum_nu(:,:,:)
-  real(dp),allocatable, public :: isrf_nu(:)
-  real(dp),allocatable, public :: log_isrf_nu(:)
+  real(dp),allocatable, public :: nu_bins(:)
+  real(dp),allocatable, public :: log_nu_bins(:)
 
   real(dp),allocatable, public :: specific_energy_additional(:,:)
   real(dp),allocatable, public :: specific_energy_additional_nu(:,:,:)
@@ -99,25 +99,25 @@ contains
     id_select = sample_pdf(absorption)
   end function select_dust_specific_energy_rho
 
-  subroutine setup_grid_physics(group, use_mrw, use_pda, compute_isrf)
+  subroutine setup_grid_physics(group, use_mrw, use_pda, compute_specific_energy_nu)
 
     implicit none
 
     integer(hid_t),intent(in) :: group
-    logical,intent(in) :: use_mrw, use_pda, compute_isrf
-    integer :: n_isrf_wavelengths
+    logical,intent(in) :: use_mrw, use_pda, compute_specific_energy_nu
+    integer :: n_nu_bins
 
-    ! The ISRF is binned onto a user-specified frequency grid if one was given,
+    ! specific_energy_nu is binned onto a user-specified frequency grid if one was given,
     ! otherwise onto the frequency grid of the first dust type.
-    if (allocated(isrf_frequencies)) then
-       n_isrf_wavelengths = size(isrf_frequencies)
+    if (allocated(specific_energy_nu_frequencies)) then
+       n_nu_bins = size(specific_energy_nu_frequencies)
     else
-       n_isrf_wavelengths = d(1)%n_nu
+       n_nu_bins = d(1)%n_nu
     end if
     ! Density
     allocate(density(geo%n_cells, n_dust))
     allocate(specific_energy(geo%n_cells, n_dust))
-    allocate(specific_energy_nu(geo%n_cells,n_dust,n_isrf_wavelengths))
+    allocate(specific_energy_nu(geo%n_cells,n_dust,n_nu_bins))
 
     if(n_dust > 0) then
 
@@ -175,8 +175,8 @@ contains
                    specific_energy(:, id) = 0.
                 end where
                 
-                if (compute_isrf) then
-                   do idx=1,n_isrf_wavelengths
+                if (compute_specific_energy_nu) then
+                   do idx=1,n_nu_bins
                       where(.not.geo%mask)
                          specific_energy_nu(:, id, idx) = 0.
                       endwhere
@@ -188,8 +188,8 @@ contains
 
           if(trim(specific_energy_type) == 'additional') then
              allocate(specific_energy_additional(geo%n_cells, n_dust))
-             if (compute_isrf) then 
-                allocate(specific_energy_additional_nu(geo%n_cells,n_dust,n_isrf_wavelengths))
+             if (compute_specific_energy_nu) then 
+                allocate(specific_energy_additional_nu(geo%n_cells,n_dust,n_nu_bins))
              end if
              ! We store a copy of the initial specific energy in a separate
              ! array, and we set the specific energy to the minimum specific
@@ -200,8 +200,8 @@ contains
              do id=1,n_dust
                 specific_energy(:,id) = minimum_specific_energy(id)
                 
-                if (compute_isrf) then
-                   do idx=1,n_isrf_wavelengths
+                if (compute_specific_energy_nu) then
+                   do idx=1,n_nu_bins
                       specific_energy_nu(:,id,idx) = minimum_specific_energy(id)
                    end do
                 end if
@@ -220,8 +220,8 @@ contains
           do id=1,n_dust
              specific_energy(:,id) = minimum_specific_energy(id)
 
-             if (compute_isrf) then
-                do idx = 1,n_isrf_wavelengths
+             if (compute_specific_energy_nu) then
+                do idx = 1,n_nu_bins
                    specific_energy_nu(:,id,idx) = minimum_specific_energy(id)
                 end do
              end if
@@ -239,24 +239,24 @@ contains
     allocate(specific_energy_sum(geo%n_cells, n_dust))
     specific_energy_sum = 0._dp
 
-    ! Set up basics for ISRF calculation
-    allocate(specific_energy_sum_nu(geo%n_cells, n_dust, n_isrf_wavelengths))
+    ! Set up basics for the frequency-resolved specific energy
+    allocate(specific_energy_sum_nu(geo%n_cells, n_dust, n_nu_bins))
     specific_energy_sum_nu = 0._dp
 
-    ! Cache the ISRF frequency grid (and its log) once so they do not have to be
+    ! Cache the frequency grid (and its log) once so they do not have to be
     ! rebuilt for every photon. Photons are binned to the nearest grid point in
     ! log-frequency space (see grid_propagate).
-    if (compute_isrf) then
-       allocate(isrf_nu(n_isrf_wavelengths))
-       if (allocated(isrf_frequencies)) then
-          isrf_nu = isrf_frequencies
+    if (compute_specific_energy_nu) then
+       allocate(nu_bins(n_nu_bins))
+       if (allocated(specific_energy_nu_frequencies)) then
+          nu_bins = specific_energy_nu_frequencies
        else
-          do idx=1,n_isrf_wavelengths
-             isrf_nu(idx) = d(1)%nu(idx)
+          do idx=1,n_nu_bins
+             nu_bins(idx) = d(1)%nu(idx)
           end do
        end if
-       allocate(log_isrf_nu(n_isrf_wavelengths))
-       log_isrf_nu = log10(isrf_nu)
+       allocate(log_nu_bins(n_nu_bins))
+       log_nu_bins = log10(nu_bins)
     end if
 
     ! Total energy absorbed
@@ -325,9 +325,9 @@ contains
     implicit none
     integer :: ic, id
     integer :: reset
-    integer :: n_isrf_wavelengths
+    integer :: n_nu_bins
 
-    n_isrf_wavelengths = size(specific_energy_nu, 3)
+    n_nu_bins = size(specific_energy_nu, 3)
 
     reset = 0
 
@@ -342,8 +342,8 @@ contains
                 specific_energy(ic, id) = minimum_specific_energy(id)
                 reset = reset + 1
 
-                if (compute_isrf) then
-                   do idx=1,n_isrf_wavelengths
+                if (compute_specific_energy_nu) then
+                   do idx=1,n_nu_bins
                       specific_energy_nu(ic,id,idx) = minimum_specific_energy(id)
                    end do
                 end if
@@ -365,8 +365,8 @@ contains
                 reset = reset + 1
 
 
-                if (compute_isrf) then
-                   do idx=1,n_isrf_wavelengths
+                if (compute_specific_energy_nu) then
+                   do idx=1,n_nu_bins
                       specific_energy_nu(ic,id,idx) = minimum_specific_energy(id)
                    end do
                 end if
@@ -385,8 +385,8 @@ contains
              end if
 
              
-             if (compute_isrf) then
-                do idx=1,n_isrf_wavelengths
+             if (compute_specific_energy_nu) then
+                do idx=1,n_nu_bins
                    specific_energy_nu(ic,id,idx) = minimum_specific_energy(id)
                 end do
              end if
@@ -412,17 +412,17 @@ contains
     real(dp), intent(in) :: scale
 
     integer :: id,idx
-    integer :: n_isrf_wavelengths
+    integer :: n_nu_bins
 
-    n_isrf_wavelengths = size(specific_energy_nu, 3)
+    n_nu_bins = size(specific_energy_nu, 3)
 
     if(main_process()) write(*,'(" [grid_physics] updating energy_abs")')
 
     do id=1,n_dust
        specific_energy(:,id) = specific_energy_sum(:,id) * scale / geo%volume
        
-       if (compute_isrf) then
-          do idx=1,n_isrf_wavelengths
+       if (compute_specific_energy_nu) then
+          do idx=1,n_nu_bins
              specific_energy_nu(:,id,idx) = specific_energy_sum_nu(:,id,idx) * scale/geo%volume
           end do
        end if
@@ -444,7 +444,7 @@ contains
        specific_energy = specific_energy + specific_energy_additional
 
        
-       if (compute_isrf) then 
+       if (compute_specific_energy_nu) then 
           specific_energy_nu = specific_energy_nu + specific_energy_additional_nu
        end if
 

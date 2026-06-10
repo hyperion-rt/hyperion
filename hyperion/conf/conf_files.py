@@ -18,7 +18,7 @@ class OutputConf(FreezableClass):
         self.output_density = 'none'
         self.output_density_diff = 'none'
         self.output_specific_energy = 'last'
-        self.output_specific_energy_nu = 'last'
+        self.output_specific_energy_nu = 'none'
         self.output_n_photons = 'none'
         self._freeze()
 
@@ -28,7 +28,10 @@ class OutputConf(FreezableClass):
         self.output_density = group.attrs['output_density'].decode('utf-8')
         self.output_density_diff = group.attrs['output_density_diff'].decode('utf-8')
         self.output_specific_energy = group.attrs['output_specific_energy'].decode('utf-8')
-        self.output_specific_energy_nu = group.attrs['output_specific_energy_nu'].decode('utf-8')
+        if 'output_specific_energy_nu' in group.attrs:
+            self.output_specific_energy_nu = group.attrs['output_specific_energy_nu'].decode('utf-8')
+        else:
+            self.output_specific_energy_nu = 'none'
         self.output_n_photons = group.attrs['output_n_photons'].decode('utf-8')
         return self
 
@@ -55,7 +58,7 @@ class RunConf(object):
         self.set_max_reabsorptions(1000000)
         self.set_pda(False)
         self.set_mrw(False)
-        self.compute_isrf(False)
+        self.specific_energy_nu_frequencies = None
 
         self.set_convergence(False)
         self.set_kill_on_absorb(False)
@@ -396,52 +399,40 @@ class RunConf(object):
     def _write_pda(self, group):
         group.attrs['pda'] = bool2str(self.pda)
 
-    def _read_isrf(self, group):
-        self.isrf = str2bool(group.attrs['isrf'])
-        if 'isrf_frequencies' in group:
-            self.isrf_frequencies = np.array(group['isrf_frequencies']['nu'])
+    def _read_specific_energy_nu_frequencies(self, group):
+        if 'specific_energy_nu_frequencies' in group:
+            self.specific_energy_nu_frequencies = np.array(group['specific_energy_nu_frequencies']['nu'])
         else:
-            self.isrf_frequencies = None
+            self.specific_energy_nu_frequencies = None
 
-    def _write_isrf(self, group):
-        group.attrs['isrf'] = bool2str(self.isrf)
-        if self.isrf and self.isrf_frequencies is not None:
-            group.create_dataset('isrf_frequencies',
-                                 data=np.array(list(zip(self.isrf_frequencies)),
+    def _write_specific_energy_nu_frequencies(self, group):
+        if self.specific_energy_nu_frequencies is not None:
+            group.create_dataset('specific_energy_nu_frequencies',
+                                 data=np.array(list(zip(self.specific_energy_nu_frequencies)),
                                                dtype=[('nu', float)]))
 
-    def compute_isrf(self, isrf, frequencies=None):
+    def set_specific_energy_nu_frequencies(self, frequencies):
 
         '''
-        Set whether to compute and save the interstellar radiation field (ISRF)
-        in each cell.
+        Set the frequency grid onto which the frequency-resolved specific energy
+        (``specific_energy_nu``) is binned.
 
-        If enabled, the specific energy absorbed is also accumulated as a
-        function of frequency and saved as the ``specific_energy_nu`` quantity
-        (in erg/s/g), alongside the ``ISRF_frequency_bins`` array giving the
-        corresponding frequencies (in Hz). Photons are binned to the nearest
-        frequency in log space. These arrays are written following the
-        ``output_specific_energy`` setting. This is disabled by default.
+        This is only relevant if ``conf.output.output_specific_energy_nu`` is set
+        to ``'all'`` or ``'last'``. If this method is not called, the frequency
+        grid of the first dust type is used. Photons are binned to the nearest
+        frequency in log space.
 
         Parameters
         ----------
-        isrf : bool
-            Whether to compute and save the ISRF in each cell.
-        frequencies : iterable of float, optional
-            The frequencies (in Hz) onto which to bin the ISRF. If not
-            specified, the frequency grid of the first dust type is used. Only
-            used when ``isrf`` is `True`.
+        frequencies : iterable of float
+            The frequencies (in Hz) onto which to bin ``specific_energy_nu``.
         '''
-        self.isrf = isrf
-        if frequencies is None:
-            self.isrf_frequencies = None
-        else:
-            frequencies = np.asarray(frequencies, dtype=float)
-            if frequencies.ndim != 1 or frequencies.size < 1:
-                raise ValueError("frequencies should be a 1-d array of at least one value")
-            if np.any(frequencies <= 0.):
-                raise ValueError("frequencies should be positive (in Hz)")
-            self.isrf_frequencies = np.sort(frequencies)
+        frequencies = np.asarray(frequencies, dtype=float)
+        if frequencies.ndim != 1 or frequencies.size < 1:
+            raise ValueError("frequencies should be a 1-d array of at least one value")
+        if np.any(frequencies <= 0.):
+            raise ValueError("frequencies should be positive (in Hz)")
+        self.specific_energy_nu_frequencies = np.sort(frequencies)
 
 
     def set_mrw(self, mrw, gamma=1.0, inter_max=1000, warn=True):
@@ -772,7 +763,7 @@ class RunConf(object):
         self._read_max_reabsorptions(group)
         self._read_pda(group)
         self._read_mrw(group)
-        self._read_isrf(group)
+        self._read_specific_energy_nu_frequencies(group)
         self._read_convergence(group)
         self._read_kill_on_absorb(group)
         self._read_kill_on_scatter(group)
@@ -801,7 +792,7 @@ class RunConf(object):
         self._write_max_reabsorptions(group)
         self._write_pda(group)
         self._write_mrw(group)
-        self._write_isrf(group)
+        self._write_specific_energy_nu_frequencies(group)
         self._write_convergence(group)
         self._write_kill_on_absorb(group)
         self._write_kill_on_scatter(group)

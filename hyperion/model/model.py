@@ -819,9 +819,6 @@ class Model(FreezableClass, RunConf):
             self.grid['density'] = []
             if specific_energy is not None:
                 self.grid['specific_energy'] = []
-                
-                if self.compute_isrf == True:
-                    self.grid['specific_energy_nu'] = []
 
         # Check whether the density can be added to an existing one
         if merge_if_possible:
@@ -863,9 +860,6 @@ class Model(FreezableClass, RunConf):
         # Set specific energy if specified
         if specific_energy is not None:
             self.grid['specific_energy'].append(specific_energy)
-            
-            if self.compute_isrf == True:
-                self.grid['specific_energy_nu'].append(specific_energy)
 
     def set_cartesian_grid(self, x_wall, y_wall, z_wall):
         self.set_grid(CartesianGrid(x_wall, y_wall, z_wall))

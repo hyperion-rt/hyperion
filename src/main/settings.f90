@@ -20,7 +20,7 @@ module settings
   integer(idp),public :: n_last_photons_dust = 0
   integer(idp),public :: n_raytracing_photons_sources = 0
   integer(idp),public :: n_raytracing_photons_dust = 0
-  logical,public :: use_raytracing, use_mrw, use_pda, compute_isrf
+  logical,public :: use_raytracing, use_mrw, use_pda, compute_specific_energy_nu
   logical, public :: kill_on_absorb, kill_on_scatter
   real(dp),public :: mrw_gamma
   logical, public :: forced_first_interaction
@@ -30,15 +30,16 @@ module settings
   real(dp) :: monochromatic_energy_threshold
   real(dp),allocatable :: frequencies(:)
 
-  ! Optional user-specified frequency grid for the ISRF. If not allocated, the
-  ! frequency grid of the first dust type is used instead.
-  real(dp),allocatable :: isrf_frequencies(:)
+  ! Optional user-specified frequency grid for specific_energy_nu. If not
+  ! allocated, the frequency grid of the first dust type is used instead.
+  real(dp),allocatable :: specific_energy_nu_frequencies(:)
 
   integer :: physics_io_type
 
   character(len=4) :: output_density
   character(len=4) :: output_density_diff
   character(len=4) :: output_specific_energy
+  character(len=4) :: output_specific_energy_nu
   character(len=4) :: output_n_photons
 
   logical :: check_convergence = .false.

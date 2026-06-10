@@ -195,33 +195,41 @@ only after last iteration), or ``none`` (do not output). The default is to
 output only the last iteration of ``specific_energy``. To find out how to view
 these values, see :doc:`../postprocessing/postprocessing`
 
-Interstellar radiation field
-----------------------------
+Frequency-resolved specific energy
+----------------------------------
 
-By default, Hyperion saves the total specific energy absorbed in each cell. If
-you also want the frequency-resolved specific energy absorbed (the interstellar
-radiation field, ISRF), you can enable this with::
+In addition to the total specific energy absorbed in each cell
+(``output_specific_energy``), Hyperion can save the specific energy absorbed as
+a function of frequency. This is controlled in the same way as the other output
+quantities -- there is no separate switch to enable it::
 
-    m.compute_isrf(True)
+    m.conf.output.output_specific_energy_nu = 'all'    # every iteration
+                                              # 'last'  -> only final iteration
+                                              # 'none'  -> not computed or saved (default)
 
-When enabled, two extra arrays are written out following the same
-``output_specific_energy`` setting described above:
+When it is not ``'none'``, two extra arrays are written out:
 
 * ``specific_energy_nu`` -- the specific energy absorbed in each cell as a
   function of frequency, in erg/s/g.
-* ``ISRF_frequency_bins`` -- the frequencies (in Hz) corresponding to the last
-  axis of ``specific_energy_nu``.
+* ``specific_energy_nu_frequencies`` -- the frequencies (in Hz) corresponding to
+  the leading axis of ``specific_energy_nu``.
 
-By default, the ISRF is binned onto the frequency grid of the first dust type.
-You can instead specify your own frequency grid (in Hz), independent of the dust
-properties, by passing the ``frequencies`` argument::
+This is the *absorbed* (deposited) energy spectrum, not the mean intensity: each
+contribution is weighted by the dust absorption opacity, so it is proportional
+to :math:`\kappa_\nu J_\nu`. To recover the mean intensity :math:`J_\nu` (the
+radiation field), divide by the dust absorption opacity at each frequency.
+Summed over frequency, ``specific_energy_nu`` recovers the total
+``specific_energy``.
+
+By default the binning uses the frequency grid of the first dust type. You can
+instead provide your own frequency grid (in Hz), independent of the dust
+properties::
 
     import numpy as np
-    m.compute_isrf(True, frequencies=np.logspace(11., 16., 100))
+    m.set_specific_energy_nu_frequencies(np.logspace(11., 16., 100))
 
-Photons are binned to the nearest frequency in log space. Summed over frequency,
-``specific_energy_nu`` recovers the total ``specific_energy``. This option is
-disabled by default and works for all grid types, including AMR.
+Photons are binned to the nearest frequency in log space. This works for all
+grid types, including AMR and Voronoi.
 
 ``specific_energy_nu`` can be retrieved like other grid quantities, as an array
 with an extra leading frequency axis::

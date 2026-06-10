@@ -6,8 +6,8 @@ module grid_generic
   
   use grid_io, only : write_grid_3d, write_grid_4d, write_grid_5d
   use grid_geometry, only : geo
-  use grid_physics, only : n_photons, last_photon_id, specific_energy_sum, specific_energy_sum_nu, specific_energy, specific_energy_nu, isrf_nu, density, density_original
-  use settings, only : output_n_photons, output_specific_energy, output_density, output_density_diff, physics_io_type, compute_isrf
+  use grid_physics, only : n_photons, last_photon_id, specific_energy_sum, specific_energy_sum_nu, specific_energy, specific_energy_nu, nu_bins, density, density_original
+  use settings, only : output_n_photons, output_specific_energy, output_specific_energy_nu, output_density, output_density_diff, physics_io_type, compute_specific_energy_nu
 
   implicit none
   save
@@ -64,14 +64,14 @@ contains
 
 
     
-    ! WRITE THE ISRF
-    if (compute_isrf) then
+    ! WRITE THE FREQUENCY-RESOLVED SPECIFIC ENERGY
+    if (compute_specific_energy_nu) then
 
-       if(trim(output_specific_energy)=='all' .or. (trim(output_specific_energy)=='last'.and.iter==n_iter)) then
+       if(trim(output_specific_energy_nu)=='all' .or. (trim(output_specific_energy_nu)=='last'.and.iter==n_iter)) then
 
-          ! ISRF frequency bins are a per-frequency quantity, not per-cell, so
-          ! they are written as a plain 1-D dataset rather than a grid array.
-          call mp_write_array(group, 'ISRF_frequency_bins', isrf_nu)
+          ! The frequencies are a per-frequency quantity, not per-cell, so they
+          ! are written as a plain 1-D dataset rather than a grid array.
+          call mp_write_array(group, 'specific_energy_nu_frequencies', nu_bins)
 
           if(allocated(specific_energy_nu)) then
              select case(physics_io_type)
