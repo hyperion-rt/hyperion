@@ -188,6 +188,31 @@ def test_isrf_frequencies_validation():
 
 
 @pytest.mark.requires_hyperion_binaries
+def test_isrf_voronoi(tmpdir):
+    # The ISRF must also work on (unstructured) Voronoi grids, where cells are a
+    # flat list rather than a structured grid.
+    rng = np.random.RandomState(12345)
+    n = 30
+    x = rng.uniform(-1., 1., n)
+    y = rng.uniform(-1., 1., n)
+    z = rng.uniform(-1., 1., n)
+    m = Model()
+    m.set_voronoi_grid(x, y, z)
+    m.add_density_grid(np.ones(n) * 1.e-16, get_test_dust())
+    s = m.add_point_source()
+    s.luminosity = 1.
+    s.temperature = 6000.
+    m.set_n_initial_iterations(3)
+    m.set_n_photons(initial=100000, imaging=0)
+    m.set_seed(-12345)
+    m.conf.output.output_specific_energy = 'last'
+    m.compute_isrf(True)
+    m.write(tmpdir.join(random_id()).strpath)
+    out = m.run(tmpdir.join(random_id()).strpath)
+    _assert_isrf_reconstructs_specific_energy(out.filename)
+
+
+@pytest.mark.requires_hyperion_binaries
 def test_isrf_get_quantities(tmpdir):
     # specific_energy_nu should be retrievable through get_quantities, the
     # per-frequency ISRF_frequency_bins metadata should not pollute the grid
