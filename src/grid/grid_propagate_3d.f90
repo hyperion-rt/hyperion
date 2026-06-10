@@ -60,13 +60,14 @@ contains
     integer :: source_id
 
     integer :: idx
-    real, dimension(d(1)%n_nu) :: energy_frequency_bins
+    real, allocatable :: energy_frequency_bins(:)
 
-    
-    do id=1,d(1)%n_nu
-       energy_frequency_bins(id) = d(1)%nu(id)
-    end do
-   
+    if (compute_isrf .and. n_dust > 0) then
+       allocate(energy_frequency_bins(d(1)%n_nu))
+       do id=1,d(1)%n_nu
+          energy_frequency_bins(id) = d(1)%nu(id)
+       end do
+    end if
 
     radial = (p%r .dot. p%v) > 0.
 
@@ -241,12 +242,14 @@ contains
 
     integer :: id
     integer :: idx
-    real, dimension(d(1)%n_nu) :: energy_frequency_bins
+    real, allocatable :: energy_frequency_bins(:)
 
-    do id=1,d(1)%n_nu
-       energy_frequency_bins(id) = d(1)%nu(id)
-       !print *,'[grid_propagate_3d last iteration] energy_frequency_bins(id) = ',energy_frequency_bins(id)
-    end do
+    if (compute_isrf .and. n_dust > 0) then
+       allocate(energy_frequency_bins(d(1)%n_nu))
+       do id=1,d(1)%n_nu
+          energy_frequency_bins(id) = d(1)%nu(id)
+       end do
+    end if
 
     radial = (p%r .dot. p%v) > 0.
 
@@ -296,19 +299,15 @@ contains
 
        chi_rho_total = 0._dp
 
-
-       !Compute the ISRF
-
-       !Figure out what frequency bin in the ISRF calculation the current photon's frequency is closest to
-       idx = minloc(abs(energy_frequency_bins-p%nu),DIM=1)
+       ! Figure out which ISRF frequency bin the current photon is closest to
+       if (compute_isrf) idx = minloc(abs(energy_frequency_bins - p%nu), DIM=1)
 
        do id=1,n_dust
           chi_rho_total = chi_rho_total + p%current_chi(id) * density(p%icell%ic, id)
 
-          if(density(p%icell%ic,id) > 0._dp) then
-             specific_energy_sum_nu(p%icell%ic,id,idx) = &
-                  & specific_energy_sum_nu(p%icell%ic,id,idx) + tmin * p%current_kappa(id) * p%energy
-             !print *,'[grid_propage_3d last iteration] specific_energy_sum_nu=',specific_energy_sum_nu(p%icell%ic,id,idx)
+          if (compute_isrf .and. density(p%icell%ic, id) > 0._dp) then
+             specific_energy_sum_nu(p%icell%ic, id, idx) = &
+                  & specific_energy_sum_nu(p%icell%ic, id, idx) + tmin * p%current_kappa(id) * p%energy
           end if
 
        end do
