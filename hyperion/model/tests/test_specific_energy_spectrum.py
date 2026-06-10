@@ -251,9 +251,13 @@ def test_specific_energy_spectrum_yt_export_skips_frequency_resolved(tmpdir):
 def test_specific_energy_spectrum_mpi_matches_serial(tmpdir):
     # The saved spectrum must not depend on the number of MPI processes. We
     # compare the total (which is conserved, hence robust to Monte Carlo noise)
-    # between a serial run and a 2-process MPI run.
+    # between a serial run and a 2-process MPI run. This is skipped unless both an
+    # MPI launcher and the MPI build of the binary are available (e.g. CI only
+    # builds the serial binaries).
     if shutil.which('mpirun') is None and shutil.which('mpiexec') is None:
         pytest.skip("no MPI launcher available")
+    if shutil.which('hyperion_car_mpi') is None:
+        pytest.skip("MPI build of the Hyperion binaries not available")
 
     m = _cartesian_model('last', n_photons=200000)
     m.write(tmpdir.join(random_id()).strpath)
