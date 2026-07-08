@@ -195,6 +195,23 @@ contains
              end if
           end do
 
+          ! Deposit the same energy in the frequency-resolved spectrum.
+          ! Without this, the energy deposited over the partial path to
+          ! each interaction point is counted in the scalar specific
+          ! energy but missing from the binned spectrum, which biases
+          ! the spectrum low in any cell optically thick enough for
+          ! photons to interact within a single crossing.
+          if (compute_specific_energy_spectrum) then
+             idx = minloc(abs(log_nu_bins - log10(p%nu)), DIM=1)
+             do id=1,n_dust
+                if(density(p%icell%ic, id) > 0._dp) then
+                   specific_energy_sum_spectrum(p%icell%ic, id, idx) = &
+                        & specific_energy_sum_spectrum(p%icell%ic, id, idx) &
+                        & + tact * p%current_kappa(id) * p%energy
+                end if
+             end do
+          end if
+
           if(debug) write(*,'(" [debug] end grid_integrate")')
           return
 
