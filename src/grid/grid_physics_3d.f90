@@ -118,6 +118,13 @@ contains
     allocate(density(geo%n_cells, n_dust))
     allocate(specific_energy(geo%n_cells, n_dust))
     allocate(specific_energy_spectrum(geo%n_cells,n_dust,n_nu_bins))
+    ! initialize: this array is only fully populated later (from the
+    ! photon deposits, or from the minimum specific energy), but with
+    ! specific_energy_type='additional' it is COPIED into
+    ! specific_energy_additional_spectrum before that happens -- copying
+    ! an uninitialized allocation injects heap garbage into the
+    ! frequency-resolved output at every iteration.
+    specific_energy_spectrum = 0._dp
 
     if(n_dust > 0) then
 
