@@ -34,9 +34,9 @@ jobs:
 
         # Bit-level tests
         - linux: py311-test-bitlevel
-          runs-on: ubuntu-20.04
+          runs-on: ubuntu-24.04
         - linux: py312-test-bitlevel
-          runs-on: ubuntu-20.04
+          runs-on: ubuntu-24.04
 
 
   publish:
