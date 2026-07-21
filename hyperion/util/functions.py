@@ -252,7 +252,7 @@ def delete_file(file_name):
 
 def is_numpy_array(variable):
     return issubclass(variable.__class__, (np.ndarray,
-                                           np.core.records.recarray,
+                                           np.recarray,
                                            np.ma.core.MaskedArray))
 
 

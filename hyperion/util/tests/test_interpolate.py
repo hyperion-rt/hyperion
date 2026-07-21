@@ -73,7 +73,10 @@ class GenericTests(object):
         x = np.linspace(1., 10., 10)
         y = self.f(x)
         xval = np.linspace(0., 10., 100)
-        ref = self.f(xval)
+        # Evaluating the reference function at xval=0 can cause warnings
+        # (e.g. log(0)), but these values are replaced by the fill value.
+        with np.errstate(divide='ignore', invalid='ignore'):
+            ref = self.f(xval)
         ref[xval < x[0]] = -2.
         assert_array_almost_equal_nulp(self.interp(x, y, xval, bounds_error=False, fill_value=-2.), ref, 15)
 

@@ -31,13 +31,18 @@ def delta_neg(r, q):
 
 def delta_pos(r, delta):
 
+    # Negative values of dr give NaN when raised to the power 1/3, but these
+    # entries are overwritten just below, so the warnings can be ignored.
+
     dr = (r + np.sqrt(delta)).real
-    s = dr ** (1. / 3.)
+    with np.errstate(invalid='ignore'):
+        s = dr ** (1. / 3.)
     neg = dr < 0.
     s[neg] = - (- dr[neg]) ** (1. / 3.)
 
     dr = (r - np.sqrt(delta)).real
-    t = dr ** (1. / 3.)
+    with np.errstate(invalid='ignore'):
+        t = dr ** (1. / 3.)
     neg = dr < 0.
     t[neg] = - (- dr[neg]) ** (1. / 3.)
 
@@ -351,10 +356,13 @@ class UlrichEnvelope(Envelope):
         # particles at r=infinity.
         mu0 = solve_mu0(r / self.rc, mu)
 
-        # Find Ulrich envelope density
-        rho = (self.rho_0 * (r / self.rc) ** -1.5
-               * (1 + mu / mu0) ** -0.5
-               * (mu / mu0 + 2. * mu0 ** 2 * self.rc / r) ** -1.)
+        # Find Ulrich envelope density. Cells in the midplane, where mu0 is
+        # zero, give divisions by zero, but these cells are overwritten just
+        # below, so the warnings can be ignored.
+        with np.errstate(divide='ignore'):
+            rho = (self.rho_0 * (r / self.rc) ** -1.5
+                   * (1 + mu / mu0) ** -0.5
+                   * (mu / mu0 + 2. * mu0 ** 2 * self.rc / r) ** -1.)
 
         mid1 = (np.abs(mu) < 1.e-10) & (r < self.rc)
         rho[mid1] = (self.rho_0 / np.sqrt(r[mid1] / self.rc)
@@ -430,9 +438,13 @@ class UlrichEnvelope(Envelope):
 
         if gamma_0 < 1.:
 
-            rho[:] = (self.rho_0 * self.rc
-                      * (np.log((np.sqrt(gamma_1) + 1) / (1. - np.sqrt(gamma_1)))
-                         - np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0)))))
+            # Values with gamma_1 >= 1 give NaN in the logarithm, but these
+            # entries are overwritten just below, so the warnings can be
+            # ignored.
+            with np.errstate(invalid='ignore'):
+                rho[:] = (self.rho_0 * self.rc
+                          * (np.log((np.sqrt(gamma_1) + 1) / (1. - np.sqrt(gamma_1)))
+                             - np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0)))))
 
             rho[gamma_1 >= 1.] = np.inf
 
