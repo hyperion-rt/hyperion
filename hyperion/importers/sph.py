@@ -177,6 +177,7 @@ def compute_octree_densities(octree, px, py, pz, sigma, mass, mode='exact'):
 
         except:
 
+            p = None
             p_map = map
             N = 1
 
@@ -198,6 +199,10 @@ def compute_octree_densities(octree, px, py, pz, sigma, mass, mode='exact'):
                               sigma, mass))
 
         densities = p_map(discretize_wrapper, arguments)
+
+        if p is not None:
+            p.close()
+            p.join()
 
         density = np.hstack(densities)
 

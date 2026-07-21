@@ -86,28 +86,32 @@ def test_linlog_subset_special(xmin, xmax):
     assert almost_equal(integrate_linlog_subset(x, y, xmin, xmax), xmax - xmin)
 
 
-@pytest.mark.parametrize(('dtype_x', 'dtype_y'), zip(DTYPES, DTYPES))
+@pytest.mark.parametrize('dtype_x', DTYPES)
+@pytest.mark.parametrize('dtype_y', DTYPES)
 def test_linear_types(dtype_x, dtype_y):
     x = np.array([1, 2], dtype=dtype_x)
     y = np.array([1, 1], dtype=dtype_y)
     assert integrate(x, y) == 1.
 
 
-@pytest.mark.parametrize(('dtype_x', 'dtype_y'), zip(DTYPES, DTYPES))
+@pytest.mark.parametrize('dtype_x', DTYPES)
+@pytest.mark.parametrize('dtype_y', DTYPES)
 def test_loglog_types(dtype_x, dtype_y):
     x = np.array([1, 2], dtype=dtype_x)
     y = np.array([1, 1], dtype=dtype_y)
     assert integrate_loglog(x, y) == 1.
 
 
-@pytest.mark.parametrize(('dtype_x', 'dtype_y'), zip(DTYPES, DTYPES))
+@pytest.mark.parametrize('dtype_x', DTYPES)
+@pytest.mark.parametrize('dtype_y', DTYPES)
 def test_loglin_types(dtype_x, dtype_y):
     x = np.array([1, 2], dtype=dtype_x)
     y = np.array([1, 1], dtype=dtype_y)
     assert integrate_loglin(x, y) == 1.
 
 
-@pytest.mark.parametrize(('dtype_x', 'dtype_y'), zip(DTYPES, DTYPES))
+@pytest.mark.parametrize('dtype_x', DTYPES)
+@pytest.mark.parametrize('dtype_y', DTYPES)
 def test_linlog_types(dtype_x, dtype_y):
     x = np.array([1, 2], dtype=dtype_x)
     y = np.array([1, 1], dtype=dtype_y)

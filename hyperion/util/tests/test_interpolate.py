@@ -73,7 +73,10 @@ class GenericTests(object):
         x = np.linspace(1., 10., 10)
         y = self.f(x)
         xval = np.linspace(0., 10., 100)
-        ref = self.f(xval)
+        # Evaluating the reference function at xval=0 can cause warnings
+        # (e.g. log(0)), but these values are replaced by the fill value.
+        with np.errstate(divide='ignore', invalid='ignore'):
+            ref = self.f(xval)
         ref[xval < x[0]] = -2.
         assert_array_almost_equal_nulp(self.interp(x, y, xval, bounds_error=False, fill_value=-2.), ref, 15)
 
@@ -92,7 +95,8 @@ class GenericTests(object):
             self.interp(x, y, xval)
         assert exc.value.args[0] == 'x and y should have the same length'
 
-    @pytest.mark.parametrize(('dtype_x', 'dtype_y'), zip(DTYPES, DTYPES))
+    @pytest.mark.parametrize('dtype_x', DTYPES)
+    @pytest.mark.parametrize('dtype_y', DTYPES)
     def test_types(self, dtype_x, dtype_y):
         x = np.array([1, 5], dtype=dtype_x)
         y = np.array([1, 1], dtype=dtype_y)

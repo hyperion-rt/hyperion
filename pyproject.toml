@@ -8,4 +8,8 @@ build-backend = 'setuptools.build_meta'
 write_to = "hyperion/_version.py"
 
 [tool.cibuildwheel]
-skip = "pp* *-musllinux* *aarch64* *i686* *win32*"
+skip = "pp* cp39-* cp310-* *-musllinux* *aarch64* *i686* *win32*"
+# Build (and test) on a newer manylinux image so that runtime dependencies such
+# as h5py, which no longer publish manylinux2014 wheels, install as wheels in the
+# wheel-test step rather than trying (and failing) to build from source.
+manylinux-x86_64-image = "manylinux_2_28"

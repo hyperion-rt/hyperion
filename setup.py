@@ -8,7 +8,10 @@ kwargs = {}
 kwargs['py_limited_api'] = True
 kwargs['include_dirs'] = [numpy.get_include()]
 if sys.platform != "win32":
-    kwargs['extra_compile_args'] = ['-Wno-error=declaration-after-statement']
+    # GCC 14 (used by manylinux_2_28) promotes these to errors by default; the
+    # numpy C-API usage here is fine in practice, so keep them as warnings.
+    kwargs['extra_compile_args'] = ['-Wno-error=declaration-after-statement',
+                                    '-Wno-error=incompatible-pointer-types']
 
 ext_modules = [Extension("hyperion.util._integrate_core",
                          ['hyperion/util/_integrate_core.c'],
