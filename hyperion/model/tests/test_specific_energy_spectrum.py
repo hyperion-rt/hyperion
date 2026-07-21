@@ -162,6 +162,30 @@ def test_specific_energy_spectrum_custom_frequency_grid(tmpdir):
     _assert_spectrum_sums_to_specific_energy(out.filename)
 
 
+@pytest.mark.requires_hyperion_binaries
+def test_specific_energy_spectrum_with_sublimation_cap(tmpdir):
+    # With a dust type using the 'cap' sublimation mode, cells below the
+    # sublimation threshold must keep their frequency-resolved spectrum. This
+    # guards against the bug where sublimate_dust reset the spectrum in every
+    # cell rather than only in cells above the threshold, wiping the output.
+    m = Model()
+    m.set_cartesian_grid([-1., 0., 1.], [-1., 0., 1.], [-1., 0., 1.])
+    dust = get_test_dust()
+    dust.set_sublimation_temperature('cap', temperature=1600.)
+    m.add_density_grid(np.ones((2, 2, 2)) * 1.e-16, dust)
+    s = m.add_point_source()
+    s.luminosity = 1.
+    s.temperature = 6000.
+    m.set_n_initial_iterations(3)
+    m.set_n_photons(initial=100000, imaging=0)
+    m.set_seed(-12345)
+    m.conf.output.output_specific_energy = 'last'
+    m.conf.output.output_specific_energy_spectrum = 'last'
+    m.write(tmpdir.join(random_id()).strpath)
+    out = m.run(tmpdir.join(random_id()).strpath)
+    _assert_spectrum_sums_to_specific_energy(out.filename)
+
+
 def test_specific_energy_spectrum_frequencies_roundtrip(tmpdir):
     # The custom frequency grid should survive a write/read round-trip.
     from ...conf.conf_files import RunConf

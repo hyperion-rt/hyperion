@@ -389,15 +389,14 @@ contains
              if(specific_energy(ic, id) > d(id)%sublimation_specific_energy) then
                 specific_energy(ic, id) = d(id)%sublimation_specific_energy
                 reset = reset + 1
-             end if
 
-             
-             if (compute_specific_energy_spectrum) then
-                do idx=1,n_nu_bins
-                   specific_energy_spectrum(ic,id,idx) = minimum_specific_energy(id)
-                end do
-             end if
+                if (compute_specific_energy_spectrum) then
+                   do idx=1,n_nu_bins
+                      specific_energy_spectrum(ic,id,idx) = minimum_specific_energy(id)
+                   end do
+                end if
 
+             end if
           end do
 
           if(reset > 0) write(*,'(" [sublimate_dust] capping dust specific_energy in ",I0," cells")') reset
