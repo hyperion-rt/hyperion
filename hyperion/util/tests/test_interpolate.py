@@ -92,7 +92,8 @@ class GenericTests(object):
             self.interp(x, y, xval)
         assert exc.value.args[0] == 'x and y should have the same length'
 
-    @pytest.mark.parametrize(('dtype_x', 'dtype_y'), zip(DTYPES, DTYPES))
+    @pytest.mark.parametrize('dtype_x', DTYPES)
+    @pytest.mark.parametrize('dtype_y', DTYPES)
     def test_types(self, dtype_x, dtype_y):
         x = np.array([1, 5], dtype=dtype_x)
         y = np.array([1, 1], dtype=dtype_y)
