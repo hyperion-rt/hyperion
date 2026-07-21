@@ -1,8 +1,9 @@
-! MD5 of template: d391eca44de1bf600f23e91f9dab6ebf
+! MD5 of template: 1e1c708fb2055feec7cad222682bbe09
 module mpi_hdf5_io
 
   use core_lib
   use mpi
+  use mpi_interfaces
   use mpi_core
 
   implicit none

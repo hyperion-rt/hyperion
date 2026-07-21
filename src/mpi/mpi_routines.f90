@@ -1,6 +1,7 @@
 module mpi_routines
 
   use mpi
+  use mpi_interfaces
   use mpi_core
   use core_lib
   use grid_physics
