@@ -30,7 +30,7 @@ T_REF = [24.75280,
 
 
 @pytest.mark.requires_hyperion_binaries
-@pytest.mark.parametrize(('density_ref', 'temperature_ref'), zip(D_REF, T_REF))
+@pytest.mark.parametrize(('density_ref', 'temperature_ref'), list(zip(D_REF, T_REF)))
 def test_single_temperature(tmpdir, density_ref, temperature_ref):
 
     dust = get_realistic_test_dust()
@@ -64,7 +64,7 @@ def test_single_temperature(tmpdir, density_ref, temperature_ref):
 
 
 @pytest.mark.requires_hyperion_binaries
-@pytest.mark.parametrize(('density_ref', 'temperature_ref'), zip(D_REF, T_REF))
+@pytest.mark.parametrize(('density_ref', 'temperature_ref'), list(zip(D_REF, T_REF)))
 def test_multi_temperature(tmpdir, density_ref, temperature_ref):
 
     dust = get_realistic_test_dust()
