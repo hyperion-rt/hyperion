@@ -41,6 +41,15 @@ module grid_io
      module procedure write_grid_4d_int
      module procedure write_grid_4d_int8
   end interface write_grid_4d
+  
+  interface write_grid_5d
+     module procedure write_grid_5d_sp
+     module procedure write_grid_5d_dp
+     module procedure write_grid_5d_int
+     module procedure write_grid_5d_int8
+  end interface write_grid_5d
+
+
 
 contains
 
@@ -52,6 +61,7 @@ contains
   end function grid_exists
 
   !!@FOR real(sp):sp real(dp):dp integer:int integer(idp):int8
+
 
   subroutine read_grid_4d_<T>(group, path, array, geo)
 
@@ -94,6 +104,22 @@ contains
     if(any(is_nan(array))) call error("read_grid_3d", "NaN values in 3D array")
 
   end subroutine read_grid_3d_<T>
+
+
+  subroutine write_grid_5d_<T>(group, path, array, geo)
+
+    implicit none
+
+    integer(hid_t), intent(in) :: group
+    character(len=*), intent(in) :: path
+    @T, intent(in) :: array(:,:,:)
+    type(grid_geometry_desc),intent(in) :: geo
+
+    call mp_write_array(group, path, array)
+    call mp_write_keyword(group, path, 'geometry', geo%id)
+
+  end subroutine write_grid_5d_<T>
+
 
   subroutine write_grid_4d_<T>(group, path, array, geo)
 

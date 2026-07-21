@@ -5,10 +5,10 @@ module grid_propagate
   use type_grid_cell
   use dust_main, only : n_dust
   use grid_geometry, only : escaped, find_wall, in_correct_cell, next_cell, opposite_wall
-  use grid_physics, only : specific_energy_sum, density, n_photons, last_photon_id
+  use grid_physics, only : specific_energy_sum, specific_energy_sum_spectrum, log_nu_bins, density, n_photons, last_photon_id
   use sources
   use counters
-  use settings, only : frac_check => propagation_check_frequency
+  use settings, only : frac_check => propagation_check_frequency, compute_specific_energy_spectrum
 
   implicit none
   save
@@ -56,6 +56,8 @@ contains
     real(dp) :: xi
 
     integer :: source_id
+
+    integer :: idx
 
     radial = (p%r .dot. p%v) > 0.
 
@@ -130,14 +132,21 @@ contains
           p%r = p%r + tmin * p%v
           tau_achieved = tau_achieved + tau_cell
 
-          ! NEED INDIVIDUAL ALPHA HERE
+
+          if (compute_specific_energy_spectrum) idx = minloc(abs(log_nu_bins - log10(p%nu)), DIM=1)
 
           do id=1,n_dust
              if(density(p%icell%ic, id) > 0._dp) then
                 specific_energy_sum(p%icell%ic, id) = &
                      & specific_energy_sum(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
+                if (compute_specific_energy_spectrum) then
+                   specific_energy_sum_spectrum(p%icell%ic, id, idx) = &
+                        & specific_energy_sum_spectrum(p%icell%ic, id, idx) + tmin * p%current_kappa(id) * p%energy
+                end if
              end if
           end do
+
+
 
           p%on_wall = .true.
           p%icell = next_cell(p%icell, id_min, intersection=p%r)
@@ -185,6 +194,23 @@ contains
                      & + tact * p%current_kappa(id) * p%energy
              end if
           end do
+
+          ! Deposit the same energy in the frequency-resolved spectrum.
+          ! Without this, the energy deposited over the partial path to
+          ! each interaction point is counted in the scalar specific
+          ! energy but missing from the binned spectrum, which biases
+          ! the spectrum low in any cell optically thick enough for
+          ! photons to interact within a single crossing.
+          if (compute_specific_energy_spectrum) then
+             idx = minloc(abs(log_nu_bins - log10(p%nu)), DIM=1)
+             do id=1,n_dust
+                if(density(p%icell%ic, id) > 0._dp) then
+                   specific_energy_sum_spectrum(p%icell%ic, id, idx) = &
+                        & specific_energy_sum_spectrum(p%icell%ic, id, idx) &
+                        & + tact * p%current_kappa(id) * p%energy
+                end if
+             end do
+          end if
 
           if(debug) write(*,'(" [debug] end grid_integrate")')
           return
@@ -271,6 +297,8 @@ contains
        do id=1,n_dust
           chi_rho_total = chi_rho_total + p%current_chi(id) * density(p%icell%ic, id)
        end do
+
+
        tau_cell = chi_rho_total * tmin
 
        if(tau_cell < tau_needed) then

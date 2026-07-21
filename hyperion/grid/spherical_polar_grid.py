@@ -317,6 +317,8 @@ class SphericalPolarGrid(FreezableClass):
         # Read in physical quantities
         if quantities is not None:
             for quantity in group:
+                if quantity == 'specific_energy_spectrum_frequencies':
+                    continue  # per-frequency metadata, not a per-cell grid quantity
                 if quantities == 'all' or quantity in quantities:
                     array = np.array(group[quantity])
                     if array.ndim == 4:  # if array is 4D, it is a list of 3D arrays
