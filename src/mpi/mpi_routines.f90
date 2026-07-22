@@ -280,13 +280,15 @@ contains
        call mpi_reduce(specific_energy_sum, dummy_dp, size(specific_energy_sum), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
     end if
 
-    if(main_process()) then
-       allocate(tmp_3d(size(specific_energy_sum_spectrum,1),size(specific_energy_sum_spectrum,2),size(specific_energy_sum_spectrum,3)))
-       call mpi_reduce(specific_energy_sum_spectrum, tmp_3d, size(specific_energy_sum_spectrum), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
-       specific_energy_sum_spectrum = tmp_3d
-       deallocate(tmp_3d)
-    else
-       call mpi_reduce(specific_energy_sum_spectrum, dummy_dp, size(specific_energy_sum_spectrum), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+    if(allocated(specific_energy_sum_spectrum)) then
+       if(main_process()) then
+          allocate(tmp_3d(size(specific_energy_sum_spectrum,1),size(specific_energy_sum_spectrum,2),size(specific_energy_sum_spectrum,3)))
+          call mpi_reduce(specific_energy_sum_spectrum, tmp_3d, size(specific_energy_sum_spectrum), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+          specific_energy_sum_spectrum = tmp_3d
+          deallocate(tmp_3d)
+       else
+          call mpi_reduce(specific_energy_sum_spectrum, dummy_dp, size(specific_energy_sum_spectrum), mpi_real8, mpi_sum, rank_main, mpi_comm_world, ierr)
+       end if
     end if
 
     if(allocated(n_photons)) then

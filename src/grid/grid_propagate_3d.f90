@@ -59,6 +59,12 @@ contains
 
     integer :: idx
 
+    ! The photon frequency does not change within a single grid_integrate call
+    ! (re-emission and scattering happen between calls, which is also when the
+    ! cached opacities in p%current_kappa are refreshed), so the frequency bin
+    ! only needs to be found once per call rather than at every cell crossing.
+    if (compute_specific_energy_spectrum) idx = minloc(abs(log_nu_bins - log10(p%nu)), DIM=1)
+
     radial = (p%r .dot. p%v) > 0.
 
     if(debug) write(*,'(" [debug] start grid_integrate")')
@@ -132,9 +138,6 @@ contains
           p%r = p%r + tmin * p%v
           tau_achieved = tau_achieved + tau_cell
 
-
-          if (compute_specific_energy_spectrum) idx = minloc(abs(log_nu_bins - log10(p%nu)), DIM=1)
-
           do id=1,n_dust
              if(density(p%icell%ic, id) > 0._dp) then
                 specific_energy_sum(p%icell%ic, id) = &
@@ -202,7 +205,6 @@ contains
           ! the spectrum low in any cell optically thick enough for
           ! photons to interact within a single crossing.
           if (compute_specific_energy_spectrum) then
-             idx = minloc(abs(log_nu_bins - log10(p%nu)), DIM=1)
              do id=1,n_dust
                 if(density(p%icell%ic, id) > 0._dp) then
                    specific_energy_sum_spectrum(p%icell%ic, id, idx) = &

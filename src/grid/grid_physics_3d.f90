@@ -108,23 +108,35 @@ contains
     integer :: n_nu_bins
 
     ! specific_energy_spectrum is binned onto a user-specified frequency grid if one was given,
-    ! otherwise onto the frequency grid of the first dust type.
-    if (allocated(specific_energy_spectrum_frequencies)) then
-       n_nu_bins = size(specific_energy_spectrum_frequencies)
+    ! otherwise onto the frequency grid of the first dust type. The spectrum
+    ! arrays are only allocated when the frequency-resolved specific energy is
+    ! actually requested (they can be large), so all whole-array operations on
+    ! them are guarded by allocated() or compute_specific_energy_spectrum
+    ! checks.
+    if (compute_specific_energy_spectrum) then
+       if (allocated(specific_energy_spectrum_frequencies)) then
+          n_nu_bins = size(specific_energy_spectrum_frequencies)
+       else if (n_dust > 0) then
+          n_nu_bins = d(1)%n_nu
+       else
+          n_nu_bins = 0
+       end if
     else
-       n_nu_bins = d(1)%n_nu
+       n_nu_bins = 0
     end if
     ! Density
     allocate(density(geo%n_cells, n_dust))
     allocate(specific_energy(geo%n_cells, n_dust))
-    allocate(specific_energy_spectrum(geo%n_cells,n_dust,n_nu_bins))
-    ! initialize: this array is only fully populated later (from the
-    ! photon deposits, or from the minimum specific energy), but with
-    ! specific_energy_type='additional' it is COPIED into
-    ! specific_energy_additional_spectrum before that happens -- copying
-    ! an uninitialized allocation injects heap garbage into the
-    ! frequency-resolved output at every iteration.
-    specific_energy_spectrum = 0._dp
+    if (compute_specific_energy_spectrum) then
+       allocate(specific_energy_spectrum(geo%n_cells,n_dust,n_nu_bins))
+       ! initialize: this array is only fully populated later (from the
+       ! photon deposits, or from the minimum specific energy), but with
+       ! specific_energy_type='additional' it is COPIED into
+       ! specific_energy_additional_spectrum before that happens -- copying
+       ! an uninitialized allocation injects heap garbage into the
+       ! frequency-resolved output at every iteration.
+       specific_energy_spectrum = 0._dp
+    end if
 
     if(n_dust > 0) then
 
@@ -203,7 +215,9 @@ contains
              ! energy. After the first iteration, specific_energy will get
              ! re-calculated and we will then add specific_energy_additional
              specific_energy_additional = specific_energy
-             specific_energy_additional_spectrum = specific_energy_spectrum
+             if (compute_specific_energy_spectrum) then
+                specific_energy_additional_spectrum = specific_energy_spectrum
+             end if
              do id=1,n_dust
                 specific_energy(:,id) = minimum_specific_energy(id)
                 
@@ -247,8 +261,10 @@ contains
     specific_energy_sum = 0._dp
 
     ! Set up basics for the frequency-resolved specific energy
-    allocate(specific_energy_sum_spectrum(geo%n_cells, n_dust, n_nu_bins))
-    specific_energy_sum_spectrum = 0._dp
+    if (compute_specific_energy_spectrum) then
+       allocate(specific_energy_sum_spectrum(geo%n_cells, n_dust, n_nu_bins))
+       specific_energy_sum_spectrum = 0._dp
+    end if
 
     ! Cache the frequency grid (and its log) once so they do not have to be
     ! rebuilt for every photon. Photons are binned to the nearest grid point in
@@ -334,7 +350,8 @@ contains
     integer :: reset
     integer :: n_nu_bins
 
-    n_nu_bins = size(specific_energy_spectrum, 3)
+    n_nu_bins = 0
+    if (compute_specific_energy_spectrum) n_nu_bins = size(specific_energy_spectrum, 3)
 
     reset = 0
 
@@ -389,15 +406,14 @@ contains
              if(specific_energy(ic, id) > d(id)%sublimation_specific_energy) then
                 specific_energy(ic, id) = d(id)%sublimation_specific_energy
                 reset = reset + 1
-             end if
 
-             
-             if (compute_specific_energy_spectrum) then
-                do idx=1,n_nu_bins
-                   specific_energy_spectrum(ic,id,idx) = minimum_specific_energy(id)
-                end do
-             end if
+                if (compute_specific_energy_spectrum) then
+                   do idx=1,n_nu_bins
+                      specific_energy_spectrum(ic,id,idx) = minimum_specific_energy(id)
+                   end do
+                end if
 
+             end if
           end do
 
           if(reset > 0) write(*,'(" [sublimate_dust] capping dust specific_energy in ",I0," cells")') reset
@@ -421,7 +437,8 @@ contains
     integer :: id,idx
     integer :: n_nu_bins
 
-    n_nu_bins = size(specific_energy_spectrum, 3)
+    n_nu_bins = 0
+    if (compute_specific_energy_spectrum) n_nu_bins = size(specific_energy_spectrum, 3)
 
     if(main_process()) write(*,'(" [grid_physics] updating energy_abs")')
 
