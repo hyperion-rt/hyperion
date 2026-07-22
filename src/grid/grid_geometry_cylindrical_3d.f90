@@ -358,9 +358,11 @@ contains
        p%killed = .true.
     else
        p%in_cell = .true.
+       ! Only adjust the wall position for photons that were successfully
+       ! placed in a cell - for killed photons the cell indices are invalid
+       ! and adjust_wall would index the wall arrays out of bounds.
+       call adjust_wall(p)
     end if
-
-    call adjust_wall(p)
 
   end subroutine place_in_cell
 
