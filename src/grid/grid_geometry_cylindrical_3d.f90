@@ -444,7 +444,7 @@ contains
 
     type(photon),intent(in) :: p
     type(grid_cell) :: icell_actual
-    real(dp) :: phi,frac,dphi,r_sq,w_sq
+    real(dp) :: phi,frac,dphi,w_sq
     real(dp),parameter :: threshold = 1.e-3_dp
 
     icell_actual = find_cell(p)

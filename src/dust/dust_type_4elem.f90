@@ -87,7 +87,6 @@ contains
     character(len=100) :: path
     character(len=4) :: sublimation
     type(version) :: python_version
-    integer :: dust_version
 
     ! Read dust file
 

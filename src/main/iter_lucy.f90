@@ -74,11 +74,11 @@ contains
     integer(idp) :: n_photons, n_photons_curr
 
     ! Photon object and variable to loop over photons
-    integer :: ip, ia
+    integer(idp) :: ip, ia
     type(photon) :: p
 
     ! Number of interactions
-    integer :: interactions,mrw_steps
+    integer(idp) :: interactions,mrw_steps
 
     ! Optical depth to travel
     real(dp) :: tau
