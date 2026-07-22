@@ -138,6 +138,14 @@ class ModelOutput(FreezableClass):
 
         if track_origin in ['basic', 'detailed']:
 
+            if component in ('source', 'dust'):
+                # The 'source' and 'dust' components are the sum of the
+                # emitted and scattered contributions, which are not adjacent
+                # along the origin axis, so we return the two slices and let
+                # the caller add them up.
+                return [self._get_origin_slice(group, component + '_emit', source_id=source_id, dust_id=dust_id),
+                        self._get_origin_slice(group, component + '_scat', source_id=source_id, dust_id=dust_id)]
+
             if component == 'source_emit':
                 io = 0
             elif component == 'dust_emit':
@@ -147,7 +155,7 @@ class ModelOutput(FreezableClass):
             elif component == 'dust_scat':
                 io = 3
             else:
-                raise ValueError("component should be one of total/source_emit/dust_emit/source_scat/dust_scat since track_origin='{0}'".format(track_origin))
+                raise ValueError("component should be one of total/source_emit/dust_emit/source_scat/dust_scat/source/dust since track_origin='{0}'".format(track_origin))
 
             if track_origin == 'detailed':
 
@@ -471,7 +479,33 @@ class ModelOutput(FreezableClass):
             if uncertainties:
                 unc = np.sqrt(np.sum(unc ** 2, axis=1))
         elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat', 'dust', 'source']:
-            if type(io) is tuple:
+            if type(io) is list:
+                # The 'source' and 'dust' components are the sum of the
+                # emitted and scattered contributions, which are returned as
+                # two separate slices along the origin axis.
+                fluxes, uncs = [], []
+                for io_single in io:
+                    if type(io_single) is tuple:
+                        start, end = io_single
+                        f = flux[:, start:end]
+                        if uncertainties:
+                            u = unc[:, start:end]
+                        if (component == 'source' and source_id is None) or \
+                           (component == 'dust' and dust_id is None):
+                            f = np.sum(f, axis=1)
+                            if uncertainties:
+                                u = np.sqrt(np.sum(u ** 2, axis=1))
+                    else:
+                        f = flux[:, io_single]
+                        if uncertainties:
+                            u = unc[:, io_single]
+                    fluxes.append(f)
+                    if uncertainties:
+                        uncs.append(u)
+                flux = fluxes[0] + fluxes[1]
+                if uncertainties:
+                    unc = np.sqrt(uncs[0] ** 2 + uncs[1] ** 2)
+            elif type(io) is tuple:
                 start, end = io
                 flux = flux[:, start:end]
                 if uncertainties:
@@ -857,7 +891,33 @@ class ModelOutput(FreezableClass):
             if uncertainties:
                 unc = np.sqrt(np.sum(unc ** 2, axis=1))
         elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat', 'dust', 'source']:
-            if type(io) is tuple:
+            if type(io) is list:
+                # The 'source' and 'dust' components are the sum of the
+                # emitted and scattered contributions, which are returned as
+                # two separate slices along the origin axis.
+                fluxes, uncs = [], []
+                for io_single in io:
+                    if type(io_single) is tuple:
+                        start, end = io_single
+                        f = flux[:, start:end]
+                        if uncertainties:
+                            u = unc[:, start:end]
+                        if (component == 'source' and source_id is None) or \
+                           (component == 'dust' and dust_id is None):
+                            f = np.sum(f, axis=1)
+                            if uncertainties:
+                                u = np.sqrt(np.sum(u ** 2, axis=1))
+                    else:
+                        f = flux[:, io_single]
+                        if uncertainties:
+                            u = unc[:, io_single]
+                    fluxes.append(f)
+                    if uncertainties:
+                        uncs.append(u)
+                flux = fluxes[0] + fluxes[1]
+                if uncertainties:
+                    unc = np.sqrt(uncs[0] ** 2 + uncs[1] ** 2)
+            elif type(io) is tuple:
                 start, end = io
                 flux = flux[:, start:end]
                 if uncertainties:

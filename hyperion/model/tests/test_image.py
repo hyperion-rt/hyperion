@@ -176,10 +176,22 @@ class TestImageSimpleModelTrackingDetailed(object):
             wav, nufnu = self.m.get_image(source_id=2, component='source_emit')
         assert exc.value.args[0] == 'source_id should be between 0 and 1'
 
+    def test_image_source_dust_components(self):
+        # 'source' and 'dust' are the sum of the emitted and scattered
+        # contributions
+        wav, source = self.m.get_image(component='source')
+        wav, source_emit = self.m.get_image(component='source_emit')
+        wav, source_scat = self.m.get_image(component='source_scat')
+        np.testing.assert_allclose(source, source_emit + source_scat)
+        wav, dust = self.m.get_image(component='dust')
+        wav, dust_emit = self.m.get_image(component='dust_emit')
+        wav, dust_scat = self.m.get_image(component='dust_scat')
+        np.testing.assert_allclose(dust, dust_emit + dust_scat)
+
     def test_image_source_invalid3(self):
         with pytest.raises(ValueError) as exc:
-            self.m.get_image(component='source')
-        assert exc.value.args[0] == "component should be one of total/source_emit/dust_emit/source_scat/dust_scat since track_origin='detailed'"
+            self.m.get_image(component='source_blah')
+        assert exc.value.args[0] == "component should be one of total/source_emit/dust_emit/source_scat/dust_scat/source/dust since track_origin='detailed'"
 
     def test_image_dust_all(self):
         wav, nufnu = self.m.get_image(dust_id='all', component='dust_emit')

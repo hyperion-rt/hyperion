@@ -219,6 +219,93 @@ class TestSEDSimpleModelTrackingDetailed(object):
 
 
 @pytest.mark.requires_hyperion_binaries
+class TestSEDComponentSourceDust(object):
+
+    def setup_class(self):
+
+        m = Model()
+
+        m.set_cartesian_grid([-1., 1.],
+                             [-1., 1.],
+                             [-1., 1.])
+
+        m.add_density_grid(np.array([[[1.e-2]]]), get_test_dust())
+
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 6000.
+
+        s = m.add_point_source()
+        s.luminosity = 2.
+        s.temperature = 5000.
+
+        i = m.add_peeled_images(sed=True, image=False)
+        i.set_viewing_angles([1., 2.], [1., 2.])
+        i.set_wavelength_range(5, 0.1, 100.)
+        i.set_aperture_radii(3, 1., 10.)
+        i.set_track_origin('basic')
+        i.set_uncertainties(True)
+
+        i = m.add_peeled_images(sed=True, image=False)
+        i.set_viewing_angles([1., 2.], [1., 2.])
+        i.set_wavelength_range(5, 0.1, 100.)
+        i.set_aperture_radii(3, 1., 10.)
+        i.set_track_origin('detailed')
+        i.set_uncertainties(True)
+
+        m.set_n_initial_iterations(1)
+
+        m.set_n_photons(initial=1000, imaging=1000)
+
+        self.tmpdir = tempfile.mkdtemp()
+        m.write(os.path.join(self.tmpdir, random_id()))
+
+        self.m = m.run()
+
+    def teardown_class(self):
+        shutil.rmtree(self.tmpdir)
+
+    def _components(self, group, **kwargs):
+        components = {}
+        for component in ['total', 'source', 'dust', 'source_emit',
+                          'source_scat', 'dust_emit', 'dust_scat']:
+            wav, nufnu = self.m.get_sed(group=group, component=component, **kwargs)
+            components[component] = nufnu
+        return components
+
+    def test_sed_source_dust_basic(self):
+        c = self._components(0)
+        np.testing.assert_allclose(c['source'], c['source_emit'] + c['source_scat'])
+        np.testing.assert_allclose(c['dust'], c['dust_emit'] + c['dust_scat'])
+        np.testing.assert_allclose(c['total'], c['source'] + c['dust'], rtol=1.e-14)
+
+    def test_sed_source_dust_detailed(self):
+        c = self._components(1)
+        np.testing.assert_allclose(c['source'], c['source_emit'] + c['source_scat'])
+        np.testing.assert_allclose(c['dust'], c['dust_emit'] + c['dust_scat'])
+        np.testing.assert_allclose(c['total'], c['source'] + c['dust'], rtol=1.e-14)
+
+    def test_sed_source_dust_detailed_id(self):
+        wav, source = self.m.get_sed(group=1, component='source')
+        wav, source_0 = self.m.get_sed(group=1, component='source', source_id=0)
+        wav, source_1 = self.m.get_sed(group=1, component='source', source_id=1)
+        np.testing.assert_allclose(source, source_0 + source_1, rtol=1.e-14)
+        wav, source_all = self.m.get_sed(group=1, component='source', source_id='all')
+        np.testing.assert_allclose(source_all[0], source_0)
+        np.testing.assert_allclose(source_all[1], source_1)
+        wav, dust = self.m.get_sed(group=1, component='dust')
+        wav, dust_0 = self.m.get_sed(group=1, component='dust', dust_id=0)
+        np.testing.assert_allclose(dust, dust_0)
+
+    def test_sed_source_dust_uncertainties(self):
+        for group in [0, 1]:
+            wav, nufnu, unc = self.m.get_sed(group=group, component='source',
+                                             uncertainties=True)
+            wav, nufnu, unc = self.m.get_sed(group=group, component='dust',
+                                             uncertainties=True)
+
+
+@pytest.mark.requires_hyperion_binaries
 class TestSEDSimpleModelTrackingScatterings(object):
 
     def setup_class(self):
