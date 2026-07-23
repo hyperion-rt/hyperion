@@ -49,10 +49,20 @@ class voronoi_grid(object):
         The vertices of the cells are not needed for RT simulations,
         and they add a considerable overhead in terms of memory requirements.
         Required for plotting and useful for debugging.
+    wall : a string or ``None``
+        If not ``None``, it must be ``'sphere'``, and it will define an
+        additional spherical wall bounding the cells within the domain. Note
+        that voro++ cuts each cell with the plane tangent to the wall at the
+        point nearest to the site, so the spherical boundary is approximated
+        by planar facets. All sites should lie inside the wall.
+    wall_args : a tuple of floats or ``None``
+        Meaningful only if ``wall`` is not None, it represents the parameters
+        to be used to construct the wall. For a spherical wall these are the
+        center coordinates and the radius of the sphere, i.e. ``(x, y, z, r)``.
     '''
 
     def __init__(self, sites, domain, n_samples=0, min_cell_samples=10, with_vertices=False,
-                 verbose=False, seed=0):
+                 wall=None, wall_args=None, verbose=False, seed=0):
         import numpy as np
         from ._voronoi_core import _voropp_wrapper
         from astropy.table import Table
@@ -93,6 +103,24 @@ class voronoi_grid(object):
         if not isinstance(min_cell_samples, int) or min_cell_samples < 0:
             raise TypeError(
                 'the \'min_cell_samples\' parameter must be a non-negative int')
+        # Wall checks.
+        if wall is not None and wall != 'sphere':
+            raise ValueError('the \'wall\' parameter must be None or \'sphere\'')
+        if wall_args is not None and (not isinstance(wall_args, tuple) or not all([isinstance(_, float) for _ in wall_args])):
+            raise ValueError('the \'wall_args\' parameter must be None or a tuple of floats')
+        if wall == 'sphere':
+            if wall_args is None or len(wall_args) != 4:
+                raise ValueError('a \'sphere\' wall requires wall_args=(x, y, z, r)')
+            if wall_args[3] <= 0.:
+                raise ValueError('the radius of a \'sphere\' wall must be strictly positive')
+            radii = np.sqrt((sites[:, 0] - wall_args[0]) ** 2 +
+                            (sites[:, 1] - wall_args[1]) ** 2 +
+                            (sites[:, 2] - wall_args[2]) ** 2)
+            if np.any(radii >= wall_args[3]):
+                raise ValueError('all sites should lie strictly inside the \'sphere\' wall')
+        # Redefine wall params in order to pass them to the C++ routine.
+        wall = "" if wall is None else wall
+        wall_args = tuple() if wall_args is None else wall_args
         # Seed checks.
         if not isinstance(seed, int):
             raise TypeError(
@@ -104,7 +132,7 @@ class voronoi_grid(object):
 
         logger.info("Computing the tessellation via voro++")
         with_sampling = 1 if n_samples > 0 else 0
-        tup = _voropp_wrapper(sites, domain, with_vertices, with_sampling, n_samples,
+        tup = _voropp_wrapper(sites, domain, with_vertices, wall, wall_args, with_sampling, n_samples,
                               min_cell_samples, seed, 1 if verbose else 0)
         names = ['coordinates', 'volume', 'bb_min', 'bb_max']
         if with_vertices:

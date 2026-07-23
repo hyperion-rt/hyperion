@@ -31,6 +31,10 @@ module type_grid
      real(dp), allocatable :: volume(:)
      character(len=10) :: type
      real(dp) :: xmin, xmax, ymin, ymax, zmin, zmax
+
+     ! Optional spherical wall bounding the cells within the domain
+     logical :: sphere_wall = .false.
+     real(dp) :: wall_x, wall_y, wall_z, wall_r
      
      ! Masking
      logical :: masked = .false.

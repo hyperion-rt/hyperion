@@ -378,6 +378,53 @@ def test_voronoi_basics(tmpdir):
     m.run(tmpdir.join(random_id()).strpath)
 
 
+@pytest.mark.requires_hyperion_binaries
+def test_voronoi_sphere_wall(tmpdir):
+    # A Voronoi grid bounded by a spherical wall: photons crossing the wall
+    # should escape from the grid rather than crashing or being killed.
+
+    import h5py
+    from ...util.constants import au
+    from .test_propagation import any_photons_killed
+
+    np.random.seed(12343)
+
+    # Generate random points inside a sphere of radius 100 au
+    N = 1000
+    r = 100 * au * np.random.uniform(0., 1., N) ** (1. / 3.)
+    costh = np.random.uniform(-1., 1., N)
+    phi = np.random.uniform(0., 2. * np.pi, N)
+    sinth = np.sqrt(1. - costh ** 2)
+    x = r * sinth * np.cos(phi)
+    y = r * sinth * np.sin(phi)
+    z = r * costh
+
+    # Set up model
+    m = Model()
+    m.set_voronoi_grid(x, y, z, wall='sphere', wall_args=(0., 0., 0., 100. * au))
+    kmh_dust = SphericalDust(os.path.join(DATA, 'kmh_lite.hdf5'))
+    m.add_density_grid(np.repeat(1.e-17, N), kmh_dust)
+
+    i = m.add_peeled_images()
+    i.set_wavelength_range(1, 900., 1000)
+    i.set_viewing_angles([85.], [30.])
+    i.set_image_limits(-150 * au, 150 * au, -150 * au, 150 * au)
+    i.set_image_size(64, 64)
+
+    m.set_n_initial_iterations(0)
+    m.set_minimum_temperature(20.)
+
+    m.set_raytracing(True)
+    m.set_n_photons(imaging=0, raytracing_sources=0, raytracing_dust=1e4)
+
+    m.write(tmpdir.join(random_id()).strpath)
+    output_file = tmpdir.join(random_id()).strpath
+    m.run(output_file)
+
+    f = h5py.File(output_file, 'r')
+    assert not any_photons_killed(f)
+
+
 def test_dust_changed_nosave(tmpdir):
 
     kmh_dust = SphericalDust(os.path.join(DATA, 'kmh_lite.hdf5'))

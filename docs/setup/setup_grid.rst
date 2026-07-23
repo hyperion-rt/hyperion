@@ -282,6 +282,28 @@ The geometry can be set with::
 
     m.set_voronoi_grid(x, y, z)
 
+By default, the Voronoi cells fill the rectangular domain enclosing the seed
+points (with a 1 percent border), so if the seed points fill e.g. a sphere,
+the outermost cells will extend well beyond the sphere and have volumes much
+larger than expected. If the seed points fill a spherical region, you can
+instead bound the cells with a spherical wall::
+
+    m.set_voronoi_grid(x, y, z, wall='sphere', wall_args=(0., 0., 0., rmax))
+
+where the arguments of the wall are the coordinates of the center and the
+radius of the sphere (in cgs units). The outermost cells are then bounded by
+the sphere, the cell volumes add up to (approximately) the volume of the
+sphere, and photons crossing the spherical boundary escape from the grid.
+All seed points should lie inside the sphere. Note that the cells at the
+edge are cut by the planes tangent to the sphere, so the spherical boundary
+is approximated by planar facets, and the approximation improves with the
+number of cells near the boundary.
+
+An alternative to using a wall, which also works for non-spherical regions,
+is to surround the seed points with a shell of ghost points with zero
+density: the cells of the ghost points then absorb the volume between the
+region of interest and the rectangular domain.
+
 Density and Specific Energy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
