@@ -77,10 +77,10 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    double *s_data = (double*)PyArray_DATA(s_array);
-    double *d_data = (double*)PyArray_DATA(d_array);
+    double *s_data = (double*)PyArray_DATA((PyArrayObject *)s_array);
+    double *d_data = (double*)PyArray_DATA((PyArrayObject *)d_array);
 
-    int nsites = (int)PyArray_DIM(s_array, 0);
+    int nsites = (int)PyArray_DIM((PyArrayObject *)s_array, 0);
 
     double *volumes = NULL, *bb_min = NULL, *bb_max = NULL, *vertices = NULL, *sample_points = NULL;
     int *sampling_idx = NULL, *sparse_neighbours = NULL, *neigh_pos = NULL;
@@ -148,18 +148,18 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
     }
 
     // Copy over the data.
-    memcpy((double*)PyArray_DATA(vol_array),volumes,sizeof(double) * nsites);
-    memcpy((double*)PyArray_DATA(bb_min_array),bb_min,sizeof(double) * nsites * 3);
-    memcpy((double*)PyArray_DATA(bb_max_array),bb_max,sizeof(double) * nsites * 3);
+    memcpy((double*)PyArray_DATA((PyArrayObject *)vol_array),volumes,sizeof(double) * nsites);
+    memcpy((double*)PyArray_DATA((PyArrayObject *)bb_min_array),bb_min,sizeof(double) * nsites * 3);
+    memcpy((double*)PyArray_DATA((PyArrayObject *)bb_max_array),bb_max,sizeof(double) * nsites * 3);
     if (with_vertices) {
-        memcpy((double*)PyArray_DATA(vert_array),vertices,sizeof(double) * nsites * max_nv);
+        memcpy((double*)PyArray_DATA((PyArrayObject *)vert_array),vertices,sizeof(double) * nsites * max_nv);
     }
     if (with_sampling) {
-        memcpy((double*)PyArray_DATA(spoints_array),sample_points,sizeof(double) * tot_samples * 3);
-        memcpy((int*)PyArray_DATA(spoints_idx_array),sampling_idx,sizeof(int) * (nsites + 1));
+        memcpy((double*)PyArray_DATA((PyArrayObject *)spoints_array),sample_points,sizeof(double) * tot_samples * 3);
+        memcpy((int*)PyArray_DATA((PyArrayObject *)spoints_idx_array),sampling_idx,sizeof(int) * (nsites + 1));
     }
-    memcpy((int*)PyArray_DATA(sparse_neigh_array),sparse_neighbours,sizeof(int) * nn);
-    memcpy((int*)PyArray_DATA(neigh_pos_array),neigh_pos,sizeof(int) * (nsites + 1));
+    memcpy((int*)PyArray_DATA((PyArrayObject *)sparse_neigh_array),sparse_neighbours,sizeof(int) * nn);
+    memcpy((int*)PyArray_DATA((PyArrayObject *)neigh_pos_array),neigh_pos,sizeof(int) * (nsites + 1));
 
     PyObject *retval = PyTuple_Pack(8,sparse_neigh_array,neigh_pos_array,vol_array,bb_min_array,bb_max_array,vert_array,spoints_array,spoints_idx_array);
 
