@@ -45,7 +45,6 @@ module grid_geometry_specific
   public :: setup_grid_geometry
   type(grid_geometry_desc),public,target :: geo
 
-  integer :: n_filled = 0
 
   ! Declare here otherwise pointer becomes corrupt
   real(dp),allocatable, target :: points(:,:)
@@ -103,7 +102,6 @@ contains
     real(dp), allocatable :: x(:), y(:), z(:)
     integer, allocatable :: sparse_neighs(:), sparse_idx(:)
     real(dp),allocatable :: bb_min(:,:), bb_max(:,:)
-    type(cell),pointer :: c
 
     ! Read geometry file
     call mp_read_keyword(group, '.', "geometry", geo%id)
@@ -261,8 +259,6 @@ contains
     type(grid_cell),intent(in) :: cell
     integer,intent(in) :: direction
     type(vector3d_dp),optional,intent(in) :: intersection
-    type(grid_cell) :: parent_cell
-    integer :: subcell_id
     ! wall ID = cell ID
     c = new_grid_cell(direction, geo)
   end function next_cell_int
@@ -278,9 +274,6 @@ contains
   logical function in_correct_cell(p)
     implicit none
     type(photon),intent(in) :: p
-    type(grid_cell) :: curr
-    type(grid_cell) :: icell_actual
-    real(dp) :: frac,frac1, frac2, frac3
     real(dp) :: point(3)
     type(kdtree2_result) :: results(2)
     ! TODO - only check the second result if it's close to the first
@@ -293,7 +286,6 @@ contains
     implicit none
     type(grid_cell),intent(in) :: icell
     type(vector3d_dp), intent(out) :: pos
-    type(grid_cell) :: icell_actual
 
     type(kdtree2_result) :: results(1)
     real(dp) :: point(3)
@@ -322,8 +314,8 @@ contains
   real(dp) function distance_to_closest_wall(p) result(d)
     implicit none
     type(photon),intent(in) :: p
-    real(dp) :: d1,d2,d3,d4,d5,d6
     call error("distance_to_closest_wall", "not implemented for Voronoi grid")
+    d = 0._dp
     ! TODO: is this the second nearest neighbor?
   end function distance_to_closest_wall
 
@@ -346,8 +338,8 @@ contains
 
 
     integer :: i, n_neighbors
-    type(vector3d_dp) :: r0, ri, rmid, n
-    real(dp) :: t, tx, ty, tz
+    type(vector3d_dp) :: rmid, n
+    real(dp) :: t
 
 
     icell => geo%cells(p%icell%ic)

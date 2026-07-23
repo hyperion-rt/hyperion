@@ -68,7 +68,7 @@ contains
     integer(idp) :: n_photons, n_photons_curr
 
     ! Photon object and variable to loop over photons
-    integer :: ip
+    integer(idp) :: ip
     type(photon) :: p
 
     ! Whether to only peeloff scattered photons
@@ -153,10 +153,10 @@ contains
     integer(idp) :: interactions
     real(dp) :: tau_achieved, tau, tau_escape
     type(photon) :: p_tmp
-    real(dp) :: xi, weight
+    real(dp) :: weight
     logical :: killed
-    integer :: mrw_steps
-    integer :: ia
+    integer(idp) :: mrw_steps
+    integer(idp) :: ia
 
     ! Propagate photon
     do interactions=1, n_inter_max+1

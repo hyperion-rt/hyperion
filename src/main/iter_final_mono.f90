@@ -69,7 +69,7 @@ contains
     integer(idp) :: n_photons, n_photons_curr
 
     ! Photon object and variable to loop over photons
-    integer :: ip
+    integer(idp) :: ip
     type(photon) :: p
 
     integer :: inu
@@ -237,9 +237,9 @@ contains
     integer(idp) :: interactions
     real(dp) :: tau_achieved, tau, tau_escape
     type(photon) :: p_tmp
-    real(dp) :: xi, weight
+    real(dp) :: weight
     logical :: killed
-    integer :: ia
+    integer(idp) :: ia
 
     logical, parameter :: force_scatter = .true.
     real(dp) :: energy_initial

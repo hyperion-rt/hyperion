@@ -194,7 +194,6 @@ contains
 
     integer(hid_t),intent(in) :: group
 
-    real(dp) :: x, y, z, dx, dy, dz
     integer :: ic, iv
 
     ! FIX - issue with reading 64-bit 1D column with 32-bit variables
@@ -370,7 +369,6 @@ contains
   logical function in_correct_cell(p)
     implicit none
     type(photon),intent(in) :: p
-    type(grid_cell) :: curr
     type(grid_cell) :: icell_actual
     real(dp) :: frac,frac1, frac2, frac3
     icell_actual = find_cell(p)

@@ -163,7 +163,7 @@ contains
     real(dp) :: wav_min, wav_max
     integer :: io_bytes
     logical :: compute_stokes
-    integer :: ig, n_filt
+    integer :: ig
     character(len=100) :: group_name
 
     img%n_view = n_view

@@ -18,7 +18,6 @@ module grid_mrw
   public :: grid_do_mrw_noenergy
   public :: mrw_peeloff
 
-  logical :: debug = .false.
 
   integer,parameter :: ncdf = 100
   real(dp) :: xcdf(ncdf), ycdf(ncdf)

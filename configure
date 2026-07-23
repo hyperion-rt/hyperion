@@ -1808,7 +1808,12 @@ if test "$enable_debug" == "yes"
 then
   debug_nag='-C=all -gline -nan'
   debug_ifort='-check all -warn all -warn nodec -warn interfaces -gen_interfaces -traceback -g'
-  debug_gfortran='-Wall -fbounds-check -g'
+  # Unused dummy arguments are not warned about because many procedures have
+  # to conform to interfaces shared between the different grid geometries,
+  # and unused functions are not warned about because some private library
+  # functions are intentionally unused (including empty contained subroutines
+  # that work around a PGI compiler bug).
+  debug_gfortran='-Wall -Wno-unused-dummy-argument -Wno-unused-function -fbounds-check -g'
   debug_g95='-Wall -fbounds-check -g'
   debug_pgi='-Mbounds -traceback -g'
 else

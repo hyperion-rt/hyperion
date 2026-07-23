@@ -61,7 +61,6 @@ module grid_physics
   integer :: id
   integer :: idx 
 
-  logical :: debug = .false.
 
   type(pdf_discrete_dp) :: absorption
 

@@ -39,7 +39,7 @@ contains
     integer(idp) :: n_photons, n_photons_curr
 
     ! Photon object and variable to loop over photons
-    integer :: ip
+    integer(idp) :: ip
     type(photon) :: p
 
     n_photons_curr = 0
