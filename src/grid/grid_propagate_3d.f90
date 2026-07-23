@@ -77,6 +77,11 @@ contains
 
     if(.not.p%in_cell) call error("grid_integrate", "photon has not been placed in a cell")
 
+    ! A photon emitted exactly on the outer edge of the grid moving outwards
+    ! is placed by adjust_wall in the cell just outside the grid, so it
+    ! escapes immediately without crossing any walls.
+    if(escaped(p)) return
+
     if(allocated(n_photons)) then
        if(last_photon_id(p%icell%ic).ne.p%id) then
           n_photons(p%icell%ic) = n_photons(p%icell%ic) + 1
@@ -261,6 +266,11 @@ contains
 
     if(.not.p%in_cell) call error("grid_integrate_noenergy", "photon has not been placed in a cell")
 
+    ! A photon emitted exactly on the outer edge of the grid moving outwards
+    ! is placed by adjust_wall in the cell just outside the grid, so it
+    ! escapes immediately without crossing any walls.
+    if(escaped(p)) return
+
     if(tau_required==0._dp) return
 
     ! Check what the distance to the nearest source is
@@ -390,6 +400,14 @@ contains
 
     if(.not.p%in_cell) call error("grid_escape_tau", "photon has not been placed in a cell")
 
+    ! A photon emitted exactly on the outer edge of the grid moving outwards
+    ! is placed by adjust_wall in the cell just outside the grid, so it
+    ! escapes immediately without crossing any walls.
+    if(escaped(p)) then
+       tau = 0._dp
+       return
+    end if
+
     ! Check what the distance to the nearest source is
 
     call find_nearest_source(p%r, p%v, t_source, source_id)
@@ -486,6 +504,14 @@ contains
     ! Find what cell we are in if we don't know
 
     if(.not.p%in_cell) call error("grid_escape_column_density", "photon has not been placed in a cell")
+
+    ! A photon emitted exactly on the outer edge of the grid moving outwards
+    ! is placed by adjust_wall in the cell just outside the grid, so it
+    ! escapes immediately without crossing any walls.
+    if(escaped(p)) then
+       column_density = 0._dp
+       return
+    end if
 
     ! Check what the distance to the nearest source is
 

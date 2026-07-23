@@ -144,7 +144,7 @@ contains
        ! Specifically:
        ! - sparse_idx(is) + 1 because sparse_idx is an array of C-style indices,
        ! - sparse_neighs(...) + 1 because the neighbour indices are C-style.
-       geo%cells(ic)%neighbors(1:n_neighbors) = sparse_neighs(sparse_idx(is) + 1:sparse_idx(is + 1) + 1) + 1
+       geo%cells(ic)%neighbors(1:n_neighbors) = sparse_neighs(sparse_idx(is) + 1:sparse_idx(is + 1)) + 1
        is = is + 1
     end do
 
