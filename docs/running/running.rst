@@ -30,6 +30,41 @@ where ``<n_processes>`` is the number of processes to run in parallel (does not 
 
 This may not work with all MPI installations. If you have issues, see :doc:`../troubleshooting/troubleshooting` for known problems and the next section on calling the Fortran binaries directly (and `report`_ the issue).
 
+The ``hyperion`` command normally launches the parallel code with ``mpirun``
+or ``mpiexec``, whichever is found first. If you need to customize the
+launcher (for example to pass additional options to it), you can set the
+``command`` option in the ``[mpi]`` section of the ``~/.hyperionrc`` file -
+the number of processes and binary name are appended to it::
+
+    [mpi]
+    command = mpirun
+
+MPI popups and firewall prompts on Mac
+--------------------------------------
+
+When running the parallel code on a Mac, you may get one popup per process
+asking whether the ``hyperion_*_mpi`` application should be allowed to accept
+incoming network connections. This is because each MPI process opens network
+sockets on all network interfaces, and because locally compiled binaries are
+not signed with a stable identity, so the macOS firewall cannot remember your
+answer between runs (or between rebuilds of the binaries).
+
+Since all the communication is local when running on a single machine, the
+cleanest solution is to keep MPI off the external network interfaces
+entirely, in which case no prompts appear at all. With OpenMPI, this can be
+done by setting the following in ``~/.hyperionrc``::
+
+    [mpi]
+    command = mpirun --mca btl self,sm --mca oob_tcp_if_include lo0 --mca btl_tcp_if_include lo0
+
+and with MPICH::
+
+    [mpi]
+    command = mpiexec -iface lo0
+
+The same options can be passed directly to ``mpirun``/``mpiexec`` when
+calling the Fortran binaries directly as described in the next section.
+
 Calling the Fortran binaries directly
 -------------------------------------
 
