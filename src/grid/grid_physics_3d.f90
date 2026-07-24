@@ -636,7 +636,7 @@ contains
     end if
 
     call random(xi)
-    p%dust_id = ceiling(xi*real(n_dust,dp))
+    p%dust_id = max(ceiling(xi*real(n_dust,dp)), 1)
 
     ! Pick random cell
     p%icell = random_masked_cell()

@@ -81,7 +81,7 @@ contains
 
     do
        call random(xi)
-       ic = ceiling(xi * pdf%n)
+       ic = max(ceiling(xi * pdf%n), 1)
        prob = pdf%pdf(ic)
        if(prob > 1.e-100_dp) exit
     end do
@@ -97,7 +97,7 @@ contains
     real(dp) :: xi
     integer :: ic
     call random(xi)
-    ic = ceiling(xi * geo%n_cells)
+    ic = max(ceiling(xi * geo%n_cells), 1)
     random_cell = new_grid_cell(ic, geo)
   end function random_cell
 
@@ -107,9 +107,9 @@ contains
     integer :: ic
     call random(xi)
     if (geo%masked) then
-       ic = geo%mask_map(ceiling(xi * geo%n_masked))
+       ic = geo%mask_map(max(ceiling(xi * geo%n_masked), 1))
     else
-       ic = ceiling(xi * geo%n_cells)
+       ic = max(ceiling(xi * geo%n_cells), 1)
     end if
     random_masked_cell = new_grid_cell(ic, geo)
   end function random_masked_cell

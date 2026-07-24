@@ -142,7 +142,7 @@ contains
     call update_optconsts(p)
 
     call random(xi)
-    dust_id = ceiling(xi*real(n_dust, dp))
+    dust_id = max(ceiling(xi*real(n_dust, dp)), 1)
 
     if(mean_prob(dust_id) == 0._dp) then
         p%energy = 0._dp
