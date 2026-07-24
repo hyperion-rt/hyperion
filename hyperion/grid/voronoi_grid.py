@@ -203,20 +203,21 @@ class VoronoiGrid(FreezableClass):
         else:
             single = False
 
-        # reduceat does not recognize values of indices that are the size of
-        # the array so we need to subtract one here for those values.
-        idx = self._samples_idx.copy()
-        idx[idx == len(values_all[0])] -= 1
+        # reduceat does not accept indices equal to the size of the array
+        # (which occur for empty cells at the end of the grid) and for two
+        # consecutive equal index values (empty cells) it returns the value
+        # at that index rather than 0, so we only pass the start indices of
+        # the non-empty cells and explicitly set the average to 0 for empty
+        # cells.
+        counts = np.diff(self._samples_idx)
+        non_empty = counts > 0
+        starts = self._samples_idx[:-1][non_empty]
 
         averages_all = []
 
         for values in values_all:
-            averages = np.add.reduceat(values, idx[:-1]) / np.diff(idx)
-
-            # reduceat doesn't do what we want for two consecutive equal
-            # index values - it will take the value at that index rather than
-            # return 0 (which is what would be expected for i:i slicing)
-            averages[np.isinf(averages)] = 0.
+            averages = np.zeros(len(counts))
+            averages[non_empty] = np.add.reduceat(values, starts) / counts[non_empty]
             averages_all.append(averages)
 
         if single:
