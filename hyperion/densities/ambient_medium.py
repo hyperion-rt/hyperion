@@ -56,6 +56,9 @@ class AmbientMedium(Density):
         self.rmax = rmax
         self.subtract = subtract
 
+        # Central star
+        self.star = None
+
         # Dust
         self.dust = None
 
