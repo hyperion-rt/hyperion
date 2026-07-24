@@ -177,7 +177,7 @@ contains
           s%spot(i)%cost = cos(spot_size * deg2rad)
 
           g_spot = mp_open_group(group, spot_names(i))
-          call set_spectrum(group, s%spot(i)%freq_type, s%spot(i)%spectrum, s%spot(i)%temperature)
+          call set_spectrum(g_spot, s%spot(i)%freq_type, s%spot(i)%spectrum, s%spot(i)%temperature)
           call mp_close_group(g_spot)
 
           if(s%freq_type == 3) call error("source_read", "Spot cannot have LTE spectrum")
