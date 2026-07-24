@@ -340,6 +340,8 @@ class ModelOutput(FreezableClass):
         if technique == 'peeled':
             n_groups = len(self.file['Peeled'])
             if (group < 0 and -group <= n_groups) or (group >= 0 and group < n_groups):
+                if group < 0:
+                    group = n_groups + group
                 g = self.file['Peeled/group_%05i' % (group + 1)]
             else:
                 raise ValueError('File only contains %i image/SED group(s)' % n_groups)
@@ -662,6 +664,8 @@ class ModelOutput(FreezableClass):
         if technique == 'peeled':
             n_groups = len(self.file['Peeled'])
             if (group < 0 and -group <= n_groups) or (group >= 0 and group < n_groups):
+                if group < 0:
+                    group = n_groups + group
                 g = self.file['Peeled/group_%05i' % (group + 1)]
             else:
                 raise ValueError('File only contains %i image/SED group(s)' % n_groups)
