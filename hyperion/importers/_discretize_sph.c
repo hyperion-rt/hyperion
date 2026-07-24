@@ -262,6 +262,7 @@ static PyObject *_get_positions_widths(PyObject *self, PyObject *args)
     PyObject *yc_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     if (yc_array == NULL) {
         PyErr_SetString(PyExc_TypeError, "Couldn't build output array");
+        Py_XDECREF(xc_array);
         Py_XDECREF(refined_array);
         return NULL;
     }
@@ -269,6 +270,8 @@ static PyObject *_get_positions_widths(PyObject *self, PyObject *args)
     PyObject *zc_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     if (zc_array == NULL) {
         PyErr_SetString(PyExc_TypeError, "Couldn't build output array");
+        Py_XDECREF(xc_array);
+        Py_XDECREF(yc_array);
         Py_XDECREF(refined_array);
         return NULL;
     }
@@ -276,6 +279,9 @@ static PyObject *_get_positions_widths(PyObject *self, PyObject *args)
     PyObject *xw_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     if (xw_array == NULL) {
         PyErr_SetString(PyExc_TypeError, "Couldn't build output array");
+        Py_XDECREF(xc_array);
+        Py_XDECREF(yc_array);
+        Py_XDECREF(zc_array);
         Py_XDECREF(refined_array);
         return NULL;
     }
@@ -283,6 +289,10 @@ static PyObject *_get_positions_widths(PyObject *self, PyObject *args)
     PyObject *yw_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     if (yw_array == NULL) {
         PyErr_SetString(PyExc_TypeError, "Couldn't build output array");
+        Py_XDECREF(xc_array);
+        Py_XDECREF(yc_array);
+        Py_XDECREF(zc_array);
+        Py_XDECREF(xw_array);
         Py_XDECREF(refined_array);
         return NULL;
     }
@@ -290,6 +300,11 @@ static PyObject *_get_positions_widths(PyObject *self, PyObject *args)
     PyObject *zw_array = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     if (zw_array == NULL) {
         PyErr_SetString(PyExc_TypeError, "Couldn't build output array");
+        Py_XDECREF(xc_array);
+        Py_XDECREF(yc_array);
+        Py_XDECREF(zc_array);
+        Py_XDECREF(xw_array);
+        Py_XDECREF(yw_array);
         Py_XDECREF(refined_array);
         return NULL;
     }
@@ -309,11 +324,22 @@ static PyObject *_get_positions_widths(PyObject *self, PyObject *args)
 
     if(i != ncells - 1) {
         PyErr_SetString(PyExc_TypeError, "An error occurred when retrieving the cell properties");
+        Py_XDECREF(xc_array);
+        Py_XDECREF(yc_array);
+        Py_XDECREF(zc_array);
+        Py_XDECREF(xw_array);
+        Py_XDECREF(yw_array);
+        Py_XDECREF(zw_array);
         Py_XDECREF(refined_array);
         return NULL;
     }
 
-    return Py_BuildValue("OOOOOO", xc_array, yc_array, zc_array, xw_array, yw_array, zw_array);
+    /* Clean up. */
+    Py_XDECREF(refined_array);
+
+    /* Use the "N" format code, which steals the references to the output
+       arrays instead of adding new ones. */
+    return Py_BuildValue("NNNNNN", xc_array, yc_array, zc_array, xw_array, yw_array, zw_array);
 
 }
 
