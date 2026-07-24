@@ -447,10 +447,13 @@ contains
        if (compute_specific_energy_spectrum) then
           do idx=1,n_nu_bins
              specific_energy_spectrum(:,id,idx) = specific_energy_sum_spectrum(:,id,idx) * scale/geo%volume
+             where(geo%volume == 0._dp)
+                specific_energy_spectrum(:,id,idx) = 0._dp
+             end where
           end do
        end if
-          
-          
+
+
        where(geo%volume == 0._dp)
           specific_energy(:,id) = 0._dp
        end where
