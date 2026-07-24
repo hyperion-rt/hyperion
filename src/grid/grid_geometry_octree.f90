@@ -415,11 +415,11 @@ contains
 
     real(dp) :: d1,d2,d3,d4,d5,d6
 
-    d1 = p%r%x - geo%cells(p%icell%ic)%x - geo%cells(p%icell%ic)%dx
+    d1 = p%r%x - geo%cells(p%icell%ic)%x + geo%cells(p%icell%ic)%dx
     d2 = geo%cells(p%icell%ic)%x + geo%cells(p%icell%ic)%dx - p%r%x
-    d3 = p%r%y - geo%cells(p%icell%ic)%y - geo%cells(p%icell%ic)%dy
+    d3 = p%r%y - geo%cells(p%icell%ic)%y + geo%cells(p%icell%ic)%dy
     d4 = geo%cells(p%icell%ic)%y + geo%cells(p%icell%ic)%dy - p%r%y
-    d5 = p%r%z - geo%cells(p%icell%ic)%z - geo%cells(p%icell%ic)%dz
+    d5 = p%r%z - geo%cells(p%icell%ic)%z + geo%cells(p%icell%ic)%dz
     d6 = geo%cells(p%icell%ic)%z + geo%cells(p%icell%ic)%dz - p%r%z
 
     ! Find the smallest of the distances
