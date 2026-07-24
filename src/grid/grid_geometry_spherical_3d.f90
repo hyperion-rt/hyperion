@@ -839,8 +839,15 @@ contains
        ! Check if photon is on wall, and if so, whether it is moving along
        ! wall. If so, don't check for intersections and just set iext, which
        ! is used to specify walls that the photon is on even without an
-       ! intersection.
-       if(p%on_wall_id%w2 == -1 .and. equal_nulp(geo%wtant(p%icell%i2), sqrt(v2_xy) / p%v%z, 10)) then
+       ! intersection. Moving along the wall requires the direction of
+       ! motion to be parallel to the cone generator through the current
+       ! position, so in addition to the polar angle of the velocity
+       ! matching the cone angle, the azimuthal component of the velocity
+       ! has to vanish, i.e. rv_xy has to match w * v_z * tan(theta) (the
+       ! same azimuth-aware term as used in adjust_wall).
+       if(p%on_wall_id%w2 == -1 &
+            & .and. equal_nulp(geo%wtant(p%icell%i2), sqrt(v2_xy) / p%v%z, 10) &
+            & .and. equal_nulp(sqrt(r2_xy) * p%v%z * geo%wtant(p%icell%i2), rv_xy, 10)) then
 
           iext%w2 = -1
 
@@ -910,8 +917,15 @@ contains
        ! Check if photon is on wall, and if so, whether it is moving along
        ! wall. If so, don't check for intersections and just set iext, which
        ! is used to specify walls that the photon is on even without an
-       ! intersection.
-       if(p%on_wall_id%w2 == +1 .and. equal_nulp(geo%wtant(p%icell%i2 + 1), sqrt(v2_xy) / p%v%z, 10)) then
+       ! intersection. Moving along the wall requires the direction of
+       ! motion to be parallel to the cone generator through the current
+       ! position, so in addition to the polar angle of the velocity
+       ! matching the cone angle, the azimuthal component of the velocity
+       ! has to vanish, i.e. rv_xy has to match w * v_z * tan(theta) (the
+       ! same azimuth-aware term as used in adjust_wall).
+       if(p%on_wall_id%w2 == +1 &
+            & .and. equal_nulp(geo%wtant(p%icell%i2 + 1), sqrt(v2_xy) / p%v%z, 10) &
+            & .and. equal_nulp(sqrt(r2_xy) * p%v%z * geo%wtant(p%icell%i2 + 1), rv_xy, 10)) then
 
           iext%w2 = +1
 
