@@ -132,8 +132,8 @@ class AmbientMedium(Density):
 
     def _check_all_set(self):
 
-        if self.density is None:
-            raise Exception("density is not set")
+        if self.rho is None:
+            raise Exception("rho is not set")
         if self.rmin is None:
             raise Exception("rmin is not set")
         if self.rmax is None:
