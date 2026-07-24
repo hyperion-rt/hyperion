@@ -160,3 +160,16 @@ def test_linlog_not_monotonic():
         assert exc.value == 'x is not monotonically increasing'
     else:
         assert exc.value.args[0] == 'x is not monotonically increasing'
+
+
+@pytest.mark.parametrize(('subset', 'full'),
+                         [(integrate_subset, integrate),
+                          (integrate_loglin_subset, integrate_loglin),
+                          (integrate_linlog_subset, integrate_linlog),
+                          (integrate_loglog_subset, integrate_loglog)])
+def test_subset_full_range(subset, full):
+    # Regression test for a bug that caused the second-to-last tabulated
+    # point to be dropped when the upper limit was the last tabulated value
+    x = np.array([1., 2., 3., 4., 5.])
+    y = np.array([1., 3., 2., 5., 4.])
+    assert almost_equal(subset(x, y, x[0], x[-1]), full(x, y))

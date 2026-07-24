@@ -253,3 +253,22 @@ class TestView(object):
         g2['density1'] = g1['density1']
         g2['density2'] = g1['density1'][0]
         assert g2.n_dust == 1
+
+
+def test_amr_external_link_paths():
+    # Regression test for links that used the level index instead of the
+    # grid index in the per-grid path
+    import h5py
+    amr = AMRGrid()
+    level = amr.add_level()
+    for i in range(2):
+        grid = level.add_grid()
+        grid.xmin, grid.xmax = -1., 1.
+        grid.ymin, grid.ymax = -1., 1.
+        grid.zmin, grid.zmax = -1., 1.
+        grid.nx, grid.ny, grid.nz = 4, 4, 4
+    amr['density'] = h5py.ExternalLink('other_model.rtin', 'Grid/Quantities/density')
+    link_1 = amr.levels[0].grids[0].quantities['density']
+    link_2 = amr.levels[0].grids[1].quantities['density']
+    assert link_1.path.endswith('level_00001/grid_00001/density')
+    assert link_2.path.endswith('level_00001/grid_00002/density')

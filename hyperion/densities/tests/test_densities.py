@@ -835,3 +835,56 @@ def test_ambient_densities_4():
 
     expected = np.repeat(2., 9)
     assert_array_almost_equal_nulp((p1.density(g) + c.density(g) + a.density(g))[0, 0, :], expected, 10)
+
+
+def test_ulrich_midplane_cumulative_density_inner():
+    # Regression test for a factor of 2 overestimate of the midplane
+    # cumulative density inside the centrifugal radius
+    e = UlrichEnvelope()
+    e.star = Star()
+    e.star.mass = 0.5
+    e.star.radius = 0.5
+    e.rho_0 = 1.
+    e.rc = 1.
+    e.rmin = 0.01
+    e.rmax = 10.
+    r = np.logspace(np.log10(e.rmin), np.log10(0.9 * e.rc), 100000)
+    rho_mid = e.rho_0 / np.sqrt(r / e.rc) / (1. - r / e.rc) / 2.
+    expected = np.sum(0.5 * (rho_mid[1:] + rho_mid[:-1]) * np.diff(r))
+    actual = e.midplane_cumulative_density(np.array([r[-1]]))[0]
+    assert abs(actual - expected) / expected < 1.e-3
+
+
+def test_ambient_medium_missing_rho():
+    a = AmbientMedium()
+    a.rmin = 1.
+    a.rmax = 10.
+    with pytest.raises(Exception) as exc:
+        a._check_all_set()
+    assert exc.value.args[0] == "rho is not set"
+
+
+def test_alpha_disk_zero_discretized_mass():
+    # A grid too coarse to resolve the disk gives a zero discretized mass,
+    # which used to silently produce NaN densities
+    e = AlphaDisk()
+    e.star = Star()
+    e.star.mass = 0.5
+    e.star.radius = 0.5
+    e.rmin = 1.
+    e.rmax = 2.
+    e.mass = 1.
+    e.r_0 = 5.
+    e.h_0 = 1.
+    e.p = -1.
+    e.beta = 1.25
+    e.lvisc = G * (1.5 - 2. / np.sqrt(2.) + 0.5)
+
+    r = np.array([0., 0.5, 100.])
+    t = np.linspace(0., np.pi, 3)
+    p = np.linspace(0., 2. * np.pi, 3)
+    g = SphericalPolarGrid(r, t, p)
+
+    with pytest.raises(Exception) as exc:
+        e.density(g)
+    assert "zero" in exc.value.args[0]
