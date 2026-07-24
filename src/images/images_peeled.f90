@@ -151,13 +151,17 @@ contains
        ! the xmax wall.
        call place_in_cell(p)
 
+       ! The depth range given by d_min and d_max is only used to select
+       ! which events to include in the image - the optical depth should be
+       ! integrated all the way to the observer (for inside observers) or to
+       ! the edge of the grid (for external observers).
        if(inside_observer(ig)) then
           dr = p%r-r_peeloff(ig)
           d = sqrt(dr.dot.dr)
-          tmax = d - d_min(ig)
+          tmax = d
        else
           d = -(v_req.dot.p%r)
-          tmax = - d_min(ig) + d
+          tmax = huge(1._dp)
        end if
 
        if(d < d_min(ig) .or. d > d_max(ig)) cycle
@@ -209,12 +213,11 @@ contains
              end if
           end if
 
-          ! For inside observer, don't want optical depth to escape grid, just to go to observer!
-          ! Need to include 1/d^2!
-
           if(.not.killed) then
 
-             if(inside_observer(ig)) p%s = p%s / (4._dp * pi * tmax**2._dp)
+             ! For inside observers, include the 1/d^2 flux dilution
+
+             if(inside_observer(ig)) p%s = p%s / (4._dp * pi * d**2._dp)
 
              if(polychromatic) then
 
