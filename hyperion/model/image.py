@@ -133,6 +133,17 @@ class Image(FreezableClass):
             raise ValueError("unit should be a string")
 
     @property
+    def units(self):
+        """
+        The units of the image values (alias for the ``.unit`` property).
+        """
+        return self.unit
+
+    @units.setter
+    def units(self, value):
+        self.unit = value
+
+    @property
     def wav(self):
         """
         The wavelengths for which the image is defined (in microns).
