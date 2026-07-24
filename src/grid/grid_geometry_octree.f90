@@ -279,7 +279,7 @@ contains
     type(photon),intent(in) :: p
     integer :: ic
     if(debug) write(*,'(" [debug] find_cell")')
-    if(p%r%x<geo%xmin.or.p%r%y>geo%xmax) then
+    if(p%r%x<geo%xmin.or.p%r%x>geo%xmax) then
        call warn("find_cell","photon not in grid (in x direction)")
        icell = invalid_cell
        return
@@ -289,7 +289,7 @@ contains
        icell = invalid_cell
        return
     end if
-    if(p%r%z<geo%zmin.or.p%r%y>geo%zmax) then
+    if(p%r%z<geo%zmin.or.p%r%z>geo%zmax) then
        call warn("find_cell","photon not in grid (in z direction)")
        icell = invalid_cell
        return
