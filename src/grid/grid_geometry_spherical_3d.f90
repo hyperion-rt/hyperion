@@ -651,7 +651,7 @@ contains
     call random(r)
     call random(t)
     call random(p)
-    r = (r * (geo%w1(icell%i1+1)**3. - geo%w1(icell%i1)**3.) + geo%w1(icell%i1)**3.) ** (1./3.)
+    r = (r * (geo%w1(icell%i1+1)**3 - geo%w1(icell%i1)**3) + geo%w1(icell%i1)**3) ** (1._dp/3._dp)
     t = acos(t * (geo%wcost(icell%i2+1) - geo%wcost(icell%i2)) + geo%wcost(icell%i2))
     p = p * (geo%w3(icell%i3+1) - geo%w3(icell%i3)) + geo%w3(icell%i3)
 
