@@ -1,4 +1,4 @@
-! MD5 of template: 1e1c708fb2055feec7cad222682bbe09
+! MD5 of template: 744398b07cde70659e77bf8ee3986c3f
 module mpi_hdf5_io
 
   use core_lib
@@ -369,7 +369,7 @@ contains
     n1 = size(array)
     call mpi_bcast(n1, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
     if(.not. main_process()) allocate(array(n1))
-    call mpi_bcast(array, n1, mpi_character, rank_main, mpi_comm_world, ierr)
+    call mpi_bcast(array, n1 * len(array), mpi_character, rank_main, mpi_comm_world, ierr)
   end subroutine mp_table_read_column_auto_1d_mpi_character
 
   subroutine mp_table_write_column_1d_mpi_character(handle, path, name, array)
