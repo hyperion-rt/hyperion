@@ -514,7 +514,7 @@ class AMRGrid(FreezableClass):
             for ilevel, level_ref in enumerate(self.levels):
                 level_path = 'level_%05i' % (ilevel + 1)
                 for igrid, grid_ref in enumerate(level_ref.grids):
-                    grid_path = 'grid_%05i' % (ilevel + 1)
+                    grid_path = 'grid_%05i' % (igrid + 1)
                     grid_ref.quantities[item] = h5py.ExternalLink(filename, os.path.join(base_path, level_path, grid_path, array_name))
         elif value == []:
             for level in self.levels:
