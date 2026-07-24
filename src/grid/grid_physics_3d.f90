@@ -352,9 +352,9 @@ contains
     n_nu_bins = 0
     if (compute_specific_energy_spectrum) n_nu_bins = size(specific_energy_spectrum, 3)
 
-    reset = 0
-
     do id=1,n_dust
+
+       reset = 0
 
        select case(d(id)%sublimation_mode)
        case(1)
