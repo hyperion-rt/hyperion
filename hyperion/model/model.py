@@ -125,8 +125,8 @@ class Model(FreezableClass, RunConf):
         self._monochromatic = str2bool(group.attrs['monochromatic'])
         if self._monochromatic:
             self._frequencies = np.array(group['frequencies']['nu'])
-            if 'energy_threshold' in group.attrs:
-                self._monochromatic_energy_threshold = group.attrs['energy_threshold']
+            if 'monochromatic_energy_threshold' in group.attrs:
+                self._monochromatic_energy_threshold = group.attrs['monochromatic_energy_threshold']
             else:
                 self._monochromatic_energy_threshold = 1.e-10
 
