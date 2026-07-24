@@ -227,7 +227,7 @@ contains
 
           if(id_pda_cell(next%ic) > 0) then
              id_next = id_pda_cell(next%ic)
-             a(id_next, id_curr) = coefficient
+             a(id_next, id_curr) = a(id_next, id_curr) + coefficient
           else
              b(id_curr) = b(id_curr) - coefficient * e_mean(next%ic)
           end if
