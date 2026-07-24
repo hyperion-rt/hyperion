@@ -962,6 +962,8 @@ class ModelOutput(FreezableClass):
         # If iteration is last one, find iteration number
         if iteration == -1:
             iteration = find_last_iteration(self.file)
+        else:
+            iteration = iteration + 1  # Python value is zero based
 
         # Return components
         components = list(self.file['iteration_%05i' % iteration].keys())
