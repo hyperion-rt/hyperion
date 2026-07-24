@@ -665,13 +665,12 @@ contains
 
        cube5d = img%sed
 
-       if(img%uncertainties) then
-          where(img%sedn > 1)
-             cube5de = sqrt((img%sed2 + (img%sed)**2 / img%sedn) / (img%sedn - 1)) * sqrt(img%sedn)
-          elsewhere
-             cube5de = 0._dp
-          end where
-       end if
+       ! The uncertainty on the total flux in each bin is estimated with the
+       ! standard Monte-Carlo sum-of-squares estimator sqrt(sum(x_i**2)),
+       ! which accounts for both the scatter in the photon weights and the
+       ! Poisson counting uncertainty.
+
+       if(img%uncertainties) cube5de = sqrt(img%sed2)
 
        if(.not.img%use_exact_nu) then
           cube5d = cube5d / dnunorm
@@ -727,13 +726,9 @@ contains
 
        cube6d = img%img
 
-       if(img%uncertainties) then
-          where(img%imgn > 1)
-             cube6de = sqrt((img%img2 + (img%img)**2 / img%imgn) / (img%imgn - 1)) * sqrt(img%imgn)
-          elsewhere
-             cube6de = 0._dp
-          end where
-       end if
+       ! See the SED branch above for the derivation of the uncertainties
+
+       if(img%uncertainties) cube6de = sqrt(img%img2)
 
        if(.not.img%use_exact_nu) then
           cube6d = cube6d / dnunorm
