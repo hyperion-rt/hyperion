@@ -456,19 +456,22 @@ contains
              p%emiss_var_frac = jnu_var_frac(p%icell%ic, p%dust_id)
              call dust_sample_emit_probability(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,nu,p%energy)
           end select
-       end if
 
-       select case(src%freq_type)
-       case(1)
-          p%energy = interpolate_pdf(src%spectrum, nu, bounds_error=.false., fill_value=0._dp)
-       case(2)
-          p%energy = normalized_B_nu(nu, src%temperature)
-       case(3)
-          p%dust_id = select_dust_specific_energy_rho(p%icell)
-          p%emiss_var_id = jnu_var_id(p%icell%ic, p%dust_id)
-          p%emiss_var_frac = jnu_var_frac(p%icell%ic, p%dust_id)
-          call dust_sample_emit_probability(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,nu,p%energy)
-       end select
+       else
+
+          select case(src%freq_type)
+          case(1)
+             p%energy = interpolate_pdf(src%spectrum, nu, bounds_error=.false., fill_value=0._dp)
+          case(2)
+             p%energy = normalized_B_nu(nu, src%temperature)
+          case(3)
+             p%dust_id = select_dust_specific_energy_rho(p%icell)
+             p%emiss_var_id = jnu_var_id(p%icell%ic, p%dust_id)
+             p%emiss_var_frac = jnu_var_frac(p%icell%ic, p%dust_id)
+             call dust_sample_emit_probability(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,nu,p%energy)
+          end select
+
+       end if
 
     else
 
@@ -486,19 +489,22 @@ contains
              p%emiss_var_frac = jnu_var_frac(p%icell%ic, p%dust_id)
              call dust_sample_j_nu(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu)
           end select
-       end if
 
-       select case(src%freq_type)
-       case(1)
-          p%nu = sample_pdf(src%spectrum)
-       case(2)
-          call random_planck_frequency(p%nu, src%temperature)
-       case(3)
-          p%dust_id = select_dust_specific_energy_rho(p%icell)
-          p%emiss_var_id = jnu_var_id(p%icell%ic, p%dust_id)
-          p%emiss_var_frac = jnu_var_frac(p%icell%ic, p%dust_id)
-          call dust_sample_j_nu(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu)
-       end select
+       else
+
+          select case(src%freq_type)
+          case(1)
+             p%nu = sample_pdf(src%spectrum)
+          case(2)
+             call random_planck_frequency(p%nu, src%temperature)
+          case(3)
+             p%dust_id = select_dust_specific_energy_rho(p%icell)
+             p%emiss_var_id = jnu_var_id(p%icell%ic, p%dust_id)
+             p%emiss_var_frac = jnu_var_frac(p%icell%ic, p%dust_id)
+             call dust_sample_j_nu(d(p%dust_id),p%emiss_var_id,p%emiss_var_frac,p%nu)
+          end select
+
+       end if
 
     end if
 
