@@ -419,16 +419,17 @@ contains
                      & * d(id)%sublimation_specific_energy / specific_energy(ic, id) &
                      & * (chi_rosseland(id, specific_energy(ic,id)) &
                      & / chi_rosseland(id, d(id)%sublimation_specific_energy))**2
-                specific_energy(ic,id) = d(id)%sublimation_specific_energy
-                reset = reset + 1
-
 
                 if (compute_specific_energy_spectrum) then
                    do idx=1,n_nu_bins
-                      specific_energy_spectrum(ic,id,idx) = minimum_specific_energy(id)
+                      specific_energy_spectrum(ic,id,idx) = specific_energy_spectrum(ic,id,idx) &
+                           & * d(id)%sublimation_specific_energy / specific_energy(ic, id)
                    end do
                 end if
-                   
+
+                specific_energy(ic,id) = d(id)%sublimation_specific_energy
+                reset = reset + 1
+
              end if
           end do
 
@@ -438,14 +439,16 @@ contains
 
           do ic=1,geo%n_cells
              if(specific_energy(ic, id) > d(id)%sublimation_specific_energy) then
-                specific_energy(ic, id) = d(id)%sublimation_specific_energy
-                reset = reset + 1
 
                 if (compute_specific_energy_spectrum) then
                    do idx=1,n_nu_bins
-                      specific_energy_spectrum(ic,id,idx) = minimum_specific_energy(id)
+                      specific_energy_spectrum(ic,id,idx) = specific_energy_spectrum(ic,id,idx) &
+                           & * d(id)%sublimation_specific_energy / specific_energy(ic, id)
                    end do
                 end if
+
+                specific_energy(ic, id) = d(id)%sublimation_specific_energy
+                reset = reset + 1
 
              end if
           end do
