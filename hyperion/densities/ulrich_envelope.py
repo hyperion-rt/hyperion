@@ -442,7 +442,7 @@ class UlrichEnvelope(Envelope):
             # entries are overwritten just below, so the warnings can be
             # ignored.
             with np.errstate(invalid='ignore'):
-                rho[:] = (self.rho_0 * self.rc
+                rho[:] = (0.5 * self.rho_0 * self.rc
                           * (np.log((np.sqrt(gamma_1) + 1) / (1. - np.sqrt(gamma_1)))
                              - np.log((np.sqrt(gamma_0) + 1) / (1. - np.sqrt(gamma_0)))))
 
