@@ -15,9 +15,9 @@ from astropy import log as logger
 from .grid_helpers import single_grid_dims
 
 
-def zero_density(grid, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, zmin=np.inf, zmax=np.inf):
-    for ilevel, level in enumerate(grid.levels):
-        for igrid, grid in enumerate(level.grids):
+def zero_density(amr_grid, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, zmin=-np.inf, zmax=np.inf):
+    for level in amr_grid.levels:
+        for grid in level.grids:
             wx = np.linspace(grid.xmin, grid.xmax, grid.nx + 1)
             wy = np.linspace(grid.ymin, grid.ymax, grid.ny + 1)
             wz = np.linspace(grid.zmin, grid.zmax, grid.nz + 1)
@@ -26,8 +26,13 @@ def zero_density(grid, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, zmi
             z = 0.5 * (wz[:-1] + wz[1:])
             gx, gy, gz = meshgrid_nd(x, y, z)
             reset = (gx < xmin) | (gx > xmax) | (gy < ymin) | (gy > ymax) | (gz < zmin) | (gz > zmax)
-            grid.data[reset] = 0.
-    return grid
+            for quantity in grid.quantities:
+                if isinstance(grid.quantities[quantity], list):
+                    for array in grid.quantities[quantity]:
+                        array[reset] = 0.
+                else:
+                    grid.quantities[quantity][reset] = 0.
+    return amr_grid
 
 
 class Grid(FreezableClass):
