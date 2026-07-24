@@ -25,17 +25,22 @@ def _read_dataset(filename, suffix):
         return np.asarray(f[matches[-1]][()], dtype=float)
 
 
-def _assert_spectrum_sums_to_specific_energy(filename):
+def _assert_spectrum_sums_to_specific_energy(filename, exclude_empty_spectrum=False):
     # Summed over frequency, specific_energy_spectrum must reproduce specific_energy.
     # Cells with no absorption are clamped up to the minimum specific energy
     # (which only affects specific_energy, not the unclamped specific_energy_spectrum),
     # so we compare only cells that were genuinely heated above that floor.
+    # With exclude_empty_spectrum, cells whose spectrum is identically zero are
+    # also skipped: the PDA can heat cells that received no photons at all, and
+    # for those there is no Monte-Carlo spectral shape to rescale.
     se = _read_dataset(filename, '/specific_energy')
     se_nu = _read_dataset(filename, '/specific_energy_spectrum')
     assert se_nu is not None
     nu_sum = se_nu.sum(axis=0)
     floor = se.min()
     heated = se > floor * (1. + 1.e-6)
+    if exclude_empty_spectrum:
+        heated &= nu_sum > 0.
     assert np.count_nonzero(heated) >= 1
     np.testing.assert_allclose(nu_sum[heated], se[heated], rtol=1.e-6)
 
@@ -83,6 +88,19 @@ def test_specific_energy_spectrum_sums_to_specific_energy(tmpdir):
     m.write(tmpdir.join(random_id()).strpath)
     out = m.run(tmpdir.join(random_id()).strpath)
     _assert_spectrum_sums_to_specific_energy(out.filename)
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_specific_energy_spectrum_sums_to_specific_energy_with_pda(tmpdir):
+    # The partial diffusion approximation overwrites specific_energy in cells
+    # with few photon deposits, so the frequency-resolved values in those cells
+    # have to be rescaled to match, rather than keeping the noisy Monte-Carlo
+    # values. Few photons over many cells guarantees PDA cells exist.
+    m = _cartesian_model('last', n_cells=8, n_photons=2000)
+    m.set_pda(True)
+    m.write(tmpdir.join(random_id()).strpath)
+    out = m.run(tmpdir.join(random_id()).strpath)
+    _assert_spectrum_sums_to_specific_energy(out.filename, exclude_empty_spectrum=True)
 
 
 @pytest.mark.requires_hyperion_binaries
