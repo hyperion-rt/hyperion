@@ -100,8 +100,8 @@ contains
     type(photon) :: p
     real(dp) :: tau
     integer :: ip,ig,iv,id
-    type(angle3d_dp) :: a_req, a_sky, a_diff
-    type(vector3d_dp) :: v_req
+    type(angle3d_dp) :: a_req, a_view
+    type(vector3d_dp) :: v_req, v_a, v_sky
     logical,intent(in) :: polychromatic
     real(dp) :: x_image, y_image
     real(dp) :: tmax
@@ -164,16 +164,20 @@ contains
 
        if(inside_observer(ig)) then
 
-          if(abs(viewing_angles(ip)%cost) .gt. 1.e-10) then
-             call rotate_angle3d(viewing_angles(ip), angle3d_deg(90._dp, 0._dp), a_diff)
-             call difference_angle3d(a_diff, -p%a, a_sky)
-          else
-             a_sky = p%a
-          end if
+          ! Find the sky position of the photon by applying to the photon
+          ! direction the rigid rotation that maps the viewing direction
+          ! onto (theta, phi) = (90, 0). This is continuous in the viewing
+          ! angles, and for a viewing angle of (90, 0) the sky position is
+          ! simply given by p%a.
+          a_view = viewing_angles(ip)
+          call angle3d_to_vector3d(p%a, v_a)
+          v_sky%x = (v_a%x * a_view%cosp + v_a%y * a_view%sinp) * a_view%sint + v_a%z * a_view%cost
+          v_sky%y = - v_a%x * a_view%sinp + v_a%y * a_view%cosp
+          v_sky%z = - (v_a%x * a_view%cosp + v_a%y * a_view%sinp) * a_view%cost + v_a%z * a_view%sint
 
           ! Convert to angles in degrees
-          x_image = atan2(a_sky%sinp, a_sky%cosp) * rad2deg
-          y_image = atan2(a_sky%sint, a_sky%cost) * rad2deg - 90._dp
+          x_image = atan2(v_sky%y, v_sky%x) * rad2deg
+          y_image = atan2(sqrt(v_sky%x**2 + v_sky%y**2), v_sky%z) * rad2deg - 90._dp
 
           ! Make sure the photon falls inside the image (wrap angles around)
           x_image = peeled_image(ig)%x_max + modulo(x_image - peeled_image(ig)%x_max, 360._dp)
