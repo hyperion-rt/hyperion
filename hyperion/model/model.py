@@ -472,8 +472,8 @@ class Model(FreezableClass, RunConf):
             g_image = f['/Input/Output/']
 
         # Read in binned images
-        if 'n_theta' in g_image['Binned']:
-            self.binned_output = BinnedImageConf.read(g_image['Binned'])
+        if 'group_00001' in g_image['Binned']:
+            self.binned_output = BinnedImageConf.read(g_image['Binned']['group_00001'])
 
         # Read in peeled images
         for peeled in g_image['Peeled']:
