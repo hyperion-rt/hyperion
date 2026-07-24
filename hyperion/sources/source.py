@@ -225,7 +225,7 @@ class Source(FreezableClass):
         if self.spectrum is not None:
             nu, fnu = self.spectrum['nu'], self.spectrum['fnu']
             if nu_range is not None:
-                raise NotImplemented("nu_range not yet implemented for spectrum")
+                raise NotImplementedError("nu_range not yet implemented for spectrum")
         elif self.temperature is not None:
             if nu_range is None:
                 raise ValueError("nu_range is needed for sources with Planck spectra")
