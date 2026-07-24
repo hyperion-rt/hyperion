@@ -13,6 +13,7 @@ module grid_io
   public :: read_grid_4d
   public :: write_grid_3d
   public :: write_grid_4d
+  public :: write_grid_5d
 
   interface read_grid_3d
      module procedure read_grid_3d_sp
