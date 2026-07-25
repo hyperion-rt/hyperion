@@ -92,6 +92,7 @@ contains
 
     real(dp),save :: time1 = -1._dp
     real(dp) :: time2
+    real(dp) :: dtime_send
     real(dp),allocatable,volatile,save :: dtime(:)
 
     if(debug) write(*,'("[mpi_routines] rank ",I0," requesting number of photons")') rank
@@ -243,7 +244,8 @@ contains
 
        ! Receive number of photons and send acknowledgments
        call mpi_recv(n_photons, 1, mpi_integer8, rank_main, tag1, mpi_comm_world, status, ierr)
-       call mpi_isend(time2-time1, 1, mpi_real8, rank_main, tag2, mpi_comm_world, request_dum, ierr)
+       dtime_send = time2 - time1
+       call mpi_send(dtime_send, 1, mpi_real8, rank_main, tag2, mpi_comm_world, ierr)
 
        if(n_photons > n_photons_tot) stop "n_photons > n_photons_tot"
 
