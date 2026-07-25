@@ -104,3 +104,5 @@ def test_roundtrip():
                                f2.spectral_coord.to(u.Hz).value)
     np.testing.assert_allclose(f.transmission.to(u.percent).value,
                                f2.transmission.to(u.percent).value)
+    np.testing.assert_allclose(f.central_spectral_coord.to(u.Hz).value,
+                               f2.central_spectral_coord.to(u.Hz).value)

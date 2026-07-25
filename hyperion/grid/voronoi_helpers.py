@@ -197,12 +197,12 @@ class voronoi_grid(object):
             # Drop the empty vertices coordinates, signalled by NaN.
             arr = v[~np.isnan(v)]
             assert(len(arr) % 3 == 0)
-            tmp = np.split(arr, len(arr) / 3)
+            tmp = np.split(arr, len(arr) // 3)
             # Append the vertices.
             points = points + tmp
             # Append the cell description.
             cells = cells + \
-                [len(tmp)] + range(cur_cell_idx, cur_cell_idx + len(tmp))
+                [len(tmp)] + list(range(cur_cell_idx, cur_cell_idx + len(tmp)))
             cur_cell_idx += len(tmp)
             # Append the offset info.
             offset.append(cur_offset)

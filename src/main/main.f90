@@ -169,6 +169,9 @@ program main
   ! Wait for all threads
   call mp_join()
 
+  ! Initialize convergence flag in case convergence checking is disabled
+  converged = .false.
+
   ! Loop over Lucy iterations
   do iter=1,n_initial_iter
 

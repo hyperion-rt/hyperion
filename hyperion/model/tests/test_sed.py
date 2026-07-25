@@ -451,3 +451,22 @@ class TestSEDStokesOption(object):
         with pytest.raises(ValueError) as exc:
             self.m2.get_sed(stokes=stokes)
         assert exc.value.args[0] == "Only the Stokes I value was stored for this SED"
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_sed_negative_group(tmpdir):
+    # Regression test for negative group indices resolving to a nonexistent
+    # HDF5 group
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    s = m.add_point_source()
+    s.luminosity = 1.
+    s.temperature = 6000.
+    i = m.add_peeled_images(sed=True, image=False)
+    i.set_viewing_angles([45.], [45.])
+    i.set_wavelength_range(3, 0.1, 10.)
+    m.set_n_initial_iterations(0)
+    m.set_n_photons(imaging=100)
+    m.write(tmpdir.join(random_id()).strpath)
+    mo = m.run()
+    np.testing.assert_allclose(mo.get_sed(group=-1).val, mo.get_sed(group=0).val)

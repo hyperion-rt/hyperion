@@ -709,7 +709,7 @@ contains
           in_correct_cell = in_correct_cell .and. icell_actual%i3 == p%icell%i3
        end if
     else
-       in_correct_cell = icell_actual == p%icell
+       in_correct_cell = icell_actual%i1 == p%icell%i1 .and. icell_actual%i2 == p%icell%i2 .and. icell_actual%i3 == p%icell%i3
     end if
   end function in_correct_cell
 

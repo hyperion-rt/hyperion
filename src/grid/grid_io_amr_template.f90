@@ -137,7 +137,7 @@ contains
        level => geo%levels(ilevel)
        do igrid=1,size(level%grids)
           grid => level%grids(igrid)
-          write(full_path, '("level_", I5.5, "/grid_ ", I5.5,"/")') ilevel, igrid
+          write(full_path, '("level_", I5.5, "/grid_", I5.5,"/")') ilevel, igrid
           full_path = trim(full_path)//trim(path)
           call mp_read_array_auto(group, full_path, array3d)
           if(any(is_nan(array3d))) call error("read_grid_3d", "NaN values in 3D array")

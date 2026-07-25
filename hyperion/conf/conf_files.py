@@ -512,7 +512,7 @@ class RunConf(object):
             The relative threshold below which the ratio in the percentile
             value has to be for convergence.
         '''
-        self.check_convergence = True
+        self.check_convergence = convergence
         self.convergence_percentile = percentile
         self.convergence_absolute = absolute
         self.convergence_relative = relative

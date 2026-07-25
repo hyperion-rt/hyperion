@@ -279,7 +279,7 @@ contains
     type(photon),intent(in) :: p
     integer :: ic
     if(debug) write(*,'(" [debug] find_cell")')
-    if(p%r%x<geo%xmin.or.p%r%y>geo%xmax) then
+    if(p%r%x<geo%xmin.or.p%r%x>geo%xmax) then
        call warn("find_cell","photon not in grid (in x direction)")
        icell = invalid_cell
        return
@@ -289,7 +289,7 @@ contains
        icell = invalid_cell
        return
     end if
-    if(p%r%z<geo%zmin.or.p%r%y>geo%zmax) then
+    if(p%r%z<geo%zmin.or.p%r%z>geo%zmax) then
        call warn("find_cell","photon not in grid (in z direction)")
        icell = invalid_cell
        return
@@ -415,11 +415,11 @@ contains
 
     real(dp) :: d1,d2,d3,d4,d5,d6
 
-    d1 = p%r%x - geo%cells(p%icell%ic)%x - geo%cells(p%icell%ic)%dx
+    d1 = p%r%x - geo%cells(p%icell%ic)%x + geo%cells(p%icell%ic)%dx
     d2 = geo%cells(p%icell%ic)%x + geo%cells(p%icell%ic)%dx - p%r%x
-    d3 = p%r%y - geo%cells(p%icell%ic)%y - geo%cells(p%icell%ic)%dy
+    d3 = p%r%y - geo%cells(p%icell%ic)%y + geo%cells(p%icell%ic)%dy
     d4 = geo%cells(p%icell%ic)%y + geo%cells(p%icell%ic)%dy - p%r%y
-    d5 = p%r%z - geo%cells(p%icell%ic)%z - geo%cells(p%icell%ic)%dz
+    d5 = p%r%z - geo%cells(p%icell%ic)%z + geo%cells(p%icell%ic)%dz
     d6 = geo%cells(p%icell%ic)%z + geo%cells(p%icell%ic)%dz - p%r%z
 
     ! Find the smallest of the distances

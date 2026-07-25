@@ -545,9 +545,12 @@ class VoronoiGrid(FreezableClass):
 
     def __setitem__(self, item, value):
         if isinstance(value, VoronoiGridView):
-            if self.refined is None:
+            if self._x is None:
                 logger.warning("No geometry in target grid - copying from original grid")
-                self.set_points(value.x, value.y, value.z)
+                self.set_points(value.x, value.y, value.z,
+                                xmin=value.xmin, xmax=value.xmax,
+                                ymin=value.ymin, ymax=value.ymax,
+                                zmin=value.zmin, zmax=value.zmax)
             self.quantities[item] = deepcopy(value.quantities[value.viewed_quantity])
         elif isinstance(value, h5py.ExternalLink):
             self.quantities[item] = value

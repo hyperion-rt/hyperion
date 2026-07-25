@@ -747,7 +747,7 @@ class MieXDust(SphericalDust):
             if np.any(np.isnan(values)):
                 logger.warning("NaN values found inside MieX %s file - interpolating" % quantity)
                 invalid = np.isnan(values)
-                values[invalid] = interp1d_fast_loglog(wav[~invalid], values[~invalid], wav[invalid])
+                values[invalid] = interp1d_fast_loglog(wav[~invalid][::-1], values[~invalid][::-1], wav[invalid])
                 if np.any(np.isnan(values)):
                     raise Exception("Did not manage to fix NaN values in MieX %s" % quantity)
 
@@ -808,7 +808,7 @@ class MieXDust(SphericalDust):
                 if np.any(np.isnan(values[:, i])):
                     logger.warning("NaN values found inside MieX %s file - interpolating" % quantity)
                     invalid = np.isnan(values[:, i])
-                    values[:, i][invalid] = interp1d_fast_loglog(wav[~invalid], values[:, i][~invalid], wav[invalid])
+                    values[:, i][invalid] = interp1d_fast_loglog(wav[~invalid][::-1], values[:, i][~invalid][::-1], wav[invalid])
                     if np.any(np.isnan(values[:, i])):
                         raise Exception("Did not manage to fix NaN values in MieX %s" % quantity)
 

@@ -448,6 +448,9 @@ class AlphaDisk(Disk):
         # Find density factor
         rho *= self.rho_0
 
+        if np.sum(rho * grid.volumes) == 0. and self.mass > 0:
+            raise Exception("Discretized disk mass is zero, suggesting that the grid is too coarse")
+
         norm = self.mass / np.sum(rho * grid.volumes)
 
         logger.info("Disk density is being re-scaled by a factor of %.2f to give the correct mass." % norm)

@@ -352,9 +352,9 @@ contains
     n_nu_bins = 0
     if (compute_specific_energy_spectrum) n_nu_bins = size(specific_energy_spectrum, 3)
 
-    reset = 0
-
     do id=1,n_dust
+
+       reset = 0
 
        select case(d(id)%sublimation_mode)
        case(1)
@@ -447,10 +447,13 @@ contains
        if (compute_specific_energy_spectrum) then
           do idx=1,n_nu_bins
              specific_energy_spectrum(:,id,idx) = specific_energy_sum_spectrum(:,id,idx) * scale/geo%volume
+             where(geo%volume == 0._dp)
+                specific_energy_spectrum(:,id,idx) = 0._dp
+             end where
           end do
        end if
-          
-          
+
+
        where(geo%volume == 0._dp)
           specific_energy(:,id) = 0._dp
        end where
@@ -636,7 +639,7 @@ contains
     end if
 
     call random(xi)
-    p%dust_id = ceiling(xi*real(n_dust,dp))
+    p%dust_id = max(ceiling(xi*real(n_dust,dp)), 1)
 
     ! Pick random cell
     p%icell = random_masked_cell()

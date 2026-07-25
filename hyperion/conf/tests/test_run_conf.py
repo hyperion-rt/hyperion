@@ -22,3 +22,12 @@ def test_propagation_check_frequency_invalid2(value):
     with pytest.raises(ValueError) as exc:
         r.set_propagation_check_frequency(value)
     assert exc.value.args[0] == "frequency should be between 0 and 1"
+
+
+def test_set_convergence_flag():
+    r = RunConf()
+    r.set_convergence(True, percentile=99., absolute=2., relative=1.02)
+    assert r.check_convergence is True
+    r = RunConf()
+    r.set_convergence(False)
+    assert r.check_convergence is False

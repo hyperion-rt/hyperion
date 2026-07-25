@@ -136,7 +136,7 @@ class Filter(object):
 
         self.alpha = group[name].attrs['alpha']
         self._beta = group[name].attrs['beta']
-        self.central_spectral_coords = group[name].attrs['nu0'] * u.Hz
+        self.central_spectral_coord = group[name].attrs['nu0'] * u.Hz
 
         return self
 

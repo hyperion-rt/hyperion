@@ -5,6 +5,7 @@ import tempfile
 import shutil
 from copy import deepcopy
 
+import h5py
 import numpy as np
 import pytest
 
@@ -396,3 +397,39 @@ def test_binned_forced_first_interaction(tmpdir):
     with pytest.raises(Exception) as exc:
         m.write(tmpdir.join(random_id()).strpath)
     assert exc.value.args[0] == "can't use binned images with forced first interaction - use set_forced_first_interaction(False) to disable"
+
+
+def test_monochromatic_energy_threshold_round_trip(tmpdir):
+    # Regression test for the threshold being read back with the wrong
+    # attribute name and silently reset to the default
+    m = Model()
+    m.set_monochromatic(True, wavelengths=[1., 2.], energy_threshold=1.e-5)
+    f = h5py.File(tmpdir.join(random_id()).strpath, 'w')
+    m._write_monochromatic(f)
+    m2 = Model()
+    m2._read_monochromatic(f)
+    f.close()
+    assert m2._monochromatic_energy_threshold == 1.e-5
+
+
+def test_use_image_config_binned(tmpdir):
+    # Regression test for binned image configuration never being restored
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    m.add_density_grid(np.array([[[1.]]]), get_test_dust())
+    s = m.add_point_source()
+    s.luminosity = 1.
+    s.temperature = 6000.
+    i = m.add_binned_images(sed=True, image=False)
+    i.set_wavelength_range(5, 1, 10)
+    i.set_viewing_bins(3, 2)
+    m.set_forced_first_interaction(False)
+    m.set_n_photons(initial=1, imaging=1)
+    filename = tmpdir.join(random_id()).strpath
+    m.write(filename)
+
+    m2 = Model()
+    m2.use_image_config(filename)
+    assert m2.binned_output is not None
+    assert m2.binned_output.n_theta == 3
+    assert m2.binned_output.n_phi == 2

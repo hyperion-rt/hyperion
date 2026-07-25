@@ -134,3 +134,16 @@ def test_init_sparse(tmpdir):
     g3 = VoronoiGrid(g2)
     g3.write(f3)
 
+
+
+def test_setitem_from_view():
+    # Regression test for VoronoiGrid.__setitem__, which used to check a
+    # nonexistent 'refined' attribute when assigning a view to an empty grid
+    g1 = VoronoiGrid([1., 2., 3.], [3., 4., 5.], [2., 3., 4.])
+    g1.quantities['density'] = np.array([1., 2., 3.])
+    g2 = VoronoiGrid()
+    g2['density'] = g1['density']
+    np.testing.assert_allclose(g2['density'].array, g1['density'].array)
+    assert g2.xmin == g1.xmin and g2.xmax == g1.xmax
+    assert g2.ymin == g1.ymin and g2.ymax == g1.ymax
+    assert g2.zmin == g1.zmin and g2.zmax == g1.zmax

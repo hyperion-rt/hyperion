@@ -771,3 +771,11 @@ def test_map_write_invalid2():
     with pytest.raises(Exception) as exc:
         s.write(v, 'test', None)
     assert exc.value.args[0] == 'map is zero everywhere'
+
+
+def test_spectrum_nu_range_not_implemented():
+    s = Source()
+    s.luminosity = 1.
+    s.spectrum = (np.array([1., 2., 3.]), np.array([1., 1., 1.]))
+    with pytest.raises(NotImplementedError):
+        s.get_spectrum(nu_range=(1., 2.))
