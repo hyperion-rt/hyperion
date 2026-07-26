@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 
 from ..functions import B_nu, dB_nu_dT
@@ -40,3 +41,28 @@ def test_db_nu_dt():
 
         # Check that the two are the same
         np.testing.assert_allclose(db, db_num, rtol=1.e-2)
+
+
+def test_freezable_attributes_per_instance():
+    # Regression: FreezableClass used to store _attributes on the class, so
+    # attributes registered on one instance leaked into every other instance
+    # (and grew an unbounded shared list). They must be per-instance.
+    from ..functions import FreezableClass
+
+    class Foo(FreezableClass):
+        def __init__(self):
+            FreezableClass.__init__(self)
+
+    a = Foo()
+    a.x = 1        # registers 'x' on a only
+    a._freeze()
+
+    b = Foo()
+    b._freeze()
+    # 'x' belongs to a, not b; with the shared-list bug b would allow it
+    with pytest.raises(AttributeError):
+        b.x = 2
+
+    # a can still change its own registered attribute
+    a.x = 5
+    assert a.x == 5
