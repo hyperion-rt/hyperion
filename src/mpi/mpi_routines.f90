@@ -73,7 +73,7 @@ contains
     integer(idp),intent(out) :: n_photons
 
     ! Number of photons used for MPI transfer
-    integer(idp),volatile,allocatable :: n_photons_send(:)
+    integer(idp),volatile,allocatable,save :: n_photons_send(:)
 
     ! Loop variable and dummy variable
     integer :: ir
@@ -153,8 +153,12 @@ contains
 
              n_photons_curr = n_photons_curr + n_photons_send(ir)
 
-             ! Send number of photons and initialize receive for status check
+             ! Send number of photons and initialize receive for status check.
+             ! The send buffer has the save attribute and each slot is only
+             ! reused once the acknowledgement from the worker has been
+             ! received, so the request can be freed straight away.
              call mpi_isend(n_photons_send(ir), 1, mpi_integer8, ir, tag1, mpi_comm_world, request_dum, ierr)
+             call mpi_request_free(request_dum, ierr)
              call mpi_irecv(dtime(ir), 1, mpi_real8, ir, tag2, mpi_comm_world, request(ir), ierr)
 
              if(first) started(ir) = .true.
@@ -186,6 +190,7 @@ contains
                    if(flag) then
                       n_photons_send(ir) = 0_idp
                       call mpi_isend(n_photons_send(ir), 1, mpi_integer8, ir, tag1, mpi_comm_world, request_dum, ierr)
+                      call mpi_request_free(request_dum, ierr)
                       call mpi_irecv(dum_dp, 1, mpi_real8, ir, tag2, mpi_comm_world, request(ir), ierr)
                       stopped(ir) = .true.
                       if(debug) write(*,'("[mpi_routines] send abort signal to rank ",I0)') ir
@@ -196,6 +201,7 @@ contains
                 else if(.not.started(ir)) then
                    n_photons_send(ir) = 0_idp
                    call mpi_isend(n_photons_send(ir), 1, mpi_integer8, ir, tag1, mpi_comm_world, request_dum, ierr)
+                   call mpi_request_free(request_dum, ierr)
                    call mpi_irecv(dum_dp, 1, mpi_real8, ir, tag2, mpi_comm_world, request(ir), ierr)
                    started(ir) = .true.
                    stopped(ir) = .true.

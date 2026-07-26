@@ -364,8 +364,10 @@ contains
     character(len=*),intent(in) :: path, name
     character(len=*),allocatable,intent(out) :: array(:)
     integer :: n1
-    if(main_process()) call hdf5_table_read_column_auto(handle, path, name, array)
-    n1 = size(array)
+    if(main_process()) then
+       call hdf5_table_read_column_auto(handle, path, name, array)
+       n1 = size(array)
+    end if
     call mpi_bcast(n1, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
     if(.not. main_process()) allocate(array(n1))
     call mpi_bcast(array, n1 * len(array), mpi_character, rank_main, mpi_comm_world, ierr)
@@ -438,8 +440,10 @@ contains
     character(len=*),intent(in) :: path, name
     @T,allocatable,intent(out) :: array(:)
     integer :: n1
-    if(main_process()) call hdf5_table_read_column_auto(handle, path, name, array)
-    n1 = size(array)
+    if(main_process()) then
+       call hdf5_table_read_column_auto(handle, path, name, array)
+       n1 = size(array)
+    end if
     call mpi_bcast(n1, 1, mpi_integer4, rank_main, mpi_comm_world, ierr)
     if(.not. main_process()) allocate(array(n1))
     call mpi_bcast(array, n1, <T>, rank_main, mpi_comm_world, ierr)
