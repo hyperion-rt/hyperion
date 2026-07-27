@@ -888,3 +888,26 @@ def test_alpha_disk_zero_discretized_mass():
     with pytest.raises(Exception) as exc:
         e.density(g)
     assert "zero" in exc.value.args[0]
+
+
+def test_power_law_envelope_power_minus_three():
+    # power = -3 gives alpha = 3 + power = 0, which used to divide by zero in
+    # the mass <-> rho_0 conversion; it should now round-trip cleanly.
+    e = PowerLawEnvelope()
+    e.rmin = 1.
+    e.rmax = 10.
+    e.r_0 = 5.
+    e.power = -3.
+    e.rho_0 = 2.
+    m = e.mass
+    assert np.isfinite(m) and m > 0.
+    e.mass = m
+    np.testing.assert_allclose(e.rho_0, 2.)
+
+
+def test_ambient_medium_star_attribute():
+    # AmbientMedium.star must be declared before the instance is frozen,
+    # otherwise assigning it raises AttributeError.
+    a = AmbientMedium()
+    a.star = Star()
+    assert a.star is not None

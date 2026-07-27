@@ -118,9 +118,8 @@ class PowerLawEnvelope(Envelope):
             return None
         else:
             self._check_all_set()
-            alpha = 3. + self.power
-            mass = self.rho_0 / alpha * \
-                (4. * pi * (self.rmax ** alpha - self.rmin ** alpha) / self.r_0 ** self.power)
+            mass = self.rho_0 * \
+                (4. * pi * integrate_powerlaw(self.rmin, self.rmax, 2. + self.power) / self.r_0 ** self.power)
             return mass
 
     @mass.setter
@@ -141,9 +140,8 @@ class PowerLawEnvelope(Envelope):
             return None
         else:
             self._check_all_set()
-            alpha = 3. + self.power
-            rho_0 = self.mass * alpha / \
-                (4. * pi * (self.rmax ** alpha - self.rmin ** alpha) / self.r_0 ** self.power)
+            rho_0 = self.mass / \
+                (4. * pi * integrate_powerlaw(self.rmin, self.rmax, 2. + self.power) / self.r_0 ** self.power)
             return rho_0
 
     @rho_0.setter

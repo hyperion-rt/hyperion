@@ -68,3 +68,27 @@ def test_construct_octree():
     volumes_ref.insert(0, 6 * 5 * 4 * 8.)
 
     assert_allclose(volumes, volumes_ref)
+
+
+def test_get_positions_widths_no_reference_leak():
+    # Regression: _get_positions_widths leaked references to its input array
+    # (never DECREF'd) and to its six output arrays (returned with "O" instead
+    # of "N"). Check both are now reference-clean.
+    import sys
+    import numpy as np
+    from .._discretize_sph import _get_positions_widths
+
+    refined = np.array([True] + [False] * 8, dtype=bool)
+
+    rc0 = sys.getrefcount(refined)
+    for _ in range(20):
+        out = _get_positions_widths(refined, 0., 0., 0., 1., 1., 1.)
+        del out
+    assert sys.getrefcount(refined) == rc0            # input not leaked
+
+    out = _get_positions_widths(refined, 0., 0., 0., 1., 1., 1.)
+    arr = out[0]
+    del out
+    # arr is now referenced only by `arr` (+ the temporary getrefcount arg);
+    # the "O" leak would leave an extra dangling reference.
+    assert sys.getrefcount(arr) == 2

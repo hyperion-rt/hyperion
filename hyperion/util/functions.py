@@ -80,7 +80,6 @@ class FreezableClass(object):
 
     _frozen = False
     _final = False
-    _attributes = []
 
     def __init__(self):
         super(FreezableClass, self).__init__()
@@ -100,9 +99,11 @@ class FreezableClass(object):
     def __setattr__(self, key, value):
         if self._final:
             raise Exception("Attribute %s can no longer be changed" % key)
+        if '_attributes' not in self.__dict__:
+            object.__setattr__(self, '_attributes', set())
         if self._frozen and not key in self._attributes:
             raise AttributeError("Attribute %s does not exist" % key)
-        self._attributes.append(key)
+        self._attributes.add(key)
         object.__setattr__(self, key, value)
 
 

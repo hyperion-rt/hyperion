@@ -147,3 +147,19 @@ def test_setitem_from_view():
     assert g2.xmin == g1.xmin and g2.xmax == g1.xmax
     assert g2.ymin == g1.ymin and g2.ymax == g1.ymax
     assert g2.zmin == g1.zmin and g2.zmax == g1.zmax
+
+
+def test_evaluate_function_average_constant():
+    # For a constant function every (non-empty) cell average must equal that
+    # constant. The old code divided the last cell's sum by a decremented
+    # sample count, inflating that one cell's average away from the constant.
+    np.random.seed(9876)
+    N = 12
+    x = np.random.random(N)
+    y = np.random.random(N)
+    z = np.random.random(N)
+
+    g = VoronoiGrid(x, y, z)
+    avg = g.evaluate_function_average(lambda x, y, z: 3.5 * np.ones_like(x),
+                                      n_samples=2000000, min_cell_samples=5)
+    np.testing.assert_allclose(avg, 3.5, rtol=1e-6)
