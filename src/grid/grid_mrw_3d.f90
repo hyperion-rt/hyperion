@@ -8,7 +8,6 @@ module grid_mrw
   use grid_physics
   use dust_main, only : kappa_planck, chi_inv_planck, n_dust, d
   use type_dust, only : dust_sample_b_nu
-  use settings, only : compute_specific_energy_spectrum
 
   implicit none
   save
@@ -61,9 +60,9 @@ contains
     type(photon),intent(inout) :: p
 
     real(dp) :: R0
-    real(dp) :: e,y,ct,fr
+    real(dp) :: e,y,ct
     type(vector3d_dp) :: dr
-    integer :: id,iv
+    integer :: id
 
     ! Find distance to closest wall
     R0 = distance_to_closest_wall(p)
@@ -80,22 +79,10 @@ contains
           ! Insert ct into (9), get energy deposited for Lucy method
           e = p%energy * ct * kappa_planck(id, specific_energy(p%icell%ic, id))
           specific_energy_sum(p%icell%ic, id) = specific_energy_sum(p%icell%ic, id) + e
-          ! Deposit the same energy in the frequency-resolved spectrum.
-          ! In the diffusion regime the radiation field is Planckian, so
-          ! the absorbed energy is distributed in frequency as
-          ! kappa_nu * B_nu, which is the local emissivity. Distribute the
-          ! energy over the frequency bins according to that distribution
-          ! (pre-computed in j_nu_bin_frac), interpolating between the two
-          ! adjacent emissivity states. No frequency sampling is involved,
-          ! so computing the spectrum does not affect the random number
-          ! stream.
-          if (compute_specific_energy_spectrum) then
-             iv = jnu_var_id(p%icell%ic, id)
-             fr = jnu_var_frac(p%icell%ic, id)
-             specific_energy_sum_spectrum(p%icell%ic, id, :) = &
-                  & specific_energy_sum_spectrum(p%icell%ic, id, :) &
-                  & + e * ((1._dp - fr) * j_nu_bin_frac(:, iv, id) + fr * j_nu_bin_frac(:, iv + 1, id))
-          end if
+          ! Deposit the same energy in the frequency-resolved spectrum,
+          ! distributed over the frequency bins according to the local
+          ! emissivity (see deposit_specific_energy_spectrum).
+          call deposit_specific_energy_spectrum(p%icell%ic, id, e)
        end if
     end do
 
