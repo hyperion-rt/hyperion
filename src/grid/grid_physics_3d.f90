@@ -42,6 +42,11 @@ module grid_physics
   real(dp),allocatable, public :: nu_bins(:)
   real(dp),allocatable, public :: log_nu_bins(:)
 
+  ! Fraction of the emissivity falling into each frequency bin, for each
+  ! emissivity state and dust type - used to distribute energy deposited by
+  ! the MRW over the specific energy spectrum. Indexed (bin, state, dust).
+  real(dp),allocatable, public :: j_nu_bin_frac(:,:,:)
+
   real(dp),allocatable, public :: specific_energy_additional(:,:)
   real(dp),allocatable, public :: specific_energy_additional_spectrum(:,:,:)
   real(dp),allocatable, public :: energy_abs_tot(:)
@@ -105,6 +110,8 @@ contains
     integer(hid_t),intent(in) :: group
     logical,intent(in) :: use_mrw, use_pda, compute_specific_energy_spectrum
     integer :: n_nu_bins
+    integer :: iv, n_jnu_max
+    real(dp),allocatable :: nu_bin_edges(:)
 
     ! specific_energy_spectrum is binned onto a user-specified frequency grid if one was given,
     ! otherwise onto the frequency grid of the first dust type. The spectrum
@@ -279,6 +286,34 @@ contains
        end if
        allocate(log_nu_bins(n_nu_bins))
        log_nu_bins = log10(nu_bins)
+
+       ! Pre-compute, for each dust type and emissivity state, the fraction
+       ! of the emissivity falling into each frequency bin. This is used to
+       ! distribute the energy deposited by the MRW over the specific energy
+       ! spectrum without sampling. The bins are defined by the same
+       ! nearest-neighbour convention in log-frequency as the photon binning
+       ! in grid_propagate, so the edges are placed half-way (in log space)
+       ! between the bin frequencies, with the outer bins extending to all
+       ! lower/higher frequencies.
+       allocate(nu_bin_edges(n_nu_bins+1))
+       nu_bin_edges(1) = 10._dp**(log_nu_bins(1) - 99._dp)
+       do idx=2,n_nu_bins
+          nu_bin_edges(idx) = 10._dp**(0.5_dp * (log_nu_bins(idx-1) + log_nu_bins(idx)))
+       end do
+       nu_bin_edges(n_nu_bins+1) = 10._dp**(log_nu_bins(n_nu_bins) + 99._dp)
+
+       n_jnu_max = 0
+       do id=1,n_dust
+          n_jnu_max = max(n_jnu_max, d(id)%n_jnu)
+       end do
+       allocate(j_nu_bin_frac(n_nu_bins, n_jnu_max, n_dust))
+       j_nu_bin_frac = 0._dp
+       do id=1,n_dust
+          do iv=1,d(id)%n_jnu
+             j_nu_bin_frac(:, iv, id) = get_j_nu_bin_fractions(d(id), iv, nu_bin_edges)
+          end do
+       end do
+       deallocate(nu_bin_edges)
     end if
 
     ! Total energy absorbed

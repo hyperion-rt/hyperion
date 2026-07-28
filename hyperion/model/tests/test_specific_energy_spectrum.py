@@ -10,7 +10,7 @@ import h5py
 from .. import Model
 from ...grid import AMRGrid
 from ...util.functions import random_id
-from .test_helpers import get_test_dust
+from .test_helpers import get_test_dust, get_realistic_test_dust
 
 
 def _read_dataset(filename, suffix):
@@ -181,6 +181,33 @@ def test_specific_energy_spectrum_custom_frequency_grid(tmpdir):
 
 
 @pytest.mark.requires_hyperion_binaries
+def test_specific_energy_spectrum_with_mrw(tmpdir):
+    # Energy deposited during modified-random-walk steps must appear in the
+    # frequency-resolved spectrum as well as in the scalar specific energy.
+    # This guards against the bug where grid_do_mrw updated only
+    # specific_energy_sum, so the spectrum was biased low in the optically
+    # thick cells where the MRW handles most of the absorption.
+    m = Model()
+    m.set_cartesian_grid([-1., 0., 1.], [-1., 0., 1.], [-1., 0., 1.])
+    # The density is chosen so that the cells are optically thick enough to
+    # the local Planck-mean opacity for MRW steps to actually occur.
+    m.add_density_grid(np.ones((2, 2, 2)) * 1.e5, get_realistic_test_dust())
+    s = m.add_point_source()
+    s.luminosity = 1.
+    s.temperature = 6000.
+    m.set_n_initial_iterations(3)
+    m.set_n_photons(initial=1000, imaging=0)
+    m.set_seed(-12345)
+    m.set_mrw(True, gamma=2.)
+    m.set_max_interactions(1000000000)
+    m.conf.output.output_specific_energy = 'last'
+    m.conf.output.output_specific_energy_spectrum = 'last'
+    m.write(tmpdir.join(random_id()).strpath)
+    out = m.run(tmpdir.join(random_id()).strpath)
+    _assert_spectrum_sums_to_specific_energy(out.filename)
+
+
+@pytest.mark.requires_hyperion_binaries
 def test_specific_energy_spectrum_with_sublimation_cap(tmpdir):
     # With a dust type using the 'cap' sublimation mode, cells below the
     # sublimation threshold must keep their frequency-resolved spectrum. This
@@ -310,3 +337,35 @@ def test_specific_energy_spectrum_mpi_matches_serial(tmpdir):
     total_serial = np.nansum(_read_dataset(out_serial.filename, '/specific_energy_spectrum'))
     total_mpi = np.nansum(_read_dataset(out_mpi.filename, '/specific_energy_spectrum'))
     np.testing.assert_allclose(total_mpi, total_serial, rtol=2.e-2)
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_specific_energy_spectrum_sums_to_specific_energy_with_mrw(tmpdir):
+    # In cells heated via the Modified Random Walk, the deposited energy is
+    # distributed over the frequency bins according to the local emissivity
+    # (the radiation field is Planckian in the diffusion regime), so the sum
+    # over frequency must still reproduce the scalar specific energy. The
+    # high density here makes the model optically thick enough for the MRW
+    # to handle most of the energy deposition.
+    m = _cartesian_model('last', n_photons=2000, density=8.)
+    m.set_mrw(True, gamma=2.)
+    m.write(tmpdir.join(random_id()).strpath)
+    out = m.run(tmpdir.join(random_id()).strpath)
+    _assert_spectrum_sums_to_specific_energy(out.filename)
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_specific_energy_spectrum_is_passive_with_mrw(tmpdir):
+    # The MRW spectrum deposit distributes energy deterministically instead
+    # of sampling a frequency, so enabling the spectrum must not consume
+    # random numbers and therefore must not change the specific energy at
+    # all, even in MRW-dominated models.
+    se = {}
+    for output in ('none', 'last'):
+        m = _cartesian_model(output_specific_energy_spectrum=output,
+                             n_photons=2000, density=8.)
+        m.set_mrw(True, gamma=2.)
+        m.write(tmpdir.join(random_id()).strpath)
+        out = m.run(tmpdir.join(random_id()).strpath)
+        se[output] = _read_dataset(out.filename, '/specific_energy')
+    np.testing.assert_array_equal(se['last'], se['none'])
