@@ -36,10 +36,11 @@ contains
     implicit none
     integer,intent(in) :: ic
     integer :: id
-    real(dp) :: s_prev, s, smin, smax
+    real(dp) :: s_prev, s, s_old, smin, smax
     do id=1,n_dust
 
        s = specific_energy(ic, id)
+       s_old = s
 
        smin = d(id)%specific_energy(1)
        smax = d(id)%specific_energy(d(id)%n_e)
@@ -58,6 +59,12 @@ contains
           end do
        end if
        specific_energy(ic, id) = s
+
+       ! Keep the frequency-resolved specific energy consistent with the new
+       ! scalar value by rescaling the spectrum bins, preserving their shape.
+       ! If the cell had no energy before, the bins are all zero and there is
+       ! no shape to rescale, so they are left unchanged.
+       if(s_old > 0._dp) call scale_specific_energy_spectrum(ic, id, s / s_old)
     end do
   end subroutine update_specific_energy
 

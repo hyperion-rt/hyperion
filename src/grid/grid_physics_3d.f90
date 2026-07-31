@@ -16,6 +16,8 @@ module grid_physics
 
   private
   public :: setup_grid_physics
+  public :: scale_specific_energy_spectrum
+  public :: deposit_specific_energy_spectrum
   public :: sublimate_dust
   public :: update_alpha_inv_planck
   public :: check_energy_abs
@@ -41,6 +43,11 @@ module grid_physics
   real(dp),allocatable, public :: specific_energy_sum_spectrum(:,:,:)
   real(dp),allocatable, public :: nu_bins(:)
   real(dp),allocatable, public :: log_nu_bins(:)
+
+  ! Fraction of the emissivity falling into each frequency bin, for each
+  ! emissivity state and dust type - used to distribute energy deposited by
+  ! the MRW over the specific energy spectrum. Indexed (bin, state, dust).
+  real(dp),allocatable, public :: j_nu_bin_frac(:,:,:)
 
   real(dp),allocatable, public :: specific_energy_additional(:,:)
   real(dp),allocatable, public :: specific_energy_additional_spectrum(:,:,:)
@@ -279,6 +286,8 @@ contains
        end if
        allocate(log_nu_bins(n_nu_bins))
        log_nu_bins = log10(nu_bins)
+
+       call setup_j_nu_bin_fractions()
     end if
 
     ! Total energy absorbed
@@ -318,6 +327,93 @@ contains
     call allocate_pdf(absorption,n_dust)
 
   end subroutine setup_grid_physics
+
+  subroutine setup_j_nu_bin_fractions()
+
+    ! Pre-compute, for each dust type and emissivity state, the fraction of
+    ! the emissivity falling into each frequency bin, stored in
+    ! j_nu_bin_frac. This is used to distribute the energy deposited by the
+    ! MRW over the specific energy spectrum without sampling. The bins are
+    ! defined by the same nearest-neighbour convention in log-frequency as
+    ! the photon binning in grid_propagate, so the edges are placed half-way
+    ! (in log space) between the bin frequencies, with the outer bins
+    ! extending to all lower/higher frequencies.
+
+    implicit none
+
+    integer :: inu, id, iv, n_nu_bins, n_jnu_max
+    real(dp),allocatable :: nu_bin_edges(:)
+
+    n_nu_bins = size(log_nu_bins)
+
+    allocate(nu_bin_edges(n_nu_bins+1))
+    nu_bin_edges(1) = 10._dp**(log_nu_bins(1) - 99._dp)
+    do inu=2,n_nu_bins
+       nu_bin_edges(inu) = 10._dp**(0.5_dp * (log_nu_bins(inu-1) + log_nu_bins(inu)))
+    end do
+    nu_bin_edges(n_nu_bins+1) = 10._dp**(log_nu_bins(n_nu_bins) + 99._dp)
+
+    n_jnu_max = 0
+    do id=1,n_dust
+       n_jnu_max = max(n_jnu_max, d(id)%n_jnu)
+    end do
+    allocate(j_nu_bin_frac(n_nu_bins, n_jnu_max, n_dust))
+    j_nu_bin_frac = 0._dp
+    do id=1,n_dust
+       do iv=1,d(id)%n_jnu
+          j_nu_bin_frac(:, iv, id) = get_j_nu_bin_fractions(d(id), iv, nu_bin_edges)
+       end do
+    end do
+    deallocate(nu_bin_edges)
+
+  end subroutine setup_j_nu_bin_fractions
+
+  subroutine scale_specific_energy_spectrum(ic, id, factor)
+
+    ! Multiply the frequency-resolved specific energy of a cell and dust
+    ! type by the given factor, preserving the spectral shape. Does nothing
+    ! if the frequency-resolved specific energy is not being computed.
+
+    implicit none
+
+    integer,intent(in) :: ic, id
+    real(dp),intent(in) :: factor
+
+    if(.not.compute_specific_energy_spectrum) return
+
+    specific_energy_spectrum(ic, id, :) = specific_energy_spectrum(ic, id, :) * factor
+
+  end subroutine scale_specific_energy_spectrum
+
+  subroutine deposit_specific_energy_spectrum(ic, id, energy)
+
+    ! Add energy to the frequency-resolved specific energy of a cell and
+    ! dust type, distributed over the frequency bins according to the local
+    ! emissivity (pre-computed in j_nu_bin_frac), interpolating between the
+    ! two adjacent emissivity states. This is used by the MRW, for which
+    ! the radiation field is Planckian, so the absorbed energy is
+    ! distributed in frequency as kappa_nu * B_nu, which is the local
+    ! emissivity. No frequency sampling is involved, so computing the
+    ! spectrum does not affect the random number stream. Does nothing if
+    ! the frequency-resolved specific energy is not being computed.
+
+    implicit none
+
+    integer,intent(in) :: ic, id
+    real(dp),intent(in) :: energy
+
+    integer :: iv
+    real(dp) :: fr
+
+    if(.not.compute_specific_energy_spectrum) return
+
+    iv = jnu_var_id(ic, id)
+    fr = jnu_var_frac(ic, id)
+
+    specific_energy_sum_spectrum(ic, id, :) = specific_energy_sum_spectrum(ic, id, :) &
+         & + energy * ((1._dp - fr) * j_nu_bin_frac(:, iv, id) + fr * j_nu_bin_frac(:, iv + 1, id))
+
+  end subroutine deposit_specific_energy_spectrum
 
   subroutine update_alpha_inv_planck()
 
@@ -384,16 +480,13 @@ contains
                      & * d(id)%sublimation_specific_energy / specific_energy(ic, id) &
                      & * (chi_rosseland(id, specific_energy(ic,id)) &
                      & / chi_rosseland(id, d(id)%sublimation_specific_energy))**2
+
+                call scale_specific_energy_spectrum(ic, id, &
+                     & d(id)%sublimation_specific_energy / specific_energy(ic, id))
+
                 specific_energy(ic,id) = d(id)%sublimation_specific_energy
                 reset = reset + 1
 
-
-                if (compute_specific_energy_spectrum) then
-                   do idx=1,n_nu_bins
-                      specific_energy_spectrum(ic,id,idx) = minimum_specific_energy(id)
-                   end do
-                end if
-                   
              end if
           end do
 
@@ -403,14 +496,12 @@ contains
 
           do ic=1,geo%n_cells
              if(specific_energy(ic, id) > d(id)%sublimation_specific_energy) then
+
+                call scale_specific_energy_spectrum(ic, id, &
+                     & d(id)%sublimation_specific_energy / specific_energy(ic, id))
+
                 specific_energy(ic, id) = d(id)%sublimation_specific_energy
                 reset = reset + 1
-
-                if (compute_specific_energy_spectrum) then
-                   do idx=1,n_nu_bins
-                      specific_energy_spectrum(ic,id,idx) = minimum_specific_energy(id)
-                   end do
-                end if
 
              end if
           end do

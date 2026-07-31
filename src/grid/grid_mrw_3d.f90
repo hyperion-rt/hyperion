@@ -79,6 +79,10 @@ contains
           ! Insert ct into (9), get energy deposited for Lucy method
           e = p%energy * ct * kappa_planck(id, specific_energy(p%icell%ic, id))
           specific_energy_sum(p%icell%ic, id) = specific_energy_sum(p%icell%ic, id) + e
+          ! Deposit the same energy in the frequency-resolved spectrum,
+          ! distributed over the frequency bins according to the local
+          ! emissivity (see deposit_specific_energy_spectrum).
+          call deposit_specific_energy_spectrum(p%icell%ic, id, e)
        end if
     end do
 
