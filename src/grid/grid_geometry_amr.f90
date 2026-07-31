@@ -531,6 +531,13 @@ contains
     ilevel_new = grid%goto_level(i1, i2, i3)
     igrid_new = grid%goto_grid(i1, i2, i3)
     if(ilevel_new == 0) then
+       if(i1 < 1 .or. i1 > grid%n1 .or. &
+            & i2 < 1 .or. i2 > grid%n2 .or. &
+            & i3 < 1 .or. i3 > grid%n3) then
+          call warn("find_position_in_grid","position is outside the grid")
+          cell = invalid_cell
+          return
+       end if
        cell = new_grid_cell(i1, i2, i3, ilevel, igrid, geo)
     else
        cell = find_position_in_grid(r, ilevel_new, igrid_new)
@@ -556,6 +563,11 @@ contains
     integer :: igrid
     if(debug) write(*,'(" [debug] find_cell")')
     igrid = locate_grid(geo%levels(1), r) ! Find grid in level 1
+    if(igrid == -1) then
+       call warn("find_cell","photon not in any level 1 grid")
+       icell = invalid_cell
+       return
+    end if
     icell = find_position_in_grid(r, 1, igrid) ! Refine position
   end function find_cell_position
 
