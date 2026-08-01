@@ -32,18 +32,18 @@ def test_noname_nofilename():
     assert e.value.args[0] == "filename= has not been specified and model has no name"
 
 
-def test_nogrid():
+def test_nogrid(tmpdir):
     m = Model()
     with pytest.raises(Exception) as e:
-        m.write('test')
+        m.write(tmpdir.join('test.rtin').strpath)
     assert e.value.args[0] == 'No coordinate grid has been set up'
 
 
-def test_nophotons():
+def test_nophotons(tmpdir):
     m = Model()
     m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
     with pytest.raises(Exception) as e:
-        m.write('test')
+        m.write(tmpdir.join('test.rtin').strpath)
     assert e.value.args[0] == 'Photon numbers not set'
 
 
