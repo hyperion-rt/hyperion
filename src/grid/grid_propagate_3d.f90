@@ -5,7 +5,7 @@ module grid_propagate
   use type_grid_cell
   use dust_main, only : n_dust
   use grid_geometry, only : escaped, find_wall, in_correct_cell, next_cell, opposite_wall
-  use grid_physics, only : specific_energy_sum, specific_energy_sum_spectrum, log_nu_bins, density, n_photons, last_photon_id
+  use grid_physics, only : specific_energy_sum, specific_energy_sum_spectrum, log_nu_bin_edges, density, n_photons, last_photon_id
   use sources
   use counters
   use settings, only : frac_check => propagation_check_frequency, compute_specific_energy_spectrum
@@ -63,7 +63,9 @@ contains
     ! (re-emission and scattering happen between calls, which is also when the
     ! cached opacities in p%current_kappa are refreshed), so the frequency bin
     ! only needs to be found once per call rather than at every cell crossing.
-    if (compute_specific_energy_spectrum) idx = minloc(abs(log_nu_bins - log10(p%nu)), DIM=1)
+    ! locate returns -1 for photons outside the outer bin edges, which are
+    ! not counted in the spectrum.
+    if (compute_specific_energy_spectrum) idx = locate(log_nu_bin_edges, log10(p%nu))
 
     radial = (p%r .dot. p%v) > 0.
 
@@ -147,7 +149,7 @@ contains
              if(density(p%icell%ic, id) > 0._dp) then
                 specific_energy_sum(p%icell%ic, id) = &
                      & specific_energy_sum(p%icell%ic, id) + tmin * p%current_kappa(id) * p%energy
-                if (compute_specific_energy_spectrum) then
+                if (compute_specific_energy_spectrum .and. idx > 0) then
                    specific_energy_sum_spectrum(p%icell%ic, id, idx) = &
                         & specific_energy_sum_spectrum(p%icell%ic, id, idx) + tmin * p%current_kappa(id) * p%energy
                 end if
@@ -209,7 +211,7 @@ contains
           ! energy but missing from the binned spectrum, which biases
           ! the spectrum low in any cell optically thick enough for
           ! photons to interact within a single crossing.
-          if (compute_specific_energy_spectrum) then
+          if (compute_specific_energy_spectrum .and. idx > 0) then
              do id=1,n_dust
                 if(density(p%icell%ic, id) > 0._dp) then
                    specific_energy_sum_spectrum(p%icell%ic, id, idx) = &
