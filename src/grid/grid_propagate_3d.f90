@@ -64,7 +64,10 @@ contains
     ! cached opacities in p%current_kappa are refreshed), so the frequency bin
     ! only needs to be found once per call rather than at every cell crossing.
     ! locate returns -1 for photons outside the outer bin edges, which are
-    ! not counted in the spectrum.
+    ! not counted in the spectrum. idx is set to -1 up front so the deposit
+    ! guards below (idx > 0) are always reading a defined value, including
+    ! when the frequency-resolved spectrum is not being computed.
+    idx = -1
     if (compute_specific_energy_spectrum) idx = locate(log_nu_bin_edges, log10(p%nu))
 
     radial = (p%r .dot. p%v) > 0.
