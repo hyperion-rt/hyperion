@@ -723,6 +723,7 @@ class AnalyticalYSOModel(Model):
         m._minimum_specific_energy = deepcopy(self._minimum_specific_energy)
 
         m._monochromatic = self._monochromatic
+        m._monochromatic_energy_threshold = self._monochromatic_energy_threshold
         m._frequencies = self._frequencies
 
         # Easiest way to copy over all settings
