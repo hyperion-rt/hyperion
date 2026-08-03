@@ -753,7 +753,9 @@ contains
 
     ! Fraction of the emissivity falling into each of the bins whose edges
     ! are given by nu_edges (in ascending order). The fractions are
-    ! normalized so that they add up to exactly one.
+    ! normalized by the integral of the emissivity over all frequencies, so
+    ! they add up to the fraction of the emissivity that falls inside the
+    ! bins (which is one if the bins cover the full emissivity range).
 
     implicit none
 
@@ -770,7 +772,7 @@ contains
             &                      nu_edges(inu), nu_edges(inu+1))
     end do
 
-    norm = sum(frac)
+    norm = integral_loglog(d%j_nu(jnu_var_id)%x, d%j_nu(jnu_var_id)%pdf)
     if(norm > 0._dp) frac = frac / norm
 
   end function get_j_nu_bin_fractions

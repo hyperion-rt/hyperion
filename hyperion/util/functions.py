@@ -274,3 +274,4 @@ except AttributeError:  # For Numpy 1.4.1
             return str(s)
     else:
         asstr = str
+

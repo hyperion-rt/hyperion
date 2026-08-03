@@ -58,7 +58,7 @@ class RunConf(object):
         self.set_max_reabsorptions(1000000)
         self.set_pda(False)
         self.set_mrw(False)
-        self.specific_energy_spectrum_frequencies = None
+        self.specific_energy_spectrum_bin_edges = None
 
         self.set_convergence(False)
         self.set_kill_on_absorb(False)
@@ -399,41 +399,58 @@ class RunConf(object):
     def _write_pda(self, group):
         group.attrs['pda'] = bool2str(self.pda)
 
-    def _read_specific_energy_spectrum_frequencies(self, group):
-        if 'specific_energy_spectrum_frequencies' in group:
-            self.specific_energy_spectrum_frequencies = np.array(group['specific_energy_spectrum_frequencies']['nu'])
+    def _read_specific_energy_spectrum_bins(self, group):
+        if 'specific_energy_spectrum_bin_edges' in group:
+            self.specific_energy_spectrum_bin_edges = \
+                np.array(group['specific_energy_spectrum_bin_edges']['nu'])
         else:
-            self.specific_energy_spectrum_frequencies = None
+            self.specific_energy_spectrum_bin_edges = None
 
-    def _write_specific_energy_spectrum_frequencies(self, group):
-        if self.specific_energy_spectrum_frequencies is not None:
-            group.create_dataset('specific_energy_spectrum_frequencies',
-                                 data=np.array(list(zip(self.specific_energy_spectrum_frequencies)),
-                                               dtype=[('nu', float)]))
+    def _write_specific_energy_spectrum_bins(self, group):
 
-    def set_specific_energy_spectrum_frequencies(self, frequencies):
+        edges = self.specific_energy_spectrum_bin_edges
+
+        if edges is None:
+            conf = getattr(self, 'conf', None)
+            if conf is not None and conf.output.output_specific_energy_spectrum != 'none':
+                raise ValueError("output_specific_energy_spectrum is enabled but the "
+                                 "frequency bins have not been set - use "
+                                 "set_specific_energy_spectrum_bins to set them")
+            return
+
+        group.create_dataset('specific_energy_spectrum_bin_edges',
+                             data=np.array(list(zip(edges)), dtype=[('nu', float)]))
+
+    def set_specific_energy_spectrum_bins(self, edges):
 
         '''
-        Set the frequency grid onto which the frequency-resolved specific energy
-        (``specific_energy_spectrum``) is binned.
+        Set the frequency bins onto which the frequency-resolved specific
+        energy (``specific_energy_spectrum``) is binned.
 
-        This is only relevant if ``conf.output.output_specific_energy_spectrum`` is set
-        to ``'all'`` or ``'last'``. If this method is not called, the frequency
-        grid of the first dust type is used. Photons are binned to the nearest
-        frequency in log space, so the supplied values are bin centers (not
-        edges) and ``specific_energy_spectrum`` has one entry per supplied frequency.
+        This is required if ``conf.output.output_specific_energy_spectrum`` is
+        set to ``'all'`` or ``'last'``.
 
         Parameters
         ----------
-        frequencies : iterable of float
-            The frequencies (in Hz) onto which to bin ``specific_energy_spectrum``.
+        edges : iterable of float
+            The edges of the frequency bins (in Hz), in increasing order:
+            ``n + 1`` values define ``n`` bins, and
+            ``specific_energy_spectrum`` has one entry per bin. Energy
+            absorbed from photons with frequencies outside the outer edges
+            is not included in the spectrum, so the spectrum summed over the
+            bins only recovers ``specific_energy`` if the edges span the
+            frequency range over which energy is absorbed.
         '''
-        frequencies = np.asarray(frequencies, dtype=float)
-        if frequencies.ndim != 1 or frequencies.size < 1:
-            raise ValueError("frequencies should be a 1-d array of at least one value")
-        if np.any(frequencies <= 0.):
-            raise ValueError("frequencies should be positive (in Hz)")
-        self.specific_energy_spectrum_frequencies = np.sort(frequencies)
+
+        edges = np.asarray(edges, dtype=float)
+        if edges.ndim != 1 or edges.size < 2:
+            raise ValueError("edges should be a 1-d array of at least two values")
+        if np.any(edges <= 0.):
+            raise ValueError("edges should be positive (in Hz)")
+        if np.any(np.diff(edges) <= 0.):
+            raise ValueError("edges should be strictly increasing")
+
+        self.specific_energy_spectrum_bin_edges = edges
 
 
     def set_mrw(self, mrw, gamma=1.0, inter_max=1000, warn=True):
@@ -764,7 +781,7 @@ class RunConf(object):
         self._read_max_reabsorptions(group)
         self._read_pda(group)
         self._read_mrw(group)
-        self._read_specific_energy_spectrum_frequencies(group)
+        self._read_specific_energy_spectrum_bins(group)
         self._read_convergence(group)
         self._read_kill_on_absorb(group)
         self._read_kill_on_scatter(group)
@@ -793,7 +810,7 @@ class RunConf(object):
         self._write_max_reabsorptions(group)
         self._write_pda(group)
         self._write_mrw(group)
-        self._write_specific_energy_spectrum_frequencies(group)
+        self._write_specific_energy_spectrum_bins(group)
         self._write_convergence(group)
         self._write_kill_on_absorb(group)
         self._write_kill_on_scatter(group)

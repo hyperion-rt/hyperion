@@ -251,16 +251,27 @@ def test_io_run_conf_mrw(value):
     r2.read_run_conf(v)
     assert r2.mrw == r1.mrw
 
-def test_io_run_conf_specific_energy_spectrum_frequencies():
+def test_io_run_conf_specific_energy_spectrum_edges():
     r1 = RunConf()
-    r1.set_specific_energy_spectrum_frequencies(np.logspace(11., 16., 10))
+    r1.set_specific_energy_spectrum_bins(np.logspace(11., 16., 10))
     r1.set_n_photons(1, 2)
     v = virtual_file()
     r1.write_run_conf(v)
     r2 = RunConf()
     r2.read_run_conf(v)
-    np.testing.assert_allclose(r2.specific_energy_spectrum_frequencies,
-                               r1.specific_energy_spectrum_frequencies)
+    np.testing.assert_allclose(r2.specific_energy_spectrum_bin_edges,
+                               r1.specific_energy_spectrum_bin_edges)
+
+def test_io_run_conf_specific_energy_spectrum_invalid():
+    r1 = RunConf()
+    with pytest.raises(TypeError):
+        r1.set_specific_energy_spectrum_bins()
+    with pytest.raises(ValueError, match='at least two'):
+        r1.set_specific_energy_spectrum_bins([1.])
+    with pytest.raises(ValueError, match='strictly increasing'):
+        r1.set_specific_energy_spectrum_bins([1., 3., 2.])
+    with pytest.raises(ValueError, match='positive'):
+        r1.set_specific_energy_spectrum_bins([-1., 2.])
 
 @pytest.mark.parametrize(('value'), [False, True])
 def test_io_run_conf_convergence(value):

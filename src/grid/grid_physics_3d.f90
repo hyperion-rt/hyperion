@@ -41,8 +41,11 @@ module grid_physics
   real(dp),allocatable, public :: specific_energy_spectrum(:,:,:) 
   real(dp),allocatable, public :: specific_energy_sum(:,:)
   real(dp),allocatable, public :: specific_energy_sum_spectrum(:,:,:)
-  real(dp),allocatable, public :: nu_bins(:)
-  real(dp),allocatable, public :: log_nu_bins(:)
+  ! Frequency bin edges for the specific energy spectrum: n_nu_bins+1
+  ! values that define the binning (photons outside the outer edges are not
+  ! counted), provided by the Python frontend.
+  real(dp),allocatable, public :: nu_bin_edges(:)
+  real(dp),allocatable, public :: log_nu_bin_edges(:)
 
   ! Fraction of the emissivity falling into each frequency bin, for each
   ! emissivity state and dust type - used to distribute energy deposited by
@@ -113,19 +116,15 @@ contains
     logical,intent(in) :: use_mrw, use_pda, compute_specific_energy_spectrum
     integer :: n_nu_bins
 
-    ! specific_energy_spectrum is binned onto a user-specified frequency grid if one was given,
-    ! otherwise onto the frequency grid of the first dust type. The spectrum
-    ! arrays are only allocated when the frequency-resolved specific energy is
-    ! actually requested (they can be large), so all whole-array operations on
-    ! them are guarded by allocated() or compute_specific_energy_spectrum
-    ! checks.
+    ! specific_energy_spectrum is binned onto the frequency bins defined by
+    ! the bin edges provided by the Python frontend. The spectrum arrays are
+    ! only allocated when the frequency-resolved specific energy is actually
+    ! requested (they can be large), so all whole-array operations on them
+    ! are guarded by allocated() or compute_specific_energy_spectrum checks.
     if (compute_specific_energy_spectrum) then
-       if (allocated(specific_energy_spectrum_frequencies)) then
-          n_nu_bins = size(specific_energy_spectrum_frequencies)
-       else if (n_dust > 0) then
-          n_nu_bins = d(1)%n_nu
-       else
-          n_nu_bins = 0
+       n_nu_bins = size(specific_energy_spectrum_bin_edges) - 1
+       if (any(specific_energy_spectrum_bin_edges(2:) <= specific_energy_spectrum_bin_edges(:n_nu_bins))) then
+          call error("setup_grid_physics", "specific_energy_spectrum_bin_edges should be strictly increasing")
        end if
     else
        n_nu_bins = 0
@@ -272,20 +271,15 @@ contains
        specific_energy_sum_spectrum = 0._dp
     end if
 
-    ! Cache the frequency grid (and its log) once so they do not have to be
-    ! rebuilt for every photon. Photons are binned to the nearest grid point in
-    ! log-frequency space (see grid_propagate).
+    ! Cache the frequency bins (and the log of the edges) once so they do
+    ! not have to be rebuilt for every photon. Photons are binned by
+    ! locating their frequency in the bin edges in log space (see
+    ! grid_propagate).
     if (compute_specific_energy_spectrum) then
-       allocate(nu_bins(n_nu_bins))
-       if (allocated(specific_energy_spectrum_frequencies)) then
-          nu_bins = specific_energy_spectrum_frequencies
-       else
-          do idx=1,n_nu_bins
-             nu_bins(idx) = d(1)%nu(idx)
-          end do
-       end if
-       allocate(log_nu_bins(n_nu_bins))
-       log_nu_bins = log10(nu_bins)
+       allocate(nu_bin_edges(n_nu_bins+1))
+       nu_bin_edges = specific_energy_spectrum_bin_edges
+       allocate(log_nu_bin_edges(n_nu_bins+1))
+       log_nu_bin_edges = log10(nu_bin_edges)
 
        call setup_j_nu_bin_fractions()
     end if
@@ -333,38 +327,23 @@ contains
     ! Pre-compute, for each dust type and emissivity state, the fraction of
     ! the emissivity falling into each frequency bin, stored in
     ! j_nu_bin_frac. This is used to distribute the energy deposited by the
-    ! MRW over the specific energy spectrum without sampling. The bins are
-    ! defined by the same nearest-neighbour convention in log-frequency as
-    ! the photon binning in grid_propagate, so the edges are placed half-way
-    ! (in log space) between the bin frequencies, with the outer bins
-    ! extending to all lower/higher frequencies.
+    ! MRW over the specific energy spectrum without sampling.
 
     implicit none
 
-    integer :: inu, id, iv, n_nu_bins, n_jnu_max
-    real(dp),allocatable :: nu_bin_edges(:)
-
-    n_nu_bins = size(log_nu_bins)
-
-    allocate(nu_bin_edges(n_nu_bins+1))
-    nu_bin_edges(1) = 10._dp**(log_nu_bins(1) - 99._dp)
-    do inu=2,n_nu_bins
-       nu_bin_edges(inu) = 10._dp**(0.5_dp * (log_nu_bins(inu-1) + log_nu_bins(inu)))
-    end do
-    nu_bin_edges(n_nu_bins+1) = 10._dp**(log_nu_bins(n_nu_bins) + 99._dp)
+    integer :: id, iv, n_jnu_max
 
     n_jnu_max = 0
     do id=1,n_dust
        n_jnu_max = max(n_jnu_max, d(id)%n_jnu)
     end do
-    allocate(j_nu_bin_frac(n_nu_bins, n_jnu_max, n_dust))
+    allocate(j_nu_bin_frac(size(nu_bin_edges)-1, n_jnu_max, n_dust))
     j_nu_bin_frac = 0._dp
     do id=1,n_dust
        do iv=1,d(id)%n_jnu
           j_nu_bin_frac(:, iv, id) = get_j_nu_bin_fractions(d(id), iv, nu_bin_edges)
        end do
     end do
-    deallocate(nu_bin_edges)
 
   end subroutine setup_j_nu_bin_fractions
 

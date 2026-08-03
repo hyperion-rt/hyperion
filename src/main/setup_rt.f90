@@ -93,11 +93,14 @@ contains
 
     compute_specific_energy_spectrum = trim(output_specific_energy_spectrum).ne.'none'
 
-    ! Optional user-specified frequency grid (otherwise the dust grid is used)
+    ! The frequency bin edges are written by the Python frontend when the
+    ! spectrum is requested
     if(compute_specific_energy_spectrum) then
-       if(mp_path_exists(input_handle, 'specific_energy_spectrum_frequencies')) then
-          call mp_table_read_column_auto(input_handle, 'specific_energy_spectrum_frequencies', 'nu', specific_energy_spectrum_frequencies)
+       if(.not.mp_path_exists(input_handle, 'specific_energy_spectrum_bin_edges')) then
+          call error("setup_initial","specific_energy_spectrum_bin_edges should be present in the input "// &
+               & "when output_specific_energy_spectrum is enabled")
        end if
+       call mp_table_read_column_auto(input_handle, 'specific_energy_spectrum_bin_edges', 'nu', specific_energy_spectrum_bin_edges)
     end if
 
     if(use_mrw) then

@@ -30,9 +30,10 @@ module settings
   real(dp) :: monochromatic_energy_threshold
   real(dp),allocatable :: frequencies(:)
 
-  ! Optional user-specified frequency grid for specific_energy_spectrum. If not
-  ! allocated, the frequency grid of the first dust type is used instead.
-  real(dp),allocatable :: specific_energy_spectrum_frequencies(:)
+  ! Frequency bin edges for specific_energy_spectrum, provided by the Python
+  ! frontend. The edges define the binning: photons outside the outer edges
+  ! are not counted.
+  real(dp),allocatable :: specific_energy_spectrum_bin_edges(:)
 
   integer :: physics_io_type
 

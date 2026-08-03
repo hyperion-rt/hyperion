@@ -6,7 +6,7 @@ module grid_generic
   
   use grid_io, only : write_grid_3d, write_grid_4d, write_grid_5d
   use grid_geometry, only : geo
-  use grid_physics, only : n_photons, last_photon_id, specific_energy_sum, specific_energy_sum_spectrum, specific_energy, specific_energy_spectrum, nu_bins, density, density_original
+  use grid_physics, only : n_photons, last_photon_id, specific_energy_sum, specific_energy_sum_spectrum, specific_energy, specific_energy_spectrum, nu_bin_edges, density, density_original
   use settings, only : output_n_photons, output_specific_energy, output_specific_energy_spectrum, output_density, output_density_diff, physics_io_type, compute_specific_energy_spectrum
 
   implicit none
@@ -69,9 +69,9 @@ contains
 
        if(trim(output_specific_energy_spectrum)=='all' .or. (trim(output_specific_energy_spectrum)=='last'.and.iter==n_iter)) then
 
-          ! The frequencies are a per-frequency quantity, not per-cell, so they
-          ! are written as a plain 1-D dataset rather than a grid array.
-          call mp_write_array(group, 'specific_energy_spectrum_frequencies', nu_bins)
+          ! The bin edges are a per-frequency quantity, not per-cell, so
+          ! they are written as a plain 1-D dataset rather than a grid array.
+          call mp_write_array(group, 'specific_energy_spectrum_bin_edges', nu_bin_edges)
 
           if(allocated(specific_energy_spectrum)) then
              select case(physics_io_type)

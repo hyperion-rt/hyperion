@@ -207,40 +207,34 @@ quantities::
                                               # 'last'  -> only final iteration
                                               # 'none'  -> not computed or saved (default)
 
-When it is not ``'none'``, two extra arrays are written out:
+When it is not ``'none'``, the frequency bins have to be set explicitly with::
+
+    import numpy as np
+    m.set_specific_energy_spectrum_bins(np.logspace(11., 16., 101))
+
+which takes the ``n + 1`` bin edges (in Hz, in increasing order) that define
+``n`` bins. Two extra datasets are then written out:
 
 * ``specific_energy_spectrum`` -- the specific energy absorbed in each cell as a
-  function of frequency, in erg/s/g.
-* ``specific_energy_spectrum_frequencies`` -- the frequencies (in Hz) corresponding to
-  the leading axis of ``specific_energy_spectrum``. These are bin centers, not edges,
-  so this array has exactly the same length as that axis (one entry per bin).
+  function of frequency, in erg/s/g, with one entry per bin.
+* ``specific_energy_spectrum_bin_edges`` -- the edges (in Hz) of the frequency
+  bins, with one more entry than the number of bins.
+
+Since the spectrum is a histogram, it is best plotted against the bin edges as
+steps (e.g. with ``matplotlib``'s ``stairs``) rather than at a single
+representative frequency per bin.
 
 This is the *absorbed* (deposited) energy spectrum, not the mean intensity: each
 contribution is weighted by the dust absorption opacity, so it is proportional
 to :math:`\kappa_\nu J_\nu`. To recover the mean intensity :math:`J_\nu` (the
 radiation field), divide by the dust absorption opacity at each frequency.
-Summed over frequency, ``specific_energy_spectrum`` recovers the total
-``specific_energy``.
 
-By default the binning uses the frequency grid of the first dust type. You can
-instead provide your own frequency grid (in Hz), independent of the dust
-properties::
+Energy absorbed from photons with frequencies outside the outermost edges is
+*not* included in the spectrum, so summed over frequency,
+``specific_energy_spectrum`` only recovers the total ``specific_energy`` if the
+edges span the full range of frequencies over which energy is absorbed.
 
-    import numpy as np
-    m.set_specific_energy_spectrum_frequencies(np.logspace(11., 16., 100))
-
-Photons are binned to the nearest of these frequencies in log space (so the
-supplied values act as bin centers). This works for all
-grid types, including AMR and Voronoi.
-
-.. warning:: The binning has no outer edges: the first and last bins collect
-             *all* photons below and above the outermost bin centers
-             respectively, however far away in frequency. This keeps the spectrum
-             energy-conserving (no photons are dropped), but it means a grid that
-             does not span the full frequency range will pile up out-of-range
-             flux in its end bins. When supplying a custom grid, make sure it
-             brackets the full range of frequencies present in the simulation
-             (the default dust-based grid already does this).
+This works for all grid types, including AMR and Voronoi.
 
 ``specific_energy_spectrum`` can be retrieved like other grid quantities, as an array
 with an extra leading frequency axis::
