@@ -728,3 +728,95 @@ class TestImageStokesOption(object):
         with pytest.raises(ValueError) as exc:
             self.m2.get_image(stokes=stokes)
         assert exc.value.args[0] == "Only the Stokes I value was stored for this image"
+
+
+def _inside_observer_direction(theta, phi):
+    t, p = np.radians(theta), np.radians(phi)
+    return np.array([np.sin(t) * np.cos(p), np.sin(t) * np.sin(p), np.cos(t)])
+
+
+def _inside_observer_expected_lonlat(d, theta_v, phi_v):
+    # Map (longitude, latitude) of a photon arriving from direction d, for an
+    # observer looking towards (theta_v, phi_v). This is d expressed in the
+    # local spherical basis (r_hat, phi_hat, -theta_hat) at the viewing
+    # direction, converted to polar coordinates - i.e. an independent
+    # reimplementation of the transform in images_peeled.f90.
+    t, p = np.radians(theta_v), np.radians(phi_v)
+    st, ct, cp, sp = np.sin(t), np.cos(t), np.cos(p), np.sin(p)
+    vx = np.dot([st * cp, st * sp, ct], d)     # r_hat . d      -> map centre / +x
+    vy = np.dot([-sp, cp, 0.], d)              # phi_hat . d    -> +longitude
+    vz = np.dot([-ct * cp, -ct * sp, st], d)   # -theta_hat . d -> +latitude
+    lon = np.degrees(np.arctan2(vy, vx))
+    lat = np.degrees(np.arctan2(np.hypot(vx, vy), vz)) - 90.
+    return lon, lat
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_inside_observer_sky_coordinates(tmpdir):
+    # Regression test for the inside-observer sky-coordinate transform. A point
+    # source at cartesian position P, seen by an observer at the origin, sends
+    # photons that arrive from direction d = -P/|P|. On the all-sky map for a
+    # viewing direction (theta_v, phi_v) the source must appear at the position
+    # obtained by expressing d in the local spherical frame of the viewing
+    # direction. A previous implementation was discontinuous through
+    # theta_v = 90 deg and ignored phi_v; the viewing angles below include
+    # several cases it placed incorrectly (large phi at theta=90, either side
+    # of theta=90, and general off-axis directions).
+
+    # Place the source so that its photon arrival direction is +x.
+    photon_dir = _inside_observer_direction(90., 0.)
+    P = tuple(-0.5 * photon_dir)
+
+    views = [(90., 0.), (90., 90.), (90., 150.), (60., 0.), (120., 0.),
+             (89., 0.), (91., 0.), (45., 30.), (135., 200.)]
+
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    s = m.add_point_source()
+    s.position = P
+    s.luminosity = 1.
+    s.temperature = 6000.
+    i = m.add_peeled_images(sed=False, image=True)
+    i.set_inside_observer((0., 0., 0.))
+    i.set_image_limits(180., -180., -90., 90.)
+    i.set_image_size(360, 180)
+    i.set_viewing_angles([v[0] for v in views], [v[1] for v in views])
+    i.set_wavelength_range(1, 1., 1000.)
+    m.set_n_initial_iterations(0)
+    m.set_n_photons(imaging=20000)
+    m.set_seed(-1)
+    m.write(tmpdir.join(random_id()).strpath)
+    out = m.run(tmpdir.join(random_id()).strpath)
+
+    val = out.get_image(group=0).val[:, :, :, 0]  # (n_view, n_y, n_x)
+    n_y, n_x = val.shape[1], val.shape[2]
+    xmin, xmax, ymin, ymax = 180., -180., -90., 90.
+
+    for iv, (theta_v, phi_v) in enumerate(views):
+        img = val[iv]
+        ys, xs = np.nonzero(img > 0)
+        assert len(xs) > 0, "source not found for view (%.0f, %.0f)" % (theta_v, phi_v)
+        w = img[ys, xs]
+        lon = ((xmin + (xs + 0.5) * (xmax - xmin) / n_x) * w).sum() / w.sum()
+        lat = ((ymin + (ys + 0.5) * (ymax - ymin) / n_y) * w).sum() / w.sum()
+
+        # (1) Convention-independent invariant: the great-circle distance on the
+        # map from the centre (0, 0) to the source must equal the true angle
+        # between the photon direction and the viewing direction (any rigid
+        # rotation preserves angles). This catches the tearing and the ignored
+        # phi of the old code.
+        map_sep = np.degrees(np.arccos(np.clip(
+            np.cos(np.radians(lat)) * np.cos(np.radians(lon)), -1., 1.)))
+        true_sep = np.degrees(np.arccos(np.clip(
+            np.dot(photon_dir, _inside_observer_direction(theta_v, phi_v)), -1., 1.)))
+        assert abs(map_sep - true_sep) < 2., \
+            "view (%.0f, %.0f): map separation %.1f deg != true %.1f deg" % (
+                theta_v, phi_v, map_sep, true_sep)
+
+        # (2) Full position matches the independent reference (catches roll and
+        # reflection errors that preserve the angular separation).
+        exp_lon, exp_lat = _inside_observer_expected_lonlat(photon_dir, theta_v, phi_v)
+        dlon = (lon - exp_lon + 180.) % 360. - 180.
+        assert abs(dlon) < 2. and abs(lat - exp_lat) < 2., \
+            "view (%.0f, %.0f): (%.1f, %.1f) != expected (%.1f, %.1f)" % (
+                theta_v, phi_v, lon, lat, exp_lon, exp_lat)
