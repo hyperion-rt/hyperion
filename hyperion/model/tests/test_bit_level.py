@@ -8,7 +8,7 @@
 import os
 import shutil
 import itertools
-from io import BytesIO
+from io import StringIO
 
 import pytest
 
@@ -310,7 +310,7 @@ class TestPascucciBenchmark(object):
             '''
 
         # Read in dust
-        data = np.loadtxt(BytesIO(optSi), comments=';',
+        data = np.loadtxt(StringIO(optSi), comments=';',
                           dtype=[('wav', float), ('csca', float),
                                  ('cext', float)])
 
