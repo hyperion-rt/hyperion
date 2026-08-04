@@ -870,3 +870,47 @@ def test_inside_observer_flux_dilution(tmpdir):
     # the closer source (d1) is the brighter one
     ratio = brightest[0] / brightest[1]
     np.testing.assert_allclose(ratio, (d2 / d1) ** 2, rtol=0.08)
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_inside_observer_peeloff_optical_depth(tmpdir):
+    # Regression test for integrating the peeloff optical depth all the way to
+    # the (inside) observer. A point source at distance d sits in uniform,
+    # purely-absorbing dust of flat opacity chi and density rho, so its direct
+    # light is attenuated by exp(-chi*rho*d) over the full path to the observer.
+    # A previous implementation integrated the optical depth only to d - d_min,
+    # under-attenuating the source whenever a nonzero depth minimum was set
+    # (comparing the dust/no-dust flux ratio at fixed distance cancels the
+    # 1/d^2 dilution, isolating the optical-depth path).
+    from ...dust import IsotropicDust
+
+    d, chi, rho, d_min = 1.e16, 1., 1.e-16, 0.5e16
+    tau_full = chi * rho * d   # = 1.0
+
+    def peak_flux(with_dust):
+        m = Model()
+        m.set_cartesian_grid([-2.e16, 2.e16], [-2.e16, 2.e16], [-2.e16, 2.e16])
+        if with_dust:
+            dust = IsotropicDust([3.e9, 3.e16], [0., 0.], [chi, chi])
+            dust.set_lte_emissivities(n_temp=10, temp_min=0.1, temp_max=1.e4)
+            m.add_density_grid(np.ones((1, 1, 1)) * rho, dust)
+        s = m.add_point_source()
+        s.position = (d, 0., 0.)
+        s.luminosity = 1.
+        s.temperature = 6000.
+        i = m.add_peeled_images(sed=False, image=True)
+        i.set_inside_observer((0., 0., 0.))
+        i.set_image_limits(180., -180., -90., 90.)
+        i.set_image_size(360, 180)
+        i.set_viewing_angles([90.], [0.])
+        i.set_wavelength_range(1, 1., 1000.)
+        i.set_depth(d_min, 3.e16)   # nonzero d_min previously truncated the tau path
+        m.set_n_initial_iterations(0)
+        m.set_n_photons(imaging=100000)
+        m.set_seed(-1)
+        m.write(tmpdir.join(random_id()).strpath)
+        out = m.run(tmpdir.join(random_id()).strpath)
+        return out.get_image(group=0).val[0, :, :, 0].max()
+
+    ratio = peak_flux(with_dust=True) / peak_flux(with_dust=False)
+    np.testing.assert_allclose(ratio, np.exp(-tau_full), rtol=0.05)
