@@ -1,6 +1,5 @@
 import numpy as np
 
-import six
 
 from ..util.functions import FreezableClass, is_numpy_array
 from ..util.constants import c
@@ -127,7 +126,7 @@ class Image(FreezableClass):
 
     @unit.setter
     def unit(self, value):
-        if value is None or isinstance(value, six.string_types):
+        if value is None or isinstance(value, str):
             self._unit = value
         else:
             raise ValueError("unit should be a string")

@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 
 import numpy as np
 from astropy.table import Table, Column
@@ -9,7 +8,9 @@ from ..util.functions import B_nu, random_id, FreezableClass, \
     is_numpy_array, bool2str, str2bool, monotonically_increasing
 from ..util.integrate import integrate_loglog
 from ..util.validator import validate_scalar
-from astropy import log as logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def read_source(handle):

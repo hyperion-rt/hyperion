@@ -8,12 +8,12 @@
 import os
 import shutil
 import itertools
+from io import BytesIO
 
 import pytest
 
 import numpy as np
 
-from six import StringIO
 from .test_helpers import random_id, assert_identical_results
 from .. import Model, AnalyticalYSOModel
 from ...util.constants import pc, lsun, c, au, msun, pi, sigma, rsun
@@ -310,7 +310,7 @@ class TestPascucciBenchmark(object):
             '''
 
         # Read in dust
-        data = np.loadtxt(StringIO(optSi), comments=';',
+        data = np.loadtxt(BytesIO(optSi), comments=';',
                           dtype=[('wav', float), ('csca', float),
                                  ('cext', float)])
 

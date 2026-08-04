@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 
 import struct
 import hashlib
@@ -7,11 +6,13 @@ from copy import deepcopy
 import h5py
 import numpy as np
 
-from astropy import log as logger
+import logging
 from astropy.table import Table
 
 from ..util.functions import FreezableClass, is_numpy_array, link_or_copy, as_str
 from .grid_helpers import single_grid_dims
+
+logger = logging.getLogger(__name__)
 
 
 class VoronoiGrid(FreezableClass):

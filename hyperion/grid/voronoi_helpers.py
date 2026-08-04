@@ -1,4 +1,6 @@
-from astropy import log as logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class voronoi_grid(object):

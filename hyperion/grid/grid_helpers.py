@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 
 import h5py
 import numpy as np
@@ -22,7 +21,7 @@ def single_grid_dims(data, ndim=3):
     '''
 
     if type(data) in [list, tuple]:
-        
+
         n_pop = len(data)
         shape = None
         for item in data:

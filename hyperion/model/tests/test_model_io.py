@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 
 from numpy.testing import assert_equal
 import pytest

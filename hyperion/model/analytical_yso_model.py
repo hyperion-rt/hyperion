@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 
 try:
     from collections.abc import Mapping
@@ -8,7 +7,7 @@ except ImportError:
 from copy import deepcopy
 
 import numpy as np
-from astropy import log as logger
+import logging
 
 from ..densities import FlaredDisk, AlphaDisk, PowerLawEnvelope, UlrichEnvelope, AmbientMedium
 from ..util.interpolate import interp1d_fast_loglog
@@ -18,6 +17,8 @@ from ..util.functions import FreezableClass, virtual_file
 from ..grid import SphericalPolarGrid, CylindricalPolarGrid
 
 from . import Model
+
+logger = logging.getLogger(__name__)
 
 
 def _min_none(*args):

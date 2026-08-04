@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 
 import os
 import random
@@ -110,11 +109,11 @@ def test_io(tmpdir):
 
     np.testing.assert_allclose(g1._sparse_neighbors[0], g2._sparse_neighbors[0])
     np.testing.assert_allclose(g1._sparse_neighbors[1], g2._sparse_neighbors[1])
-    
-    
+
+
 
 def test_init_sparse(tmpdir):
-    
+
     # Regression test for a bug that caused VoronoiGrid._sparse_neighbors to not be defined
     # when writing out a Voronoi grid.
 
@@ -129,7 +128,7 @@ def test_init_sparse(tmpdir):
     f2 = h5py.File(file_1, 'r')
     g2 = VoronoiGrid()
     g2.read(f2)
-    
+
     f3 = h5py.File(file_2, 'w')
     g3 = VoronoiGrid(g2)
     g3.write(f3)

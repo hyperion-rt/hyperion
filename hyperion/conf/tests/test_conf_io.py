@@ -1,6 +1,5 @@
 # Test that parameters are preserved when written out and read in again
 
-from __future__ import print_function, division
 
 from itertools import product
 

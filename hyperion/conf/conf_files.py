@@ -1,12 +1,12 @@
-from __future__ import print_function, division
 
 import warnings
 import numpy as np
-from astropy import log as logger
-import six
+import logging
 
 from ..util.functions import FreezableClass, bool2str, str2bool, is_numpy_array
 from ..filter import Filter
+
+logger = logging.getLogger(__name__)
 
 
 class OutputConf(FreezableClass):
@@ -89,7 +89,7 @@ class RunConf(object):
             How often the photon position and cell should be double-checked (1
             is always, 0 is never).
         '''
-        if not np.isscalar(frequency) or isinstance(frequency, six.string_types):
+        if not np.isscalar(frequency) or isinstance(frequency, str):
             raise TypeError("frequency should be a scalar value")
         if frequency < 0. or frequency > 1.:
             raise ValueError("frequency should be between 0 and 1")

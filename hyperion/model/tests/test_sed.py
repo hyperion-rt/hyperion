@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 
 import os
 import shutil
@@ -8,7 +7,6 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal_nulp
 
 import pytest
-import six
 
 from .. import Model
 from ..sed import SED
@@ -121,7 +119,7 @@ class TestSEDSimpleModel(object):
     def test_sed_stokes_invalid(self, stokes):
         with pytest.raises(ValueError) as exc:
             wav, nufnu = self.m.get_sed(stokes=stokes)
-        if isinstance(stokes, six.string_types):
+        if isinstance(stokes, str):
             assert exc.value.args[0] == "Unknown Stokes parameter: %s" % stokes
         else:
             assert exc.value.args[0] == "stokes argument should be a string"

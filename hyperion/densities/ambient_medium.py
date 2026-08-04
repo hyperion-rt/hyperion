@@ -1,7 +1,5 @@
-from __future__ import print_function, division
 
 import numpy as np
-import six
 
 from ..dust import SphericalDust
 from ..grid import SphericalPolarGrid
@@ -128,7 +126,7 @@ class AmbientMedium(Density):
 
     @dust.setter
     def dust(self, value):
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             self._dust = SphericalDust(value)
         else:
             self._dust = value

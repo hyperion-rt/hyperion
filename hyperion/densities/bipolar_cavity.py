@@ -1,8 +1,6 @@
-from __future__ import print_function, division
 
 import numpy as np
-from astropy import log as logger
-import six
+import logging
 
 from ..util.functions import FreezableClass
 from ..dust import SphericalDust
@@ -10,6 +8,8 @@ from ..grid import SphericalPolarGrid, CylindricalPolarGrid
 from ..util.validator import validate_scalar
 
 from .core import Envelope, Density
+
+logger = logging.getLogger(__name__)
 
 
 class BipolarCavity(Density):
@@ -132,7 +132,7 @@ class BipolarCavity(Density):
 
     @dust.setter
     def dust(self, value):
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             self._dust = SphericalDust(value)
         else:
             self._dust = value

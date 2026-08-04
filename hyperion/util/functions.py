@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 
 import string
 import random
@@ -11,7 +10,9 @@ import h5py
 import numpy as np
 
 from .constants import h, c, k
-from astropy import log as logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 MAX_FLOAT = np.log(np.finfo('d').max)
 
@@ -274,4 +275,3 @@ except AttributeError:  # For Numpy 1.4.1
             return str(s)
     else:
         asstr = str
-

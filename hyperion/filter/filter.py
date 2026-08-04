@@ -1,8 +1,6 @@
-from __future__ import print_function, division
 
 import numpy as np
 
-import six
 from astropy import units as u
 
 from ..util.integrate import integrate
@@ -46,7 +44,7 @@ class Filter(object):
 
     @name.setter
     def name(self, value):
-        if value is None or isinstance(value, six.string_types):
+        if value is None or isinstance(value, str):
             self._name = value
         else:
             raise TypeError("name should be given as a string")

@@ -1,8 +1,8 @@
-from __future__ import print_function, division
 
 import numpy as np
-import six
-from astropy import log as logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def almost_equal(a, b):
@@ -262,8 +262,8 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
                          "in Hyperion and value is the name of the field in the "
                          "yt dataset. Available quantities are: \n\n    {0}".format(field_list))
 
-    for output_quantity, input_field in six.iteritems(quantity_mapping):
-        if not isinstance(output_quantity, six.string_types):
+    for output_quantity, input_field in quantity_mapping.iteritems():
+        if not isinstance(output_quantity, str):
             raise ValueError("quantity_mapping keys should be strings")
         if input_field not in ds.derived_field_list:
             raise ValueError("yt field {0} does not exist. Available fields "
@@ -312,7 +312,7 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
 
             grid.nz, grid.ny, grid.nx = yt_grid.shape
 
-            for output_quantity, input_field in six.iteritems(quantity_mapping):
+            for output_quantity, input_field in quantity_mapping.iteritems():
                 grid.quantities[output_quantity] = yt_grid[input_field].in_units('g/cm**3').ndarray_view()
 
     return amr
