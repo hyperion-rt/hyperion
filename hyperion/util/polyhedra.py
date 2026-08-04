@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 
 from math import sqrt, atan2, degrees
 

@@ -1,15 +1,16 @@
-from __future__ import print_function, division
 
 import hashlib
 
 import numpy as np
 from astropy.table import Table, Column
-from astropy import log as logger
+import logging
 
 from ..util.integrate import integrate_loglog
 from ..util.interpolate import interp1d_fast_loglog
 from ..util.functions import FreezableClass, nu_common, B_nu, dB_nu_dT, planck_nu_range
 from ..util.constants import sigma
+
+logger = logging.getLogger(__name__)
 
 
 class MeanOpacities(FreezableClass):

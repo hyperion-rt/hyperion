@@ -3,7 +3,6 @@ from copy import deepcopy
 import h5py
 import numpy as np
 import pytest
-import six
 
 from ...util.functions import virtual_file
 from .. import (CartesianGrid,
@@ -16,7 +15,7 @@ ALL_GRID_TYPES = ['car', 'sph', 'cyl', 'amr', 'oct']
 
 
 def exc_msg(exc):
-    if isinstance(exc.value, six.string_types):
+    if isinstance(exc.value, str):
         return exc.value
     elif type(exc.value) is tuple:
         return exc.value[0]

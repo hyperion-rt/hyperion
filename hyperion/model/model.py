@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 
 import os
 import subprocess
@@ -8,8 +7,7 @@ from copy import deepcopy
 import h5py
 import numpy as np
 
-from astropy import log as logger
-import six
+import logging
 
 from ..version import __version__
 from ..util.functions import delete_file
@@ -23,6 +21,8 @@ from ..util.validator import validate_scalar
 from ..util.nans import check_for_nans
 
 from .model_output import ModelOutput
+
+logger = logging.getLogger(__name__)
 
 
 class Configuration(FreezableClass):
@@ -648,7 +648,7 @@ class Model(FreezableClass, RunConf):
 
                     if copy:
 
-                        if isinstance(dust, six.string_types):
+                        if isinstance(dust, str):
                             dust = SphericalDust(dust)
 
                         if dust.hash() in present:
@@ -826,7 +826,7 @@ class Model(FreezableClass, RunConf):
             # Only consider this if the specific energy is not specified
             if specific_energy is None:
 
-                if isinstance(dust, six.string_types):
+                if isinstance(dust, str):
 
                     if dust in self.dust:
 
@@ -840,7 +840,7 @@ class Model(FreezableClass, RunConf):
 
                     dust_hashes = []
                     for d in self.dust:
-                        if not isinstance(d, six.string_types):
+                        if not isinstance(d, str):
                             dust_hashes.append(d.hash())
                         else:
                             dust_hashes.append(None)

@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 
 import hashlib
 
@@ -11,7 +10,9 @@ from ..util.interpolate import (interp1d_fast, interp1d_fast_loglog,
 from ..util.functions import (extrap1d_log10, FreezableClass,
                               is_numpy_array, monotonically_increasing)
 from ..util.constants import c, sigma
-from astropy import log as logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class OpticalProperties(FreezableClass):

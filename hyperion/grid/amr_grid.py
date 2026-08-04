@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 
 import os
 import posixpath
@@ -11,8 +10,10 @@ import numpy as np
 
 from ..util.meshgrid import meshgrid_nd
 from ..util.functions import FreezableClass, link_or_copy, as_str
-from astropy import log as logger
+import logging
 from .grid_helpers import single_grid_dims
+
+logger = logging.getLogger(__name__)
 
 
 def zero_density(amr_grid, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, zmin=-np.inf, zmax=np.inf):

@@ -2,7 +2,6 @@ from copy import deepcopy
 
 import numpy as np
 import pytest
-import six
 
 from hyperion.grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid, AMRGrid, OctreeGrid
 
@@ -10,7 +9,7 @@ ALL_GRID_TYPES = ['car', 'sph', 'cyl', 'amr', 'oct']
 
 
 def exc_msg(exc):
-    if isinstance(exc.value, six.string_types):
+    if isinstance(exc.value, str):
         return exc.value
     elif type(exc.value) is tuple:
         return exc.value[0]

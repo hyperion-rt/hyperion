@@ -9,15 +9,13 @@
 #
 ##############################################################################
 
-from __future__ import print_function, division
 
 import os
 import hashlib
 
 import h5py
 import numpy as np
-from astropy import log as logger
-import six
+import logging
 
 from ..version import __version__
 
@@ -30,6 +28,8 @@ from ..util.nans import check_for_nans
 from .optical_properties import OpticalProperties
 from .emissivities import Emissivities
 from .mean_opacities import MeanOpacities
+
+logger = logging.getLogger(__name__)
 
 
 def henyey_greenstein(mu, g, p_lin_max):
@@ -264,7 +264,7 @@ class SphericalDust(FreezableClass):
             self.emissivities.set_lte(self.optical_properties, self.mean_opacities)
 
         # Create dust table set
-        if isinstance(filename, six.string_types):
+        if isinstance(filename, str):
             dt = h5py.File(filename, 'w')
         else:
             dt = filename
@@ -305,7 +305,7 @@ class SphericalDust(FreezableClass):
 
         from ..util.functions import asstr
 
-        if isinstance(filename, six.string_types):
+        if isinstance(filename, str):
 
             # Check file exists
             if not os.path.exists(filename):
