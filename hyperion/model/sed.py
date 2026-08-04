@@ -123,6 +123,17 @@ class SED(FreezableClass):
             raise ValueError("unit should be a string")
 
     @property
+    def units(self):
+        """
+        The units of the SED values (alias for the ``.unit`` property).
+        """
+        return self.unit
+
+    @units.setter
+    def units(self, value):
+        self.unit = value
+
+    @property
     def wav(self):
         """
         The wavelengths for which the SED is defined (in microns).

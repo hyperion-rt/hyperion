@@ -100,8 +100,8 @@ contains
     type(photon) :: p
     real(dp) :: tau
     integer :: ip,ig,iv,id
-    type(angle3d_dp) :: a_req, a_sky, a_diff
-    type(vector3d_dp) :: v_req
+    type(angle3d_dp) :: a_req, a_view
+    type(vector3d_dp) :: v_req, v_a, v_sky
     logical,intent(in) :: polychromatic
     real(dp) :: x_image, y_image
     real(dp) :: tmax
@@ -151,29 +151,53 @@ contains
        ! the xmax wall.
        call place_in_cell(p)
 
+       ! The depth range given by d_min and d_max is only used to select
+       ! which events to include in the image - the optical depth should be
+       ! integrated all the way to the observer (for inside observers) or to
+       ! the edge of the grid (for external observers).
        if(inside_observer(ig)) then
           dr = p%r-r_peeloff(ig)
           d = sqrt(dr.dot.dr)
-          tmax = d - d_min(ig)
+          tmax = d
        else
           d = -(v_req.dot.p%r)
-          tmax = - d_min(ig) + d
+          tmax = huge(1._dp)
        end if
 
        if(d < d_min(ig) .or. d > d_max(ig)) cycle
 
        if(inside_observer(ig)) then
 
-          if(abs(viewing_angles(ip)%cost) .gt. 1.e-10) then
-             call rotate_angle3d(viewing_angles(ip), angle3d_deg(90._dp, 0._dp), a_diff)
-             call difference_angle3d(a_diff, -p%a, a_sky)
-          else
-             a_sky = p%a
-          end if
+          ! Sky position of the photon for an observer looking towards the
+          ! direction a_view = (theta_v, phi_v). The map is centred on the
+          ! viewing direction, so we express the photon direction p%a in the
+          ! local orthonormal frame at a_view given by the spherical basis
+          ! vectors (r_hat, phi_hat, -theta_hat), writing t, p for theta_v,
+          ! phi_v:
+          !
+          !   r_hat      = ( sin t cos p,  sin t sin p,  cos t )  (viewing dir)
+          !   phi_hat    = (      -sin p,        cos p,      0  )  (local east)
+          !   -theta_hat = (-cos t cos p, -cos t sin p,  sin t )  (local north)
+          !
+          ! The three components of v_sky below are the projections of p%a onto
+          ! these axes, i.e. v_sky = R p%a where R is the rigid rotation whose
+          ! rows are the vectors above and which therefore sends a_view to the
+          ! map centre +x = (theta, phi) = (90, 0). R is orthonormal, so this is
+          ! exactly continuous in (theta_v, phi_v) with no special cases at the
+          ! poles (theta_v = 0, 90, 180) - unlike a frame built from the
+          ! pole-referenced rotate_angle3d / difference_angle3d routines.
+          a_view = viewing_angles(ip)
+          call angle3d_to_vector3d(p%a, v_a)
+          v_sky%x = (v_a%x * a_view%cosp + v_a%y * a_view%sinp) * a_view%sint + v_a%z * a_view%cost
+          v_sky%y = - v_a%x * a_view%sinp + v_a%y * a_view%cosp
+          v_sky%z = - (v_a%x * a_view%cosp + v_a%y * a_view%sinp) * a_view%cost + v_a%z * a_view%sint
 
-          ! Convert to angles in degrees
-          x_image = atan2(a_sky%sinp, a_sky%cosp) * rad2deg
-          y_image = atan2(a_sky%sint, a_sky%cost) * rad2deg - 90._dp
+          ! Convert to map coordinates: longitude is the azimuth of v_sky in the
+          ! x-y plane, and latitude is (colatitude measured from +z) - 90 deg.
+          ! Both use atan2 on the Cartesian components, so they stay well-defined
+          ! when v_sky is near the poles (where sin(colatitude) -> 0).
+          x_image = atan2(v_sky%y, v_sky%x) * rad2deg
+          y_image = atan2(sqrt(v_sky%x**2 + v_sky%y**2), v_sky%z) * rad2deg - 90._dp
 
           ! Make sure the photon falls inside the image (wrap angles around)
           x_image = peeled_image(ig)%x_max + modulo(x_image - peeled_image(ig)%x_max, 360._dp)
@@ -205,12 +229,11 @@ contains
              end if
           end if
 
-          ! For inside observer, don't want optical depth to escape grid, just to go to observer!
-          ! Need to include 1/d^2!
-
           if(.not.killed) then
 
-             if(inside_observer(ig)) p%s = p%s / (4._dp * pi * tmax**2._dp)
+             ! For inside observers, include the 1/d^2 flux dilution
+
+             if(inside_observer(ig)) p%s = p%s / (4._dp * pi * d**2._dp)
 
              if(polychromatic) then
 

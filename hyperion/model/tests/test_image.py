@@ -727,3 +727,189 @@ class TestImageStokesOption(object):
         with pytest.raises(ValueError) as exc:
             self.m2.get_image(stokes=stokes)
         assert exc.value.args[0] == "Only the Stokes I value was stored for this image"
+
+
+def _inside_observer_direction(theta, phi):
+    t, p = np.radians(theta), np.radians(phi)
+    return np.array([np.sin(t) * np.cos(p), np.sin(t) * np.sin(p), np.cos(t)])
+
+
+def _inside_observer_expected_lonlat(d, theta_v, phi_v):
+    # Map (longitude, latitude) of a photon arriving from direction d, for an
+    # observer looking towards (theta_v, phi_v). This is d expressed in the
+    # local spherical basis (r_hat, phi_hat, -theta_hat) at the viewing
+    # direction, converted to polar coordinates - i.e. an independent
+    # reimplementation of the transform in images_peeled.f90.
+    t, p = np.radians(theta_v), np.radians(phi_v)
+    st, ct, cp, sp = np.sin(t), np.cos(t), np.cos(p), np.sin(p)
+    vx = np.dot([st * cp, st * sp, ct], d)     # r_hat . d      -> map centre / +x
+    vy = np.dot([-sp, cp, 0.], d)              # phi_hat . d    -> +longitude
+    vz = np.dot([-ct * cp, -ct * sp, st], d)   # -theta_hat . d -> +latitude
+    lon = np.degrees(np.arctan2(vy, vx))
+    lat = np.degrees(np.arctan2(np.hypot(vx, vy), vz)) - 90.
+    return lon, lat
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_inside_observer_sky_coordinates(tmpdir):
+    # Regression test for the inside-observer sky-coordinate transform. A point
+    # source at cartesian position P, seen by an observer at the origin, sends
+    # photons that arrive from direction d = -P/|P|. On the all-sky map for a
+    # viewing direction (theta_v, phi_v) the source must appear at the position
+    # obtained by expressing d in the local spherical frame of the viewing
+    # direction. A previous implementation was discontinuous through
+    # theta_v = 90 deg and ignored phi_v; the viewing angles below include
+    # several cases it placed incorrectly (large phi at theta=90, either side
+    # of theta=90, and general off-axis directions).
+
+    # Place the source so that its photon arrival direction is +x.
+    photon_dir = _inside_observer_direction(90., 0.)
+    P = tuple(-0.5 * photon_dir)
+
+    views = [(90., 0.), (90., 90.), (90., 150.), (60., 0.), (120., 0.),
+             (89., 0.), (91., 0.), (45., 30.), (135., 200.)]
+
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    s = m.add_point_source()
+    s.position = P
+    s.luminosity = 1.
+    s.temperature = 6000.
+    i = m.add_peeled_images(sed=False, image=True)
+    i.set_inside_observer((0., 0., 0.))
+    i.set_image_limits(180., -180., -90., 90.)
+    i.set_image_size(360, 180)
+    i.set_viewing_angles([v[0] for v in views], [v[1] for v in views])
+    i.set_wavelength_range(1, 1., 1000.)
+    m.set_n_initial_iterations(0)
+    m.set_n_photons(imaging=20000)
+    m.set_seed(-1)
+    m.write(tmpdir.join(random_id()).strpath)
+    out = m.run(tmpdir.join(random_id()).strpath)
+
+    val = out.get_image(group=0).val[:, :, :, 0]  # (n_view, n_y, n_x)
+    n_y, n_x = val.shape[1], val.shape[2]
+    xmin, xmax, ymin, ymax = 180., -180., -90., 90.
+
+    for iv, (theta_v, phi_v) in enumerate(views):
+        img = val[iv]
+        ys, xs = np.nonzero(img > 0)
+        assert len(xs) > 0, "source not found for view (%.0f, %.0f)" % (theta_v, phi_v)
+        w = img[ys, xs]
+        lon = ((xmin + (xs + 0.5) * (xmax - xmin) / n_x) * w).sum() / w.sum()
+        lat = ((ymin + (ys + 0.5) * (ymax - ymin) / n_y) * w).sum() / w.sum()
+
+        # (1) Convention-independent invariant: the great-circle distance on the
+        # map from the centre (0, 0) to the source must equal the true angle
+        # between the photon direction and the viewing direction (any rigid
+        # rotation preserves angles). This catches the tearing and the ignored
+        # phi of the old code.
+        map_sep = np.degrees(np.arccos(np.clip(
+            np.cos(np.radians(lat)) * np.cos(np.radians(lon)), -1., 1.)))
+        true_sep = np.degrees(np.arccos(np.clip(
+            np.dot(photon_dir, _inside_observer_direction(theta_v, phi_v)), -1., 1.)))
+        assert abs(map_sep - true_sep) < 2., \
+            "view (%.0f, %.0f): map separation %.1f deg != true %.1f deg" % (
+                theta_v, phi_v, map_sep, true_sep)
+
+        # (2) Full position matches the independent reference (catches roll and
+        # reflection errors that preserve the angular separation).
+        exp_lon, exp_lat = _inside_observer_expected_lonlat(photon_dir, theta_v, phi_v)
+        dlon = (lon - exp_lon + 180.) % 360. - 180.
+        assert abs(dlon) < 2. and abs(lat - exp_lat) < 2., \
+            "view (%.0f, %.0f): (%.1f, %.1f) != expected (%.1f, %.1f)" % (
+                theta_v, phi_v, lon, lat, exp_lon, exp_lat)
+
+
+def test_image_and_sed_units_constructor():
+    # Regression test: the ``units`` constructor argument of Image and SED must
+    # be routed through the validated ``unit`` property, so that it is stored
+    # (readable via ``.unit``) and invalid values are rejected. Previously it
+    # was assigned to an unvalidated attribute and left ``.unit`` unset.
+    from ..sed import SED
+    for cls in (Image, SED):
+        obj = cls(nu=np.array([1.e10, 1.e11]), units='Jy')
+        assert obj.unit == 'Jy'
+        assert obj.units == 'Jy'
+        with pytest.raises(ValueError):
+            cls(nu=np.array([1.e10, 1.e11]), units=42)
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_inside_observer_flux_dilution(tmpdir):
+    # Regression test for the inside-observer 1/d^2 flux dilution. Two point
+    # sources of equal luminosity at distances d1 and d2 from the observer must
+    # have observed fluxes in the ratio (d2/d1)**2. A previous implementation
+    # divided by (d - d_min)**2 instead of d**2, giving the wrong ratio whenever
+    # a nonzero depth minimum was set.
+    d1, d2, d_min = 2., 5., 1.
+    m = Model()
+    m.set_cartesian_grid([-8., 8.], [-8., 8.], [-8., 8.])
+    for pos in [(d1, 0., 0.), (0., d2, 0.)]:
+        s = m.add_point_source()
+        s.position = pos
+        s.luminosity = 1.
+        s.temperature = 6000.
+    i = m.add_peeled_images(sed=False, image=True)
+    i.set_inside_observer((0., 0., 0.))
+    i.set_image_limits(180., -180., -90., 90.)
+    i.set_image_size(360, 180)
+    i.set_viewing_angles([90.], [0.])
+    i.set_wavelength_range(1, 1., 1000.)
+    i.set_depth(d_min, 20.)   # nonzero d_min exposes the bug
+    m.set_n_initial_iterations(0)
+    m.set_n_photons(imaging=200000)
+    m.set_seed(-1)
+    m.write(tmpdir.join(random_id()).strpath)
+    out = m.run(tmpdir.join(random_id()).strpath)
+
+    val = out.get_image(group=0).val[0, :, :, 0]   # single view, single wavelength
+    brightest = np.sort(val[val > 0])[::-1]
+    assert len(brightest) >= 2, "expected two point sources in the image"
+    # the closer source (d1) is the brighter one
+    ratio = brightest[0] / brightest[1]
+    np.testing.assert_allclose(ratio, (d2 / d1) ** 2, rtol=0.08)
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_inside_observer_peeloff_optical_depth(tmpdir):
+    # Regression test for integrating the peeloff optical depth all the way to
+    # the (inside) observer. A point source at distance d sits in uniform,
+    # purely-absorbing dust of flat opacity chi and density rho, so its direct
+    # light is attenuated by exp(-chi*rho*d) over the full path to the observer.
+    # A previous implementation integrated the optical depth only to d - d_min,
+    # under-attenuating the source whenever a nonzero depth minimum was set
+    # (comparing the dust/no-dust flux ratio at fixed distance cancels the
+    # 1/d^2 dilution, isolating the optical-depth path).
+    from ...dust import IsotropicDust
+
+    d, chi, rho, d_min = 1.e16, 1., 1.e-16, 0.5e16
+    tau_full = chi * rho * d   # = 1.0
+
+    def peak_flux(with_dust):
+        m = Model()
+        m.set_cartesian_grid([-2.e16, 2.e16], [-2.e16, 2.e16], [-2.e16, 2.e16])
+        if with_dust:
+            dust = IsotropicDust([3.e9, 3.e16], [0., 0.], [chi, chi])
+            dust.set_lte_emissivities(n_temp=10, temp_min=0.1, temp_max=1.e4)
+            m.add_density_grid(np.ones((1, 1, 1)) * rho, dust)
+        s = m.add_point_source()
+        s.position = (d, 0., 0.)
+        s.luminosity = 1.
+        s.temperature = 6000.
+        i = m.add_peeled_images(sed=False, image=True)
+        i.set_inside_observer((0., 0., 0.))
+        i.set_image_limits(180., -180., -90., 90.)
+        i.set_image_size(360, 180)
+        i.set_viewing_angles([90.], [0.])
+        i.set_wavelength_range(1, 1., 1000.)
+        i.set_depth(d_min, 3.e16)   # nonzero d_min previously truncated the tau path
+        m.set_n_initial_iterations(0)
+        m.set_n_photons(imaging=100000)
+        m.set_seed(-1)
+        m.write(tmpdir.join(random_id()).strpath)
+        out = m.run(tmpdir.join(random_id()).strpath)
+        return out.get_image(group=0).val[0, :, :, 0].max()
+
+    ratio = peak_flux(with_dust=True) / peak_flux(with_dust=False)
+    np.testing.assert_allclose(ratio, np.exp(-tau_full), rtol=0.05)

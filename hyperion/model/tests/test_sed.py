@@ -468,3 +468,34 @@ def test_sed_negative_group(tmpdir):
     m.write(tmpdir.join(random_id()).strpath)
     mo = m.run()
     np.testing.assert_allclose(mo.get_sed(group=-1).val, mo.get_sed(group=0).val)
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_sed_uncertainty_sum_of_squares(tmpdir):
+    # Regression test for the Monte-Carlo uncertainty estimator. For a single
+    # isotropic point source with no dust, every imaging photon contributes the
+    # same weight w to the single SED bin, so the sum-of-squares estimator gives
+    # sigma = sqrt(sum w**2) = sqrt(N) w against a total flux F = N w, i.e. a
+    # relative uncertainty of exactly 1/sqrt(N). A previous (sign-flipped)
+    # sample-variance formula over-estimated this by a factor sqrt(2).
+    n_photons = 10000
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    s = m.add_point_source()
+    s.luminosity = 1.
+    s.temperature = 6000.
+    i = m.add_peeled_images(sed=True, image=False)
+    i.set_viewing_angles([45.], [45.])
+    i.set_aperture_radii(1, 1.e10, 1.e10)
+    i.set_wavelength_range(1, 0.01, 5000.)
+    i.set_uncertainties(True)
+    m.set_n_initial_iterations(0)
+    m.set_n_photons(imaging=n_photons)
+    m.set_seed(-1)
+    m.write(tmpdir.join(random_id()).strpath)
+    out = m.run(tmpdir.join(random_id()).strpath)
+
+    sed = out.get_sed(uncertainties=True)
+    flux = np.nansum(sed.val)
+    sigma = np.sqrt(np.nansum(np.array(sed.unc) ** 2))
+    np.testing.assert_allclose(sigma / flux, 1. / np.sqrt(n_photons), rtol=0.03)
