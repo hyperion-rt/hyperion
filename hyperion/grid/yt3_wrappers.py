@@ -262,7 +262,7 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
                          "in Hyperion and value is the name of the field in the "
                          "yt dataset. Available quantities are: \n\n    {0}".format(field_list))
 
-    for output_quantity, input_field in quantity_mapping.iteritems():
+    for output_quantity, input_field in quantity_mapping.items():
         if not isinstance(output_quantity, str):
             raise ValueError("quantity_mapping keys should be strings")
         if input_field not in ds.derived_field_list:
@@ -312,7 +312,7 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
 
             grid.nz, grid.ny, grid.nx = yt_grid.shape
 
-            for output_quantity, input_field in quantity_mapping.iteritems():
+            for output_quantity, input_field in quantity_mapping.items():
                 grid.quantities[output_quantity] = yt_grid[input_field].in_units('g/cm**3').ndarray_view()
 
     return amr
