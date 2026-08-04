@@ -820,3 +820,53 @@ def test_inside_observer_sky_coordinates(tmpdir):
         assert abs(dlon) < 2. and abs(lat - exp_lat) < 2., \
             "view (%.0f, %.0f): (%.1f, %.1f) != expected (%.1f, %.1f)" % (
                 theta_v, phi_v, lon, lat, exp_lon, exp_lat)
+
+
+def test_image_and_sed_units_constructor():
+    # Regression test: the ``units`` constructor argument of Image and SED must
+    # be routed through the validated ``unit`` property, so that it is stored
+    # (readable via ``.unit``) and invalid values are rejected. Previously it
+    # was assigned to an unvalidated attribute and left ``.unit`` unset.
+    from ..sed import SED
+    for cls in (Image, SED):
+        obj = cls(nu=np.array([1.e10, 1.e11]), units='Jy')
+        assert obj.unit == 'Jy'
+        assert obj.units == 'Jy'
+        with pytest.raises(ValueError):
+            cls(nu=np.array([1.e10, 1.e11]), units=42)
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_inside_observer_flux_dilution(tmpdir):
+    # Regression test for the inside-observer 1/d^2 flux dilution. Two point
+    # sources of equal luminosity at distances d1 and d2 from the observer must
+    # have observed fluxes in the ratio (d2/d1)**2. A previous implementation
+    # divided by (d - d_min)**2 instead of d**2, giving the wrong ratio whenever
+    # a nonzero depth minimum was set.
+    d1, d2, d_min = 2., 5., 1.
+    m = Model()
+    m.set_cartesian_grid([-8., 8.], [-8., 8.], [-8., 8.])
+    for pos in [(d1, 0., 0.), (0., d2, 0.)]:
+        s = m.add_point_source()
+        s.position = pos
+        s.luminosity = 1.
+        s.temperature = 6000.
+    i = m.add_peeled_images(sed=False, image=True)
+    i.set_inside_observer((0., 0., 0.))
+    i.set_image_limits(180., -180., -90., 90.)
+    i.set_image_size(360, 180)
+    i.set_viewing_angles([90.], [0.])
+    i.set_wavelength_range(1, 1., 1000.)
+    i.set_depth(d_min, 20.)   # nonzero d_min exposes the bug
+    m.set_n_initial_iterations(0)
+    m.set_n_photons(imaging=200000)
+    m.set_seed(-1)
+    m.write(tmpdir.join(random_id()).strpath)
+    out = m.run(tmpdir.join(random_id()).strpath)
+
+    val = out.get_image(group=0).val[0, :, :, 0]   # single view, single wavelength
+    brightest = np.sort(val[val > 0])[::-1]
+    assert len(brightest) >= 2, "expected two point sources in the image"
+    # the closer source (d1) is the brighter one
+    ratio = brightest[0] / brightest[1]
+    np.testing.assert_allclose(ratio, (d2 / d1) ** 2, rtol=0.08)
