@@ -129,7 +129,7 @@ def hseq_profile(w, z, temperature, mstar, mu=2.279):
 # mu = 2.279
 
 
-def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False,
+def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False, logfile=False,
                            n_processes=multiprocessing.cpu_count(),
                            overwrite=False):
     """
@@ -166,6 +166,9 @@ def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False,
         The number of processes to use if ``mpi`` is ``True``
     overwrite : bool, optional
         Whether to overwrite previous files
+    logfile : bool, optional
+        If `True`, a logfile will be output for each iteration using `prefix`
+        as the base name
     """
 
     from ..grid import CylindricalPolarGrid
@@ -186,12 +189,14 @@ def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False,
     else:
         n_disks = len(model.disks)
 
-    # Write out initial model
-    model.write(prefix + '_00000.rtin', overwrite=overwrite, merge_if_possible=False)
+    if not isinstance(logfile, bool):
+        raise TypeError('logfile should be True or False')
 
-    # Run the initial model
+    # Write out initial model and run
+    extra_kwargs = {'logfile': '{0:s}_{1:05d}.log'.format(prefix, 0)} if logfile else {}
+    model.write(prefix + '_00000.rtin', overwrite=overwrite, merge_if_possible=False)
     mo = model.run(prefix + '_00000.rtout', overwrite=overwrite,
-                   mpi=mpi, n_processes=n_processes)
+                   mpi=mpi, n_processes=n_processes, **extra_kwargs)
 
     previous = prefix + '_00000.rtout'
 
@@ -235,9 +240,11 @@ def run_with_vertical_hseq(prefix, model, n_iter=10, mpi=False,
         # Override the density
         m.grid['density'] = density
 
+
         # Write and run
+        extra_kwargs = {'logfile': '{0:s}_{1:05d}.log'.format(prefix, iteration)} if logfile else {}
         m.write('{0:s}_{1:05d}.rtin'.format(prefix, iteration), overwrite=overwrite)
         m.run('{0:s}_{1:05d}.rtout'.format(prefix, iteration),
-              overwrite=overwrite, mpi=mpi, n_processes=n_processes)
+              overwrite=overwrite, mpi=mpi, n_processes=n_processes, **extra_kwargs)
 
         previous = '{0:s}_{1:05d}.rtout'.format(prefix, iteration)
