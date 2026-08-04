@@ -168,18 +168,34 @@ contains
 
        if(inside_observer(ig)) then
 
-          ! Find the sky position of the photon by applying to the photon
-          ! direction the rigid rotation that maps the viewing direction
-          ! onto (theta, phi) = (90, 0). This is continuous in the viewing
-          ! angles, and for a viewing angle of (90, 0) the sky position is
-          ! simply given by p%a.
+          ! Sky position of the photon for an observer looking towards the
+          ! direction a_view = (theta_v, phi_v). The map is centred on the
+          ! viewing direction, so we express the photon direction p%a in the
+          ! local orthonormal frame at a_view given by the spherical basis
+          ! vectors (r_hat, phi_hat, -theta_hat), writing t, p for theta_v,
+          ! phi_v:
+          !
+          !   r_hat      = ( sin t cos p,  sin t sin p,  cos t )  (viewing dir)
+          !   phi_hat    = (      -sin p,        cos p,      0  )  (local east)
+          !   -theta_hat = (-cos t cos p, -cos t sin p,  sin t )  (local north)
+          !
+          ! The three components of v_sky below are the projections of p%a onto
+          ! these axes, i.e. v_sky = R p%a where R is the rigid rotation whose
+          ! rows are the vectors above and which therefore sends a_view to the
+          ! map centre +x = (theta, phi) = (90, 0). R is orthonormal, so this is
+          ! exactly continuous in (theta_v, phi_v) with no special cases at the
+          ! poles (theta_v = 0, 90, 180) - unlike a frame built from the
+          ! pole-referenced rotate_angle3d / difference_angle3d routines.
           a_view = viewing_angles(ip)
           call angle3d_to_vector3d(p%a, v_a)
           v_sky%x = (v_a%x * a_view%cosp + v_a%y * a_view%sinp) * a_view%sint + v_a%z * a_view%cost
           v_sky%y = - v_a%x * a_view%sinp + v_a%y * a_view%cosp
           v_sky%z = - (v_a%x * a_view%cosp + v_a%y * a_view%sinp) * a_view%cost + v_a%z * a_view%sint
 
-          ! Convert to angles in degrees
+          ! Convert to map coordinates: longitude is the azimuth of v_sky in the
+          ! x-y plane, and latitude is (colatitude measured from +z) - 90 deg.
+          ! Both use atan2 on the Cartesian components, so they stay well-defined
+          ! when v_sky is near the poles (where sin(colatitude) -> 0).
           x_image = atan2(v_sky%y, v_sky%x) * rad2deg
           y_image = atan2(sqrt(v_sky%x**2 + v_sky%y**2), v_sky%z) * rad2deg - 90._dp
 
