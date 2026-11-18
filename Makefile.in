@@ -263,43 +263,43 @@ serial:		car_serial sph_serial cyl_serial oct_serial amr_serial vor_serial
 mpi:		car_mpi sph_mpi cyl_mpi oct_mpi amr_mpi vor_mpi
 
 car_serial:	$(OBJECTS_CAR_SER)
-		$(FC) $(OBJECTS_CAR_SER) -o bin/hyperion_car
+		mkdir -p build/$@/src/modules && cd build/$@ && $(FC) $(addprefix ../../,$(OBJECTS_CAR_SER)) -o ../../bin/hyperion_car
 
 car_mpi:	$(OBJECTS_CAR_MPI)
-		$(FCMPI) $(OBJECTS_CAR_MPI) -o bin/hyperion_car_mpi
+		mkdir -p build/$@/src/modules && cd build/$@ && $(FCMPI) $(addprefix ../../,$(OBJECTS_CAR_MPI)) -o ../../bin/hyperion_car_mpi
 
 oct_serial:	$(OBJECTS_OCT_SER)
-		$(FC) $(OBJECTS_OCT_SER) -o bin/hyperion_oct
+		mkdir -p build/$@/src/modules && cd build/$@ && $(FC) $(addprefix ../../,$(OBJECTS_OCT_SER)) -o ../../bin/hyperion_oct
 
 oct_mpi:	$(OBJECTS_OCT_MPI)
-		$(FCMPI) $(OBJECTS_OCT_MPI) -o bin/hyperion_oct_mpi
+		mkdir -p build/$@/src/modules && cd build/$@ && $(FCMPI) $(addprefix ../../,$(OBJECTS_OCT_MPI)) -o ../../bin/hyperion_oct_mpi
 
 amr_serial:	$(OBJECTS_AMR_SER)
-		$(FC) $(OBJECTS_AMR_SER) -o bin/hyperion_amr
+		mkdir -p build/$@/src/modules && cd build/$@ && $(FC) $(addprefix ../../,$(OBJECTS_AMR_SER)) -o ../../bin/hyperion_amr
 
 amr_mpi:	$(OBJECTS_AMR_MPI)
-		$(FCMPI) $(OBJECTS_AMR_MPI) -o bin/hyperion_amr_mpi
+		mkdir -p build/$@/src/modules && cd build/$@ && $(FCMPI) $(addprefix ../../,$(OBJECTS_AMR_MPI)) -o ../../bin/hyperion_amr_mpi
 
 sph_serial:	$(OBJECTS_SPH_SER)
-		$(FC) $(OBJECTS_SPH_SER) -o bin/hyperion_sph
+		mkdir -p build/$@/src/modules && cd build/$@ && $(FC) $(addprefix ../../,$(OBJECTS_SPH_SER)) -o ../../bin/hyperion_sph
 
 sph_mpi:	$(OBJECTS_SPH_MPI)
-		$(FCMPI) $(OBJECTS_SPH_MPI) -o bin/hyperion_sph_mpi
+		mkdir -p build/$@/src/modules && cd build/$@ && $(FCMPI) $(addprefix ../../,$(OBJECTS_SPH_MPI)) -o ../../bin/hyperion_sph_mpi
 
 cyl_serial:	$(OBJECTS_CYL_SER)
-		$(FC) $(OBJECTS_CYL_SER) -o bin/hyperion_cyl
+		mkdir -p build/$@/src/modules && cd build/$@ && $(FC) $(addprefix ../../,$(OBJECTS_CYL_SER)) -o ../../bin/hyperion_cyl
 
 cyl_mpi:	$(OBJECTS_CYL_MPI)
-		$(FCMPI) $(OBJECTS_CYL_MPI) -o bin/hyperion_cyl_mpi
+		mkdir -p build/$@/src/modules && cd build/$@ && $(FCMPI) $(addprefix ../../,$(OBJECTS_CYL_MPI)) -o ../../bin/hyperion_cyl_mpi
 
 vor_serial:	$(OBJECTS_VOR_SER)
-		$(FC) $(OBJECTS_VOR_SER) -o bin/hyperion_vor
+		mkdir -p build/$@/src/modules && cd build/$@ && $(FC) $(addprefix ../../,$(OBJECTS_VOR_SER)) -o ../../bin/hyperion_vor
 
 vor_mpi:	$(OBJECTS_VOR_MPI)
-		$(FCMPI) $(OBJECTS_VOR_MPI) -o bin/hyperion_vor_mpi
+		mkdir -p build/$@/src/modules && cd build/$@ && $(FCMPI) $(addprefix ../../,$(OBJECTS_VOR_MPI)) -o ../../bin/hyperion_vor_mpi
 
 install:	bin/hyperion_*
 		mkdir -p @prefix@/bin
 		cp -r bin/hyperion_* @prefix@/bin/
 
-clean:;		rm *.mod src/*.mod src/*/*.mod *.o */*.o bin/* *~ */*~ fort.* ; echo "This file can be deleted." > bin/empty.txt ; echo "This file can be deleted." > src/modules/empty.txt
+clean:;		rm -r build/*_serial build/*_mpi *.mod src/*.mod src/*/*.mod *.o */*.o bin/* *~ */*~ fort.* ; echo "This file can be deleted." > bin/empty.txt ; echo "This file can be deleted." > src/modules/empty.txt

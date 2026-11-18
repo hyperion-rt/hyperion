@@ -169,6 +169,9 @@ If you are using HDF5 1.8.x, compile the Fortran code with::
     make
     make install
 
+The different binaries can be compiled in parallel by passing e.g. ``-j 4`` to
+``make``.
+
 By default, the binaries will be written to ``/usr/local/bin`` (which will
 require you to use ``sudo`` for the last command). If you would prefer to
 install to your home directory, you can change this using the ``--prefix``
