@@ -1824,9 +1824,21 @@ else
   debug_pgi=''
 fi
 
+# Optimization flags. gfortran compiles at -O0 unless an optimization level
+# is given; debug builds keep that default. -ffp-contract=off stops gfortran
+# from fusing multiply-adds (on CPUs that have FMA), which keeps results
+# closer to the unoptimized build, similar to -fp-model strict for ifort.
+
+if test "$enable_debug" == "yes"
+then
+  optimize_gfortran=''
+else
+  optimize_gfortran='-O2 -ffp-contract=off'
+fi
+
 extra_nag="-Isrc/modules -mdir src/modules -f2003 -colour -ieee=full $debug_nag $profiling_nag $static_nag"
 extra_ifort="-module src/modules -heap-arrays -error-limit 1 -fp-model strict -diag-disable 8291 $debug_ifort $profiling_ifort $static_ifort"
-extra_gfortran="-Jsrc/modules -Isrc/modules -g -ffree-line-length-none $debug_gfortran $profiling_gfortran $static_gfortran"
+extra_gfortran="-Jsrc/modules -Isrc/modules -g -ffree-line-length-none $optimize_gfortran $debug_gfortran $profiling_gfortran $static_gfortran"
 extra_g95="-fmod=src/modules -Isrc/modules -g -ffree-line-length-huge $debug_g95 $profiling_g95 $static_g95"
 extra_pgi="$debug_pgi $profiling_pgi $static_pgi"
 
