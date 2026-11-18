@@ -127,8 +127,9 @@ fi
 
 # gfortran sometimes includes version number and/or platform info
 # (e.g., x86_64-pc-linux-gnu-gfortran-4.8.2), so check whether this is the case
+# (but taking care not to match pgfortran, which also contains gfortran)
 hdf_compiler_short=`echo $hdf_compiler | sed s/'.*gfortran.*'/gfortran/`
-if test "$hdf_compiler_short" == gfortran
+if test "$hdf_compiler_short" == gfortran && test "$hdf_compiler" != pgfortran
 then
   hdf_compiler=gfortran
 fi
@@ -228,8 +229,9 @@ fi
 
 # gfortran sometimes includes version number and/or platform info
 # (e.g., x86_64-pc-linux-gnu-gfortran-4.8.2), so check whether this is the case
+# (but taking care not to match pgfortran, which also contains gfortran)
 mpi_compiler_short=`echo $mpi_compiler | sed s/'.*gfortran.*'/gfortran/`
-if test "$mpi_compiler_short" == gfortran
+if test "$mpi_compiler_short" == gfortran && test "$mpi_compiler" != pgfortran
 then
   mpi_compiler=gfortran
 fi
