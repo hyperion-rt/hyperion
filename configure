@@ -668,6 +668,7 @@ enable_option_checking
 enable_profiling
 enable_debug
 enable_static
+enable_optimization
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1294,6 +1295,7 @@ Optional Features:
   --enable-profiling      Enables the profiling flags
   --enable-debug          Enables the full debugging flags
   --enable-static         Enables static compilation
+  --disable-optimization  Compiles with gfortran without -O2 (used by the bit-level tests)
 
 Some influential environment variables:
   HYPERION_HDF5_VERSION
@@ -1766,6 +1768,12 @@ then :
   enableval=$enable_static;
 fi
 
+# Check whether --enable-optimization was given.
+if test ${enable_optimization+y}
+then :
+  enableval=$enable_optimization;
+fi
+
 
 
 # Static flags
@@ -1825,11 +1833,13 @@ else
 fi
 
 # Optimization flags. gfortran compiles at -O0 unless an optimization level
-# is given; debug builds keep that default. -ffp-contract=off stops gfortran
-# from fusing multiply-adds (on CPUs that have FMA), which keeps results
-# closer to the unoptimized build, similar to -fp-model strict for ifort.
+# is given; debug builds and --disable-optimization keep that default (the
+# bit-level tests compare against reference results from unoptimized builds).
+# -ffp-contract=off stops gfortran from fusing multiply-adds (on CPUs that have
+# FMA), which keeps results closer to the unoptimized build, similar to
+# -fp-model strict for ifort.
 
-if test "$enable_debug" == "yes"
+if test "$enable_debug" == "yes" || test "$enable_optimization" == "no"
 then
   optimize_gfortran=''
 else

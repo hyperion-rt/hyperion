@@ -7,6 +7,7 @@ AC_INIT([rt],[version-1.0])
 AC_ARG_ENABLE(profiling, [  --enable-profiling      Enables the profiling flags])
 AC_ARG_ENABLE(debug, [  --enable-debug          Enables the full debugging flags])
 AC_ARG_ENABLE(static, [  --enable-static         Enables static compilation])
+AC_ARG_ENABLE(optimization, [  --disable-optimization  Compiles with gfortran without -O2 (used by the bit-level tests)])
 AC_ARG_VAR(HYPERION_HDF5_VERSION, [By default, we assume that HDF5 1.10 is being used. This environment variable can be set to 18 or 110 to explicitly request compatibility with HDF5 1.8.x and 1.10.x respectively.])
 
 # Static flags
@@ -66,11 +67,13 @@ else
 fi
 
 # Optimization flags. gfortran compiles at -O0 unless an optimization level
-# is given; debug builds keep that default. -ffp-contract=off stops gfortran
-# from fusing multiply-adds (on CPUs that have FMA), which keeps results
-# closer to the unoptimized build, similar to -fp-model strict for ifort.
+# is given; debug builds and --disable-optimization keep that default (the
+# bit-level tests compare against reference results from unoptimized builds).
+# -ffp-contract=off stops gfortran from fusing multiply-adds (on CPUs that have
+# FMA), which keeps results closer to the unoptimized build, similar to
+# -fp-model strict for ifort.
 
-if test "$enable_debug" == "yes"
+if test "$enable_debug" == "yes" || test "$enable_optimization" == "no"
 then
   optimize_gfortran=''
 else
