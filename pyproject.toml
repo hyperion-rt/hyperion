@@ -7,6 +7,13 @@ build-backend = 'setuptools.build_meta'
 [tool.setuptools_scm]
 write_to = "hyperion/_version.py"
 
+[tool.ruff]
+target-version = "py311"
+extend-exclude = ["parse_templates.py"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
 [tool.cibuildwheel]
 skip = "pp* cp39-* cp310-* *-musllinux* *aarch64* *i686* *win32*"
 # Build (and test) on a newer manylinux image so that runtime dependencies such

@@ -494,9 +494,9 @@ class AnalyticalYSOModel(Model):
             raise Exception("The central source radius need to be defined "
                             "before the grid can be set up")
 
-        if grid_type is 'spherical':
+        if grid_type == 'spherical':
             n_r, n_theta, n_phi = n1, n2, n3
-        elif grid_type is 'cylindrical':
+        elif grid_type == 'cylindrical':
             n_r, n_z, n_phi = n1, n2, n3
         else:
             raise Exception("Unknown grid type: %s" % grid_type)
@@ -573,13 +573,13 @@ class AnalyticalYSOModel(Model):
         r_wall = np.hstack([0., np.logspace(np.log10(rnext / rmin), np.log10((rmax - rmin) / rmin), n_r - 1)]) * rmin + rmin
         r_wall = np.hstack([0., r_wall])
 
-        if grid_type is 'spherical':
+        if grid_type == 'spherical':
 
             # THETA WALLS
             t_wall = np.linspace(0, pi, n_theta + 1)
             t_wall = t_wall + np.sin(2 * t_wall) / 6.
 
-        elif grid_type is 'cylindrical':
+        elif grid_type == 'cylindrical':
 
             # Z WALLS
 
@@ -617,7 +617,7 @@ class AnalyticalYSOModel(Model):
         # PHI WALLS
         p_wall = np.linspace(0., 2. * pi, n_phi + 1)
 
-        if grid_type is 'spherical':
+        if grid_type == 'spherical':
             return SphericalPolarGrid(r_wall, t_wall, p_wall)
         else:
             return CylindricalPolarGrid(r_wall, z_wall, p_wall)
