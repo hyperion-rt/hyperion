@@ -1815,7 +1815,7 @@ fi
 if test "$enable_debug" == "yes"
 then
   debug_nag='-C=all -gline -nan'
-  debug_ifort='-check all -warn all -warn nodec -warn interfaces -gen_interfaces -traceback -g'
+  debug_ifort='-check all -warn all -warn nodec -warn interfaces -gen-interfaces -traceback -g'
   # Unused dummy arguments are not warned about because many procedures have
   # to conform to interfaces shared between the different grid geometries,
   # and unused functions are not warned about because some private library
