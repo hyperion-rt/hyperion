@@ -153,7 +153,15 @@ elif test "$hdf_compiler" == pgfortran
 then
   AC_SUBST(posix_module_serial, posix_default)
   AC_SUBST(extra_serial, "$extra_pgi")
+elif test "$hdf_compiler" == nvfortran
+then
+  AC_SUBST(posix_module_serial, posix_default)
+  AC_SUBST(extra_serial, "$extra_pgi")
 elif test "$hdf_compiler" == ifort
+then
+  AC_SUBST(posix_module_serial, posix_default)
+  AC_SUBST(extra_serial, "$extra_ifort")
+elif test "$hdf_compiler" == ifx
 then
   AC_SUBST(posix_module_serial, posix_default)
   AC_SUBST(extra_serial, "$extra_ifort")
@@ -246,7 +254,15 @@ elif test "$mpi_compiler" == pgfortran
 then
   AC_SUBST(posix_module_mpi, posix_default)
   AC_SUBST(extra_mpi, "$extra_pgi")
+elif test "$mpi_compiler" == nvfortran
+then
+  AC_SUBST(posix_module_mpi, posix_default)
+  AC_SUBST(extra_mpi, "$extra_pgi")
 elif test "$mpi_compiler" == ifort
+then
+  AC_SUBST(posix_module_mpi, posix_default)
+  AC_SUBST(extra_mpi, "$extra_ifort")
+elif test "$mpi_compiler" == ifx
 then
   AC_SUBST(posix_module_mpi, posix_default)
   AC_SUBST(extra_mpi, "$extra_ifort")

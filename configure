@@ -1977,7 +1977,19 @@ then
 
   extra_serial="$extra_pgi"
 
+elif test "$hdf_compiler" == nvfortran
+then
+  posix_module_serial=posix_default
+
+  extra_serial="$extra_pgi"
+
 elif test "$hdf_compiler" == ifort
+then
+  posix_module_serial=posix_default
+
+  extra_serial="$extra_ifort"
+
+elif test "$hdf_compiler" == ifx
 then
   posix_module_serial=posix_default
 
@@ -2135,7 +2147,19 @@ then
 
   extra_mpi="$extra_pgi"
 
+elif test "$mpi_compiler" == nvfortran
+then
+  posix_module_mpi=posix_default
+
+  extra_mpi="$extra_pgi"
+
 elif test "$mpi_compiler" == ifort
+then
+  posix_module_mpi=posix_default
+
+  extra_mpi="$extra_ifort"
+
+elif test "$mpi_compiler" == ifx
 then
   posix_module_mpi=posix_default
 
