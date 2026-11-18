@@ -7,7 +7,7 @@ AC_INIT([rt],[version-1.0])
 AC_ARG_ENABLE(profiling, [  --enable-profiling      Enables the profiling flags])
 AC_ARG_ENABLE(debug, [  --enable-debug          Enables the full debugging flags])
 AC_ARG_ENABLE(static, [  --enable-static         Enables static compilation])
-AC_ARG_ENABLE(optimization, [  --disable-optimization  Compiles with gfortran without -O2 (used by the bit-level tests)])
+AC_ARG_ENABLE(optimization, [  --disable-optimization  Disables compiler optimization])
 AC_ARG_VAR(HYPERION_HDF5_VERSION, [By default, we assume that HDF5 1.10 is being used. This environment variable can be set to 18 or 110 to explicitly request compatibility with HDF5 1.8.x and 1.10.x respectively.])
 
 # Static flags
@@ -66,25 +66,37 @@ else
   debug_pgi=''
 fi
 
-# Optimization flags. gfortran compiles at -O0 unless an optimization level
-# is given; debug builds and --disable-optimization keep that default (the
-# bit-level tests compare against reference results from unoptimized builds).
-# -ffp-contract=off stops gfortran from fusing multiply-adds (on CPUs that have
-# FMA), which keeps results closer to the unoptimized build, similar to
-# -fp-model strict for ifort.
+# Optimization flags. We explicitly set the optimization level for all
+# compilers, since the default is no optimization for some (gfortran, g95 and
+# NAG) and depends on other flags such as -g for others (ifort and PGI). We
+# use -O2 by default, and no optimization for debug builds or if
+# --disable-optimization is given (the bit-level tests use this since they
+# compare against reference results from unoptimized builds). We also disable
+# fused multiply-add instructions where compilers would otherwise generate
+# them, and request strict IEEE arithmetic where this is not already done
+# below, to keep results as close as possible to those from unoptimized
+# builds.
 
 if test "$enable_debug" == "yes" || test "$enable_optimization" == "no"
 then
-  optimize_gfortran=''
+  optimize_nag='-O0'
+  optimize_ifort='-O0'
+  optimize_gfortran='-O0'
+  optimize_g95='-O0'
+  optimize_pgi='-O0'
 else
+  optimize_nag='-O2'
+  optimize_ifort='-O2'
   optimize_gfortran='-O2 -ffp-contract=off'
+  optimize_g95='-O2'
+  optimize_pgi='-O2 -Kieee -Mnofma'
 fi
 
-extra_nag="-Isrc/modules -mdir src/modules -f2003 -colour -ieee=full $debug_nag $profiling_nag $static_nag"
-extra_ifort="-module src/modules -heap-arrays -error-limit 1 -fp-model strict -diag-disable 8291 $debug_ifort $profiling_ifort $static_ifort"
+extra_nag="-Isrc/modules -mdir src/modules -f2003 -colour -ieee=full $optimize_nag $debug_nag $profiling_nag $static_nag"
+extra_ifort="-module src/modules -heap-arrays -error-limit 1 -fp-model strict -diag-disable 8291 $optimize_ifort $debug_ifort $profiling_ifort $static_ifort"
 extra_gfortran="-Jsrc/modules -Isrc/modules -g -ffree-line-length-none $optimize_gfortran $debug_gfortran $profiling_gfortran $static_gfortran"
-extra_g95="-fmod=src/modules -Isrc/modules -g -ffree-line-length-huge $debug_g95 $profiling_g95 $static_g95"
-extra_pgi="$debug_pgi $profiling_pgi $static_pgi"
+extra_g95="-fmod=src/modules -Isrc/modules -g -ffree-line-length-huge $optimize_g95 $debug_g95 $profiling_g95 $static_g95"
+extra_pgi="$optimize_pgi $debug_pgi $profiling_pgi $static_pgi"
 
 # SERIAL CODE
 
