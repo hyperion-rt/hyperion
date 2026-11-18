@@ -6,7 +6,7 @@ module grid_mrw
   use type_photon
   use grid_geometry
   use grid_physics
-  use dust_main, only : kappa_planck, chi_inv_planck, n_dust, d
+  use dust_main, only : kappa_planck, chi_inv_planck, n_dust, d, update_optconsts
   use type_dust, only : dust_sample_b_nu
 
   implicit none
@@ -102,6 +102,10 @@ contains
     id = select_dust_chi_rho(p)
     call dust_sample_b_nu(d(id), jnu_var_id(p%icell%ic, id), jnu_var_frac(p%icell%ic, id), p%nu)
 
+    ! The new frequency needs new optical constants (opacity, albedo) for the
+    ! next flight, the scatter/absorb choice and peeloff extinction.
+    call update_optconsts(p)
+
     ! For peeloff, we are going to assume that the radiation is isotropic.
     ! This is not quite exact, but is not likely to matter much.
     p%last_isotropic = .true.
@@ -139,6 +143,10 @@ contains
 
     id = select_dust_chi_rho(p)
     call dust_sample_b_nu(d(id), jnu_var_id(p%icell%ic, id), jnu_var_frac(p%icell%ic, id), p%nu)
+
+    ! The new frequency needs new optical constants (opacity, albedo) for the
+    ! next flight, the scatter/absorb choice and peeloff extinction.
+    call update_optconsts(p)
 
     ! For peeloff, we are going to assume that the radiation is isotropic.
     ! This is not quite exact, but is not likely to matter much.
