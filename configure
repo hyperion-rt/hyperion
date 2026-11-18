@@ -1837,11 +1837,17 @@ fi
 # NAG) and depends on other flags such as -g for others (ifort and PGI). We
 # use -O2 by default, and no optimization for debug builds or if
 # --disable-optimization is given (the bit-level tests use this since they
-# compare against reference results from unoptimized builds). We also disable
-# fused multiply-add instructions where compilers would otherwise generate
-# them, and request strict IEEE arithmetic where this is not already done
-# below, to keep results as close as possible to those from unoptimized
-# builds.
+# compare against reference results from unoptimized builds).
+#
+# For gfortran, we disable fused multiply-add instructions, which would
+# otherwise be generated when optimizing, to keep results as close as possible
+# to those from unoptimized builds (the equivalent options for the Intel and
+# PGI/NVIDIA compilers are always set below, since for those they also change
+# the results of unoptimized builds).
+#
+# For the PGI/NVIDIA compilers, we disable inlining since nvfortran (at least
+# version 25.11) otherwise crashes when compiling all the source files with a
+# single command, which is what the Makefile does.
 
 if test "$enable_debug" == "yes" || test "$enable_optimization" == "no"
 then
@@ -1855,14 +1861,14 @@ else
   optimize_ifort='-O2'
   optimize_gfortran='-O2 -ffp-contract=off'
   optimize_g95='-O2'
-  optimize_pgi='-O2 -Kieee -Mnofma'
+  optimize_pgi='-O2 -Mnoinline'
 fi
 
 extra_nag="-Isrc/modules -mdir src/modules -f2003 -colour -ieee=full $optimize_nag $debug_nag $profiling_nag $static_nag"
 extra_ifort="-module src/modules -heap-arrays -error-limit 1 -fp-model strict -diag-disable 8291 $optimize_ifort $debug_ifort $profiling_ifort $static_ifort"
 extra_gfortran="-Jsrc/modules -Isrc/modules -g -ffree-line-length-none $optimize_gfortran $debug_gfortran $profiling_gfortran $static_gfortran"
 extra_g95="-fmod=src/modules -Isrc/modules -g -ffree-line-length-huge $optimize_g95 $debug_g95 $profiling_g95 $static_g95"
-extra_pgi="$optimize_pgi $debug_pgi $profiling_pgi $static_pgi"
+extra_pgi="-Kieee -Mnofma $optimize_pgi $debug_pgi $profiling_pgi $static_pgi"
 
 # SERIAL CODE
 
