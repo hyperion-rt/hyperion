@@ -62,7 +62,12 @@ contains
        p%dust_id = id
        p%last = 'de'
     else
-       call dust_scatter(d(id),p%nu,p%a,p%s)
+       ! Pass the frequency index update_optconsts found for this nu
+       if(p%inu_cache_nu == p%nu .and. id <= n_inu_cache) then
+          call dust_scatter(d(id),p%nu,p%a,p%s,p%inu_cache(id))
+       else
+          call dust_scatter(d(id),p%nu,p%a,p%s)
+       end if
        p%scattered=.true.
        p%last_isotropic = .false.
        p%dust_id = id
@@ -84,7 +89,11 @@ contains
     type(angle3d_dp),intent(in)    :: a_req
     select case(p%last)
     case('ds')
-       call dust_scatter_peeloff(d(p%dust_id),p%nu,p%a,p%s,a_req)
+       if(p%inu_cache_nu == p%nu .and. p%dust_id <= n_inu_cache) then
+          call dust_scatter_peeloff(d(p%dust_id),p%nu,p%a,p%s,a_req,p%inu_cache(p%dust_id))
+       else
+          call dust_scatter_peeloff(d(p%dust_id),p%nu,p%a,p%s,a_req)
+       end if
     case('de')
        call dust_emit_peeloff(d(p%dust_id),p%nu,p%a,p%s,a_req)
     case default
