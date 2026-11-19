@@ -109,8 +109,14 @@ similarly for the mean opacities to absorption, with :math:`\kappa_\nu`
 instead of :math:`\chi_\nu`. Note that the reciprocal Planck mean opacity is
 therefore not the reciprocal of the Planck mean opacity, but the reciprocal
 of the Planck mean of :math:`1/\chi_\nu`. The reciprocal Planck mean
-opacities are used for example by the modified random walk, and the
-Rosseland mean opacities by the partial diffusion approximation.
+opacity is the mean opacity that appears in the diffusion coefficient for the
+modified random walk (Equation 18 of `Robitaille (2010)`_, where it was
+incorrectly identified as the Rosseland mean opacity - see the
+`corrigendum`_), while the Rosseland mean opacities are used for example by
+the partial diffusion approximation.
+
+.. _Robitaille (2010): https://doi.org/10.1051/0004-6361/201015025
+.. _corrigendum: https://doi.org/10.1051/0004-6361/201015025e
 
 The temperatures specified should range from 0.1K (or less) to a
 temperature safely above the maximum temperature expected for the dust in
