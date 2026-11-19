@@ -106,6 +106,13 @@ contains
     ! next flight, the scatter/absorb choice and peeloff extinction.
     call update_optconsts(p)
 
+    ! The photon leaving the diffusion sphere is thermal emission from the
+    ! dust, so as in the normal re-emission case it is unpolarized and has
+    ! not been scattered since it was last emitted.
+    p%s = stokes_dp(1._dp, 0._dp, 0._dp, 0._dp)
+    p%scattered = .false.
+    p%reprocessed = .true.
+
     ! For peeloff, we are going to assume that the radiation is isotropic.
     ! This is not quite exact, but is not likely to matter much.
     p%last_isotropic = .true.
@@ -147,6 +154,13 @@ contains
     ! The new frequency needs new optical constants (opacity, albedo) for the
     ! next flight, the scatter/absorb choice and peeloff extinction.
     call update_optconsts(p)
+
+    ! The photon leaving the diffusion sphere is thermal emission from the
+    ! dust, so as in the normal re-emission case it is unpolarized and has
+    ! not been scattered since it was last emitted.
+    p%s = stokes_dp(1._dp, 0._dp, 0._dp, 0._dp)
+    p%scattered = .false.
+    p%reprocessed = .true.
 
     ! For peeloff, we are going to assume that the radiation is isotropic.
     ! This is not quite exact, but is not likely to matter much.

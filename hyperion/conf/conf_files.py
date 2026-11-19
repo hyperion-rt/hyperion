@@ -468,7 +468,12 @@ class RunConf(object):
         gamma : float, optional
             The parameter describing the starting criterion for the MRW.
             The MRW is carried out if the distance to the closest cell is
-            larger than `gamma` times the Rosseland mean free path.
+            larger than `gamma` times the Rosseland mean free path. Low
+            values make the MRW faster, but can lead to regions that are
+            treated as diffusive even though they are optically thin at long
+            wavelengths, which results in excess long-wavelength emission
+            and temperatures that are too low, so higher values (e.g. 10)
+            are recommended if these are important.
         inter_max : int, optional
             Maximum number of interactions during a single random walk.
             This can be used to prevent photons from getting stuck in the
