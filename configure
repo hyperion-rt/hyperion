@@ -1845,6 +1845,11 @@ fi
 # PGI/NVIDIA compilers are always set below, since for those they also change
 # the results of unoptimized builds).
 #
+# For gfortran, we also enable link-time optimization, which allows the
+# compiler to inline the many small routines that are called across modules
+# in the photon propagation loop. This does not change the floating-point
+# model, but makes linking slower.
+#
 # For the PGI/NVIDIA compilers, we disable inlining since nvfortran (at least
 # version 25.11) otherwise crashes when compiling all the source files with a
 # single command, which is what the Makefile does.
@@ -1859,7 +1864,7 @@ then
 else
   optimize_nag='-O2'
   optimize_ifort='-O2'
-  optimize_gfortran='-O2 -ffp-contract=off'
+  optimize_gfortran='-O2 -ffp-contract=off -flto'
   optimize_g95='-O2'
   optimize_pgi='-O2 -Mnoinline'
 fi
