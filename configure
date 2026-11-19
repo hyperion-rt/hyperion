@@ -669,6 +669,7 @@ enable_profiling
 enable_debug
 enable_static
 enable_optimization
+enable_lto
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1296,6 +1297,7 @@ Optional Features:
   --enable-debug          Enables the full debugging flags
   --enable-static         Enables static compilation
   --disable-optimization  Disables compiler optimization
+  --disable-lto           Disables link-time optimization (gfortran only)
 
 Some influential environment variables:
   HYPERION_HDF5_VERSION
@@ -1774,6 +1776,12 @@ then :
   enableval=$enable_optimization;
 fi
 
+# Check whether --enable-lto was given.
+if test ${enable_lto+y}
+then :
+  enableval=$enable_lto;
+fi
+
 
 
 # Static flags
@@ -1845,6 +1853,11 @@ fi
 # PGI/NVIDIA compilers are always set below, since for those they also change
 # the results of unoptimized builds).
 #
+# For gfortran, we also enable link-time optimization (unless --disable-lto is
+# given), which allows the compiler to inline the many small routines that
+# are called across modules in the photon propagation loop. This does not
+# change the floating-point model, but makes linking slower.
+#
 # For the PGI/NVIDIA compilers, we disable inlining since nvfortran (at least
 # version 25.11) otherwise crashes when compiling all the source files with a
 # single command, which is what the Makefile does.
@@ -1859,7 +1872,12 @@ then
 else
   optimize_nag='-O2'
   optimize_ifort='-O2'
-  optimize_gfortran='-O2 -ffp-contract=off'
+  if test "$enable_lto" == "no"
+  then
+    optimize_gfortran='-O2 -ffp-contract=off'
+  else
+    optimize_gfortran='-O2 -ffp-contract=off -flto'
+  fi
   optimize_g95='-O2'
   optimize_pgi='-O2 -Mnoinline'
 fi
