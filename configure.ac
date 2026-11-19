@@ -7,6 +7,7 @@ AC_INIT([rt],[version-1.0])
 AC_ARG_ENABLE(profiling, [  --enable-profiling      Enables the profiling flags])
 AC_ARG_ENABLE(debug, [  --enable-debug          Enables the full debugging flags])
 AC_ARG_ENABLE(static, [  --enable-static         Enables static compilation])
+AC_ARG_ENABLE(optimization, [  --disable-optimization  Disables compiler optimization])
 AC_ARG_VAR(HYPERION_HDF5_VERSION, [By default, we assume that HDF5 1.10 is being used. This environment variable can be set to 18 or 110 to explicitly request compatibility with HDF5 1.8.x and 1.10.x respectively.])
 
 # Static flags
@@ -48,7 +49,7 @@ fi
 if test "$enable_debug" == "yes"
 then
   debug_nag='-C=all -gline -nan'
-  debug_ifort='-check all -warn all -warn nodec -warn interfaces -gen_interfaces -traceback -g'
+  debug_ifort='-check all -warn all -warn nodec -warn interfaces -gen-interfaces -traceback -g'
   # Unused dummy arguments are not warned about because many procedures have
   # to conform to interfaces shared between the different grid geometries,
   # and unused functions are not warned about because some private library
@@ -65,11 +66,43 @@ else
   debug_pgi=''
 fi
 
-extra_nag="-Isrc/modules -mdir src/modules -f2003 -colour -ieee=full $debug_nag $profiling_nag $static_nag"
-extra_ifort="-module src/modules -heap-arrays -error-limit 1 -fp-model strict -diag-disable 8291 $debug_ifort $profiling_ifort $static_ifort"
-extra_gfortran="-Jsrc/modules -Isrc/modules -g -ffree-line-length-none $debug_gfortran $profiling_gfortran $static_gfortran"
-extra_g95="-fmod=src/modules -Isrc/modules -g -ffree-line-length-huge $debug_g95 $profiling_g95 $static_g95"
-extra_pgi="$debug_pgi $profiling_pgi $static_pgi"
+# Optimization flags. We explicitly set the optimization level for all
+# compilers, since the default is no optimization for some (gfortran, g95 and
+# NAG) and depends on other flags such as -g for others (ifort and PGI). We
+# use -O2 by default, and no optimization for debug builds or if
+# --disable-optimization is given (the bit-level tests use this since they
+# compare against reference results from unoptimized builds).
+#
+# For gfortran, we disable fused multiply-add instructions, which would
+# otherwise be generated when optimizing, to keep results as close as possible
+# to those from unoptimized builds (the equivalent options for the Intel and
+# PGI/NVIDIA compilers are always set below, since for those they also change
+# the results of unoptimized builds).
+#
+# For the PGI/NVIDIA compilers, we disable inlining since nvfortran (at least
+# version 25.11) otherwise crashes when compiling all the source files with a
+# single command, which is what the Makefile does.
+
+if test "$enable_debug" == "yes" || test "$enable_optimization" == "no"
+then
+  optimize_nag='-O0'
+  optimize_ifort='-O0'
+  optimize_gfortran='-O0'
+  optimize_g95='-O0'
+  optimize_pgi='-O0'
+else
+  optimize_nag='-O2'
+  optimize_ifort='-O2'
+  optimize_gfortran='-O2 -ffp-contract=off'
+  optimize_g95='-O2'
+  optimize_pgi='-O2 -Mnoinline'
+fi
+
+extra_nag="-Isrc/modules -mdir src/modules -f2003 -colour -ieee=full $optimize_nag $debug_nag $profiling_nag $static_nag"
+extra_ifort="-module src/modules -heap-arrays -error-limit 1 -fp-model strict -diag-disable 8291 $optimize_ifort $debug_ifort $profiling_ifort $static_ifort"
+extra_gfortran="-Jsrc/modules -Isrc/modules -g -ffree-line-length-none $optimize_gfortran $debug_gfortran $profiling_gfortran $static_gfortran"
+extra_g95="-fmod=src/modules -Isrc/modules -g -ffree-line-length-huge $optimize_g95 $debug_g95 $profiling_g95 $static_g95"
+extra_pgi="-Kieee -Mnofma $optimize_pgi $debug_pgi $profiling_pgi $static_pgi"
 
 # SERIAL CODE
 
@@ -100,8 +133,9 @@ fi
 
 # gfortran sometimes includes version number and/or platform info
 # (e.g., x86_64-pc-linux-gnu-gfortran-4.8.2), so check whether this is the case
+# (but taking care not to match pgfortran, which also contains gfortran)
 hdf_compiler_short=`echo $hdf_compiler | sed s/'.*gfortran.*'/gfortran/`
-if test "$hdf_compiler_short" == gfortran
+if test "$hdf_compiler_short" == gfortran && test "$hdf_compiler" != pgfortran
 then
   hdf_compiler=gfortran
 fi
@@ -126,7 +160,15 @@ elif test "$hdf_compiler" == pgfortran
 then
   AC_SUBST(posix_module_serial, posix_default)
   AC_SUBST(extra_serial, "$extra_pgi")
+elif test "$hdf_compiler" == nvfortran
+then
+  AC_SUBST(posix_module_serial, posix_default)
+  AC_SUBST(extra_serial, "$extra_pgi")
 elif test "$hdf_compiler" == ifort
+then
+  AC_SUBST(posix_module_serial, posix_default)
+  AC_SUBST(extra_serial, "$extra_ifort")
+elif test "$hdf_compiler" == ifx
 then
   AC_SUBST(posix_module_serial, posix_default)
   AC_SUBST(extra_serial, "$extra_ifort")
@@ -193,8 +235,9 @@ fi
 
 # gfortran sometimes includes version number and/or platform info
 # (e.g., x86_64-pc-linux-gnu-gfortran-4.8.2), so check whether this is the case
+# (but taking care not to match pgfortran, which also contains gfortran)
 mpi_compiler_short=`echo $mpi_compiler | sed s/'.*gfortran.*'/gfortran/`
-if test "$mpi_compiler_short" == gfortran
+if test "$mpi_compiler_short" == gfortran && test "$mpi_compiler" != pgfortran
 then
   mpi_compiler=gfortran
 fi
@@ -219,7 +262,15 @@ elif test "$mpi_compiler" == pgfortran
 then
   AC_SUBST(posix_module_mpi, posix_default)
   AC_SUBST(extra_mpi, "$extra_pgi")
+elif test "$mpi_compiler" == nvfortran
+then
+  AC_SUBST(posix_module_mpi, posix_default)
+  AC_SUBST(extra_mpi, "$extra_pgi")
 elif test "$mpi_compiler" == ifort
+then
+  AC_SUBST(posix_module_mpi, posix_default)
+  AC_SUBST(extra_mpi, "$extra_ifort")
+elif test "$mpi_compiler" == ifx
 then
   AC_SUBST(posix_module_mpi, posix_default)
   AC_SUBST(extra_mpi, "$extra_ifort")
