@@ -20,14 +20,12 @@ The dust properties presented here were recomputed with the code described in
 had to recompute them in order to obtain the full scattering properties which
 were otherwise not available).
 
-The dust files are available in the ``hyperion-dust`` directory as
-``dust_files/d03_3.1_6.0_A.hdf5``, ``dust_files/d03_4.0_4.0_A.hdf5``, and
-``dust_files/d03_5.5_3.0_A.hdf5`` (once you have run
-``python setup.py build_dust``), where the first number indicates the Rv, and
-the second indicates b_c.
+These dust models are available as ``d03_3.1_6.0_A``, ``d03_4.0_4.0_A``, and
+``d03_5.5_3.0_A`` in the hyperion-dust package (see :doc:`dust`), where the
+first number indicates the Rv, and the second indicates b_c.
 
-Milky-Way dust, Rv=3.1, b_c=6.0 (``dust_files/d03_3.1_6.0_A.hdf5``)
--------------------------------------------------------------------
+Milky-Way dust, Rv=3.1, b_c=6.0 (``d03_3.1_6.0_A``)
+---------------------------------------------------
 
 The following plot gives an overview of the dust properties (as described in
 :doc:`../setup/setup_dust`):
@@ -36,8 +34,8 @@ The following plot gives an overview of the dust properties (as described in
     :width: 800px
     :align: center
     
-Milky-Way dust, Rv=4.0, b_c=4.0 (``dust_files/d03_4.0_4.0_A.hdf5``)
--------------------------------------------------------------------
+Milky-Way dust, Rv=4.0, b_c=4.0 (``d03_4.0_4.0_A``)
+---------------------------------------------------
 
 The following plot gives an overview of the dust properties (as described in
 :doc:`../setup/setup_dust`):
@@ -46,8 +44,8 @@ The following plot gives an overview of the dust properties (as described in
     :width: 800px
     :align: center
     
-Milky-Way dust, Rv=5.5, b_c=3.0 (``dust_files/d03_5.5_3.0_A.hdf5``)
--------------------------------------------------------------------
+Milky-Way dust, Rv=5.5, b_c=3.0 (``d03_5.5_3.0_A``)
+---------------------------------------------------
 
 The following plot gives an overview of the dust properties (as described in
 :doc:`../setup/setup_dust`):

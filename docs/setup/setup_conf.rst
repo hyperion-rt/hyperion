@@ -129,6 +129,8 @@ cases where you know it is absolutely needed. In most cases, if photons cannot
 reach inside certain cells, these cells are unlikely to be contributing a
 significant amount of flux to SEDs or images.
 
+.. _dust_sublimation:
+
 Dust sublimation
 ----------------
 
