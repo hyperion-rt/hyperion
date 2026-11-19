@@ -110,9 +110,10 @@ instead of :math:`\chi_\nu`. Note that the reciprocal Planck mean opacity is
 therefore not the reciprocal of the Planck mean opacity, but the reciprocal
 of the Planck mean of :math:`1/\chi_\nu`. The reciprocal Planck mean
 opacity is the mean opacity that appears in the diffusion coefficient for the
-modified random walk (Equation 18 of `Robitaille (2010)`_, where it was
-incorrectly identified as the Rosseland mean opacity - see the
-`corrigendum`_), while the Rosseland mean opacities are used for example by
+modified random walk: it is defined in Equation 2 of the `corrigendum`_ to
+`Robitaille (2010)`_, where it is called the Planck reciprocal mean opacity
+(in Equation 18 of the original paper, it was incorrectly identified as the
+Rosseland mean opacity). The Rosseland mean opacities are used for example by
 the partial diffusion approximation.
 
 .. _Robitaille (2010): https://doi.org/10.1051/0004-6361/201015025
