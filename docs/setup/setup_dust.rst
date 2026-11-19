@@ -12,12 +12,12 @@ for more details.
 .. note:: Because the choice of a dust model is very important for the model,
           no 'default' dust models are provided with Hyperion, as there is no
           single sensible default. Instead, you can set up any dust model
-          using the instructions below. In future, a database of published and
-          common dust models will be provided. If you are not sure which dust
-          model to use, or are not familiar with opacities, albedos, and
-          scattering phase functions, you are strongly encouraged to team up
-          with someone who is an expert on the topic of dust, as this should
-          not be left to chance!
+          using the instructions below, or use one of the models in the
+          :doc:`library of dust models <../dust/dust>`. If you are not sure
+          which dust model to use, or are not familiar with opacities,
+          albedos, and scattering phase functions, you are strongly encouraged
+          to team up with someone who is an expert on the topic of dust, as
+          this should not be left to chance!
 
 There are several ways to set up the dust properties that you want to use, and
 these are detailed in sections below. In all cases, setting up the dust models

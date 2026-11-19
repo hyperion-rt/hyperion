@@ -11,19 +11,18 @@ Galaxy.
           **gas+dust**, assuming a gas-to-dust ratio of 141.84. This means that
           when using Hyperion, the total gas+dust densities should be specified.
 
-This version of the dust file is take directly from `HOCHUNK`_, the radiative
+This version of the dust file is taken directly from `HOCHUNK`_, the radiative
 transfer code developed by B. Whitney et al. This is the dust you should use if
 you want to reproduce results from that code, and it approximates the
 scattering with a Henyey-Greenstein function. However, if you are interested in
 the best version of the KMH dust, with full scattering properties, you can find
 this under :doc:`kmh`.
 
-The dust file is available in the ``hyperion-dust`` directory as
-``dust_files/kmh94_3.1_hg.hdf5`` (once you have run
-``python setup.py build_dust``).
+This dust model is available as ``kmh94_3.1_hg`` in the hyperion-dust
+package (see :doc:`dust`).
 
-Rv=3.1 (``dust_files/kmh94_3.1_hg.hdf5``)
--------------------------------------------
+Rv=3.1 (``kmh94_3.1_hg``)
+-------------------------
 
 The following plot gives an overview of the dust properties (as described in
 :doc:`../setup/setup_dust`):

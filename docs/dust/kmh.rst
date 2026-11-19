@@ -18,12 +18,14 @@ developed by B. Whitney et al., since that dust approximated the scattering
 with a Henyey-Greenstein function. If you are interested in using that dust
 instead, see :doc:`kmh_hg`.
 
-The dust file is available in the ``hyperion-dust`` directory as
-``dust_files/kmh94_3.1_full.hdf5`` (once you have run
-``python setup.py build_dust``).
+Since the two versions were computed independently, the opacities and albedos
+also differ by a few percent, and not only in how scattering is treated.
 
-Rv=3.1 (``dust_files/kmh94_3.1_full.hdf5``)
--------------------------------------------
+This dust model is available as ``kmh94_3.1_full`` in the hyperion-dust
+package (see :doc:`dust`).
+
+Rv=3.1 (``kmh94_3.1_full``)
+---------------------------
 
 The following plot gives an overview of the dust properties (as described in
 :doc:`../setup/setup_dust`):
