@@ -23,8 +23,10 @@ An HDF5 dust file should contain 5 datasets. The root of the file should contain
   energy absorbed in each cell (``E``) or another quantity (but this is not
   supported at this time).
 
-* ``version``: this should be set to ``1`` - the version described in this
-  section.
+* ``version``: this should be set to ``2`` - the version described in this
+  section. Files with version ``1`` did not include the reciprocal Planck
+  mean opacities and contained incorrect Rosseland mean opacities, and
+  cannot be used for models that use the partial diffusion approximation.
 
 * ``type``: the dust file type. At the moment, the only kind of dust file
   supported is one giving the four unique elements of the scattering matrix
@@ -71,16 +73,51 @@ which the matrix elements are tabulated in the ``Optical properties`` dataset.
 This dataset should consist of a table with pre-computed mean opacities for
 the dust. The columns should be:
 
-* ``specific energy``: The specific energy for which the mean opacities are
-  given
+* ``temperature``: The temperature for which the mean opacities are given,
+  in K. This column is not used by the Fortran code, but is needed to read
+  the file with the Python library.
 
-* ``chi_planck``: The Plank mean opacity to extinction, in cm^2/g
+* ``specific_energy``: The specific energy corresponding to each temperature,
+  in erg/s/g, which is given by :math:`4\sigma T^4\kappa_{\rm P}` where
+  :math:`\kappa_{\rm P}` is the Planck mean opacity to absorption.
+
+* ``chi_planck``: The Planck mean opacity to extinction, in cm^2/g
+
+* ``kappa_planck``: The Planck mean opacity to absorption, in cm^2/g
+
+* ``chi_inv_planck``: The reciprocal Planck mean opacity to extinction, in
+  cm^2/g
+
+* ``kappa_inv_planck``: The reciprocal Planck mean opacity to absorption, in
+  cm^2/g
 
 * ``chi_rosseland``: The Rosseland mean opacity to extinction, in cm^2/g
 
-* ``kappa_planck``: The Plank mean opacity to absorption, in cm^2/g
-
 * ``kappa_rosseland``: The Rosseland mean opacity to absorption, in cm^2/g
+
+The Planck, reciprocal Planck, and Rosseland mean opacities to extinction are
+defined as
+
+.. math:: \chi_{\rm P} = \frac{\int \chi_\nu B_\nu\,d\nu}{\int B_\nu\,d\nu}
+          \quad\quad
+          \chi_{\rm P}^{\rm inv} = \frac{\int B_\nu\,d\nu}{\int \chi_\nu^{-1} B_\nu\,d\nu}
+          \quad\quad
+          \chi_{\rm R} = \frac{\int \partial B_\nu / \partial T\,d\nu}{\int \chi_\nu^{-1}\,\partial B_\nu / \partial T\,d\nu}
+
+where :math:`B_\nu` is the Planck function at the temperature :math:`T`, and
+similarly for the mean opacities to absorption, with :math:`\kappa_\nu`
+instead of :math:`\chi_\nu`. Note that the reciprocal Planck mean opacity is
+therefore not the reciprocal of the Planck mean opacity, but the reciprocal
+of the Planck mean of :math:`1/\chi_\nu`. The reciprocal Planck mean
+opacity is the mean opacity that appears in the diffusion coefficient for the
+modified random walk: it is defined in Equation 2 of the `corrigendum`_ to
+`Robitaille (2010)`_, where it is called the Planck reciprocal mean opacity
+(in Equation 18 of the original paper, it was incorrectly identified as the
+Rosseland mean opacity). The Rosseland mean opacities are used for example by
+the partial diffusion approximation.
+
+.. _Robitaille (2010): https://doi.org/10.1051/0004-6361/201015025
+.. _corrigendum: https://doi.org/10.1051/0004-6361/201015025e
 
 The temperatures specified should range from 0.1K (or less) to a
 temperature safely above the maximum temperature expected for the dust in
