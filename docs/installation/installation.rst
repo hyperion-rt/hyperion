@@ -44,6 +44,12 @@ If you see the same as the above, you are all set! If you run into any issues,
 please let us know by `opening an issue
 <https://github.com/hyperion-rt/hyperion/issues>`_.
 
+If you want to use the dust models from the :doc:`library of dust models
+<../dust/dust>`, you should also install the ``hyperion-dust`` package, which
+is not included in the above::
+
+    pip install hyperion-dust
+
 The longer way
 ==============
 
@@ -93,6 +99,10 @@ The packages required for the Python code (in addition to Python itself) are:
 * `Astropy <http://www.astropy.org>`_ 1.2 or later
 * `yt <http://yt-project.org/>`_ 3.3 or later
 
+In addition, the `hyperion-dust <https://github.com/hyperion-rt/hyperion-dust>`_
+package is needed if you want to use the dust models from the :doc:`library of
+dust models <../dust/dust>`.
+
 These dependencies will be automatically installed when installing the Python
 component of Hyperion if they are not already present.
 
@@ -119,7 +129,12 @@ or::
 
     pip install ".[recommended]" --user
 
-if you do not have root access. Check that the module installed correctly::
+if you do not have root access. To also install the :doc:`library of dust
+models <../dust/dust>`, add the ``dust`` extra::
+
+    pip install ".[recommended,dust]"
+
+Check that the module installed correctly::
 
     $ python
     Python 2.7.2 (default, Jan 31 2012, 22:38:06)

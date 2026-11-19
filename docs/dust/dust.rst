@@ -4,9 +4,14 @@ Library of dust models
 While you are encouraged to prepare your own dust properties file based on the
 most appropriate dust model for your problem (see :doc:`../setup/setup_dust`),
 we provide a library of dust models that you can select from. These are
-available in the `hyperion-dust`_ package, which can be installed with::
+available in the `hyperion-dust`_ package, which is not installed by default
+with Hyperion, and can be installed with::
 
     pip install hyperion-dust
+
+or by asking for the ``dust`` extra when installing Hyperion with pip::
+
+    pip install "hyperion[dust]"
 
 Since dust files tend to be large, the package only includes the tabulated
 optical properties, and builds the dust objects and files when they are
