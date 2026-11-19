@@ -8,7 +8,6 @@ AC_ARG_ENABLE(profiling, [  --enable-profiling      Enables the profiling flags]
 AC_ARG_ENABLE(debug, [  --enable-debug          Enables the full debugging flags])
 AC_ARG_ENABLE(static, [  --enable-static         Enables static compilation])
 AC_ARG_ENABLE(optimization, [  --disable-optimization  Disables compiler optimization])
-AC_ARG_ENABLE(lto, [  --disable-lto           Disables link-time optimization (gfortran only)])
 AC_ARG_VAR(HYPERION_HDF5_VERSION, [By default, we assume that HDF5 1.10 is being used. This environment variable can be set to 18 or 110 to explicitly request compatibility with HDF5 1.8.x and 1.10.x respectively.])
 
 # Static flags
@@ -80,10 +79,10 @@ fi
 # PGI/NVIDIA compilers are always set below, since for those they also change
 # the results of unoptimized builds).
 #
-# For gfortran, we also enable link-time optimization (unless --disable-lto is
-# given), which allows the compiler to inline the many small routines that
-# are called across modules in the photon propagation loop. This does not
-# change the floating-point model, but makes linking slower.
+# For gfortran, we also enable link-time optimization, which allows the
+# compiler to inline the many small routines that are called across modules
+# in the photon propagation loop. This does not change the floating-point
+# model, but makes linking slower.
 #
 # For the PGI/NVIDIA compilers, we disable inlining since nvfortran (at least
 # version 25.11) otherwise crashes when compiling all the source files with a
@@ -99,12 +98,7 @@ then
 else
   optimize_nag='-O2'
   optimize_ifort='-O2'
-  if test "$enable_lto" == "no"
-  then
-    optimize_gfortran='-O2 -ffp-contract=off'
-  else
-    optimize_gfortran='-O2 -ffp-contract=off -flto'
-  fi
+  optimize_gfortran='-O2 -ffp-contract=off -flto'
   optimize_g95='-O2'
   optimize_pgi='-O2 -Mnoinline'
 fi
