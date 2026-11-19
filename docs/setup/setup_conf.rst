@@ -115,6 +115,24 @@ enable the modified random walk, and set the gamma parameter to ``2``::
 
     m.set_mrw(True, gamma=2.)
 
+The MRW assumes that the region inside the diffusion sphere is optically thick
+at all wavelengths, and photons leave the sphere with a frequency sampled from
+the Planck function at the local dust temperature (`Robitaille 2010`_).
+However, the starting criterion only depends on a mean optical depth, so for
+low values of ``gamma`` the sphere can be optically thin at long wavelengths.
+In this case too many photons are emitted at these wavelengths and escape
+directly, which lowers the temperature in the regions where the MRW is used
+and produces excess far-infrared and sub-millimeter flux in SEDs and images
+that are computed without raytracing. In a test of a spherical envelope with a
+visual optical depth of 1000, the 200 to 3000 micron flux computed without
+raytracing was more than twice the correct value for ``gamma=2``, around 20%
+too high for ``gamma=5``, and the temperatures in the innermost cells were too
+low by 1 to 2%. If long-wavelength fluxes or accurate temperatures in the
+densest regions are important, we therefore recommend using higher values of
+``gamma`` (e.g. ``10``, as suggested by `Min et al. 2009`_), at the cost of a
+longer run time, and checking that the results are not sensitive to the value
+used.
+
 In some cases (such as protoplanetary disks) very optically thick regions do
 not receive any radiation. In cases where the temperature in these regions is
 important, one can use the partial diffusion approximation (PDA; `Min et al.
