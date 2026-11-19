@@ -418,15 +418,17 @@ contains
 
   end subroutine dust_sample_b_nu
 
-  subroutine dust_scatter_peeloff(d,nu,a,s,a_req)
+  subroutine dust_scatter_peeloff(d,nu,a,s,a_req,inu_in)
     implicit none
     type(dust),intent(in)          :: d
     real(dp),intent(in)            :: nu
     type(angle3d_dp),intent(inout) :: a
     type(stokes_dp),intent(inout)  :: s
     type(angle3d_dp),intent(in)    :: a_req
+    integer,intent(in),optional    :: inu_in  ! locate(d%nu, nu) if known
     type(angle3d_dp) :: a_scat
     real(dp) :: P1,P2,P3,P4
+    integer :: imu, inu
     call difference_angle3d(a, a_req, a_scat)
     if(a_scat%cost < d%mu_min .or. a_scat%cost > d%mu_max) then
        s%i = 0.
@@ -434,22 +436,50 @@ contains
        s%u = 0.
        s%v = 0.
     else
-       P1 = interp2d(d%mu,d%nu,d%P1,a_scat%cost,nu)
-       P2 = interp2d(d%mu,d%nu,d%P2,a_scat%cost,nu)
-       P3 = interp2d(d%mu,d%nu,d%P3,a_scat%cost,nu)
-       P4 = interp2d(d%mu,d%nu,d%P4,a_scat%cost,nu)
+       ! One locate per axis for the four interpolations
+       imu = locate(d%mu, a_scat%cost)
+       if(present(inu_in)) then
+          inu = inu_in
+       else
+          inu = locate(d%nu, nu)
+       end if
+       if(imu == -1 .or. inu == -1) then
+          P1 = interp2d(d%mu,d%nu,d%P1,a_scat%cost,nu)   ! stops with Hyperion's out-of-bounds error
+       end if
+       P1 = interp2d_ij(d%mu,d%nu,d%P1,a_scat%cost,nu,imu,inu)
+       P2 = interp2d_ij(d%mu,d%nu,d%P2,a_scat%cost,nu,imu,inu)
+       P3 = interp2d_ij(d%mu,d%nu,d%P3,a_scat%cost,nu,imu,inu)
+       P4 = interp2d_ij(d%mu,d%nu,d%P4,a_scat%cost,nu,imu,inu)
        call scatter_stokes(s,a,a_scat,a_req,P1,P2,P3,P4)
     end if
     a = a_req
   end subroutine dust_scatter_peeloff
 
-  subroutine dust_scatter(d,nu,a,s)
+  real(dp) function interp2d_ij(x,y,array,x0,y0,i1,j1) result(value)
+    ! fortranlib interp2d_dp with the bracketing indices i1 =
+    ! locate(x,x0) and j1 = locate(y,y0) already known (both /= -1); same
+    ! arithmetic, so the same result
+    implicit none
+    real(dp),intent(in) :: x(:),y(:),array(:,:),x0,y0
+    integer,intent(in) :: i1,j1
+    real(dp) :: norm
+    integer :: i2,j2
+    i2 = i1 + 1 ; j2 = j1 + 1
+    norm = 1._dp / (x(i2) - x(i1)) / (y(j2)-y(j1))
+    value =   array(i1,j1) * (x(i2)-x0) * (y(j2)-y0) * norm &
+         &       + array(i2,j1) * (x0-x(i1)) * (y(j2)-y0) * norm &
+         &       + array(i1,j2) * (x(i2)-x0) * (y0-y(j1)) * norm &
+         &       + array(i2,j2) * (x0-x(i1)) * (y0-y(j1)) * norm
+  end function interp2d_ij
+
+  subroutine dust_scatter(d,nu,a,s,inu_in)
 
     implicit none
 
     type(dust),intent(in)                :: d
     type(angle3d_dp),intent(inout)       :: a
     type(stokes_dp),intent(inout)        :: s
+    integer,intent(in),optional          :: inu_in  ! locate(d%nu, nu) if known
 
     real(dp) :: nu
 
@@ -461,7 +491,7 @@ contains
     real(dp) :: c1, c2, ctot, cdf1, cdf2, xi
     real(dp) :: sin_2_i1,cos_2_i1
 
-    integer :: imin, imax, imu, inu
+    integer :: imin, imax, imu, inu, imu2
 
     integer :: iter
     integer,parameter :: maxiter = 1000000
@@ -490,7 +520,11 @@ contains
 
     imin = 1
     imax = d%n_mu
-    inu = locate(d%nu, nu)
+    if(present(inu_in)) then
+       inu = inu_in
+    else
+       inu = locate(d%nu, nu)
+    end if
     ! TODO: interpolate in nu as well
 
     if(inu==-1) then
@@ -540,10 +574,16 @@ contains
        a_scat%cost = (xi - cdf1) / (cdf2 - cdf1) * (d%mu(imu+1) - d%mu(imu)) + d%mu(imu)
        a_scat%sint = sqrt(1._dp - a_scat%cost*a_scat%cost)
 
-       P1 = interp2d(d%mu,d%nu,d%P1,a_scat%cost,nu)
-       P2 = interp2d(d%mu,d%nu,d%P2,a_scat%cost,nu)
-       P3 = interp2d(d%mu,d%nu,d%P3,a_scat%cost,nu)
-       P4 = interp2d(d%mu,d%nu,d%P4,a_scat%cost,nu)
+       ! One locate in mu (and the nu index above) for the four
+       ! interpolations; interp2d itself would stop on an out-of-range index
+       imu2 = locate(d%mu, a_scat%cost)
+       if(imu2 == -1) then
+          P1 = interp2d(d%mu,d%nu,d%P1,a_scat%cost,nu)
+       end if
+       P1 = interp2d_ij(d%mu,d%nu,d%P1,a_scat%cost,nu,imu2,inu)
+       P2 = interp2d_ij(d%mu,d%nu,d%P2,a_scat%cost,nu,imu2,inu)
+       P3 = interp2d_ij(d%mu,d%nu,d%P3,a_scat%cost,nu,imu2,inu)
+       P4 = interp2d_ij(d%mu,d%nu,d%P4,a_scat%cost,nu,imu2,inu)
 
     end if
 

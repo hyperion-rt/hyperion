@@ -11,6 +11,8 @@ module type_photon
   private
   public :: photon
 
+  integer,parameter,public :: n_inu_cache = 8
+
   type photon
 
      type(vector3d_dp) :: r       ! Position
@@ -32,6 +34,11 @@ module type_photon
      real(dp),allocatable  :: current_chi(:)
      real(dp),allocatable  :: current_albedo(:)
      real(dp),allocatable  :: current_kappa(:)
+
+     ! Frequency-grid index of nu per dust type (first n_inu_cache
+     ! types) from update_optconsts, valid while nu == inu_cache_nu
+     integer :: inu_cache(n_inu_cache) = 0
+     real(dp) :: inu_cache_nu = -1._dp
 
      type(grid_cell) :: icell
 
