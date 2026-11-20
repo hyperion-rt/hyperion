@@ -18,7 +18,8 @@ module grid_escape
   ! as the number of rays increases. The minimum is kept separately for each
   ! dust type, so that multiplying by the extinction coefficient of each dust
   ! type and summing gives an estimate of the minimum optical depth along any
-  ! ray leaving the cell. Rays that intersect a source are discarded.
+  ! ray leaving the cell. Rays that intersect a source are discarded, and
+  ! cells that do not receive any samples are given a minimum of zero.
   !
   ! With MPI, rays are handed out to processes dynamically using the same
   ! scheduler as for photons, and the minima are then combined so that all

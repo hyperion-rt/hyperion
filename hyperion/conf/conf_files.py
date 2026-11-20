@@ -450,7 +450,9 @@ class RunConf(object):
           larger than the maximum optical depth for peeled photons, since
           photons emitted in these cells would have to travel through a large
           optical depth (scattering many times) before being able to
-          contribute.
+          contribute. This assumes that the observers are outside the grid,
+          since the minimum is computed to the edge of the grid, so this
+          should not be used with inside observers.
 
         Since the minimum is estimated using a finite number of rays, the
         estimate can only be larger than (or equal to) the true minimum, and

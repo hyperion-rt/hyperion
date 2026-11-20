@@ -107,7 +107,9 @@ regions they can escape from. This removes the contribution from the other
 cells, so the value should be chosen to be sufficiently larger than the
 maximum optical depth for peeled photons, since photons emitted where the
 optical depth to escape is larger have to scatter many times through very
-optically thick regions before being able to contribute.
+optically thick regions before being able to contribute. Since the minimum
+optical depth is computed to the edge of the grid, this should not be used
+with observers inside the grid.
 
 The minimum column density is also written to the output file, and can be
 accessed with :meth:`~hyperion.model.ModelOutput.get_quantities`::
