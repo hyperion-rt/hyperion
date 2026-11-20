@@ -64,6 +64,16 @@ contains
        peeloff_tau_max = 1000._dp
     end if
 
+    if(mp_exists_keyword(input_handle, '/', 'compute_escape_column_density')) then
+       call mp_read_keyword(input_handle, '/', 'compute_escape_column_density', escape_enabled)
+    else
+       escape_enabled = .false.
+    end if
+
+    if(escape_enabled) then
+       call mp_read_keyword(input_handle, '/', 'escape_n_rays', escape_n_rays)
+    end if
+
     call mp_read_keyword(input_handle, '/', 'n_inter_max', n_inter_max)
     if(mp_exists_keyword(input_handle, '/', 'n_inter_max_warn')) then
        call mp_read_keyword(input_handle, '/', 'n_inter_max_warn', n_inter_max_warn)

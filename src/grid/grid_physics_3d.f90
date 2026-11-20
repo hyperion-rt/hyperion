@@ -32,6 +32,10 @@ module grid_physics
 
   ! Density (immutable)
   real(dp),allocatable,target, public :: density(:,:)
+
+  ! Minimum column density to escape each cell, for each dust type (only
+  ! allocated if requested, see the grid_escape module)
+  real(dp),allocatable, public :: escape_column_density(:,:)
   real(dp),allocatable, public :: density_original(:,:)
 
   ! Variable quantities (made public for MPI)

@@ -38,7 +38,8 @@ OBJECTS2 =	src/grid/grid_physics_3d.f90 \
 		src/main/forced_interaction.f90 \
 		src/main/setup_rt.f90
 
-OBJECTS3 =	src/main/iter_lucy.f90 \
+OBJECTS3 =	src/grid/grid_escape.f90 \
+		src/main/iter_lucy.f90 \
 		src/main/iter_final.f90 \
 		src/main/iter_final_mono.f90 \
 		src/main/iter_raytracing.f90 \

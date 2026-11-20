@@ -1034,6 +1034,10 @@ class ModelOutput(FreezableClass):
             logger.info("No density present in output, reading initial density")
             g.read_quantities(g_grid['Quantities'], quantities=['density'])
 
+        # Read in the minimum column density to escape each cell, if computed
+        if 'Escape' in self.file:
+            g.read_quantities(self.file['Escape'])
+
         # Compute the temperature as a derived quantity
         if 'specific_energy' in g:
 

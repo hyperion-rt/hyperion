@@ -71,6 +71,39 @@ is the number **per wavelength**.
 
 .. _pure-scattering:
 
+Minimum column density to escape each cell
+------------------------------------------
+
+In very optically thick models, many photons are emitted or scattered in
+regions from which light cannot escape. Hyperion can estimate, for every
+cell, the minimum column density (for each dust type) that a photon has to
+cross to escape the grid from anywhere in the cell, by casting random rays
+through the grid after the initial iterations::
+
+    m.set_escape_column_density(True)
+
+When this is enabled, photons in cells where the minimum optical depth to
+escape is larger than the maximum optical depth for peeled photons (see
+:meth:`~hyperion.model.Model.set_max_peeloff_optical_depth`) are no longer
+peeled off, which avoids integrating the optical depth for peeled photons
+whose contribution would be smaller than ``exp(-tau_max)`` (exactly zero in
+double precision for the default maximum of 1000). Since the minimum is
+estimated from a finite number of rays, the estimate can only be larger than
+or equal to the true minimum, and converges to it as the number of rays
+(controlled with the ``n_rays`` argument) increases.
+
+The minimum column density is also written to the output file, and can be
+accessed with :meth:`~hyperion.model.ModelOutput.get_quantities`::
+
+    from hyperion.model import ModelOutput
+    m = ModelOutput('model.rtout')
+    grid = m.get_quantities()
+    column = grid['escape_column_density'][0].array  # first dust type
+
+Multiplying this by the extinction coefficient (``chi``) of the dust at a
+given frequency gives the minimum optical depth to escape each cell at that
+frequency.
+
 Scattered-light images
 ----------------------
 

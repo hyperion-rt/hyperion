@@ -34,6 +34,7 @@ module mpi_routines
   public :: mp_collect_images
   public :: mp_broadcast_convergence
   public :: mp_set_random_seed
+  public :: mp_allreduce_min_2d
 
   real(dp) :: time_curr
   integer(idp) :: n_completed, n_photons_chunk
@@ -469,5 +470,17 @@ contains
     end if
 
   end subroutine mp_collect_images
+
+  subroutine mp_allreduce_min_2d(array)
+    ! Replace array on all processes by the element-wise minimum over all
+    ! processes
+    implicit none
+    real(dp),intent(inout) :: array(:,:)
+    real(dp),allocatable :: tmp(:,:)
+    integer :: ierr
+    allocate(tmp(size(array,1), size(array,2)))
+    call mpi_allreduce(array, tmp, size(array), mpi_real8, mpi_min, mpi_comm_world, ierr)
+    array = tmp
+  end subroutine mp_allreduce_min_2d
 
 end module mpi_routines

@@ -57,6 +57,7 @@ class RunConf(object):
         self.set_max_interactions(1000000)
         self.set_max_reabsorptions(1000000)
         self.set_max_peeloff_optical_depth(1000.)
+        self.set_escape_column_density(False)
         self.set_pda(False)
         self.set_mrw(False)
         self.specific_energy_spectrum_bin_edges = None
@@ -416,6 +417,66 @@ class RunConf(object):
 
     def _write_max_peeloff_optical_depth(self, group):
         group.attrs['peeloff_tau_max'] = self.peeloff_tau_max
+
+    def set_escape_column_density(self, compute, n_rays=30):
+        '''
+        Set whether to compute the minimum column density to escape each cell.
+
+        If enabled, the minimum column density (for each dust type) that a
+        photon has to cross to escape the grid from anywhere in each cell is
+        estimated after the initial iterations, by casting random rays
+        through the grid. Photons in cells where the minimum optical depth to
+        escape (at the frequency of the photon) is larger than the maximum
+        optical depth for peeled photons (see
+        :meth:`~hyperion.model.Model.set_max_peeloff_optical_depth`) are then
+        not peeled off (except for observers inside the grid), since the
+        optical depth to the observer would be larger than the maximum. This
+        avoids integrating the optical depth along these paths, and only
+        removes contributions smaller than ``exp(-tau_max)``, which are
+        exactly zero in double precision for the default maximum of 1000.
+
+        Since the minimum is estimated using a finite number of rays, the
+        estimate can only be larger than (or equal to) the true minimum, and
+        converges to it as the number of rays increases.
+
+        The minimum column density is also written to the output file, and
+        can be accessed with
+        :meth:`~hyperion.model.ModelOutput.get_quantities` as the
+        ``escape_column_density`` quantity.
+
+        Parameters
+        ----------
+        compute : bool
+            Whether to compute the minimum column density to escape each cell
+        n_rays : int, optional
+            The average number of rays to start in each cell. Since every ray
+            also provides a sample for all the cells it crosses on the way to
+            the edge of the grid, the number of samples for each cell is
+            usually much larger than this.
+        '''
+        if not isinstance(compute, bool):
+            raise TypeError("compute should be a boolean")
+        if not np.isscalar(n_rays) or isinstance(n_rays, str) or int(n_rays) != n_rays:
+            raise TypeError("n_rays should be an integer")
+        if not n_rays > 0:
+            raise ValueError("n_rays should be strictly positive")
+        self.compute_escape_column_density = compute
+        self.escape_n_rays = int(n_rays)
+
+    def _read_escape_column_density(self, group):
+        if 'compute_escape_column_density' in group.attrs:
+            self.compute_escape_column_density = str2bool(group.attrs['compute_escape_column_density'])
+        else:
+            self.compute_escape_column_density = False
+        if self.compute_escape_column_density:
+            self.escape_n_rays = int(group.attrs['escape_n_rays'])
+        else:
+            self.escape_n_rays = 30
+
+    def _write_escape_column_density(self, group):
+        group.attrs['compute_escape_column_density'] = bool2str(self.compute_escape_column_density)
+        if self.compute_escape_column_density:
+            group.attrs['escape_n_rays'] = self.escape_n_rays
 
     def set_pda(self, pda):
         '''
@@ -829,6 +890,7 @@ class RunConf(object):
         self._read_max_interactions(group)
         self._read_max_reabsorptions(group)
         self._read_max_peeloff_optical_depth(group)
+        self._read_escape_column_density(group)
         self._read_pda(group)
         self._read_mrw(group)
         self._read_specific_energy_spectrum_bins(group)
@@ -859,6 +921,7 @@ class RunConf(object):
         self._write_max_interactions(group)
         self._write_max_reabsorptions(group)
         self._write_max_peeloff_optical_depth(group)
+        self._write_escape_column_density(group)
         self._write_pda(group)
         self._write_mrw(group)
         self._write_specific_energy_spectrum_bins(group)

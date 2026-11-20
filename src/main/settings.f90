@@ -57,6 +57,11 @@ module settings
   ! in double precision beyond it, so that it does not change any contribution.
   real(dp) :: peeloff_tau_max = 1000._dp
 
+  ! Whether to compute the minimum column density to escape each cell, and
+  ! the average number of rays started in each cell to do this
+  logical :: escape_enabled = .false.
+  integer :: escape_n_rays = 30
+
   character(len=20) :: specific_energy_type
 
 end module settings

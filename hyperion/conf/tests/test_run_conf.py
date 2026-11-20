@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 from ..conf_files import RunConf
 
@@ -54,3 +55,29 @@ def test_max_peeloff_optical_depth_invalid2(value):
     with pytest.raises(ValueError) as exc:
         r.set_max_peeloff_optical_depth(value)
     assert exc.value.args[0] == "tau_max should be strictly positive"
+
+
+def test_escape_column_density_default():
+    r = RunConf()
+    assert r.compute_escape_column_density is False
+
+
+@pytest.mark.parametrize(('n_rays'), [30, 1, 1000, np.int64(10)])
+def test_escape_column_density(n_rays):
+    r = RunConf()
+    r.set_escape_column_density(True, n_rays=n_rays)
+    assert r.compute_escape_column_density is True
+    assert r.escape_n_rays == n_rays
+
+
+@pytest.mark.parametrize(('kwargs', 'exception', 'message'), [
+    (dict(compute=1), TypeError, "compute should be a boolean"),
+    (dict(compute=True, n_rays=1.5), TypeError, "n_rays should be an integer"),
+    (dict(compute=True, n_rays='a'), TypeError, "n_rays should be an integer"),
+    (dict(compute=True, n_rays=0), ValueError, "n_rays should be strictly positive"),
+])
+def test_escape_column_density_invalid(kwargs, exception, message):
+    r = RunConf()
+    with pytest.raises(exception) as exc:
+        r.set_escape_column_density(**kwargs)
+    assert exc.value.args[0] == message
