@@ -122,6 +122,13 @@ contains
 
     call mp_allreduce_min_2d(column_min)
 
+    ! Cells that did not receive any samples (for example if all the rays
+    ! started in them intersected a source) are given a minimum column density
+    ! of zero, so that they are never treated as hidden
+    where(column_min == huge(1._dp))
+       column_min = 0._dp
+    end where
+
   end subroutine compute_escape_column_density
 
   subroutine trace(p_orig, n_steps, path_cell, path_column, total, killed)
