@@ -117,11 +117,16 @@ Set the maximum number of photon interactions::
 
 When computing the contribution of photons to peeled images and SEDs, the
 optical depth along the line of sight is only integrated up to an optical depth
-of 100, beyond which the contribution of the photon is negligible. This can be
-changed with
+of 1000, beyond which the contribution of the photon is exactly zero in double
+precision. In very optically thick models, the imaging can be made much faster
+by lowering this value with
 :meth:`~hyperion.model.Model.set_max_peeloff_optical_depth`::
 
-    m.set_max_peeloff_optical_depth(np.inf)
+    m.set_max_peeloff_optical_depth(100.)
+
+Contributions attenuated by more than exp(-100) are then neglected, which is
+only noticeable in parts of images that are fainter than the brightest parts
+by many orders of magnitude.
 
 Set the number of output bytes per floating point value for the physical
 arrays (4 = 32-bit, 8 = 64-bit)::

@@ -53,8 +53,9 @@ module settings
   real(dp) :: propagation_check_frequency
 
   ! Optical depth beyond which the integration of the optical depth for peeled
-  ! photons is stopped, since their contribution is then negligible
-  real(dp) :: peeloff_tau_max = 100._dp
+  ! photons is stopped. The default is chosen so that exp(-tau) is exactly zero
+  ! in double precision beyond it, so that it does not change any contribution.
+  real(dp) :: peeloff_tau_max = 1000._dp
 
   character(len=20) :: specific_energy_type
 

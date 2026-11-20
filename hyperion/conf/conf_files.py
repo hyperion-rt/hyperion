@@ -56,7 +56,7 @@ class RunConf(object):
         self.set_raytracing(False)
         self.set_max_interactions(1000000)
         self.set_max_reabsorptions(1000000)
-        self.set_max_peeloff_optical_depth(100.)
+        self.set_max_peeloff_optical_depth(1000.)
         self.set_pda(False)
         self.set_mrw(False)
         self.specific_energy_spectrum_bin_edges = None
@@ -383,13 +383,20 @@ class RunConf(object):
         the optical depth to the observer (or to the edge of the grid) is
         integrated along the line of sight. Once the optical depth exceeds
         this value, the integration is stopped since the contribution of the
-        photon, which is attenuated by exp(-tau), is then negligible. In very
-        optically thick models this can make the imaging much faster.
+        photon, which is attenuated by exp(-tau), is then negligible.
+
+        The default value of 1000 does not change any contribution, since
+        exp(-tau) is exactly zero in double precision for tau above 745.
+        In very optically thick models, a lower value (such as 100) can make
+        the imaging much faster, at the cost of neglecting contributions that
+        are attenuated by more than exp(-tau_max), which is only noticeable in
+        parts of images that are fainter than the brightest parts by many
+        orders of magnitude.
 
         Parameters
         ----------
         tau_max : float
-            The maximum optical depth to integrate to (defaults to 100). This
+            The maximum optical depth to integrate to (defaults to 1000). This
             can be set to ``np.inf`` to always integrate the full optical
             depth.
         '''
@@ -403,7 +410,7 @@ class RunConf(object):
         if 'peeloff_tau_max' in group.attrs:
             self.peeloff_tau_max = float(group.attrs['peeloff_tau_max'])
         else:
-            self.peeloff_tau_max = 100.
+            self.peeloff_tau_max = 1000.
 
     def _write_max_peeloff_optical_depth(self, group):
         group.attrs['peeloff_tau_max'] = self.peeloff_tau_max

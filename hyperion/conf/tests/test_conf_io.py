@@ -149,7 +149,7 @@ def test_io_run_conf_max_peeloff_optical_depth_missing():
     r2 = RunConf()
     r2.set_max_peeloff_optical_depth(3.)
     r2.read_run_conf(v)
-    assert r2.peeloff_tau_max == 100.
+    assert r2.peeloff_tau_max == 1000.
 
 
 @pytest.mark.parametrize(('value'), [-1234, -6663121])
