@@ -56,6 +56,7 @@ class RunConf(object):
         self.set_raytracing(False)
         self.set_max_interactions(1000000)
         self.set_max_reabsorptions(1000000)
+        self.set_max_peeloff_optical_depth(100.)
         self.set_pda(False)
         self.set_mrw(False)
         self.specific_energy_spectrum_bin_edges = None
@@ -372,6 +373,40 @@ class RunConf(object):
     def _write_max_reabsorptions(self, group):
         group.attrs['n_reabs_max'] = self.n_reabs_max
         group.attrs['n_reabs_max_warn'] = bool2str(self.n_reabs_max_warn)
+
+    def set_max_peeloff_optical_depth(self, tau_max):
+        '''
+        Set the optical depth beyond which peeled photons are no longer
+        followed.
+
+        When computing the contribution of a photon to peeled images and SEDs,
+        the optical depth to the observer (or to the edge of the grid) is
+        integrated along the line of sight. Once the optical depth exceeds
+        this value, the integration is stopped since the contribution of the
+        photon, which is attenuated by exp(-tau), is then negligible. In very
+        optically thick models this can make the imaging much faster.
+
+        Parameters
+        ----------
+        tau_max : float
+            The maximum optical depth to integrate to (defaults to 100). This
+            can be set to ``np.inf`` to always integrate the full optical
+            depth.
+        '''
+        if not np.isscalar(tau_max) or isinstance(tau_max, str):
+            raise TypeError("tau_max should be a scalar value")
+        if not tau_max > 0.:
+            raise ValueError("tau_max should be strictly positive")
+        self.peeloff_tau_max = float(tau_max)
+
+    def _read_max_peeloff_optical_depth(self, group):
+        if 'peeloff_tau_max' in group.attrs:
+            self.peeloff_tau_max = float(group.attrs['peeloff_tau_max'])
+        else:
+            self.peeloff_tau_max = 100.
+
+    def _write_max_peeloff_optical_depth(self, group):
+        group.attrs['peeloff_tau_max'] = self.peeloff_tau_max
 
     def set_pda(self, pda):
         '''
@@ -784,6 +819,7 @@ class RunConf(object):
         self._read_n_photons(group)
         self._read_max_interactions(group)
         self._read_max_reabsorptions(group)
+        self._read_max_peeloff_optical_depth(group)
         self._read_pda(group)
         self._read_mrw(group)
         self._read_specific_energy_spectrum_bins(group)
@@ -813,6 +849,7 @@ class RunConf(object):
         self._write_raytracing(group)
         self._write_max_interactions(group)
         self._write_max_reabsorptions(group)
+        self._write_max_peeloff_optical_depth(group)
         self._write_pda(group)
         self._write_mrw(group)
         self._write_specific_energy_spectrum_bins(group)

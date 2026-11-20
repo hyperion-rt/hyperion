@@ -58,6 +58,12 @@ contains
 
     call mp_read_keyword(input_handle, '/', 'n_stats', n_stats)
 
+    if(mp_exists_keyword(input_handle, '/', 'peeloff_tau_max')) then
+       call mp_read_keyword(input_handle, '/', 'peeloff_tau_max', peeloff_tau_max)
+    else
+       peeloff_tau_max = 100._dp
+    end if
+
     call mp_read_keyword(input_handle, '/', 'n_inter_max', n_inter_max)
     if(mp_exists_keyword(input_handle, '/', 'n_inter_max_warn')) then
        call mp_read_keyword(input_handle, '/', 'n_inter_max_warn', n_inter_max_warn)

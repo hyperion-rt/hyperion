@@ -374,7 +374,7 @@ contains
 
   end subroutine grid_integrate_noenergy
 
-  subroutine grid_escape_tau(p_orig,tmax,tau,killed)
+  subroutine grid_escape_tau(p_orig,tmax,tau,killed,tau_max)
 
     implicit none
 
@@ -386,6 +386,13 @@ contains
     real(dp),intent(in) :: tmax
     real(dp),intent(out) :: tau
     logical,intent(out) :: killed
+
+    ! If specified, the integration stops once the optical depth exceeds
+    ! tau_max, and tau is then the optical depth integrated so far. This is
+    ! only used for peeled photons, for which the contribution exp(-tau) is
+    ! then negligible - the forced first interaction algorithms need the
+    ! full optical depth to escape.
+    real(dp),intent(in),optional :: tau_max
 
     real(dp)  :: tmin, t_source, t_current
     type(wall_id) :: id_min
@@ -463,6 +470,10 @@ contains
        end do
 
        if(finished) return
+
+       if(present(tau_max)) then
+          if(tau > tau_max) return
+       end if
 
        p%on_wall = .true.
        p%icell = next_cell(p%icell, id_min, intersection=p%r)
