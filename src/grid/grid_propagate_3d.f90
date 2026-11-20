@@ -105,13 +105,17 @@ contains
 
     do
 
-       call random(xi)
-       if(xi < frac_check) then
-          if(.not.in_correct_cell(p)) then
-             call warn("grid_integrate","not in correct cell - killing")
-             killed_photons_geo = killed_photons_geo + 1
-             p%killed = .true.
-             return
+       ! Only draw a random number if checks are requested, so that there is
+       ! no overhead if the check frequency is set to zero
+       if(frac_check > 0._dp) then
+          call random(xi)
+          if(xi < frac_check) then
+             if(.not.in_correct_cell(p)) then
+                call warn("grid_integrate","not in correct cell - killing")
+                killed_photons_geo = killed_photons_geo + 1
+                p%killed = .true.
+                return
+             end if
           end if
        end if
        ! Find how much still needs to be traveled
@@ -287,13 +291,17 @@ contains
 
     do
 
-       call random(xi)
-       if(xi < frac_check) then
-          if(.not.in_correct_cell(p)) then
-             call warn("grid_integrate_noenergy","not in correct cell - killing")
-             killed_photons_geo = killed_photons_geo + 1
-             p%killed = .true.
-             return
+       ! Only draw a random number if checks are requested, so that there is
+       ! no overhead if the check frequency is set to zero
+       if(frac_check > 0._dp) then
+          call random(xi)
+          if(xi < frac_check) then
+             if(.not.in_correct_cell(p)) then
+                call warn("grid_integrate_noenergy","not in correct cell - killing")
+                killed_photons_geo = killed_photons_geo + 1
+                p%killed = .true.
+                return
+             end if
           end if
        end if
 
@@ -438,13 +446,17 @@ contains
 
     do
 
-       call random(xi)
-       if(xi < frac_check) then
-          if(.not.in_correct_cell(p)) then
-             call warn("grid_escape_tau","not in correct cell - killing")
-             killed_photons_geo = killed_photons_geo + 1
-             killed = .true.
-             return
+       ! Only draw a random number if checks are requested, so that there is
+       ! no overhead if the check frequency is set to zero
+       if(frac_check > 0._dp) then
+          call random(xi)
+          if(xi < frac_check) then
+             if(.not.in_correct_cell(p)) then
+                call warn("grid_escape_tau","not in correct cell - killing")
+                killed_photons_geo = killed_photons_geo + 1
+                killed = .true.
+                return
+             end if
           end if
        end if
 
@@ -547,13 +559,17 @@ contains
 
     do
 
-       call random(xi)
-       if(xi < frac_check) then
-          if(.not.in_correct_cell(p)) then
-             call warn("grid_escape_column_density","not in correct cell - killing")
-             killed_photons_geo = killed_photons_geo + 1
-             killed = .true.
-             return
+       ! Only draw a random number if checks are requested, so that there is
+       ! no overhead if the check frequency is set to zero
+       if(frac_check > 0._dp) then
+          call random(xi)
+          if(xi < frac_check) then
+             if(.not.in_correct_cell(p)) then
+                call warn("grid_escape_column_density","not in correct cell - killing")
+                killed_photons_geo = killed_photons_geo + 1
+                killed = .true.
+                return
+             end if
           end if
        end if
 

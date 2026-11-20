@@ -82,7 +82,9 @@ class RunConf(object):
         randomly double check the position and cell of a photon for every 1 in
         1000 cell wall crossings, but this can be adjusted with this method.
         Note that values higher than around 0.001 will cause the code to slow
-        down.
+        down. Setting this to zero disables the checks entirely, which makes
+        the code slightly faster (by a few percent) since no random number is
+        then drawn at each cell wall crossing.
 
         Parameters
         ----------

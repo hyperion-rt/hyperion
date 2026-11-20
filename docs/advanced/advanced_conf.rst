@@ -154,4 +154,8 @@ with :meth:`~hyperion.model.Model.set_propagation_check_frequency`::
     m.set_propagation_check_frequency(0.01)
 
 Note that values higher than 0.001 (the default) will cause the code to slow
-down.
+down. Setting the frequency to zero disables the checks entirely, which makes
+the code slightly faster (by a few percent) since no random number is then
+drawn at each cell crossing::
+
+    m.set_propagation_check_frequency(0)
