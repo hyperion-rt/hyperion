@@ -152,18 +152,19 @@ def test_io_run_conf_max_peeloff_optical_depth_missing():
     assert r2.peeloff_tau_max == 1000.
 
 
-@pytest.mark.parametrize(('compute', 'n_rays'), [(False, 30), (True, 30), (True, 7)])
-def test_io_run_conf_escape_column_density(compute, n_rays):
+@pytest.mark.parametrize(('compute', 'n_rays', 'tau_max'), [(False, 30, None), (True, 30, None), (True, 7, 200.)])
+def test_io_run_conf_escape_column_density(compute, n_rays, tau_max):
     r1 = RunConf()
-    r1.set_escape_column_density(compute, n_rays=n_rays)
+    r1.set_escape_column_density(compute, n_rays=n_rays, max_emission_optical_depth=tau_max)
     r1.set_n_photons(1, 2)
     v = virtual_file()
     r1.write_run_conf(v)
     r2 = RunConf()
-    r2.set_escape_column_density(True, n_rays=3)
+    r2.set_escape_column_density(True, n_rays=3, max_emission_optical_depth=5.)
     r2.read_run_conf(v)
     assert r2.compute_escape_column_density is compute
     assert r2.escape_n_rays == n_rays
+    assert r2.escape_emission_tau_max == tau_max
 
 
 def test_io_run_conf_escape_column_density_missing():

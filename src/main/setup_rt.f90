@@ -72,6 +72,11 @@ contains
 
     if(escape_enabled) then
        call mp_read_keyword(input_handle, '/', 'escape_n_rays', escape_n_rays)
+       if(mp_exists_keyword(input_handle, '/', 'escape_emission_tau_max')) then
+          call mp_read_keyword(input_handle, '/', 'escape_emission_tau_max', escape_emission_tau_max)
+       else
+          escape_emission_tau_max = huge(1._dp)
+       end if
     end if
 
     call mp_read_keyword(input_handle, '/', 'n_inter_max', n_inter_max)

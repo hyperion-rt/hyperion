@@ -264,7 +264,8 @@ program main
   ! This is computed after the initial iterations since the density can
   ! change during these (if dust sublimation is enabled), and is used in the
   ! final iteration to avoid peeling off photons that cannot contribute to
-  ! the images and SEDs.
+  ! the images and SEDs, and optionally to avoid emitting dust photons in
+  ! monochromatic mode from cells they cannot escape from.
 
   if(escape_enabled) then
      allocate(escape_column_density(geo%n_cells, n_dust))

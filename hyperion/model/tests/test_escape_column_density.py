@@ -15,7 +15,8 @@ RHO = 5.
 CHI = 1.
 
 
-def sphere_model(peeloff_tau_max=None, escape=True):
+def sphere_model(peeloff_tau_max=None, escape=True, max_emission_optical_depth=None,
+                 specific_energy=None, dust_photons=False):
 
     m = Model()
     m.set_spherical_polar_grid(np.linspace(0., 1., N_SHELLS + 1), [0., np.pi], [0., 2. * np.pi])
@@ -23,7 +24,11 @@ def sphere_model(peeloff_tau_max=None, escape=True):
     dust = IsotropicDust([3.e9, 3.e16], [0., 0.], [CHI, CHI])
     dust.set_lte_emissivities(n_temp=10, temp_min=0.1, temp_max=1.e4)
 
-    m.add_density_grid(np.ones((1, 1, N_SHELLS)) * RHO, dust)
+    density = np.ones((1, 1, N_SHELLS)) * RHO
+    if specific_energy is None:
+        m.add_density_grid(density, dust)
+    else:
+        m.add_density_grid(density, dust, specific_energy=density * 0. + specific_energy)
 
     s = m.add_point_source()
     s.luminosity = 1.
@@ -36,13 +41,16 @@ def sphere_model(peeloff_tau_max=None, escape=True):
     m.set_n_initial_iterations(0)
     m.set_monochromatic(True, wavelengths=[1.])
 
-    m.set_n_photons(imaging_sources=1000, imaging_dust=0)
+    if dust_photons:
+        m.set_n_photons(imaging_sources=0, imaging_dust=10000)
+    else:
+        m.set_n_photons(imaging_sources=1000, imaging_dust=0)
 
     if peeloff_tau_max is not None:
         m.set_max_peeloff_optical_depth(peeloff_tau_max)
 
     if escape:
-        m.set_escape_column_density(True)
+        m.set_escape_column_density(True, max_emission_optical_depth=max_emission_optical_depth)
 
     return m
 
@@ -107,3 +115,24 @@ def test_peeloff_hidden_cells(tmpdir, escape):
     else:
         assert np.exp(-2.1) <= flux / reference <= np.exp(-2.) * (1 + 1e-10)
 
+
+def dust_flux(tmpdir, max_emission_optical_depth):
+    out = run(tmpdir, sphere_model(dust_photons=True, specific_energy=1.e10,
+                                   max_emission_optical_depth=max_emission_optical_depth))
+    return out.get_sed(component='dust_emit').val[0, 0, 0]
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_emission_hidden_cells(tmpdir):
+
+    # The maximum optical depth to escape any cell is 4.9, so with a maximum
+    # of 10, no cells should be removed, and the results should be identical
+    # to the case without any maximum
+    flux_all = dust_flux(tmpdir, None)
+    assert flux_all > 0.
+    assert dust_flux(tmpdir, 10.) == flux_all
+
+    # With a very low maximum, only the outermost shell, from which the
+    # optical depth to escape is zero, emits
+    flux_outer = dust_flux(tmpdir, 1e-10)
+    assert 0. < flux_outer < flux_all

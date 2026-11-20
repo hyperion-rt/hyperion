@@ -62,12 +62,13 @@ def test_escape_column_density_default():
     assert r.compute_escape_column_density is False
 
 
-@pytest.mark.parametrize(('n_rays'), [30, 1, 1000, np.int64(10)])
-def test_escape_column_density(n_rays):
+@pytest.mark.parametrize(('n_rays', 'tau_max'), [(30, None), (1, 200.), (1000, 1e-3), (np.int64(10), 50)])
+def test_escape_column_density(n_rays, tau_max):
     r = RunConf()
-    r.set_escape_column_density(True, n_rays=n_rays)
+    r.set_escape_column_density(True, n_rays=n_rays, max_emission_optical_depth=tau_max)
     assert r.compute_escape_column_density is True
     assert r.escape_n_rays == n_rays
+    assert r.escape_emission_tau_max == tau_max
 
 
 @pytest.mark.parametrize(('kwargs', 'exception', 'message'), [
@@ -75,6 +76,9 @@ def test_escape_column_density(n_rays):
     (dict(compute=True, n_rays=1.5), TypeError, "n_rays should be an integer"),
     (dict(compute=True, n_rays='a'), TypeError, "n_rays should be an integer"),
     (dict(compute=True, n_rays=0), ValueError, "n_rays should be strictly positive"),
+    (dict(compute=True, max_emission_optical_depth='a'), TypeError, "max_emission_optical_depth should be a scalar value"),
+    (dict(compute=True, max_emission_optical_depth=0.), ValueError, "max_emission_optical_depth should be strictly positive"),
+    (dict(compute=True, max_emission_optical_depth=float('nan')), ValueError, "max_emission_optical_depth should be strictly positive"),
 ])
 def test_escape_column_density_invalid(kwargs, exception, message):
     r = RunConf()

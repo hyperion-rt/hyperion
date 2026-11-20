@@ -92,6 +92,23 @@ estimated from a finite number of rays, the estimate can only be larger than
 or equal to the true minimum, and converges to it as the number of rays
 (controlled with the ``n_rays`` argument) increases.
 
+In monochromatic mode, it is also possible to avoid emitting dust photons
+from cells where the minimum optical depth to escape exceeds a given value::
+
+    m.set_max_peeloff_optical_depth(100.)
+    m.set_escape_column_density(True, max_emission_optical_depth=200.)
+
+In models where most of the dust emission at a given wavelength comes from
+regions that are very optically thick at that wavelength (for example the
+inner midplane of a massive disk at near- and mid-infrared wavelengths), this
+can greatly improve the signal-to-noise of the scattered dust emission for a
+given computation time, since photons are then only emitted from the
+regions they can escape from. This removes the contribution from the other
+cells, so the value should be chosen to be sufficiently larger than the
+maximum optical depth for peeled photons, since photons emitted where the
+optical depth to escape is larger have to scatter many times through very
+optically thick regions before being able to contribute.
+
 The minimum column density is also written to the output file, and can be
 accessed with :meth:`~hyperion.model.ModelOutput.get_quantities`::
 

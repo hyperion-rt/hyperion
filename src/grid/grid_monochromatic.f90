@@ -19,7 +19,8 @@ module grid_monochromatic
   use type_dust, only : dust_sample_emit_probability
   use dust_main, only : d, n_dust, prepare_photon, update_optconsts
   use grid_physics
-  use settings, only : frequencies
+  use settings, only : frequencies, escape_emission_tau_max
+  use mpi_core, only : main_process
 
   implicit none
   save
@@ -61,14 +62,33 @@ contains
     integer :: dust_id
     integer :: emiss_var_id
     real(dp) :: emiss_var_frac
-    real(dp), allocatable :: energy(:), prob(:)
-    integer :: icell
+    real(dp), allocatable :: energy(:), prob(:), escape_tau(:)
+    integer :: icell, id
+    real(dp) :: energy_total, energy_kept
+    logical :: skip_hidden
     logical,intent(out) :: empty
 
     nu = frequencies(inu)
 
     ! Allocate temporary arrays
     allocate(energy(geo%n_cells), prob(geo%n_cells))
+
+    ! If requested, do not emit dust photons from cells where the minimum
+    ! optical depth to escape the grid at this frequency is larger than
+    ! escape_emission_tau_max, since these photons cannot contribute to the
+    ! images and SEDs. The energy of the photons emitted from the other cells
+    ! is unchanged, so this only removes the (negligible) contribution from
+    ! these cells.
+    skip_hidden = allocated(escape_column_density) .and. escape_emission_tau_max < huge(1._dp)
+    if(skip_hidden) then
+       allocate(escape_tau(geo%n_cells))
+       escape_tau = 0._dp
+       do id = 1, n_dust
+          escape_tau = escape_tau + interp1d_loglog(d(id)%nu, d(id)%chi_nu, nu) * escape_column_density(:, id)
+       end do
+       energy_total = 0._dp
+       energy_kept = 0._dp
+    end if
 
     ! Loop over dust types
     do dust_id=1, n_dust
@@ -103,11 +123,27 @@ contains
                &                            nu, prob(icell))
        end do
 
+       if(skip_hidden) then
+          energy_total = energy_total + sum(prob * energy)
+          where(escape_tau > escape_emission_tau_max)
+             energy = 0._dp
+          end where
+          energy_kept = energy_kept + sum(prob * energy)
+       end if
+
        ! Set the PDF to the probability of emission at the frequency nu
        mean_prob(dust_id) = mean(prob * energy)
        if(mean_prob(dust_id) > 0._dp) call set_pdf(emiss_pdf(dust_id), prob * energy)
 
     end do
+
+    if(skip_hidden) then
+       if(main_process() .and. energy_total > 0._dp) then
+          write(*,'(" [grid_monochromatic] not emitting dust photons from ",F0.3,"% of cells, which emit ",ES9.2," of the energy")') &
+               & 100._dp * count(escape_tau > escape_emission_tau_max) / real(geo%n_cells, dp), 1._dp - energy_kept / energy_total
+       end if
+       deallocate(escape_tau)
+    end if
 
     ! Deallocate temporary arrays
     deallocate(energy, prob)
