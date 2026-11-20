@@ -13,6 +13,7 @@ module peeled_images
   use type_dust
 
   use sources
+  use settings, only : peeloff_tau_max
   use dust_main
   use dust_interact
 
@@ -225,7 +226,7 @@ contains
              if(polychromatic) then
                 call grid_escape_column_density(p,tmax,column_density,killed)
              else
-                call grid_escape_tau(p,tmax,tau,killed)
+                call grid_escape_tau(p,tmax,tau,killed,tau_max=peeloff_tau_max)
              end if
           end if
 

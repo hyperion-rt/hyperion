@@ -127,6 +127,31 @@ def test_io_run_conf_propagation_check_frequency(value):
     assert r2._frequency == r1._frequency
 
 
+@pytest.mark.parametrize(('value'), [0.5, 100., float('inf')])
+def test_io_run_conf_max_peeloff_optical_depth(value):
+    r1 = RunConf()
+    r1.set_max_peeloff_optical_depth(value)
+    r1.set_n_photons(1, 2)
+    v = virtual_file()
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.read_run_conf(v)
+    assert r2.peeloff_tau_max == r1.peeloff_tau_max
+
+
+def test_io_run_conf_max_peeloff_optical_depth_missing():
+    # Files written before this option existed should use the default
+    r1 = RunConf()
+    r1.set_n_photons(1, 2)
+    v = virtual_file()
+    r1.write_run_conf(v)
+    del v.attrs['peeloff_tau_max']
+    r2 = RunConf()
+    r2.set_max_peeloff_optical_depth(3.)
+    r2.read_run_conf(v)
+    assert r2.peeloff_tau_max == 1000.
+
+
 @pytest.mark.parametrize(('value'), [-1234, -6663121])
 def test_io_run_conf_seed(value):
     r1 = RunConf()
