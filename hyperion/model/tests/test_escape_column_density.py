@@ -136,3 +136,32 @@ def test_emission_hidden_cells(tmpdir):
     # optical depth to escape is zero, emits
     flux_outer = dust_flux(tmpdir, 1e-10)
     assert 0. < flux_outer < flux_all
+
+
+@pytest.mark.parametrize('image_setting', ['inside_observer', 'ignore_optical_depth'])
+def test_emission_hidden_cells_invalid_images(tmpdir, image_setting):
+
+    # Cells hidden from observers outside the grid can be visible to inside
+    # observers and in images that ignore the optical depth, so skipping their
+    # emission is not allowed in these cases
+
+    m = sphere_model(dust_photons=True, max_emission_optical_depth=200.)
+    i = m.add_peeled_images(sed=False, image=True)
+    i.set_image_size(1, 1)
+    if image_setting == 'inside_observer':
+        i.set_inside_observer((0., 0., 0.))
+        i.set_image_limits(180., -180., -90., 90.)
+        message = "with inside observers"
+    else:
+        i.set_viewing_angles([90.], [0.])
+        i.set_image_limits(-1., 1., -1., 1.)
+        i.set_ignore_optical_depth(True)
+        message = "with peeled images that ignore the optical depth"
+
+    with pytest.raises(ValueError) as exc:
+        m.write(tmpdir.join(random_id()).strpath)
+    assert exc.value.args[0] == "Cannot use max_emission_optical_depth in set_escape_column_density " + message
+
+    # Without max_emission_optical_depth, the model can be written
+    m.set_escape_column_density(True)
+    m.write(tmpdir.join(random_id()).strpath)

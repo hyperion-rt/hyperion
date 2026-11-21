@@ -589,6 +589,15 @@ class Model(FreezableClass, RunConf):
             if not self._frequencies is None:
                 if not peel._monochromatic:
                     raise Exception("Peeled images need to be set to monochromatic mode")
+            # The minimum optical depth to escape is computed to the edge of
+            # the grid along any direction, so cells that are hidden from
+            # observers outside the grid may be visible to observers inside
+            # the grid or for images that ignore the optical depth
+            if self.compute_escape_column_density and self.escape_emission_tau_max is not None:
+                if peel.inside_observer is not None:
+                    raise ValueError("Cannot use max_emission_optical_depth in set_escape_column_density with inside observers")
+                if peel.ignore_optical_depth:
+                    raise ValueError("Cannot use max_emission_optical_depth in set_escape_column_density with peeled images that ignore the optical depth")
             peel.write(g_peeled.create_group('group_%05i' % (i + 1)))
 
         # Output configuration for binned images/SEDs

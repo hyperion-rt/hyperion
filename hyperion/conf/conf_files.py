@@ -452,7 +452,9 @@ class RunConf(object):
           optical depth (scattering many times) before being able to
           contribute. This assumes that the observers are outside the grid,
           since the minimum is computed to the edge of the grid, so this
-          should not be used with inside observers.
+          cannot be used with inside observers or with peeled images that
+          ignore the optical depth (an error is raised when the model is
+          written).
 
         Since the minimum is estimated using a finite number of rays, the
         estimate can only be larger than (or equal to) the true minimum, and
