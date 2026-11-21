@@ -57,7 +57,7 @@ class RunConf(object):
         self.set_max_interactions(1000000)
         self.set_max_reabsorptions(1000000)
         self.set_max_peeloff_optical_depth(1000.)
-        self.set_escape_column_density(False)
+        self.set_compute_escape_column_density(False)
         self.set_pda(False)
         self.set_mrw(False)
         self.specific_energy_spectrum_bin_edges = None
@@ -418,82 +418,64 @@ class RunConf(object):
     def _write_max_peeloff_optical_depth(self, group):
         group.attrs['peeloff_tau_max'] = self.peeloff_tau_max
 
-    def set_escape_column_density(self, compute, n_rays=30, max_emission_optical_depth=None):
+    def set_compute_escape_column_density(self, compute, rays_per_cell=None):
         '''
         Set whether to compute the minimum column density to escape each cell.
 
         If enabled, the minimum column density (for each dust type) that a
         photon has to cross to escape the grid from anywhere in each cell is
         estimated after the initial iterations, by casting random rays
-        through the grid. This is used in two ways:
+        through the grid. Every ray provides a sample for all the cells it
+        crosses on the way to the edge of the grid, and since the samples are
+        exact column densities along real paths, the estimate can only be
+        larger than (or equal to) the true minimum, and converges to it as the
+        number of rays increases.
 
-        * Photons in cells where the minimum optical depth to escape (at the
-          frequency of the photon) is larger than the maximum optical depth
-          for peeled photons (see
-          :meth:`~hyperion.model.Model.set_max_peeloff_optical_depth`) are
-          not peeled off (except for observers inside the grid), since the
-          optical depth to the observer would be larger than the maximum.
-          This avoids integrating the optical depth along these paths, and
-          only removes contributions smaller than ``exp(-tau_max)``, which
-          are exactly zero in double precision for the default maximum of
-          1000.
+        The minimum column density is written to the output file, and can be
+        accessed with :meth:`~hyperion.model.ModelOutput.get_quantities` as
+        the ``minimum_escape_column_density`` quantity.
 
-        * In monochromatic mode, if ``max_emission_optical_depth`` is set,
-          dust photons are not emitted from cells where the minimum optical
-          depth to escape at the frequency being computed is larger than this
-          value. In very optically thick models, most of the dust emission
-          can come from cells that photons cannot escape from, so this can
-          make the imaging much faster for the same signal-to-noise. Since
-          the energy of the photons emitted from the other cells is not
-          changed, this only removes the contribution from these cells, which
-          is negligible if ``max_emission_optical_depth`` is sufficiently
-          larger than the maximum optical depth for peeled photons, since
-          photons emitted in these cells would have to travel through a large
-          optical depth (scattering many times) before being able to
-          contribute. This assumes that the observers are outside the grid,
-          since the minimum is computed to the edge of the grid, so this
-          cannot be used with inside observers or with peeled images that
-          ignore the optical depth (an error is raised when the model is
-          written).
+        When it is computed, it is also used automatically in the imaging
+        iteration: photons in cells where the minimum optical depth to escape
+        (at the frequency of the photon) is larger than the maximum optical
+        depth for peeled photons (see
+        :meth:`~hyperion.model.Model.set_max_peeloff_optical_depth`) are not
+        peeled off (except for observers inside the grid and images that
+        ignore the optical depth), since the optical depth to the observer
+        would be larger than the maximum. This avoids integrating the optical
+        depth along these paths, and only removes contributions smaller than
+        ``exp(-tau_max)``, which are exactly zero in double precision for the
+        default maximum of 1000.
 
-        Since the minimum is estimated using a finite number of rays, the
-        estimate can only be larger than (or equal to) the true minimum, and
-        converges to it as the number of rays increases.
-
-        The minimum column density is also written to the output file, and
-        can be accessed with
-        :meth:`~hyperion.model.ModelOutput.get_quantities` as the
-        ``escape_column_density`` quantity.
+        In monochromatic mode, it can also be used to avoid emitting dust
+        photons from cells that they are unlikely to escape from (see the
+        ``max_emission_escape_optical_depth`` argument to
+        :meth:`~hyperion.model.Model.set_monochromatic`).
 
         Parameters
         ----------
         compute : bool
             Whether to compute the minimum column density to escape each cell
-        n_rays : int, optional
-            The average number of rays to start in each cell. Since every ray
-            also provides a sample for all the cells it crosses on the way to
-            the edge of the grid, the number of samples for each cell is
+        rays_per_cell : int
+            The average number of rays to start in each cell (required if
+            ``compute`` is `True`). Since every ray also provides a sample for
+            all the cells it crosses, the number of samples for each cell is
             usually much larger than this.
-        max_emission_optical_depth : float, optional
-            In monochromatic mode, the minimum optical depth to escape above
-            which dust photons are not emitted from a cell. By default, dust
-            photons are emitted from all cells.
         '''
         if not isinstance(compute, bool):
             raise TypeError("compute should be a boolean")
-        if not np.isscalar(n_rays) or isinstance(n_rays, str) or int(n_rays) != n_rays:
-            raise TypeError("n_rays should be an integer")
-        if not n_rays > 0:
-            raise ValueError("n_rays should be strictly positive")
-        if max_emission_optical_depth is not None:
-            if not np.isscalar(max_emission_optical_depth) or isinstance(max_emission_optical_depth, str):
-                raise TypeError("max_emission_optical_depth should be a scalar value")
-            if not max_emission_optical_depth > 0.:
-                raise ValueError("max_emission_optical_depth should be strictly positive")
-            max_emission_optical_depth = float(max_emission_optical_depth)
+        if compute:
+            if rays_per_cell is None:
+                raise ValueError("rays_per_cell should be specified when computing the minimum escape column density")
+            if not np.isscalar(rays_per_cell) or isinstance(rays_per_cell, str) or int(rays_per_cell) != rays_per_cell:
+                raise TypeError("rays_per_cell should be an integer")
+            if not rays_per_cell > 0:
+                raise ValueError("rays_per_cell should be strictly positive")
+            rays_per_cell = int(rays_per_cell)
+        elif rays_per_cell is not None:
+            raise ValueError("rays_per_cell should not be specified when not computing the minimum escape column density")
         self.compute_escape_column_density = compute
-        self.escape_n_rays = int(n_rays)
-        self.escape_emission_tau_max = max_emission_optical_depth
+        self.escape_rays_per_cell = rays_per_cell
 
     def _read_escape_column_density(self, group):
         if 'compute_escape_column_density' in group.attrs:
@@ -501,21 +483,14 @@ class RunConf(object):
         else:
             self.compute_escape_column_density = False
         if self.compute_escape_column_density:
-            self.escape_n_rays = int(group.attrs['escape_n_rays'])
-            if 'escape_emission_tau_max' in group.attrs:
-                self.escape_emission_tau_max = float(group.attrs['escape_emission_tau_max'])
-            else:
-                self.escape_emission_tau_max = None
+            self.escape_rays_per_cell = int(group.attrs['escape_rays_per_cell'])
         else:
-            self.escape_n_rays = 30
-            self.escape_emission_tau_max = None
+            self.escape_rays_per_cell = None
 
     def _write_escape_column_density(self, group):
         group.attrs['compute_escape_column_density'] = bool2str(self.compute_escape_column_density)
         if self.compute_escape_column_density:
-            group.attrs['escape_n_rays'] = self.escape_n_rays
-            if self.escape_emission_tau_max is not None:
-                group.attrs['escape_emission_tau_max'] = self.escape_emission_tau_max
+            group.attrs['escape_rays_per_cell'] = self.escape_rays_per_cell
 
     def set_pda(self, pda):
         '''

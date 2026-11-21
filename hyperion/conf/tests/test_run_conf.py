@@ -60,28 +60,30 @@ def test_max_peeloff_optical_depth_invalid2(value):
 def test_escape_column_density_default():
     r = RunConf()
     assert r.compute_escape_column_density is False
+    assert r.escape_rays_per_cell is None
 
 
-@pytest.mark.parametrize(('n_rays', 'tau_max'), [(30, None), (1, 200.), (1000, 1e-3), (np.int64(10), 50)])
-def test_escape_column_density(n_rays, tau_max):
+@pytest.mark.parametrize(('rays_per_cell'), [30, 1, 1000, np.int64(10)])
+def test_escape_column_density(rays_per_cell):
     r = RunConf()
-    r.set_escape_column_density(True, n_rays=n_rays, max_emission_optical_depth=tau_max)
+    r.set_compute_escape_column_density(True, rays_per_cell=rays_per_cell)
     assert r.compute_escape_column_density is True
-    assert r.escape_n_rays == n_rays
-    assert r.escape_emission_tau_max == tau_max
+    assert r.escape_rays_per_cell == rays_per_cell
+    r.set_compute_escape_column_density(False)
+    assert r.compute_escape_column_density is False
+    assert r.escape_rays_per_cell is None
 
 
 @pytest.mark.parametrize(('kwargs', 'exception', 'message'), [
     (dict(compute=1), TypeError, "compute should be a boolean"),
-    (dict(compute=True, n_rays=1.5), TypeError, "n_rays should be an integer"),
-    (dict(compute=True, n_rays='a'), TypeError, "n_rays should be an integer"),
-    (dict(compute=True, n_rays=0), ValueError, "n_rays should be strictly positive"),
-    (dict(compute=True, max_emission_optical_depth='a'), TypeError, "max_emission_optical_depth should be a scalar value"),
-    (dict(compute=True, max_emission_optical_depth=0.), ValueError, "max_emission_optical_depth should be strictly positive"),
-    (dict(compute=True, max_emission_optical_depth=float('nan')), ValueError, "max_emission_optical_depth should be strictly positive"),
+    (dict(compute=True), ValueError, "rays_per_cell should be specified when computing the minimum escape column density"),
+    (dict(compute=False, rays_per_cell=30), ValueError, "rays_per_cell should not be specified when not computing the minimum escape column density"),
+    (dict(compute=True, rays_per_cell=1.5), TypeError, "rays_per_cell should be an integer"),
+    (dict(compute=True, rays_per_cell='a'), TypeError, "rays_per_cell should be an integer"),
+    (dict(compute=True, rays_per_cell=0), ValueError, "rays_per_cell should be strictly positive"),
 ])
 def test_escape_column_density_invalid(kwargs, exception, message):
     r = RunConf()
     with pytest.raises(exception) as exc:
-        r.set_escape_column_density(**kwargs)
+        r.set_compute_escape_column_density(**kwargs)
     assert exc.value.args[0] == message

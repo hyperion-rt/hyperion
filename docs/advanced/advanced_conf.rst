@@ -80,23 +80,41 @@ cell, the minimum column density (for each dust type) that a photon has to
 cross to escape the grid from anywhere in the cell, by casting random rays
 through the grid after the initial iterations::
 
-    m.set_escape_column_density(True)
+    m.set_compute_escape_column_density(True, rays_per_cell=30)
 
-When this is enabled, photons in cells where the minimum optical depth to
-escape is larger than the maximum optical depth for peeled photons (see
+Every ray provides a sample for all the cells it crosses on the way to the
+edge of the grid, so the number of samples per cell is usually much larger
+than ``rays_per_cell``. Since the samples are exact column densities along
+real paths, the estimate can only be larger than or equal to the true
+minimum, and converges to it as the number of rays increases.
+
+The minimum column density is written to the output file, and can be accessed
+with :meth:`~hyperion.model.ModelOutput.get_quantities`::
+
+    from hyperion.model import ModelOutput
+    m = ModelOutput('model.rtout')
+    grid = m.get_quantities()
+    column = grid['minimum_escape_column_density'][0].array  # first dust type
+
+Multiplying this by the extinction coefficient (``chi``) of the dust at a
+given frequency gives the minimum optical depth to escape each cell at that
+frequency.
+
+When the minimum escape column density is computed, photons in cells where
+the minimum optical depth to escape is larger than the maximum optical depth
+for peeled photons (see
 :meth:`~hyperion.model.Model.set_max_peeloff_optical_depth`) are no longer
-peeled off, which avoids integrating the optical depth for peeled photons
-whose contribution would be smaller than ``exp(-tau_max)`` (exactly zero in
-double precision for the default maximum of 1000). Since the minimum is
-estimated from a finite number of rays, the estimate can only be larger than
-or equal to the true minimum, and converges to it as the number of rays
-(controlled with the ``n_rays`` argument) increases.
+peeled off, in both normal and monochromatic mode. This avoids integrating
+the optical depth for peeled photons whose contribution would be smaller than
+``exp(-tau_max)`` (exactly zero in double precision for the default maximum
+of 1000).
 
 In monochromatic mode, it is also possible to avoid emitting dust photons
 from cells where the minimum optical depth to escape exceeds a given value::
 
+    m.set_compute_escape_column_density(True, rays_per_cell=30)
     m.set_max_peeloff_optical_depth(100.)
-    m.set_escape_column_density(True, max_emission_optical_depth=200.)
+    m.set_monochromatic(True, wavelengths=[...], max_emission_escape_optical_depth=200.)
 
 In models where most of the dust emission at a given wavelength comes from
 regions that are very optically thick at that wavelength (for example the
@@ -107,22 +125,11 @@ regions they can escape from. This removes the contribution from the other
 cells, so the value should be chosen to be sufficiently larger than the
 maximum optical depth for peeled photons, since photons emitted where the
 optical depth to escape is larger have to scatter many times through very
-optically thick regions before being able to contribute. Since the minimum
-optical depth is computed to the edge of the grid, this cannot be used with
-observers inside the grid or with peeled images that ignore the optical depth
-(an error is raised when the model is written).
-
-The minimum column density is also written to the output file, and can be
-accessed with :meth:`~hyperion.model.ModelOutput.get_quantities`::
-
-    from hyperion.model import ModelOutput
-    m = ModelOutput('model.rtout')
-    grid = m.get_quantities()
-    column = grid['escape_column_density'][0].array  # first dust type
-
-Multiplying this by the extinction coefficient (``chi``) of the dust at a
-given frequency gives the minimum optical depth to escape each cell at that
-frequency.
+optically thick regions before being able to contribute. This requires the
+minimum escape column density to be computed, and since the minimum optical
+depth is computed to the edge of the grid, this cannot be used with observers
+inside the grid or with peeled images that ignore the optical depth (an
+error is raised when the model is written in all these cases).
 
 Scattered-light images
 ----------------------

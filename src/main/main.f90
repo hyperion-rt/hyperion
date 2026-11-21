@@ -54,7 +54,7 @@ program main
        &               use_exact_nu, &
        &               use_raytracing, &
        &               escape_enabled, &
-       &               escape_n_rays
+       &               escape_rays_per_cell
 
   use counters, only : killed_photons_geo, &
        &               killed_photons_int
@@ -269,11 +269,11 @@ program main
 
   if(escape_enabled) then
      allocate(escape_column_density(geo%n_cells, n_dust))
-     call compute_escape_column_density(escape_n_rays, escape_column_density)
+     call compute_escape_column_density(escape_rays_per_cell, escape_column_density)
      if(main_process()) then
         g_escape = mp_create_group(handle_out, 'Escape')
-        call write_grid_4d(g_escape, 'escape_column_density', escape_column_density, geo)
-        call mp_write_keyword(g_escape, '.', 'n_rays', escape_n_rays)
+        call write_grid_4d(g_escape, 'minimum_escape_column_density', escape_column_density, geo)
+        call mp_write_keyword(g_escape, '.', 'rays_per_cell', escape_rays_per_cell)
      end if
   end if
 

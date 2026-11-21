@@ -48,12 +48,12 @@ module grid_escape
 
 contains
 
-  subroutine compute_escape_column_density(n_rays_per_cell, column_min)
+  subroutine compute_escape_column_density(rays_per_cell, column_min)
 
     implicit none
 
     ! Average number of rays to start in each cell
-    integer, intent(in) :: n_rays_per_cell
+    integer, intent(in) :: rays_per_cell
 
     ! Minimum column density to escape for each cell and dust type
     real(dp), intent(out) :: column_min(:,:)
@@ -84,7 +84,7 @@ contains
 
     column_min = huge(1._dp)
 
-    n_rays_requested = int(n_rays_per_cell, idp) * int(n_start_cells, idp)
+    n_rays_requested = int(rays_per_cell, idp) * int(n_start_cells, idp)
     n_rays_current = 0
     call mp_reset_first()
 
