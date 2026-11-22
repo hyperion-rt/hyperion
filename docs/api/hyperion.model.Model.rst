@@ -56,6 +56,7 @@ hyperion.model.Model
       ~Model.set_raytracing
       ~Model.set_max_interactions
       ~Model.set_max_reabsorptions
+      ~Model.set_max_peeloff_optical_depth
       ~Model.set_pda
       ~Model.set_mrw
       ~Model.set_convergence
@@ -123,6 +124,7 @@ hyperion.model.Model
    .. automethod:: Model.set_raytracing
    .. automethod:: Model.set_max_interactions
    .. automethod:: Model.set_max_reabsorptions
+   .. automethod:: Model.set_max_peeloff_optical_depth
    .. automethod:: Model.set_pda
    .. automethod:: Model.set_mrw
    .. automethod:: Model.set_convergence

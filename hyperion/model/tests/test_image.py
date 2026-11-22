@@ -913,3 +913,79 @@ def test_inside_observer_peeloff_optical_depth(tmpdir):
 
     ratio = peak_flux(with_dust=True) / peak_flux(with_dust=False)
     np.testing.assert_allclose(ratio, np.exp(-tau_full), rtol=0.05)
+
+
+@pytest.mark.requires_hyperion_binaries
+@pytest.mark.parametrize(('tau_max'), [None, 10., np.inf, 2.])
+def test_max_peeloff_optical_depth(tmpdir, tau_max):
+    # A point source sits at the centre of a purely-absorbing slab of flat
+    # opacity, divided into 200 cells along the line of sight, so that the
+    # optical depth to the observer is 5. The peeled flux should be attenuated
+    # by exp(-5) unless the maximum peeloff optical depth is lower, in which
+    # case the integration should stop within one cell (of optical depth
+    # 0.05) of the maximum.
+    from ...dust import IsotropicDust
+
+    chi, rho = 1., 5.
+
+    def flux(with_dust):
+        m = Model()
+        m.set_cartesian_grid(np.linspace(-1., 1., 201), [-1., 1.], [-1., 1.])
+        dust = IsotropicDust([3.e9, 3.e16], [0., 0.], [chi, chi])
+        dust.set_lte_emissivities(n_temp=10, temp_min=0.1, temp_max=1.e4)
+        m.add_density_grid(np.ones((1, 1, 200)) * (rho if with_dust else 0.), dust)
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 6000.
+        i = m.add_peeled_images(sed=True, image=False)
+        i.set_viewing_angles([90.], [0.])
+        i.set_track_origin('basic')
+        m.set_n_initial_iterations(0)
+        # All photons are emitted at the same wavelength so that the flux
+        # ratio does not depend on the random sampling of the source spectrum
+        m.set_monochromatic(True, wavelengths=[1.])
+        m.set_n_photons(imaging_sources=1000, imaging_dust=0)
+        if tau_max is not None:
+            m.set_max_peeloff_optical_depth(tau_max)
+        m.write(tmpdir.join(random_id()).strpath)
+        out = m.run(tmpdir.join(random_id()).strpath)
+        return out.get_sed(component='source_emit').val[0, 0, 0]
+
+    ratio = flux(with_dust=True) / flux(with_dust=False)
+
+    if tau_max == 2.:
+        assert np.exp(-2.05) * (1 - 1e-10) <= ratio <= np.exp(-2.) * (1 + 1e-10)
+    else:
+        np.testing.assert_allclose(ratio, np.exp(-5.), rtol=1e-10)
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_propagation_check_frequency(tmpdir):
+    # Make sure that models run correctly whether the propagation checks are
+    # disabled (in which case no random numbers are drawn for the checks),
+    # done some of the time, or done at every cell crossing. The grid contains
+    # no dust, so the peeled flux of the point source does not depend on the
+    # random numbers, but the photons and peeled photons still cross several
+    # cell walls.
+
+    def flux(frequency):
+        m = Model()
+        m.set_cartesian_grid(np.linspace(-1., 1., 11), [-1., 1.], [-1., 1.])
+        m.add_density_grid(np.zeros((1, 1, 10)), get_test_dust())
+        s = m.add_point_source()
+        s.luminosity = 1.
+        s.temperature = 6000.
+        i = m.add_peeled_images(sed=True, image=False)
+        i.set_viewing_angles([90.], [0.])
+        m.set_n_initial_iterations(0)
+        m.set_monochromatic(True, wavelengths=[1.])
+        m.set_n_photons(imaging_sources=100, imaging_dust=0)
+        m.set_propagation_check_frequency(frequency)
+        m.write(tmpdir.join(random_id()).strpath)
+        out = m.run(tmpdir.join(random_id()).strpath)
+        return out.get_sed().val[0, 0, 0]
+
+    reference = flux(1.)
+    assert reference > 0.
+    for frequency in [0., 0.001]:
+        assert flux(frequency) == reference
