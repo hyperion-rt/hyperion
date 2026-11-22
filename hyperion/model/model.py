@@ -102,15 +102,20 @@ class Model(FreezableClass, RunConf):
             :meth:`~hyperion.model.Model.set_compute_escape_column_density`).
             In very optically thick models, most of the dust emission can
             come from cells that photons cannot escape from, so this can make
-            the imaging much faster for the same signal-to-noise. Since the
-            energy of the photons emitted from the other cells is not changed,
-            this only removes the contribution from these cells, which is
-            negligible if the value is sufficiently larger than the maximum
-            optical depth for peeled photons (see
-            :meth:`~hyperion.model.Model.set_max_peeloff_optical_depth`),
-            since photons emitted in these cells would have to scatter many
-            times through very optically thick regions before being able to
-            contribute. Since the minimum is computed to the edge of the grid,
+            the imaging much faster for the same signal-to-noise. This
+            removes the contribution of photons emitted in the excluded
+            cells. These photons cannot contribute directly, because the
+            optical depth from where they are emitted is larger than the
+            maximum optical depth for peeled photons (see
+            :meth:`~hyperion.model.Model.set_max_peeloff_optical_depth`), but
+            they can contribute indirectly after scattering outwards into
+            cells from which they can escape. This indirect contribution
+            becomes negligible when the photons have to scatter through a
+            large optical depth first, so the value should be chosen to be
+            sufficiently larger than the maximum optical depth for peeled
+            photons (for example twice as large). The energy of the photons
+            emitted from the other cells is not changed. Since the minimum is
+            computed to the edge of the grid,
             this cannot be used with inside observers or with peeled images
             that ignore the optical depth. By default, dust photons are
             emitted from all cells.

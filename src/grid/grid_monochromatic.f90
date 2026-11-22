@@ -75,12 +75,15 @@ contains
 
     ! If requested, do not emit dust photons from cells where the minimum
     ! optical depth to escape the grid at this frequency is larger than
-    ! escape_emission_tau_max, since these photons can only contribute to the
-    ! images and SEDs after scattering many times through very optically thick
-    ! regions. The energy of the photons emitted from the other cells is
-    ! unchanged, so this only removes the contribution from these cells, which
-    ! is negligible if escape_emission_tau_max is sufficiently larger than
-    ! peeloff_tau_max (for observers outside the grid).
+    ! escape_emission_tau_max. These photons cannot contribute directly, since
+    ! the optical depth from where they are emitted is larger than
+    ! peeloff_tau_max, but they can contribute indirectly after scattering
+    ! outwards into cells from which they can escape. This indirect
+    ! contribution becomes negligible when they have to scatter through a large
+    ! optical depth first, which is the case if escape_emission_tau_max is
+    ! sufficiently larger than peeloff_tau_max (for observers outside the
+    ! grid). The energy of the photons emitted from the other cells is
+    ! unchanged.
     skip_hidden = allocated(escape_column_density) .and. escape_emission_tau_max < huge(1._dp)
     if(skip_hidden) then
        allocate(escape_tau(geo%n_cells))
