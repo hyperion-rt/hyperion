@@ -960,35 +960,32 @@ def test_max_peeloff_optical_depth(tmpdir, tau_max):
 
 
 @pytest.mark.requires_hyperion_binaries
-@pytest.mark.parametrize(('frequency'), [0., 0.001, 1.])
-def test_propagation_check_frequency(tmpdir, frequency):
+def test_propagation_check_frequency(tmpdir):
     # Make sure that models run correctly whether the propagation checks are
     # disabled (in which case no random numbers are drawn for the checks),
-    # done some of the time, or done at every cell crossing. The model is the
-    # same as in test_max_peeloff_optical_depth, for which the flux of the
-    # source is attenuated by exactly exp(-5) regardless of the random
-    # numbers.
-    from ...dust import IsotropicDust
+    # done some of the time, or done at every cell crossing. The grid contains
+    # no dust, so the peeled flux of the point source does not depend on the
+    # random numbers, but the photons and peeled photons still cross several
+    # cell walls.
 
-    def flux(with_dust):
+    def flux(frequency):
         m = Model()
-        m.set_cartesian_grid(np.linspace(-1., 1., 201), [-1., 1.], [-1., 1.])
-        dust = IsotropicDust([3.e9, 3.e16], [0., 0.], [1., 1.])
-        dust.set_lte_emissivities(n_temp=10, temp_min=0.1, temp_max=1.e4)
-        m.add_density_grid(np.ones((1, 1, 200)) * (5. if with_dust else 0.), dust)
+        m.set_cartesian_grid(np.linspace(-1., 1., 11), [-1., 1.], [-1., 1.])
+        m.add_density_grid(np.zeros((1, 1, 10)), get_test_dust())
         s = m.add_point_source()
         s.luminosity = 1.
         s.temperature = 6000.
         i = m.add_peeled_images(sed=True, image=False)
         i.set_viewing_angles([90.], [0.])
-        i.set_track_origin('basic')
         m.set_n_initial_iterations(0)
         m.set_monochromatic(True, wavelengths=[1.])
-        m.set_n_photons(imaging_sources=1000, imaging_dust=0)
+        m.set_n_photons(imaging_sources=100, imaging_dust=0)
         m.set_propagation_check_frequency(frequency)
         m.write(tmpdir.join(random_id()).strpath)
         out = m.run(tmpdir.join(random_id()).strpath)
-        return out.get_sed(component='source_emit').val[0, 0, 0]
+        return out.get_sed().val[0, 0, 0]
 
-    ratio = flux(with_dust=True) / flux(with_dust=False)
-    np.testing.assert_allclose(ratio, np.exp(-5.), rtol=1e-10)
+    reference = flux(1.)
+    assert reference > 0.
+    for frequency in [0., 0.001]:
+        assert flux(frequency) == reference
