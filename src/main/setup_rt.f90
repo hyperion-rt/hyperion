@@ -53,6 +53,11 @@ contains
         else
             monochromatic_energy_threshold = 1e-10_dp
         end if
+        if(mp_exists_keyword(input_handle, '/', 'emission_sampling_exponent')) then
+            call mp_read_keyword(input_handle, '/', 'emission_sampling_exponent', emission_sampling_exponent)
+        else
+            emission_sampling_exponent = 1._dp
+        end if
     end if
     call mp_read_keyword(input_handle, '/', 'raytracing', use_raytracing)
 

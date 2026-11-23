@@ -136,6 +136,28 @@ minimum optical depth is computed to the edge of the grid, this cannot be used
 with observers inside the grid or with peeled images that ignore the optical
 depth (an error is raised when the model is written in all these cases).
 
+By default, dust photons in monochromatic mode are emitted from cells chosen
+in proportion to their emission at the wavelength being computed, so that all
+photons have the same energy. When the flux reaching the observer comes mostly
+from cells with low emission, for example for edge-on viewing angles of
+optically thick disks where the emission from the midplane is hidden, very few
+photons are emitted from these cells and the results are noisy. The
+``emission_sampling_exponent`` argument changes the probability of choosing
+each cell to be proportional to its emission raised to that power, and
+adjusts the energy of each photon so that the results remain unbiased::
+
+    m.set_monochromatic(True, wavelengths=[...],
+                        emission_max_escape_optical_depth=200.,
+                        emission_sampling_exponent=0.5)
+
+A value of 0 emits the same number of photons from all the cells that emit at
+the wavelength being computed. In tests with a very optically thick disk, a
+value of 0.5 together with ``emission_max_escape_optical_depth`` gave the
+lowest noise overall at near- and mid-infrared wavelengths, reducing the noise
+for edge-on viewing angles by up to an order of magnitude for the same
+computation time, while very low values can make the noise worse when the
+flux is dominated by the cells with the highest emission.
+
 .. _pure-scattering:
 
 Scattered-light images

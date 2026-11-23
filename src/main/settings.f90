@@ -28,6 +28,13 @@ module settings
 
   logical :: use_exact_nu = .false.
   real(dp) :: monochromatic_energy_threshold
+
+  ! In monochromatic mode, dust photons are emitted from cells chosen with a
+  ! probability proportional to the cell emission at the frequency being
+  ! computed raised to this power, and are weighted so that the results are
+  ! unbiased (1 is the default, in which case all dust photons have the same
+  ! energy)
+  real(dp) :: emission_sampling_exponent = 1._dp
   real(dp),allocatable :: frequencies(:)
 
   ! Frequency bin edges for specific_energy_spectrum, provided by the Python
