@@ -723,12 +723,13 @@ class AnalyticalYSOModel(Model):
         m._minimum_temperature = deepcopy(self._minimum_temperature)
         m._minimum_specific_energy = deepcopy(self._minimum_specific_energy)
 
-        m._monochromatic = self._monochromatic
-        m._monochromatic_energy_threshold = self._monochromatic_energy_threshold
-        m._frequencies = self._frequencies
-
-        # Easiest way to copy over all settings
+        # Easiest way to copy over all settings, including the monochromatic
+        # settings so that none can be missed. The monochromatic settings
+        # need to be read first, since reading the numbers of photons depends
+        # on whether the monochromatic mode is used.
         g = virtual_file()
+        self._write_monochromatic(g)
+        m._read_monochromatic(g)
         self.write_run_conf(g)
         m.read_run_conf(g)
         g.close()
