@@ -15,7 +15,7 @@ RHO = 5.
 CHI = 1.
 
 
-def sphere_model(peeloff_tau_max=None, escape=True, max_emission_escape_optical_depth=None,
+def sphere_model(peeloff_tau_max=None, escape=True, emission_max_escape_optical_depth=None,
                  specific_energy=None, dust_photons=False):
 
     m = Model()
@@ -40,7 +40,7 @@ def sphere_model(peeloff_tau_max=None, escape=True, max_emission_escape_optical_
 
     m.set_n_initial_iterations(0)
     m.set_monochromatic(True, wavelengths=[1.],
-                        max_emission_escape_optical_depth=max_emission_escape_optical_depth)
+                        emission_max_escape_optical_depth=emission_max_escape_optical_depth)
 
     if dust_photons:
         m.set_n_photons(imaging_sources=0, imaging_dust=10000)
@@ -170,9 +170,9 @@ def test_peeloff_hidden_cells(tmpdir, escape):
         assert np.exp(-2.1) <= flux / reference <= np.exp(-2.) * (1 + 1e-10)
 
 
-def dust_flux(tmpdir, max_emission_escape_optical_depth):
+def dust_flux(tmpdir, emission_max_escape_optical_depth):
     out = run(tmpdir, sphere_model(dust_photons=True, specific_energy=1.e10,
-                                   max_emission_escape_optical_depth=max_emission_escape_optical_depth))
+                                   emission_max_escape_optical_depth=emission_max_escape_optical_depth))
     return out.get_sed(component='dust_emit').val[0, 0, 0]
 
 
@@ -199,7 +199,7 @@ def test_emission_hidden_cells_invalid_images(tmpdir, image_setting):
     # observers and in images that ignore the optical depth, so skipping their
     # emission is not allowed in these cases
 
-    m = sphere_model(dust_photons=True, max_emission_escape_optical_depth=200.)
+    m = sphere_model(dust_photons=True, emission_max_escape_optical_depth=200.)
     i = m.add_peeled_images(sed=False, image=True)
     i.set_image_size(1, 1)
     if image_setting == 'inside_observer':
@@ -214,18 +214,18 @@ def test_emission_hidden_cells_invalid_images(tmpdir, image_setting):
 
     with pytest.raises(ValueError) as exc:
         m.write(tmpdir.join(random_id()).strpath)
-    assert exc.value.args[0] == "Cannot use max_emission_escape_optical_depth " + message
+    assert exc.value.args[0] == "Cannot use emission_max_escape_optical_depth " + message
 
-    # Without max_emission_escape_optical_depth, the model can be written
+    # Without emission_max_escape_optical_depth, the model can be written
     m.set_monochromatic(True, wavelengths=[1.])
     m.write(tmpdir.join(random_id()).strpath)
 
 
 def test_emission_hidden_cells_requires_escape_column_density(tmpdir):
-    m = sphere_model(escape=False, dust_photons=True, max_emission_escape_optical_depth=200.)
+    m = sphere_model(escape=False, dust_photons=True, emission_max_escape_optical_depth=200.)
     with pytest.raises(ValueError) as exc:
         m.write(tmpdir.join(random_id()).strpath)
-    assert exc.value.args[0] == ("max_emission_escape_optical_depth requires the minimum escape column "
+    assert exc.value.args[0] == ("emission_max_escape_optical_depth requires the minimum escape column "
                                  "density to be computed - use set_compute_escape_column_density to enable it")
     m.set_compute_escape_column_density(True, rays_per_cell=30)
     m.write(tmpdir.join(random_id()).strpath)
@@ -234,20 +234,20 @@ def test_emission_hidden_cells_requires_escape_column_density(tmpdir):
 def test_emission_hidden_cells_requires_monochromatic():
     m = Model()
     with pytest.raises(ValueError) as exc:
-        m.set_monochromatic(False, max_emission_escape_optical_depth=200.)
-    assert exc.value.args[0] == "max_emission_escape_optical_depth can only be set in monochromatic mode"
+        m.set_monochromatic(False, emission_max_escape_optical_depth=200.)
+    assert exc.value.args[0] == "emission_max_escape_optical_depth can only be set in monochromatic mode"
 
 
 @pytest.mark.parametrize(('value', 'exception', 'message'), [
-    ('a', TypeError, "max_emission_escape_optical_depth should be a scalar value"),
-    ([1., 2.], TypeError, "max_emission_escape_optical_depth should be a scalar value"),
-    (0., ValueError, "max_emission_escape_optical_depth should be strictly positive"),
-    (float('nan'), ValueError, "max_emission_escape_optical_depth should be strictly positive"),
+    ('a', TypeError, "emission_max_escape_optical_depth should be a scalar value"),
+    ([1., 2.], TypeError, "emission_max_escape_optical_depth should be a scalar value"),
+    (0., ValueError, "emission_max_escape_optical_depth should be strictly positive"),
+    (float('nan'), ValueError, "emission_max_escape_optical_depth should be strictly positive"),
 ])
 def test_emission_hidden_cells_invalid_value(value, exception, message):
     m = Model()
     with pytest.raises(exception) as exc:
-        m.set_monochromatic(True, wavelengths=[1.], max_emission_escape_optical_depth=value)
+        m.set_monochromatic(True, wavelengths=[1.], emission_max_escape_optical_depth=value)
     assert exc.value.args[0] == message
 
 
@@ -255,10 +255,10 @@ def test_emission_hidden_cells_invalid_value(value, exception, message):
 def test_emission_hidden_cells_io(value):
     from ...util.functions import virtual_file
     m1 = Model()
-    m1.set_monochromatic(True, wavelengths=[1.], max_emission_escape_optical_depth=value)
+    m1.set_monochromatic(True, wavelengths=[1.], emission_max_escape_optical_depth=value)
     v = virtual_file()
     m1._write_monochromatic(v)
     m2 = Model()
-    m2.set_monochromatic(True, wavelengths=[2.], max_emission_escape_optical_depth=5.)
+    m2.set_monochromatic(True, wavelengths=[2.], emission_max_escape_optical_depth=5.)
     m2._read_monochromatic(v)
-    assert m2._monochromatic_max_emission_escape_optical_depth == value
+    assert m2._monochromatic_emission_max_escape_optical_depth == value

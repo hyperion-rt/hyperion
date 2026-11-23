@@ -449,7 +449,7 @@ class RunConf(object):
 
         In monochromatic mode, it can also be used to avoid emitting dust
         photons from cells that they are unlikely to escape from (see the
-        ``max_emission_escape_optical_depth`` argument to
+        ``emission_max_escape_optical_depth`` argument to
         :meth:`~hyperion.model.Model.set_monochromatic`).
 
         Parameters

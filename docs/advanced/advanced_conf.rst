@@ -114,7 +114,7 @@ from cells where the minimum optical depth to escape exceeds a given value::
 
     m.set_compute_escape_column_density(True, rays_per_cell=30)
     m.set_max_peeloff_optical_depth(100.)
-    m.set_monochromatic(True, wavelengths=[...], max_emission_escape_optical_depth=200.)
+    m.set_monochromatic(True, wavelengths=[...], emission_max_escape_optical_depth=200.)
 
 In models where most of the dust emission at a given wavelength comes from
 regions that are very optically thick at that wavelength (for example the

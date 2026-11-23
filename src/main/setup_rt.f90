@@ -74,9 +74,9 @@ contains
        call mp_read_keyword(input_handle, '/', 'escape_rays_per_cell', escape_rays_per_cell)
     end if
 
-    if(mp_exists_keyword(input_handle, '/', 'max_emission_escape_optical_depth')) then
-       if(.not.escape_enabled .and. main_process()) call error("setup_initial", "max_emission_escape_optical_depth requires compute_escape_column_density")
-       call mp_read_keyword(input_handle, '/', 'max_emission_escape_optical_depth', escape_emission_tau_max)
+    if(mp_exists_keyword(input_handle, '/', 'emission_max_escape_optical_depth')) then
+       if(.not.escape_enabled .and. main_process()) call error("setup_initial", "emission_max_escape_optical_depth requires compute_escape_column_density")
+       call mp_read_keyword(input_handle, '/', 'emission_max_escape_optical_depth', escape_emission_tau_max)
     else
        escape_emission_tau_max = huge(1._dp)
     end if
