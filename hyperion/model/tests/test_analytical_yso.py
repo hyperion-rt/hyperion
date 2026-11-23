@@ -519,3 +519,45 @@ def test_manual_grid(tmpdir):
     m.set_n_photons(initial=0, imaging=0)
 
     m.write(tmpdir.join(random_id()).strpath)
+
+
+@pytest.mark.parametrize('emission_max_escape_optical_depth', [None, 200.])
+def test_analytical_yso_monochromatic_settings(tmpdir, emission_max_escape_optical_depth):
+
+    # Make sure that all the monochromatic settings are preserved when
+    # converting to a Model, which is done when writing out the model
+
+    m = basic_analytical_model()
+    m.set_spherical_polar_grid_auto(10, 10, 1)
+    m.add_peeled_images(sed=True, image=False).set_viewing_angles([45.], [45.])
+    m.set_n_initial_iterations(0)
+    m.set_compute_escape_column_density(True, rays_per_cell=10)
+    m.set_monochromatic(True, wavelengths=[1., 2.], energy_threshold=1.e-5,
+                        emission_max_escape_optical_depth=emission_max_escape_optical_depth)
+    m.set_n_photons(imaging_sources=10, imaging_dust=10)
+
+    mf = m.to_model()
+
+    assert mf._monochromatic is True
+    np.testing.assert_allclose(mf._frequencies, m._frequencies)
+    assert mf._monochromatic_energy_threshold == 1.e-5
+    assert mf._monochromatic_emission_max_escape_optical_depth == emission_max_escape_optical_depth
+
+    filename = tmpdir.join(random_id()).strpath
+    m.write(filename)
+    import h5py
+    with h5py.File(filename, 'r') as f:
+        if emission_max_escape_optical_depth is None:
+            assert 'emission_max_escape_optical_depth' not in f.attrs
+        else:
+            assert f.attrs['emission_max_escape_optical_depth'] == emission_max_escape_optical_depth
+
+
+def test_analytical_yso_not_monochromatic_settings():
+    m = basic_analytical_model()
+    m.set_spherical_polar_grid_auto(10, 10, 1)
+    m.set_n_photons(initial=100, imaging=100)
+    mf = m.to_model()
+    assert mf._monochromatic is False
+    assert mf._frequencies is None
+    assert mf._monochromatic_emission_max_escape_optical_depth is None
