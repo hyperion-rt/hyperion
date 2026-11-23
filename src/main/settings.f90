@@ -57,6 +57,15 @@ module settings
   ! in double precision beyond it, so that it does not change any contribution.
   real(dp) :: peeloff_tau_max = 1000._dp
 
+  ! Whether to compute the minimum column density to escape each cell, and
+  ! the average number of rays started in each cell to do this
+  logical :: escape_enabled = .false.
+  integer :: escape_rays_per_cell = 0
+
+  ! The minimum optical depth to escape above which dust photons are not
+  ! emitted in monochromatic mode (requires the minimum escape column density)
+  real(dp) :: escape_emission_tau_max = huge(1._dp)
+
   character(len=20) :: specific_energy_type
 
 end module settings

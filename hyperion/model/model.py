@@ -78,7 +78,7 @@ class Model(FreezableClass, RunConf):
         self.peeled_output = []
 
     def set_monochromatic(self, monochromatic, wavelengths=None,
-                          energy_threshold=1e-10):
+                          energy_threshold=1e-10, emission_max_escape_optical_depth=None):
         '''
         Set whether to do the radiation transfer at specific wavelengths.
 
@@ -94,12 +94,46 @@ class Model(FreezableClass, RunConf):
             photons and decreasing their energy by the albedo each time. Once
             their energy has decreased by a ratio corresponding to this
             parameter, the photons are terminated.
+        emission_max_escape_optical_depth : float, optional
+            If set, dust photons are not emitted from cells where the minimum
+            optical depth to escape the grid at the wavelength being computed
+            is larger than this value. This requires the minimum escape column
+            density to be computed (see
+            :meth:`~hyperion.model.Model.set_compute_escape_column_density`).
+            In very optically thick models, most of the dust emission can
+            come from cells that photons cannot escape from, so this can make
+            the imaging much faster for the same signal-to-noise. This
+            removes the contribution of photons emitted in the excluded
+            cells. These photons cannot contribute directly, because the
+            optical depth from where they are emitted is larger than the
+            maximum optical depth for peeled photons (see
+            :meth:`~hyperion.model.Model.set_max_peeloff_optical_depth`), but
+            they can contribute indirectly after scattering outwards into
+            cells from which they can escape. This indirect contribution
+            becomes negligible when the photons have to scatter through a
+            large optical depth first, so the value should be chosen to be
+            sufficiently larger than the maximum optical depth for peeled
+            photons (for example twice as large). The energy of the photons
+            emitted from the other cells is not changed. Since the minimum is
+            computed to the edge of the grid, this cannot be used with inside
+            observers or with peeled images that ignore the optical depth. By
+            default, dust photons are emitted from all cells.
 
         If `monochromatic` is True then `wavelengths` is required
         '''
 
+        if emission_max_escape_optical_depth is not None:
+            if not monochromatic:
+                raise ValueError("emission_max_escape_optical_depth can only be set in monochromatic mode")
+            if not np.isscalar(emission_max_escape_optical_depth) or isinstance(emission_max_escape_optical_depth, str):
+                raise TypeError("emission_max_escape_optical_depth should be a scalar value")
+            if not emission_max_escape_optical_depth > 0.:
+                raise ValueError("emission_max_escape_optical_depth should be strictly positive")
+            emission_max_escape_optical_depth = float(emission_max_escape_optical_depth)
+
         self._monochromatic = monochromatic
         self._monochromatic_energy_threshold = energy_threshold
+        self._monochromatic_emission_max_escape_optical_depth = emission_max_escape_optical_depth
 
         if self._monochromatic:
 
@@ -123,18 +157,25 @@ class Model(FreezableClass, RunConf):
 
     def _read_monochromatic(self, group):
         self._monochromatic = str2bool(group.attrs['monochromatic'])
+        self._monochromatic_emission_max_escape_optical_depth = None
         if self._monochromatic:
             self._frequencies = np.array(group['frequencies']['nu'])
             if 'monochromatic_energy_threshold' in group.attrs:
                 self._monochromatic_energy_threshold = group.attrs['monochromatic_energy_threshold']
             else:
                 self._monochromatic_energy_threshold = 1.e-10
+            if 'emission_max_escape_optical_depth' in group.attrs:
+                self._monochromatic_emission_max_escape_optical_depth = float(group.attrs['emission_max_escape_optical_depth'])
+            else:
+                self._monochromatic_emission_max_escape_optical_depth = None
 
     def _write_monochromatic(self, group, compression=True, dtype=np.float64):
         group.attrs['monochromatic'] = bool2str(self._monochromatic)
         if self._monochromatic:
             group.create_dataset('frequencies', data=np.array(list(zip(self._frequencies)), dtype=[('nu', dtype)]), compression=compression)
             group.attrs['monochromatic_energy_threshold'] = self._monochromatic_energy_threshold
+            if self._monochromatic_emission_max_escape_optical_depth is not None:
+                group.attrs['emission_max_escape_optical_depth'] = self._monochromatic_emission_max_escape_optical_depth
 
     @classmethod
     def read(cls, filename, only_initial=True):
@@ -589,6 +630,15 @@ class Model(FreezableClass, RunConf):
             if not self._frequencies is None:
                 if not peel._monochromatic:
                     raise Exception("Peeled images need to be set to monochromatic mode")
+            # The minimum optical depth to escape is computed to the edge of
+            # the grid along any direction, so cells that are hidden from
+            # observers outside the grid may be visible to observers inside
+            # the grid or for images that ignore the optical depth
+            if self._monochromatic and self._monochromatic_emission_max_escape_optical_depth is not None:
+                if peel.inside_observer is not None:
+                    raise ValueError("Cannot use emission_max_escape_optical_depth with inside observers")
+                if peel.ignore_optical_depth:
+                    raise ValueError("Cannot use emission_max_escape_optical_depth with peeled images that ignore the optical depth")
             peel.write(g_peeled.create_group('group_%05i' % (i + 1)))
 
         # Output configuration for binned images/SEDs
@@ -598,6 +648,9 @@ class Model(FreezableClass, RunConf):
             self.binned_output.write(g_binned.create_group('group_00001'))
 
         # Write monochromatic configuration
+        if self._monochromatic and self._monochromatic_emission_max_escape_optical_depth is not None:
+            if not self.compute_escape_column_density:
+                raise ValueError("emission_max_escape_optical_depth requires the minimum escape column density to be computed - use set_compute_escape_column_density to enable it")
         self._write_monochromatic(root, compression=compression)
 
         # Write run-time and output configuration

@@ -36,7 +36,11 @@ program main
   use iteration_raytracing, only : do_raytracing
 
   use grid_generic, only : output_grid
-  use grid_physics, only : specific_energy_converged
+  use grid_physics, only : specific_energy_converged, escape_column_density
+  use grid_geometry, only : geo
+  use grid_io, only : write_grid_4d
+  use grid_escape, only : compute_escape_column_density
+  use dust_main, only : n_dust
 
   use settings, only : n_initial_iter, &
        &               n_initial_photons, &
@@ -48,7 +52,9 @@ program main
        &               n_stats, &
        &               check_convergence, &
        &               use_exact_nu, &
-       &               use_raytracing
+       &               use_raytracing, &
+       &               escape_enabled, &
+       &               escape_rays_per_cell
 
   use counters, only : killed_photons_geo, &
        &               killed_photons_int
@@ -57,7 +63,7 @@ program main
 
   integer :: iter
   character(len=1000) :: command, force_option, input_file, output_file
-  integer(hid_t) :: handle_in, handle_out, g_peeled, g_binned, g_input
+  integer(hid_t) :: handle_in, handle_out, g_peeled, g_binned, g_input, g_escape
   real(dp) :: time1, time2, time
   logical :: converged, copy_input
   character(len=30) :: datetime
@@ -252,6 +258,25 @@ program main
   ! Reset killed photon counters to zero
   killed_photons_geo = 0
   killed_photons_int = 0
+
+  ! MINIMUM COLUMN DENSITY TO ESCAPE EACH CELL
+
+  ! This is computed after the initial iterations since the density can
+  ! change during these (if dust sublimation is enabled), and is used in the
+  ! final iteration to avoid peeling off photons whose contribution to the
+  ! images and SEDs would be negligible, and optionally to avoid emitting
+  ! dust photons in monochromatic mode from cells they are unlikely to escape
+  ! from.
+
+  if(escape_enabled) then
+     allocate(escape_column_density(geo%n_cells, n_dust))
+     call compute_escape_column_density(escape_rays_per_cell, escape_column_density)
+     if(main_process()) then
+        g_escape = mp_create_group(handle_out, 'Escape')
+        call write_grid_4d(g_escape, 'minimum_escape_column_density', escape_column_density, geo)
+        call mp_write_keyword(g_escape, '.', 'rays_per_cell', escape_rays_per_cell)
+     end if
+  end if
 
   ! FINAL ITERATION
 

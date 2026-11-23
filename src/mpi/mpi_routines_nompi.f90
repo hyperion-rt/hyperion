@@ -16,6 +16,7 @@ module mpi_routines
   public :: mp_collect_images
   public :: mp_broadcast_convergence
   public :: mp_set_random_seed
+  public :: mp_allreduce_min_2d
 
   real(dp) :: time_curr
   integer(idp) :: n_photons_chunk
@@ -113,5 +114,10 @@ contains
   subroutine mp_collect_images()
   end subroutine mp_collect_images
 
+
+  subroutine mp_allreduce_min_2d(array)
+    implicit none
+    real(dp),intent(inout) :: array(:,:)
+  end subroutine mp_allreduce_min_2d
 
 end module mpi_routines

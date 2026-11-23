@@ -14,6 +14,7 @@ module peeled_images
 
   use sources
   use settings, only : peeloff_tau_max
+  use grid_physics, only : escape_column_density
   use dust_main
   use dust_interact
 
@@ -109,11 +110,31 @@ contains
     type(vector3d_dp) :: dr
     real(dp) :: d
     logical :: killed
+    logical :: hidden
+
+    ! If the (estimated) minimum optical depth along any ray leaving the cell
+    ! the photon is in is larger than the maximum optical depth for peeled
+    ! photons, the optical depth to the observer would be larger than this
+    ! maximum, so we do not peel off the photon (unless the observer is inside
+    ! the grid, since the minimum is computed to the edge of the grid, or the
+    ! optical depth is ignored). This avoids integrating the optical depth up
+    ! to the maximum, and only removes contributions smaller than
+    ! exp(-peeloff_tau_max), which are exactly zero in double precision for
+    ! the default maximum of 1000. This is not used for polychromatic peeloff
+    ! (raytracing), for which there is no maximum optical depth.
+    hidden = .false.
+    if(.not.polychromatic .and. allocated(escape_column_density)) then
+       hidden = sum(p_orig%current_chi * escape_column_density(p_orig%icell%ic, :)) > peeloff_tau_max
+    end if
 
     do ip=1,n_peeled
 
        ig = group_id(ip)
        iv = view_id(ip)
+
+       if(hidden) then
+          if(.not.inside_observer(ig) .and. .not.ignore_optical_depth(ig)) cycle
+       end if
 
        p = p_orig
 

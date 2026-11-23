@@ -69,6 +69,73 @@ from dust::
 This should be used instead of the ``imaging`` option. The number of photons
 is the number **per wavelength**.
 
+.. _escape-column-density:
+
+Minimum column density to escape each cell
+------------------------------------------
+
+In very optically thick models, many photons are emitted or scattered in
+regions from which light cannot escape. Hyperion can estimate, for every
+cell, the minimum column density (for each dust type) that a photon has to
+cross to escape the grid from anywhere in the cell, by casting random rays
+through the grid after the initial iterations::
+
+    m.set_compute_escape_column_density(True, rays_per_cell=30)
+
+Every ray provides a sample for all the cells it crosses on the way to the
+edge of the grid, so the number of samples per cell is usually much larger
+than ``rays_per_cell``. Since the samples are exact column densities along
+real paths, the estimate can only be larger than or equal to the true
+minimum, and converges to it as the number of rays increases.
+
+The minimum column density is written to the output file, and can be accessed
+with :meth:`~hyperion.model.ModelOutput.get_quantities`::
+
+    from hyperion.model import ModelOutput
+    m = ModelOutput('model.rtout')
+    grid = m.get_quantities()
+    column = grid['minimum_escape_column_density'][0].array  # first dust type
+
+Multiplying this by the extinction coefficient (``chi``) of the dust at a
+given frequency gives the minimum optical depth to escape each cell at that
+frequency.
+
+When the minimum escape column density is computed, photons in cells where
+the minimum optical depth to escape is larger than the maximum optical depth
+for peeled photons (see
+:meth:`~hyperion.model.Model.set_max_peeloff_optical_depth`) are no longer
+peeled off, in both normal and monochromatic mode. This avoids integrating
+the optical depth for peeled photons whose contribution would be smaller than
+``exp(-tau_max)`` (exactly zero in double precision for the default maximum
+of 1000).
+
+In monochromatic mode, it is also possible to avoid emitting dust photons
+from cells where the minimum optical depth to escape exceeds a given value::
+
+    m.set_compute_escape_column_density(True, rays_per_cell=30)
+    m.set_max_peeloff_optical_depth(100.)
+    m.set_monochromatic(True, wavelengths=[...], emission_max_escape_optical_depth=200.)
+
+In models where most of the dust emission at a given wavelength comes from
+regions that are very optically thick at that wavelength (for example the
+inner midplane of a massive disk at near- and mid-infrared wavelengths), this
+can greatly improve the signal-to-noise of the scattered dust emission for a
+given computation time, since photons are then only emitted from the
+regions they can escape from. This removes the contribution of photons
+emitted in the excluded cells. These photons cannot contribute directly,
+because the optical depth from where they are emitted is larger than the
+maximum optical depth for peeled photons, but they can contribute indirectly
+after scattering outwards into cells from which they can escape. This
+indirect contribution becomes negligible when the photons have to scatter
+through a large optical depth first, so the value should be chosen to be
+sufficiently larger than the maximum optical depth for peeled photons (for
+example twice as large).
+
+This requires the minimum escape column density to be computed, and since the
+minimum optical depth is computed to the edge of the grid, this cannot be used
+with observers inside the grid or with peeled images that ignore the optical
+depth (an error is raised when the model is written in all these cases).
+
 .. _pure-scattering:
 
 Scattered-light images

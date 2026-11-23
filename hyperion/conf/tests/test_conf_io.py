@@ -152,6 +152,33 @@ def test_io_run_conf_max_peeloff_optical_depth_missing():
     assert r2.peeloff_tau_max == 1000.
 
 
+@pytest.mark.parametrize(('compute', 'rays_per_cell'), [(False, None), (True, 30), (True, 7)])
+def test_io_run_conf_escape_column_density(compute, rays_per_cell):
+    r1 = RunConf()
+    r1.set_compute_escape_column_density(compute, rays_per_cell=rays_per_cell)
+    r1.set_n_photons(1, 2)
+    v = virtual_file()
+    r1.write_run_conf(v)
+    r2 = RunConf()
+    r2.set_compute_escape_column_density(True, rays_per_cell=3)
+    r2.read_run_conf(v)
+    assert r2.compute_escape_column_density is compute
+    assert r2.escape_rays_per_cell == rays_per_cell
+
+
+def test_io_run_conf_escape_column_density_missing():
+    # Files written before this option existed should not compute it
+    r1 = RunConf()
+    r1.set_n_photons(1, 2)
+    v = virtual_file()
+    r1.write_run_conf(v)
+    del v.attrs['compute_escape_column_density']
+    r2 = RunConf()
+    r2.set_compute_escape_column_density(True, rays_per_cell=3)
+    r2.read_run_conf(v)
+    assert r2.compute_escape_column_density is False
+
+
 @pytest.mark.parametrize(('value'), [-1234, -6663121])
 def test_io_run_conf_seed(value):
     r1 = RunConf()
