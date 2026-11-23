@@ -80,6 +80,59 @@ def test_escape_column_density_sphere(tmpdir):
     assert column[-1] == 0.
 
 
+
+@pytest.mark.requires_hyperion_binaries
+@pytest.mark.parametrize('grid_type', ['car', 'amr'])
+def test_escape_column_density_cube(tmpdir, grid_type):
+
+    # A uniform cube of side 2 divided into 8x8x8 cells, for which the minimum
+    # column density to escape a cell is the density times the distance from
+    # the cell to the nearest face of the cube. This also checks that the
+    # minimum escape column density is written and read correctly for grid
+    # types other than spherical polar grids.
+
+    from ...grid import AMRGrid
+
+    m = Model()
+    if grid_type == 'car':
+        w = np.linspace(-1., 1., 9)
+        m.set_cartesian_grid(w, w, w)
+        m.add_density_grid(np.ones((8, 8, 8)) * RHO, IsotropicDust([3.e9, 3.e16], [0., 0.], [CHI, CHI]))
+    else:
+        amr = AMRGrid()
+        grid = amr.add_level().add_grid()
+        grid.xmin, grid.xmax, grid.ymin, grid.ymax, grid.zmin, grid.zmax = -1., 1., -1., 1., -1., 1.
+        grid.nx, grid.ny, grid.nz = 8, 8, 8
+        grid.quantities['density'] = np.ones((8, 8, 8)) * RHO
+        m.set_amr_grid(amr)
+        m.add_density_grid(amr['density'], IsotropicDust([3.e9, 3.e16], [0., 0.], [CHI, CHI]))
+    for dust in m.dust:
+        dust.set_lte_emissivities(n_temp=10, temp_min=0.1, temp_max=1.e4)
+
+    s = m.add_point_source()
+    s.luminosity = 1.
+    s.temperature = 6000.
+    m.set_n_initial_iterations(0)
+    m.set_n_photons(imaging=0)
+    m.set_compute_escape_column_density(True, rays_per_cell=100)
+
+    out = run(tmpdir, m)
+    column = out.get_quantities()['minimum_escape_column_density'][0]
+    if grid_type == 'car':
+        column = column.array
+    else:
+        column = column.levels[0].grids[0].quantities['minimum_escape_column_density']
+
+    # Cell centres along each axis, and the distance from the centre to the
+    # walls (0.125)
+    c = np.linspace(-0.875, 0.875, 8)
+    z, y, x = np.meshgrid(c, c, c, indexing='ij')
+    expected = RHO * (np.minimum.reduce([1. - np.abs(x), 1. - np.abs(y), 1. - np.abs(z)]) - 0.125)
+
+    assert np.all(column >= expected - 1e-10)
+    np.testing.assert_allclose(column, expected, rtol=0.02, atol=1e-10)
+
+
 @pytest.mark.requires_hyperion_binaries
 def test_escape_column_density_not_computed(tmpdir):
     out = run(tmpdir, sphere_model(escape=False))

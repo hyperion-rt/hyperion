@@ -69,7 +69,7 @@ from dust::
 This should be used instead of the ``imaging`` option. The number of photons
 is the number **per wavelength**.
 
-.. _pure-scattering:
+.. _escape-column-density:
 
 Minimum column density to escape each cell
 ------------------------------------------
@@ -129,11 +129,14 @@ after scattering outwards into cells from which they can escape. This
 indirect contribution becomes negligible when the photons have to scatter
 through a large optical depth first, so the value should be chosen to be
 sufficiently larger than the maximum optical depth for peeled photons (for
-example twice as large). This requires the
-minimum escape column density to be computed, and since the minimum optical
-depth is computed to the edge of the grid, this cannot be used with observers
-inside the grid or with peeled images that ignore the optical depth (an
-error is raised when the model is written in all these cases).
+example twice as large).
+
+This requires the minimum escape column density to be computed, and since the
+minimum optical depth is computed to the edge of the grid, this cannot be used
+with observers inside the grid or with peeled images that ignore the optical
+depth (an error is raised when the model is written in all these cases).
+
+.. _pure-scattering:
 
 Scattered-light images
 ----------------------

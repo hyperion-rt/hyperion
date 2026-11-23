@@ -115,10 +115,9 @@ class Model(FreezableClass, RunConf):
             sufficiently larger than the maximum optical depth for peeled
             photons (for example twice as large). The energy of the photons
             emitted from the other cells is not changed. Since the minimum is
-            computed to the edge of the grid,
-            this cannot be used with inside observers or with peeled images
-            that ignore the optical depth. By default, dust photons are
-            emitted from all cells.
+            computed to the edge of the grid, this cannot be used with inside
+            observers or with peeled images that ignore the optical depth. By
+            default, dust photons are emitted from all cells.
 
         If `monochromatic` is True then `wavelengths` is required
         '''
