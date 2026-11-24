@@ -265,9 +265,39 @@ contains
   end subroutine mp_n_photons
 
   subroutine mp_set_random_seed(seed)
+
+    ! Set a different seed for the random number generator in each process.
+    ! The generator uses the absolute value of the seed and gives a degenerate
+    ! sequence of random numbers if it is a multiple of 65543 (including
+    ! zero), and seeds that differ by a multiple of 65543 give the same
+    ! sequence. The seed of each process is therefore moved away from zero as
+    ! the rank increases (seed - rank for negative seeds and seed + rank for
+    ! positive seeds), so that all processes have different sequences, and an
+    ! error is raised if the seed of any process would be degenerate. The
+    ! main process (rank 0) uses the seed unchanged.
+
     implicit none
-    integer :: seed
-    call set_seed(seed + rank)
+    integer,intent(in) :: seed
+    integer(idp) :: rank_seed
+
+    if(seed == 0) call error("mp_set_random_seed", "seed should not be zero")
+
+    if(seed < 0) then
+       rank_seed = int(seed, idp) - int(rank, idp)
+    else
+       rank_seed = int(seed, idp) + int(rank, idp)
+    end if
+
+    if(abs(rank_seed) > int(huge(seed), idp)) then
+       call error("mp_set_random_seed", "the seed is too large in absolute value for the number of processes")
+    end if
+
+    if(mod(abs(rank_seed), 65543_idp) == 0_idp) then
+       call error("mp_set_random_seed", "the seed for one of the processes is a multiple of 65543, which gives a degenerate sequence of random numbers - use a different seed")
+    end if
+
+    call set_seed(int(rank_seed))
+
   end subroutine mp_set_random_seed
 
   subroutine mp_collect_physical_arrays()
