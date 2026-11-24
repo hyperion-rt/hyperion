@@ -113,10 +113,15 @@ class RunConf(object):
         ----------
         seed : int
             The seed with which to initialize the random number generation.
-            This should be negative.
+            This should be negative, and should not be a multiple of 65543,
+            which gives a degenerate sequence of random numbers. When running
+            with MPI, process ``k`` uses ``seed - k`` (and an error is raised
+            at run time if any of these is a multiple of 65543).
         '''
         if type(seed) != int or seed >= 0:
             raise ValueError("seed should be a negative integer")
+        if seed % 65543 == 0:
+            raise ValueError("seed should not be a multiple of 65543, which gives a degenerate sequence of random numbers")
         self._seed = seed
 
     def _read_seed(self, group):
