@@ -19,7 +19,7 @@ module grid_monochromatic
   use type_dust, only : dust_sample_emit_probability
   use dust_main, only : d, n_dust, prepare_photon, update_optconsts
   use grid_physics
-  use settings, only : frequencies, escape_emission_tau_max
+  use settings, only : frequencies, escape_emission_tau_max, emission_sampling_exponent
   use mpi_core, only : main_process
 
   implicit none
@@ -36,16 +36,23 @@ module grid_monochromatic
   real(dp), allocatable :: mean_prob(:)
   type(pdf_discrete_dp), allocatable :: emiss_pdf(:)
 
+  ! If the emission sampling exponent is not 1, the energy of the dust photons
+  ! emitted from each cell, for each dust type (otherwise all dust photons have
+  ! the same energy, mean_prob)
+  real(dp), allocatable :: emission_weight(:,:)
+
 contains
 
   subroutine allocate_monochromatic_grid_pdfs()
     implicit none
     allocate(emiss_pdf(n_dust), mean_prob(n_dust))
+    if(emission_sampling_exponent /= 1._dp) allocate(emission_weight(geo%n_cells, n_dust))
   end subroutine allocate_monochromatic_grid_pdfs
 
   subroutine deallocate_monochromatic_grid_pdfs()
     implicit none
     deallocate(emiss_pdf, mean_prob)
+    if(allocated(emission_weight)) deallocate(emission_weight)
   end subroutine deallocate_monochromatic_grid_pdfs
 
   subroutine setup_monochromatic_grid_pdfs(inu, empty)
@@ -62,7 +69,7 @@ contains
     integer :: dust_id
     integer :: emiss_var_id
     real(dp) :: emiss_var_frac
-    real(dp), allocatable :: energy(:), prob(:), escape_tau(:)
+    real(dp), allocatable :: energy(:), prob(:), escape_tau(:), sampling(:)
     integer :: icell, id
     real(dp) :: energy_total, energy_kept
     logical :: skip_hidden
@@ -138,7 +145,38 @@ contains
 
        ! Set the PDF to the probability of emission at the frequency nu
        mean_prob(dust_id) = mean(prob * energy)
-       if(mean_prob(dust_id) > 0._dp) call set_pdf(emiss_pdf(dust_id), prob * energy)
+
+       if(emission_sampling_exponent == 1._dp) then
+
+          ! Sample cells in proportion to their emission, so that all photons
+          ! have the same energy
+          if(mean_prob(dust_id) > 0._dp) call set_pdf(emiss_pdf(dust_id), prob * energy)
+
+       else
+
+          ! Sample cells with probability proportional to their emission
+          ! raised to the power emission_sampling_exponent, and weight the
+          ! photons emitted from each cell by its emission divided by its
+          ! sampling probability (normalized so that the expected energy of
+          ! a photon is mean_prob as for the default sampling), so that the
+          ! results are unbiased. Exponents below 1 emit more photons from
+          ! cells with low emission, which can greatly reduce the noise when
+          ! these dominate the flux reaching the observer (for example for
+          ! edge-on viewing angles of optically thick disks).
+          if(.not.allocated(sampling)) allocate(sampling(geo%n_cells))
+          where(prob * energy > 0._dp)
+             sampling = (prob * energy) ** emission_sampling_exponent
+             emission_weight(:, dust_id) = (prob * energy) ** (1._dp - emission_sampling_exponent)
+          elsewhere
+             sampling = 0._dp
+             emission_weight(:, dust_id) = 0._dp
+          end where
+          if(mean_prob(dust_id) > 0._dp) then
+             emission_weight(:, dust_id) = emission_weight(:, dust_id) * sum(sampling) / real(geo%n_cells, dp)
+             call set_pdf(emiss_pdf(dust_id), sampling)
+          end if
+
+       end if
 
     end do
 
@@ -152,6 +190,7 @@ contains
 
     ! Deallocate temporary arrays
     deallocate(energy, prob)
+    if(allocated(sampling)) deallocate(sampling)
 
     inu_current = inu
 
@@ -203,8 +242,12 @@ contains
     ! Set stokes parameters to unpolarized light
     p%s = stokes_dp(1._dp, 0._dp, 0._dp, 0._dp)
 
-    ! Set the energy to 1., and it will be scaled in the main routine
-    p%energy = mean_prob(dust_id)
+    ! Set the energy, which will be scaled in the main routine
+    if(allocated(emission_weight)) then
+       p%energy = emission_weight(p%icell%ic, dust_id)
+    else
+       p%energy = mean_prob(dust_id)
+    end if
 
     p%scattered = .false.
     p%reprocessed = .true.

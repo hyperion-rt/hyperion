@@ -78,7 +78,8 @@ class Model(FreezableClass, RunConf):
         self.peeled_output = []
 
     def set_monochromatic(self, monochromatic, wavelengths=None,
-                          energy_threshold=1e-10, emission_max_escape_optical_depth=None):
+                          energy_threshold=1e-10, emission_max_escape_optical_depth=None,
+                          emission_sampling_exponent=1.):
         '''
         Set whether to do the radiation transfer at specific wavelengths.
 
@@ -118,6 +119,25 @@ class Model(FreezableClass, RunConf):
             computed to the edge of the grid, this cannot be used with inside
             observers or with peeled images that ignore the optical depth. By
             default, dust photons are emitted from all cells.
+        emission_sampling_exponent : float, optional
+            Dust photons are emitted from cells chosen with a probability
+            proportional to the emission of the cell at the wavelength being
+            computed raised to this power, and the energy of each photon is
+            adjusted so that the results are unbiased. With the default value
+            of 1, cells are chosen in proportion to their emission and all
+            photons have the same energy. Lower values emit more photons from
+            cells with low emission (0 emits the same number of photons from
+            all cells that emit at the wavelength being computed), with
+            correspondingly lower energies. This can greatly improve the
+            signal-to-noise for a given computation time when the flux
+            reaching the observer is dominated by cells with low emission, for
+            example for edge-on viewing angles of optically thick disks, where
+            the emission from the disk midplane is hidden. In tests with a
+            very optically thick disk, a value of 0.5 together with
+            ``emission_max_escape_optical_depth`` gave the lowest noise
+            overall at near- and mid-infrared wavelengths, while very low
+            values can make the noise worse when the flux is dominated by the
+            cells with the highest emission. This should be between 0 and 1.
 
         If `monochromatic` is True then `wavelengths` is required
         '''
@@ -131,9 +151,18 @@ class Model(FreezableClass, RunConf):
                 raise ValueError("emission_max_escape_optical_depth should be strictly positive")
             emission_max_escape_optical_depth = float(emission_max_escape_optical_depth)
 
+        if not np.isscalar(emission_sampling_exponent) or isinstance(emission_sampling_exponent, str):
+            raise TypeError("emission_sampling_exponent should be a scalar value")
+        if not 0. <= emission_sampling_exponent <= 1.:
+            raise ValueError("emission_sampling_exponent should be between 0 and 1")
+        emission_sampling_exponent = float(emission_sampling_exponent)
+        if emission_sampling_exponent != 1. and not monochromatic:
+            raise ValueError("emission_sampling_exponent can only be set in monochromatic mode")
+
         self._monochromatic = monochromatic
         self._monochromatic_energy_threshold = energy_threshold
         self._monochromatic_emission_max_escape_optical_depth = emission_max_escape_optical_depth
+        self._monochromatic_emission_sampling_exponent = emission_sampling_exponent
 
         if self._monochromatic:
 
@@ -158,6 +187,7 @@ class Model(FreezableClass, RunConf):
     def _read_monochromatic(self, group):
         self._monochromatic = str2bool(group.attrs['monochromatic'])
         self._monochromatic_emission_max_escape_optical_depth = None
+        self._monochromatic_emission_sampling_exponent = 1.
         if self._monochromatic:
             self._frequencies = np.array(group['frequencies']['nu'])
             if 'monochromatic_energy_threshold' in group.attrs:
@@ -168,6 +198,8 @@ class Model(FreezableClass, RunConf):
                 self._monochromatic_emission_max_escape_optical_depth = float(group.attrs['emission_max_escape_optical_depth'])
             else:
                 self._monochromatic_emission_max_escape_optical_depth = None
+            if 'emission_sampling_exponent' in group.attrs:
+                self._monochromatic_emission_sampling_exponent = float(group.attrs['emission_sampling_exponent'])
 
     def _write_monochromatic(self, group, compression=True, dtype=np.float64):
         group.attrs['monochromatic'] = bool2str(self._monochromatic)
@@ -176,6 +208,8 @@ class Model(FreezableClass, RunConf):
             group.attrs['monochromatic_energy_threshold'] = self._monochromatic_energy_threshold
             if self._monochromatic_emission_max_escape_optical_depth is not None:
                 group.attrs['emission_max_escape_optical_depth'] = self._monochromatic_emission_max_escape_optical_depth
+            if self._monochromatic_emission_sampling_exponent != 1.:
+                group.attrs['emission_sampling_exponent'] = self._monochromatic_emission_sampling_exponent
 
     @classmethod
     def read(cls, filename, only_initial=True):
