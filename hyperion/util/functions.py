@@ -10,9 +10,6 @@ import h5py
 import numpy as np
 
 from .constants import h, c, k
-import logging
-
-logger = logging.getLogger(__name__)
 
 MAX_FLOAT = np.log(np.finfo('d').max)
 
@@ -67,14 +64,6 @@ def link_or_copy(group, name, link, copy, absolute_paths=False):
             group[name] = h5py.ExternalLink(os.path.abspath(link.filename), link.path)
         else:
             group[name] = h5py.ExternalLink(os.path.relpath(link.filename, os.path.dirname(group.file.filename)), link.path)
-        try:
-            group[name]
-        except KeyError:  # indicates linking failed (h5py < 2.1.0)
-            logger.warning("Linking failed, copying instead (indicates an outdated version of h5py)")
-            del group[name]
-            f = h5py.File(link.filename, 'r')
-            f.copy(link.path, group, name=name)
-            f.close()
 
 
 class FreezableClass(object):

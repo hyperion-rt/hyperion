@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import numpy as np
 
@@ -66,3 +68,40 @@ def test_freezable_attributes_per_instance():
     # a can still change its own registered attribute
     a.x = 5
     assert a.x == 5
+
+
+@pytest.mark.parametrize('absolute_paths', [False, True])
+def test_link_or_copy_link(tmpdir, absolute_paths):
+
+    import h5py
+    from ..functions import link_or_copy
+
+    target = tmpdir.mkdir('a').join('target.hdf5').strpath
+    with h5py.File(target, 'w') as f:
+        f['x'] = np.arange(5.)
+
+    filename = tmpdir.mkdir('b').join('new.hdf5').strpath
+    with h5py.File(filename, 'w') as f:
+        link_or_copy(f, 'x', h5py.ExternalLink(target, '/x'), False, absolute_paths=absolute_paths)
+
+    with h5py.File(filename, 'r') as f:
+        link = f.get('x', getlink=True)
+        assert isinstance(link, h5py.ExternalLink)
+        assert link.filename == (target if absolute_paths else os.path.join('..', 'a', 'target.hdf5'))
+        np.testing.assert_equal(f['x'][()], np.arange(5.))
+
+
+def test_link_or_copy_link_not_opened(tmpdir):
+
+    # The target of the link should not be opened when creating the link, since
+    # it would be opened in read/write mode (and therefore locked) when
+    # following the link from a file open for writing, which fails if another
+    # process has the target open, and can modify the target.
+
+    import h5py
+    from ..functions import link_or_copy
+
+    filename = tmpdir.join('new.hdf5').strpath
+    with h5py.File(filename, 'w') as f:
+        link_or_copy(f, 'x', h5py.ExternalLink(tmpdir.join('missing.hdf5').strpath, '/x'), False)
+        assert isinstance(f.get('x', getlink=True), h5py.ExternalLink)
