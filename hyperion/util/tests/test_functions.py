@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import numpy as np
 
@@ -85,7 +87,7 @@ def test_link_or_copy_link(tmpdir, absolute_paths):
     with h5py.File(filename, 'r') as f:
         link = f.get('x', getlink=True)
         assert isinstance(link, h5py.ExternalLink)
-        assert link.filename == (target if absolute_paths else '../a/target.hdf5')
+        assert link.filename == (target if absolute_paths else os.path.join('..', 'a', 'target.hdf5'))
         np.testing.assert_equal(f['x'][()], np.arange(5.))
 
 
