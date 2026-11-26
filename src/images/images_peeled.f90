@@ -173,6 +173,10 @@ contains
        ! the xmax wall.
        call place_in_cell(p)
 
+       ! If the photon could not be placed in a cell, it has been killed and
+       ! cannot be propagated to the observer
+       if(p%killed) cycle
+
        ! The depth range given by d_min and d_max is only used to select
        ! which events to include in the image - the optical depth should be
        ! integrated all the way to the observer (for inside observers) or to

@@ -54,6 +54,59 @@ def test_amr_source_outside_grid():
     assert 'not emitted inside a cell' in log
 
 
+
+@pytest.mark.requires_hyperion_binaries
+def test_amr_raytracing_cell_outside_level1():
+    # Regression test: for AMR grids where a level 2 grid lies outside all
+    # level 1 grids, thermal photons emitted from that grid during raytracing
+    # cannot be placed in a cell when peeled off. place_in_cell kills them,
+    # but they used to be propagated to the observer anyway, which indexed
+    # invalid grid levels (in practice a segmentation fault).
+
+    amr = AMRGrid()
+
+    level = amr.add_level()
+    grid = level.add_grid()
+    grid.xmin, grid.xmax = -1., 1.
+    grid.ymin, grid.ymax = -1., 1.
+    grid.zmin, grid.zmax = -1., 1.
+    grid.nx = grid.ny = grid.nz = 4
+    grid.quantities['density'] = np.ones((4, 4, 4)) * 1.e-30
+    grid.quantities['specific_energy'] = np.ones((4, 4, 4))
+
+    level = amr.add_level()
+    grid = level.add_grid()
+    grid.xmin, grid.xmax = 2., 3.   # outside the level 1 grid
+    grid.ymin, grid.ymax = -1., 1.
+    grid.zmin, grid.zmax = -1., 1.
+    grid.nx, grid.ny, grid.nz = 4, 8, 8
+    grid.quantities['density'] = np.ones((8, 8, 4)) * 1.e-30
+    grid.quantities['specific_energy'] = np.ones((8, 8, 4))
+
+    m = Model()
+    m.set_grid(amr)
+    m.add_density_grid(amr['density'], get_test_dust(),
+                       specific_energy=amr['specific_energy'])
+
+    m.set_n_initial_iterations(0)
+    m.set_raytracing(True)
+    m.set_n_photons(imaging=0, raytracing_sources=0, raytracing_dust=1000)
+
+    i = m.add_peeled_images(sed=True, image=False)
+    i.set_viewing_angles([45.], [45.])
+    i.set_wavelength_range(5, 1., 100.)
+
+    tmpdir = tempfile.mkdtemp()
+    m.write(os.path.join(tmpdir, random_id()))
+    logfile = os.path.join(tmpdir, 'log')
+
+    # The run should complete, with the photons that could not be placed in
+    # a cell killed with a warning
+    m.run(os.path.join(tmpdir, 'out.rtout'), logfile=logfile)
+
+    log = open(logfile).read()
+    assert 'place_in_cell failed - killing' in log
+
 @pytest.mark.requires_hyperion_binaries
 def test_theta_wall_viewing_angle():
     # Regression test for the theta cone wall "riding" condition: peeloff
