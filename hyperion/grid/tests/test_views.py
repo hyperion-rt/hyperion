@@ -3,7 +3,7 @@ from copy import deepcopy
 import numpy as np
 import pytest
 
-from hyperion.grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid, AMRGrid, OctreeGrid
+from hyperion.grid import CartesianGrid, CylindricalPolarGrid, SphericalPolarGrid, AMRGrid, OctreeGrid, VoronoiGrid
 
 ALL_GRID_TYPES = ['car', 'sph', 'cyl', 'amr', 'oct']
 
@@ -252,6 +252,61 @@ class TestView(object):
         g2['density1'] = g1['density1']
         g2['density2'] = g1['density1'][0]
         assert g2.n_dust == 1
+
+
+def make_grid_with_density(grid_type):
+    if grid_type == 'car':
+        g = CartesianGrid([-1., 0., 1.], [-2., 2.], [-3., 3.])
+    elif grid_type == 'cyl':
+        g = CylindricalPolarGrid([0., 0.5, 1.], [-1., 1.], [0., 2. * np.pi])
+    elif grid_type == 'sph':
+        g = SphericalPolarGrid([0., 0.5, 1.], [0., np.pi], [0., 2. * np.pi])
+    elif grid_type == 'oct':
+        g = OctreeGrid(0., 0., 0., 10., 10., 10., np.array([1, 0, 0, 0, 0, 0, 0, 0, 0]).astype(bool))
+    elif grid_type == 'vor':
+        g = VoronoiGrid([0.25, 0.75], [0.5, 0.5], [0.5, 0.5],
+                        xmin=0., xmax=1., ymin=0., ymax=1., zmin=0., zmax=1.)
+    g['density'] = []
+    g['density'].append(np.ones(g.shape))
+    return g
+
+
+ARRAY_GRID_TYPES = ['car', 'cyl', 'sph', 'oct', 'vor']
+
+
+@pytest.mark.parametrize(('grid_type'), ARRAY_GRID_TYPES)
+def test_view_array_inplace_operator(grid_type):
+    g = make_grid_with_density(grid_type)
+    g['density'][0].array *= 0.01
+    np.testing.assert_allclose(g['density'][0].array, 0.01)
+    g['density'][0].array += 1.
+    np.testing.assert_allclose(g['density'][0].array, 1.01)
+
+
+@pytest.mark.parametrize(('grid_type'), ARRAY_GRID_TYPES)
+def test_view_array_assign(grid_type):
+    g = make_grid_with_density(grid_type)
+    original = g['density'][0].array
+    new = np.arange(original.size, dtype=float).reshape(original.shape)
+    g['density'][0].array = new
+    np.testing.assert_allclose(g['density'][0].array, new)
+    # The parent grid keeps the same array object, modified in place
+    assert g['density'][0].array is original
+
+
+@pytest.mark.parametrize(('grid_type'), ARRAY_GRID_TYPES)
+def test_view_array_assign_invalid(grid_type):
+    g = make_grid_with_density(grid_type)
+    with pytest.raises(ValueError) as exc:
+        g['density'][0].array = np.ones(g.shape + (2,))
+    assert exc_msg(exc).startswith('Quantity arrays do not have the right dimensions')
+    with pytest.raises(TypeError) as exc:
+        g['density'][0].array = 1.
+    assert exc_msg(exc) == 'array should be a Numpy array'
+    with pytest.raises(TypeError) as exc:
+        g['density'].array = [np.ones(g.shape)]
+    assert exc_msg(exc).startswith('Can only set the array of a view of a single grid')
+    np.testing.assert_allclose(g['density'][0].array, 1.)
 
 
 def test_amr_external_link_paths():
