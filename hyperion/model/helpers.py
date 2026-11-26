@@ -21,12 +21,16 @@ def tau_to_radius(model, tau, wav):
     Given a Model instance with a spherical polar coordinate grid, find the
     radius from which the optical depth to escape radially is a fixed value.
 
+    If an AnalyticalYSOModel instance is given, it is first converted to a
+    Model instance with :meth:`~hyperion.model.AnalyticalYSOModel.to_model`,
+    which computes the density grids and, if needed, the automatic grid.
+
     This only works for spherical polar grids, but works for 1-, 2-, and
     3-d grids.
 
     Parameters
     ----------
-    model : `~hyperion.model.Model` instance
+    model : `~hyperion.model.Model` or `~hyperion.model.AnalyticalYSOModel` instance
     tau : float
         The optical depth for which to find the surface
     wav : float
@@ -43,6 +47,9 @@ def tau_to_radius(model, tau, wav):
 
     if not isinstance(model, Model):
         raise TypeError("model should be a Model instance")
+
+    if isinstance(model, AnalyticalYSOModel):
+        model = model.to_model()
 
     if model.grid is None:
         raise Exception("Coordinate grid has not been defined")
