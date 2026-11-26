@@ -467,3 +467,53 @@ def test_use_image_config_binned(tmpdir):
     assert m2.binned_output is not None
     assert m2.binned_output.n_theta == 3
     assert m2.binned_output.n_phi == 2
+
+
+def wavelength_range_model(wav_min, wav_max, binned=False, extra_dust=None):
+    # The test dust covers about 0.01 to 1e5 microns
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    m.add_density_grid(np.array([[[1.]]]), get_test_dust())
+    if extra_dust is not None:
+        m.add_density_grid(np.array([[[1.]]]), extra_dust)
+    if binned:
+        i = m.add_binned_images(sed=True, image=False)
+        i.set_viewing_bins(1, 1)
+        m.set_forced_first_interaction(False)
+    else:
+        i = m.add_peeled_images(sed=True, image=False)
+        i.set_viewing_angles([45.], [45.])
+    i.set_wavelength_range(5, wav_min, wav_max)
+    m.set_n_photons(initial=1, imaging=1)
+    return m
+
+
+@pytest.mark.parametrize('binned', [False, True])
+def test_wavelength_range_inside_dust(tmpdir, caplog, binned):
+    m = wavelength_range_model(0.1, 1.e4, binned=binned)
+    m.write(tmpdir.join(random_id()).strpath)
+    assert 'wavelength range of the dust' not in caplog.text
+
+
+@pytest.mark.parametrize('binned', [False, True])
+def test_wavelength_range_partial_overlap(tmpdir, caplog, binned):
+    m = wavelength_range_model(1.e-3, 10., binned=binned)
+    m.write(tmpdir.join(random_id()).strpath)
+    assert 'extends outside the wavelength range of the dust optical properties' in caplog.text
+
+
+@pytest.mark.parametrize('binned', [False, True])
+def test_wavelength_range_no_overlap(tmpdir, binned):
+    m = wavelength_range_model(1.e6, 1.e7, binned=binned)
+    with pytest.raises(ValueError) as exc:
+        m.write(tmpdir.join(random_id()).strpath)
+    assert 'does not overlap with the wavelength range of the dust optical properties' in exc.value.args[0]
+
+
+def test_wavelength_range_multiple_dust(tmpdir, caplog):
+    # The range covered by all dust types is what matters
+    dust = IsotropicDust([3.e11, 3.e14], [0.5, 0.5], [1., 1.])
+    dust.set_lte_emissivities(n_temp=10, temp_min=0.1, temp_max=1600.)
+    m = wavelength_range_model(0.1, 10., extra_dust=dust)
+    m.write(tmpdir.join(random_id()).strpath)
+    assert 'extends outside the wavelength range of the dust optical properties' in caplog.text

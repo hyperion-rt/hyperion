@@ -780,6 +780,35 @@ class Model(FreezableClass, RunConf):
 
             _n_dust = len(root['Dust'])
 
+            # Check that the wavelength ranges of the SEDs/images are covered
+            # by the dust optical properties, since photons can only have
+            # frequencies within the range covered by all dust types.
+            try:
+                dust_nu = [root['Dust'][dust]['optical_properties']['nu'] for dust in root['Dust']]
+            except (KeyError, OSError):  # e.g. link to missing file
+                dust_nu = []
+            if len(dust_nu) > 0:
+                # Allow for rounding errors when converting to wavelength
+                dust_wav_min = c / min(np.max(nu) for nu in dust_nu) * 1.e4 * (1. - 1.e-10)
+                dust_wav_max = c / max(np.min(nu) for nu in dust_nu) * 1.e4 * (1. + 1.e-10)
+                outputs = list(self.peeled_output)
+                if self.binned_output is not None:
+                    outputs.append(self.binned_output)
+                for output in outputs:
+                    if output.wav_min is None or output.wav_max is None:
+                        continue
+                    wav_min = min(output.wav_min, output.wav_max)
+                    wav_max = max(output.wav_min, output.wav_max)
+                    if wav_max < dust_wav_min or wav_min > dust_wav_max:
+                        raise ValueError("The wavelength range of the SEDs/images ({0:g} to {1:g} microns) "
+                                         "does not overlap with the wavelength range of the dust optical "
+                                         "properties ({2:g} to {3:g} microns)".format(wav_min, wav_max, dust_wav_min, dust_wav_max))
+                    elif wav_min < dust_wav_min or wav_max > dust_wav_max:
+                        logger.warning("The wavelength range of the SEDs/images ({0:g} to {1:g} microns) "
+                                       "extends outside the wavelength range of the dust optical properties "
+                                       "({2:g} to {3:g} microns), so the SEDs/images will contain no flux "
+                                       "outside the latter range".format(wav_min, wav_max, dust_wav_min, dust_wav_max))
+
             # Write minimum specific energy
             if self._minimum_temperature is not None:
 
