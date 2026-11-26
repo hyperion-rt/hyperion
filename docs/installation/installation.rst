@@ -97,7 +97,12 @@ The packages required for the Python code (in addition to Python itself) are:
 * `Matplotlib <http://matplotlib.org>`_ 1.5 or later
 * `h5py <http://www.h5py.org>`_ 2.4 or later
 * `Astropy <http://www.astropy.org>`_ 1.2 or later
-* `yt <http://yt-project.org/>`_ 3.3 or later
+
+The `yt <http://yt-project.org/>`_ package (3.2 or later) is optional, and is
+needed to convert grids to and from yt datasets (see
+:doc:`../tutorials/tutorial_quantities_yt` and :ref:`amr_from_yt`). It is
+installed along with Hyperion if you use the ``recommended`` extra (see
+below).
 
 In addition, the `hyperion-dust <https://github.com/hyperion-rt/hyperion-dust>`_
 package is needed if you want to use the dust models from the :doc:`library of

@@ -185,7 +185,8 @@ requirements and restrictions on the geometry, see :ref:`amr_indepth`.
 .. note:: If you load in your simulation data with the
           `yt <http://yt-project.org/>`_ package, you can make use of the
           :meth:`~hyperion.grid.AMRGrid.from_yt` method to easily convert the
-          simulation into a Hyperion :class:`~hyperion.grid.AMRGrid` object.
+          simulation into a Hyperion :class:`~hyperion.grid.AMRGrid` object
+          (see :ref:`amr_from_yt` for more details).
 
 Density and Specific Energy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
