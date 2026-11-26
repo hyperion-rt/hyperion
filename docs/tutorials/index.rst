@@ -46,3 +46,4 @@ Advanced
 
    howto_pure_scattering.rst
    howto_scaling_isrf.rst
+   howto_hydrostatic_equilibrium.rst
