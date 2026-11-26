@@ -1,6 +1,12 @@
 Important Notes
 ===============
 
+Units
+-----
+
+All quantities in Hyperion are in cgs units, except wavelengths, which are in
+microns. See :ref:`units-and-constants` for more details.
+
 Gridding
 --------
 
