@@ -259,6 +259,49 @@ The extrapolation is done in the following way:
 The plots shown higher up on this page have made use of these extrapolation
 methods.
 
+Accessing mean opacities
+------------------------
+
+The Planck, reciprocal Planck, and Rosseland mean opacities of a dust model
+are stored as attributes of ``d.mean_opacities``. For example, for a dust
+model read from a file::
+
+    from hyperion.dust import SphericalDust
+    d = SphericalDust('mydust.hdf5')
+
+the mean opacities can be accessed with::
+
+    d.mean_opacities.temperature
+    d.mean_opacities.specific_energy
+    d.mean_opacities.chi_planck
+    d.mean_opacities.kappa_planck
+    d.mean_opacities.chi_inv_planck
+    d.mean_opacities.kappa_inv_planck
+    d.mean_opacities.chi_rosseland
+    d.mean_opacities.kappa_rosseland
+
+Each of these is a 1-d Numpy array, tabulated for the temperatures (in K)
+given by ``temperature``, and ``specific_energy`` gives the corresponding
+specific energy (in ergs/s/g). The ``chi_*`` and ``kappa_*`` attributes are
+the mean opacities to extinction and absorption respectively (in cm^2/g), and
+are defined in :doc:`../advanced/dust_file`.
+
+The mean opacities are always populated when reading a dust file. For a dust
+model set up from scratch, they are computed only when they are needed, so the
+attributes are ``None`` until :meth:`~hyperion.dust.SphericalDust.set_lte_emissivities`,
+:meth:`~hyperion.dust.SphericalDust.write`, or
+:meth:`~hyperion.dust.SphericalDust.plot` has been called, for example::
+
+    d.set_lte_emissivities(n_temp=1000,
+                           temp_min=0.1,
+                           temp_max=2000.)
+
+To find the Planck mean opacity to extinction or absorption for a blackbody at
+a given temperature, interpolated from these tables, you can also use::
+
+    d.chi_nu_temperature(100.)
+    d.kappa_nu_temperature(100.)
+
 Common warnings
 ---------------
 
