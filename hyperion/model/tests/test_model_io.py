@@ -324,8 +324,11 @@ def get_full_model(grid_type, specific_energy=True, map_source=True, output_conf
     m.set_max_interactions(1000, warn=False)
     m.set_max_reabsorptions(2000, warn=False)
     m.set_max_peeloff_optical_depth(10.)
-    m.set_pda(True)
-    m.set_mrw(True, gamma=2., inter_max=500, warn=False)
+    # PDA and MRW are not implemented for Voronoi grids, and writing such a
+    # model raises an error
+    if grid_type != 'vor':
+        m.set_pda(True)
+        m.set_mrw(True, gamma=2., inter_max=500, warn=False)
     m.set_convergence(True, percentile=95., absolute=2., relative=1.1)
     m.set_kill_on_absorb(True)
     m.set_forced_first_interaction(False)
