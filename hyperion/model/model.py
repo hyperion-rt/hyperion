@@ -1,5 +1,6 @@
 
 import os
+import sys
 import subprocess
 import multiprocessing
 from copy import deepcopy
@@ -1139,7 +1140,8 @@ class Model(FreezableClass, RunConf):
             number of processes to run Hyperion on.
         overwrite : bool, optional
             If set to ``True``, the output file is overwritten without
-            warning.
+            warning. Otherwise, an error is raised if the output file
+            already exists.
         """
 
         if self.filename is None:
@@ -1159,14 +1161,28 @@ class Model(FreezableClass, RunConf):
         else:
             output_file = filename
 
-        if overwrite and os.path.exists(output_file):
-            os.remove(output_file)
+        if os.path.exists(output_file):
+            if overwrite:
+                os.remove(output_file)
+            else:
+                raise OSError("Output file {0} already exists - use overwrite=True to overwrite it".format(output_file))
 
+        command = 'hyperion %s %s %s' % (option, input_file, output_file)
+
+        # Standard input is not connected, so that the code can never block
+        # waiting for input (which can't be provided e.g. in a notebook)
         if logfile:
             flog = open(logfile, 'wb')
-            returncode = subprocess.call('hyperion %s %s %s' % (option, input_file, output_file), stdout=flog, stderr=flog, shell=True)
+            returncode = subprocess.call(command, stdin=subprocess.DEVNULL, stdout=flog, stderr=flog, shell=True)
         else:
-            returncode = subprocess.call('hyperion %s %s %s' % (option, input_file, output_file), shell=True)
+            # Pass the output through Python so that it appears e.g. in
+            # notebook cells and not only in the terminal that started the
+            # notebook server.
+            process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+            for line in process.stdout:
+                sys.stdout.write(line.decode('utf-8', errors='replace'))
+                sys.stdout.flush()
+            returncode = process.wait()
 
         if returncode != 0:
             raise SystemExit("An error occurred, and the run did not complete")

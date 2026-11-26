@@ -86,6 +86,9 @@ of use the ``overwrite=True`` argument when using ``Model.run``::
 
     m.run('model.rtout', overwrite=True)
 
+Note that ``Model.run`` does not ask for confirmation, and instead raises an
+error if the output file already exists and ``overwrite=True`` is not set.
+
 Debugging output
 ----------------
 
