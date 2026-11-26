@@ -614,6 +614,7 @@ PACKAGE_URL=''
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+mpi_interfaces
 extra_mpi
 posix_module_mpi
 mpi_fc
@@ -2193,6 +2194,50 @@ then
 else
   as_fn_error $? "Could not determine MPI compiler: $mpi_compiler" "$LINENO" 5
 fi
+
+# The mpich "mpi" module does not declare interfaces for the MPI routines that
+# take choice buffers, so we provide them in mpi_interfaces.f90. Other MPI
+# libraries (such as Open MPI) already declare them, in which case declaring
+# them again makes the names ambiguous, so we check whether a program using
+# both the "mpi" module and our own interface compiles, and otherwise use an
+# empty module.
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the MPI module needs explicit interfaces for choice buffer routines" >&5
+printf %s "checking whether the MPI module needs explicit interfaces for choice buffer routines... " >&6; }
+mkdir -p conftest_mpi_interfaces
+cat > conftest_mpi_interfaces/conftest.f90 << EOF
+module conftest_interfaces
+  implicit none
+  interface
+     subroutine mpi_bcast(buffer, count, datatype, root, comm, ierror)
+       !GCC\$ ATTRIBUTES NO_ARG_CHECK :: buffer
+       !DEC\$ ATTRIBUTES NO_ARG_CHECK :: buffer
+       type(*) :: buffer(*)
+       integer :: count, datatype, root, comm, ierror
+     end subroutine mpi_bcast
+  end interface
+end module conftest_interfaces
+program conftest
+  use mpi
+  use conftest_interfaces
+  implicit none
+  integer :: a(1), ierr
+  call mpi_bcast(a, 1, mpi_integer, 0, mpi_comm_world, ierr)
+end program conftest
+EOF
+if (cd conftest_mpi_interfaces && eval "$mpi_fc -c conftest.f90") > /dev/null 2>&1
+then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+  mpi_interfaces=mpi_interfaces
+
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+  mpi_interfaces=mpi_interfaces_none
+
+fi
+rm -rf conftest_mpi_interfaces
 
 # Output final Makefile
 

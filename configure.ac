@@ -291,6 +291,45 @@ else
   AC_MSG_ERROR([Could not determine MPI compiler: $mpi_compiler])
 fi
 
+# The mpich "mpi" module does not declare interfaces for the MPI routines that
+# take choice buffers, so we provide them in mpi_interfaces.f90. Other MPI
+# libraries (such as Open MPI) already declare them, in which case declaring
+# them again makes the names ambiguous, so we check whether a program using
+# both the "mpi" module and our own interface compiles, and otherwise use an
+# empty module.
+
+AC_MSG_CHECKING([whether the MPI module needs explicit interfaces for choice buffer routines])
+mkdir -p conftest_mpi_interfaces
+cat > conftest_mpi_interfaces/conftest.f90 << EOF
+module conftest_interfaces
+  implicit none
+  interface
+     subroutine mpi_bcast(buffer, count, datatype, root, comm, ierror)
+       !GCC\$ ATTRIBUTES NO_ARG_CHECK :: buffer
+       !DEC\$ ATTRIBUTES NO_ARG_CHECK :: buffer
+       type(*) :: buffer(*)
+       integer :: count, datatype, root, comm, ierror
+     end subroutine mpi_bcast
+  end interface
+end module conftest_interfaces
+program conftest
+  use mpi
+  use conftest_interfaces
+  implicit none
+  integer :: a(1), ierr
+  call mpi_bcast(a, 1, mpi_integer, 0, mpi_comm_world, ierr)
+end program conftest
+EOF
+if (cd conftest_mpi_interfaces && eval "$mpi_fc -c conftest.f90") > /dev/null 2>&1
+then
+  AC_MSG_RESULT([yes])
+  AC_SUBST(mpi_interfaces, mpi_interfaces)
+else
+  AC_MSG_RESULT([no])
+  AC_SUBST(mpi_interfaces, mpi_interfaces_none)
+fi
+rm -rf conftest_mpi_interfaces
+
 # Output final Makefile
 
 AC_CONFIG_FILES([Makefile])

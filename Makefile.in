@@ -62,7 +62,7 @@ OBJECTS_CAR_SER =	src/mpi/mpi_core_nompi.f90 \
 			src/mpi/mpi_routines_nompi.f90 \
 			$(OBJECTS3)
 
-OBJECTS_CAR_MPI =	src/mpi/mpi_interfaces.f90 \
+OBJECTS_CAR_MPI =	src/mpi/@mpi_interfaces@.f90 \
 			src/mpi/mpi_core.f90 \
 			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
@@ -97,7 +97,7 @@ OBJECTS_AMR_SER =	src/mpi/mpi_core_nompi.f90 \
 			src/mpi/mpi_routines_nompi.f90 \
 			$(OBJECTS3)
 
-OBJECTS_AMR_MPI =	src/mpi/mpi_interfaces.f90 \
+OBJECTS_AMR_MPI =	src/mpi/@mpi_interfaces@.f90 \
 			src/mpi/mpi_core.f90 \
 			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
@@ -132,7 +132,7 @@ OBJECTS_OCT_SER =	src/mpi/mpi_core_nompi.f90 \
 			src/mpi/mpi_routines_nompi.f90 \
 			$(OBJECTS3)
 
-OBJECTS_OCT_MPI =	src/mpi/mpi_interfaces.f90 \
+OBJECTS_OCT_MPI =	src/mpi/@mpi_interfaces@.f90 \
 			src/mpi/mpi_core.f90 \
 			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
@@ -168,7 +168,7 @@ OBJECTS_VOR_SER =	src/mpi/mpi_core_nompi.f90 \
 			src/mpi/mpi_routines_nompi.f90 \
 			$(OBJECTS3)
 
-OBJECTS_VOR_MPI =	src/mpi/mpi_interfaces.f90 \
+OBJECTS_VOR_MPI =	src/mpi/@mpi_interfaces@.f90 \
 			src/mpi/mpi_core.f90 \
 			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
@@ -204,7 +204,7 @@ OBJECTS_SPH_SER =	src/mpi/mpi_core_nompi.f90 \
 			src/mpi/mpi_routines_nompi.f90 \
 			$(OBJECTS3)
 
-OBJECTS_SPH_MPI =	src/mpi/mpi_interfaces.f90 \
+OBJECTS_SPH_MPI =	src/mpi/@mpi_interfaces@.f90 \
 			src/mpi/mpi_core.f90 \
 			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
@@ -239,7 +239,7 @@ OBJECTS_CYL_SER =	src/mpi/mpi_core_nompi.f90 \
 			src/mpi/mpi_routines_nompi.f90 \
 			$(OBJECTS3)
 
-OBJECTS_CYL_MPI =	src/mpi/mpi_interfaces.f90 \
+OBJECTS_CYL_MPI =	src/mpi/@mpi_interfaces@.f90 \
 			src/mpi/mpi_core.f90 \
 			fortranlib/src/@posix_module_mpi@.f90 \
 			$(COMMON) \
