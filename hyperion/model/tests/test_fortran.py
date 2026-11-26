@@ -82,3 +82,32 @@ def test_spectrum_dust_nooverlap(tmpdir):
     assert 'photon frequency' in open(log_file).read()
     assert 'is outside the range defined' in open(log_file).read()
     assert 'for the dust optical properties' in open(log_file).read()
+
+
+@pytest.mark.requires_hyperion_binaries
+@pytest.mark.parametrize('approximation', ['mrw', 'pda'])
+def test_diffusion_non_lte_dust(tmpdir, approximation):
+
+    # The MRW and PDA assume that the dust emits in LTE, so they should not
+    # be allowed with dust that has non-LTE emissivities
+    dust = get_test_dust()
+    dust.emissivities.is_lte = False
+
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    m.add_density_grid(np.array([[[1.]]]), dust)
+    m.set_n_photons(initial=100, imaging=0)
+    if approximation == 'mrw':
+        m.set_mrw(True)
+    else:
+        m.set_pda(True)
+    s = m.add_point_source()
+    s.temperature = 5000.
+    s.luminosity = 1.
+    m.write(tmpdir.join(random_id()).strpath)
+    log_file = tmpdir.join(random_id()).strpath
+    with pytest.raises(SystemExit) as exc:
+        m.run(tmpdir.join(random_id()).strpath, logfile=log_file)
+    assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
+                                'complete'
+    assert 'MRW and PDA cannot be used with non-LTE dust' in open(log_file).read()

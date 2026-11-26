@@ -147,6 +147,10 @@ cases where you know it is absolutely needed. In most cases, if photons cannot
 reach inside certain cells, these cells are unlikely to be contributing a
 significant amount of flux to SEDs or images.
 
+Both the MRW and the PDA assume that the dust emits thermally in LTE, so they
+cannot be used if any of the dust types has non-LTE emissivities (in which
+case the Fortran code will raise an error).
+
 .. _dust_sublimation:
 
 Dust sublimation
