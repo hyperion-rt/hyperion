@@ -8,7 +8,6 @@ from astropy import units as u
 
 from .. import Model, AnalyticalYSOModel, ModelOutput
 from ...grid import AMRGrid
-from ...sources import MapSource
 from ...util.functions import virtual_file
 from .test_helpers import random_id, get_test_dust, assert_identical_results
 
