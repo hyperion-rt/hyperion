@@ -545,3 +545,117 @@ class TestCylindricalSmall(object):
     w = np.linspace(0., 10.e-20, 15)
     z = np.linspace(-5.e-20, 5.e-20, 17)
     p = np.linspace(0., 2. * np.pi, 15)
+
+
+@pytest.mark.requires_hyperion_binaries
+class TestOctreeBase(object):
+
+    # Centre and half-width of the octree
+    x0 = y0 = z0 = 0.
+    dx = dy = dz = 10.
+
+    # The first cell is refined once more, so the grid has cells at two
+    # levels of refinement
+    refined = np.array([1] + [1] + [0] * 8 + [0] * 7).astype(bool)
+
+    def setup_method(self, method):
+
+        dust = get_test_dust()
+
+        self.m = Model()
+        self.m.set_octree_grid(self.x0, self.y0, self.z0,
+                               self.dx, self.dy, self.dz, self.refined)
+        self.m.add_density_grid(np.ones(len(self.refined)) * 1.e-40, dust)
+
+    def test_ptsource_origin(self, tmpdir):
+        '''A point source exactly at the centre of the octree'''
+
+        s = self.m.add_point_source()
+        s.position = (self.x0, self.y0, self.z0)
+        s.luminosity = 1
+        s.temperature = 5000.
+
+        self.m.set_n_initial_iterations(1)
+        self.m.set_n_photons(initial=100000, imaging=0)
+
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
+        self.m.run(file_out)
+        f = h5py.File(file_out)
+        assert not any_photons_killed(f)
+
+    def test_ptsource_vertices(self, tmpdir):
+        '''Point sources exactly on the vertices of the most refined cells'''
+
+        # The most refined cells have a quarter of the width of the octree,
+        # so all cell vertices (as well as points on cell edges and faces)
+        # are on this lattice
+        k = np.arange(-3, 4) / 4.
+        for kx in k:
+            for ky in k:
+                for kz in k:
+                    s = self.m.add_point_source()
+                    s.position = (self.x0 + kx * self.dx,
+                                  self.y0 + ky * self.dy,
+                                  self.z0 + kz * self.dz)
+                    s.luminosity = 1
+                    s.temperature = 5000.
+
+        self.m.set_n_initial_iterations(1)
+        self.m.set_n_photons(initial=100000, imaging=0)
+
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
+        self.m.run(file_out)
+        f = h5py.File(file_out)
+        assert not any_photons_killed(f)
+
+    def test_ptsource_origin_peeloff_aligned(self, tmpdir):
+        '''Peeloff for source at the centre of the octree'''
+
+        theta = np.linspace(0., 180., 37)
+        phi = np.linspace(0., 360., 73)
+
+        T, P = np.meshgrid(theta, phi)
+
+        theta = T.ravel()
+        phi = P.ravel()
+
+        i = self.m.add_peeled_images()
+        i.set_viewing_angles(theta, phi)
+        i.set_image_size(1, 1)
+        i.set_image_limits(-self.dx, self.dx, -self.dx, self.dx)
+        i.set_wavelength_range(1, 0.1, 10.)
+
+        s = self.m.add_point_source()
+        s.position = (self.x0, self.y0, self.z0)
+        s.luminosity = 1
+        s.temperature = 5000.
+
+        self.m.set_n_initial_iterations(0)
+        self.m.set_n_photons(imaging=100)
+
+        self.m.write(tmpdir.join(random_id()).strpath)
+        file_out = tmpdir.join(random_id()).strpath
+        self.m.run(file_out)
+        f = h5py.File(file_out)
+        assert not any_photons_killed(f)
+
+
+class TestOctreeLarge(TestOctreeBase):
+
+    dx = dy = dz = 10.e20
+
+
+class TestOctreeSmall(TestOctreeBase):
+
+    dx = dy = dz = 10.e-20
+
+
+class TestOctreeOffCentre(TestOctreeBase):
+
+    # Cell walls are not exactly representable, so the positions of the
+    # walls computed by the Fortran code differ slightly from the source
+    # positions
+    x0 = y0 = z0 = 1. / 3.
+    dx = dy = dz = 0.7

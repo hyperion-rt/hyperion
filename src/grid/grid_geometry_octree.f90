@@ -370,25 +370,34 @@ contains
     implicit none
     type(photon),intent(in) :: p
     type(grid_cell) :: icell_actual
-    real(dp) :: frac,frac1, frac2, frac3
+    real(dp) :: frac1, frac2, frac3
+    real(dp),parameter :: threshold = 1.e-3_dp
     icell_actual = find_cell(p)
     if(p%on_wall) then
-       frac1 = abs(p%r%x - geo%cells(p%icell%ic)%x) / geo%cells(p%icell%ic)%dx
-       frac2 = abs(p%r%y - geo%cells(p%icell%ic)%y) / geo%cells(p%icell%ic)%dy
-       frac3 = abs(p%r%z - geo%cells(p%icell%ic)%z) / geo%cells(p%icell%ic)%dz
-       if(abs(p%on_wall_id%w1) == 1) then
-          frac = frac1 - 1._dp
-          in_correct_cell = frac2 < 1._dp .and. frac3 < 1._dp
+       ! Position relative to the cell, in units of the cell half-width, so
+       ! that the cell walls are at -1 and +1. A photon on a wall has to be on
+       ! that wall, and in each direction where it is not on a wall it has to
+       ! be inside the cell or on its walls (it can be on a wall it is not
+       ! flagged as being on, e.g. if it is on a cell edge or vertex)
+       frac1 = (p%r%x - geo%cells(p%icell%ic)%x) / geo%cells(p%icell%ic)%dx
+       frac2 = (p%r%y - geo%cells(p%icell%ic)%y) / geo%cells(p%icell%ic)%dy
+       frac3 = (p%r%z - geo%cells(p%icell%ic)%z) / geo%cells(p%icell%ic)%dz
+       in_correct_cell = .true.
+       if(p%on_wall_id%w1 /= 0) then
+          in_correct_cell = in_correct_cell .and. abs(frac1 - p%on_wall_id%w1) < threshold
+       else
+          in_correct_cell = in_correct_cell .and. abs(frac1) < 1._dp + threshold
        end if
-       if(abs(p%on_wall_id%w2) == 1) then
-          frac = frac2 - 1._dp
-          in_correct_cell = frac1 < 1._dp .and. frac3 < 1._dp
+       if(p%on_wall_id%w2 /= 0) then
+          in_correct_cell = in_correct_cell .and. abs(frac2 - p%on_wall_id%w2) < threshold
+       else
+          in_correct_cell = in_correct_cell .and. abs(frac2) < 1._dp + threshold
        end if
-       if(abs(p%on_wall_id%w3) == 1) then
-          frac = frac3 - 1._dp
-          in_correct_cell = frac1 < 1._dp .and. frac2 < 1._dp
+       if(p%on_wall_id%w3 /= 0) then
+          in_correct_cell = in_correct_cell .and. abs(frac3 - p%on_wall_id%w3) < threshold
+       else
+          in_correct_cell = in_correct_cell .and. abs(frac3) < 1._dp + threshold
        end if
-       in_correct_cell = abs(frac) < 1.e-3_dp .and. in_correct_cell
     else
        in_correct_cell = icell_actual == p%icell
     end if
@@ -451,6 +460,9 @@ contains
     ! tmin to nearest wall
 
     real(dp) :: tx, ty, tz
+
+    real(dp) :: dmin
+    ! Perpendicular distance to the nearest wall
 
     logical :: pos_vx, pos_vy, pos_vz
 
@@ -525,7 +537,19 @@ contains
     end if
 
     if(tmin < 0._dp) then
-        if(tmin > -10 * geo%eps) then
+        ! A slightly negative tmin can be caused by rounding errors in the
+        ! position of the wall, so the tolerance is applied to the distance
+        ! to the wall perpendicular to it (and not to tmin, which can be
+        ! arbitrarily large for photons travelling almost parallel to the
+        ! wall)
+        if(id_min%w1 /= 0) then
+            dmin = tmin * abs(p%v%x)
+        else if(id_min%w2 /= 0) then
+            dmin = tmin * abs(p%v%y)
+        else
+            dmin = tmin * abs(p%v%z)
+        end if
+        if(dmin > -10 * geo%eps) then
             ! TODO: there may be a better way to avoid this kind of situation
             tmin = 0._dp
         else
