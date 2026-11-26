@@ -46,20 +46,55 @@ def test_nophotons(tmpdir):
     assert e.value.args[0] == 'Photon numbers not set'
 
 
-def test_incomplete_photons_1():
+def test_incomplete_photons_1(tmpdir):
     m = Model()
     m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    m.set_n_photons(initial=1)
     with pytest.raises(Exception) as e:
-        m.set_n_photons(initial=1)
+        m.write(tmpdir.join('test.rtin').strpath)
     assert e.value.args[0] == '[n_photons] imaging should bet set'
 
 
-def test_incomplete_photons_2():
+def test_incomplete_photons_2(tmpdir):
     m = Model()
     m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    m.set_n_photons(imaging=1)
     with pytest.raises(Exception) as e:
-        m.set_n_photons(imaging=1)
+        m.write(tmpdir.join('test.rtin').strpath)
     assert e.value.args[0] == '[n_photons] initial should be set since the initial iterations are being computed'
+
+
+def test_photons_setter_order(tmpdir):
+    # The consistency between the number of photons and the other parameters
+    # is checked at write time, so the parameters can be set in any order
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    m.set_n_photons(imaging=1, raytracing_sources=1, raytracing_dust=1)
+    m.set_raytracing(True)
+    m.set_n_initial_iterations(0)
+    m.write(tmpdir.join('test.rtin').strpath)
+
+
+def test_photons_setter_order_inconsistent(tmpdir):
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    m.set_raytracing(True)
+    m.set_n_photons(initial=1, imaging=1, raytracing_sources=1, raytracing_dust=1)
+    m.set_raytracing(False)
+    with pytest.raises(Exception) as e:
+        m.write(tmpdir.join('test.rtin').strpath)
+    assert e.value.args[0] == '[n_photons] raytracing_sources should not be set as raytracing is not being used'
+
+
+@pytest.mark.parametrize('option', ['pda', 'mrw'])
+def test_voronoi_diffusion(tmpdir, option):
+    m = Model()
+    m.set_voronoi_grid([0.25, 0.75], [0.5, 0.5], [0.5, 0.5])
+    m.set_n_photons(initial=1, imaging=1)
+    getattr(m, 'set_' + option)(True)
+    with pytest.raises(Exception) as e:
+        m.write(tmpdir.join('test.rtin').strpath)
+    assert e.value.args[0] == '%s is not implemented for Voronoi grids - use set_%s(False) to disable' % (option.upper(), option)
 
 
 class TestAllGridTypes(object):
