@@ -2,9 +2,11 @@ Filtering logging messages in Python scripts
 ============================================
 
 All messages printed by the Hyperion Python routines use the built-in `logging
-<http://docs.python.org/library/logging.html>`_ module. This means that it is
-possible to filter messages based on importance. Messages can have one of
-several levels:
+<https://docs.python.org/3/library/logging.html>`_ module. Each Hyperion module
+uses its own logger, named after the module (for example
+``hyperion.model.model``), and all of these are children of the ``hyperion``
+logger. This means that it is possible to filter messages based on importance.
+Messages can have one of several levels:
 
 * ``DEBUG`` (``10``): detailed information, typically of interest only when
   diagnosing problems.
@@ -24,29 +26,32 @@ several levels:
 Note that the ``CRITICAL`` level is unlikely to be used, since critical errors
 should raise Exceptions in practice.
 
-It is possible to specify a threshold for logging messages. Messages which are
-less severe than this threshold will be ignored. The default threshold in
-Hyperion is ``20`` (``INFO``), indicating that all the above messages will be
-shown except ``DEBUG``. Using 40 for example would cause only ``ERROR`` and
-``CRITICAL`` messages to be shown.
+Messages which are less severe than the logging threshold are ignored.
+Hyperion does not configure logging itself, so the Python defaults apply: only
+``WARNING``, ``ERROR`` and ``CRITICAL`` messages are shown, and ``INFO`` and
+``DEBUG`` messages are not.
 
-By directly accessing the Hyperion logger
------------------------------------------
+To also show ``INFO`` messages (or ``DEBUG`` messages) in a script, configure
+logging at the start of the script, for example::
 
-If you want to filter different messages in different scripts, you can
-directly access the logger and set the level manually::
+    import logging
+    logging.basicConfig(level=logging.INFO)
 
-    from hyperion.util.logger import logger
-    logger.setLevel(10)
+This affects messages from all packages that use the ``logging`` module. To
+change the threshold for Hyperion messages only, set the level on the
+``hyperion`` logger, for example to show all messages including ``DEBUG``::
 
-Using the Hyperion configuration file
--------------------------------------
+    import logging
+    logging.basicConfig()
+    logging.getLogger('hyperion').setLevel(logging.DEBUG)
 
-If you want to always filter the same messages for all projects on a given
-computer, you can create a ``.hyperionrc`` file in your home directory,
-containing the following entries related to logging::
+or to show only ``ERROR`` and ``CRITICAL`` messages from Hyperion::
 
-    [logging]
-    color:yes
-    level:0
+    import logging
+    logging.getLogger('hyperion').setLevel(logging.ERROR)
 
+The level can also be set for a specific part of Hyperion, for example
+``logging.getLogger('hyperion.dust')``.
+
+Note that this only applies to messages from the Python routines. The output
+of the Fortran code when running a model is not affected by these settings.
