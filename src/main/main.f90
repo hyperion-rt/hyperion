@@ -5,6 +5,7 @@ program main
   use mpi_core, only : main_process, mp_join, mp_stop, mp_initialize
 
   use mpi_routines, only : mp_sync, &
+       &                   mp_routines_debug, &
        &                   mp_set_random_seed, &
        &                   mp_broadcast_convergence, &
        &                   mp_collect_images
@@ -37,7 +38,8 @@ program main
 
   use grid_generic, only : output_grid
   use grid_physics, only : specific_energy_converged, escape_column_density
-  use grid_geometry, only : geo
+  use grid_geometry, only : geo, grid_geometry_debug
+  use grid_propagate, only : grid_propagate_debug
   use grid_io, only : write_grid_4d
   use grid_escape, only : compute_escape_column_density
   use dust_main, only : n_dust
@@ -62,7 +64,7 @@ program main
   implicit none
 
   integer :: iter
-  character(len=1000) :: command, force_option, input_file, output_file
+  character(len=1000) :: command, argument, input_file, output_file
   integer(hid_t) :: handle_in, handle_out, g_peeled, g_binned, g_input, g_escape
   real(dp) :: time1, time2, time
   logical :: converged, copy_input
@@ -70,8 +72,8 @@ program main
   integer :: seed
   character(len=100) :: group_name
   integer(hid_t) :: handle_iter
-  logical :: confirm_overwrite, show_usage
-  integer :: n_args
+  logical :: confirm_overwrite, show_usage, debug_mode
+  integer :: n_args, i_arg, n_positional
 
   character(len=5), parameter :: fortran_version = '1.0.0'
 
@@ -81,24 +83,29 @@ program main
 
   ! Retrieve command-line arguments
   confirm_overwrite = .true.
+  debug_mode = .false.
   show_usage = .false.
+  n_positional = 0
 
   call get_command_argument(0, command)
-  if(n_args == 2) then
-     call get_command_argument(1, input_file)
-     call get_command_argument(2, output_file)
-  else if(n_args == 3) then
-     call get_command_argument(1, force_option)
-     call get_command_argument(2, input_file)
-     call get_command_argument(3, output_file)
-     if(trim(force_option) == '-f') then
+  do i_arg = 1, n_args
+     call get_command_argument(i_arg, argument)
+     if(trim(argument) == '-f') then
         confirm_overwrite = .false.
-     else
+     else if(trim(argument) == '-d') then
+        debug_mode = .true.
+     else if(argument(1:1) == '-') then
         show_usage = .true.
+     else
+        n_positional = n_positional + 1
+        if(n_positional == 1) then
+           input_file = argument
+        else if(n_positional == 2) then
+           output_file = argument
+        end if
      end if
-  else
-     show_usage = .true.
-  end if
+  end do
+  if(n_positional /= 2) show_usage = .true.
 
 
   ! Start up multi-processing if needed
@@ -106,9 +113,16 @@ program main
 
   ! Check that both arguments were given
   if(show_usage) then
-     if(main_process()) write(*,'("Usage: ", A, " [-f] input_file output_file")') trim(command)
+     if(main_process()) write(*,'("Usage: ", A, " [-f] [-d] input_file output_file")') trim(command)
      call mp_stop()
      stop
+  end if
+
+  ! Turn on all debugging output if requested
+  if(debug_mode) then
+     call grid_geometry_debug(.true.)
+     call grid_propagate_debug(.true.)
+     call mp_routines_debug(.true.)
   end if
 
   ! SETUP

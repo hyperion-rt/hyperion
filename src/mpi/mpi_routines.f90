@@ -27,6 +27,7 @@ module mpi_routines
 
   logical :: debug = .false.
 
+  public :: mp_routines_debug
   public :: mp_reset_first
   public :: mp_n_photons
   public :: mp_collect_physical_arrays
@@ -50,6 +51,12 @@ module mpi_routines
   end interface mp_sync
 
 contains
+
+  subroutine mp_routines_debug(debug_flag)
+    implicit none
+    logical,intent(in) :: debug_flag
+    debug = debug_flag
+  end subroutine mp_routines_debug
 
   subroutine mp_reset_first()
     implicit none
