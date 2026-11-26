@@ -131,10 +131,14 @@ columns should be:
 
 * ``nu``: The frequencies at which the emissivity is specified.
 
-* ``j_nu``: The emissivity for the specified frequency, as a function of
+* ``jnu``: The emissivity for the specified frequency, as a function of
   specific energy. This should be a vector column, where the width of the
   column is the number of values specified in the ``emissivity_variable``
   dataset.
+
+The emissivities do not need to be normalized, since Hyperion normalizes the
+emissivities for each value of the specific energy when reading in the dust
+file, so only the spectral shape of the emissivities matters.
 
 ``emissivity_variable``
 -----------------------

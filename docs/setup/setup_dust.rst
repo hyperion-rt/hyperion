@@ -216,8 +216,14 @@ function of frequency and specific energy, you can do::
     d.emissivities.nu = np.logspace(8., 16., 100)  # 100 values between 10^8 and 10^16
     d.emissivities.var = np.logspace(-2., 8., 20)  # 20 values of the specific energy
                                                    # between 10^-2 and 10^8
-    d.emissivities.jnu = np.ones(100, 20)  # constant emissivities
+    d.emissivities.jnu = np.ones((100, 20))  # constant emissivities
     d.emissivities.var_name = 'specific_energy'
+
+The emissivities do not need to be normalized: only the spectral shape of
+``jnu`` at each specific energy matters, because Hyperion normalizes the
+emissivities for each value of the specific energy when reading in the dust
+file. The amount of energy emitted by the dust is determined by the specific
+energy (and the mean opacities), not by the amplitude of ``jnu``.
 
 Extrapolating optical properties
 --------------------------------
