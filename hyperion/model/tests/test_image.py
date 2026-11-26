@@ -5,6 +5,7 @@ import tempfile
 
 import pytest
 import numpy as np
+from astropy import units as u
 from numpy.testing import assert_array_almost_equal_nulp
 
 from .. import Model
@@ -449,6 +450,19 @@ class TestImage(object):
         assert image.nu.shape == (5,)
         assert image.wav.shape == (5,)
         assert image.val.shape == (2, 20, 10, 5)
+
+    def test_image_distance_quantity(self):
+
+        ref = self.m.get_image(group=0, units='ergs/cm^2/s', distance=3.0856775814913673e18)
+
+        for distance in [3.0856775814913673e18 * u.cm, 1. * u.pc]:
+            image = self.m.get_image(group=0, units='ergs/cm^2/s', distance=distance)
+            assert isinstance(image.distance, float)
+            np.testing.assert_allclose(image.distance, ref.distance, rtol=1e-12)
+            np.testing.assert_allclose(image.val, ref.val, rtol=1e-12)
+
+        with pytest.raises(u.UnitConversionError):
+            self.m.get_image(group=0, units='ergs/cm^2/s', distance=1. * u.s)
 
     def test_image_attributes_distance(self):
 

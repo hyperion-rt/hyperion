@@ -4,6 +4,7 @@ import shutil
 import tempfile
 
 import numpy as np
+from astropy import units as u
 from numpy.testing import assert_array_almost_equal_nulp
 
 import pytest
@@ -361,6 +362,19 @@ class TestSED(object):
         assert sed.nu.shape == (5,)
         assert sed.wav.shape == (5,)
         assert sed.val.shape == (2, 4, 5)
+
+    def test_sed_distance_quantity(self):
+
+        ref = self.m.get_sed(group=0, units='ergs/cm^2/s', distance=3.0856775814913673e18)
+
+        for distance in [3.0856775814913673e18 * u.cm, 1. * u.pc]:
+            sed = self.m.get_sed(group=0, units='ergs/cm^2/s', distance=distance)
+            assert isinstance(sed.distance, float)
+            np.testing.assert_allclose(sed.distance, ref.distance, rtol=1e-12)
+            np.testing.assert_allclose(sed.val, ref.val, rtol=1e-12)
+
+        with pytest.raises(u.UnitConversionError):
+            self.m.get_sed(group=0, units='ergs/cm^2/s', distance=1. * u.s)
 
     def test_sed_attributes_distance(self):
 

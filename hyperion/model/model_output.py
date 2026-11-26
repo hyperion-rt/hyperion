@@ -4,6 +4,7 @@ import warnings
 
 import numpy as np
 import logging
+from astropy import units as u
 
 from ..util.constants import c, pi
 from ..util.functions import FreezableClass
@@ -242,8 +243,8 @@ class ModelOutput(FreezableClass):
             default is to return the first group. This option is only used if
             technique='peeled'.
 
-        distance : float, optional
-            The distance to the observer, in cm.
+        distance : float or :class:`~astropy.units.Quantity`, optional
+            The distance to the observer, in cm if specified as a float.
 
         component : str, optional
             The component to return based on origin and last interaction.
@@ -332,6 +333,10 @@ class ModelOutput(FreezableClass):
         # Check argument types
         if not isinstance(stokes, str):
             raise ValueError("stokes argument should be a string")
+
+        # Convert distance to cm if specified as a quantity
+        if isinstance(distance, u.Quantity):
+            distance = distance.to_value(u.cm)
 
         # Check for inconsistent parameters
         if distance is not None and stokes in ['linpol', 'circpol']:
@@ -574,8 +579,8 @@ class ModelOutput(FreezableClass):
             default is to return the first group. This option is only used if
             technique='peeled'.
 
-        distance : float, optional
-            The distance to the observer, in cm.
+        distance : float or :class:`~astropy.units.Quantity`, optional
+            The distance to the observer, in cm if specified as a float.
 
         component : str, optional
             The component to return based on origin and last interaction.
@@ -661,6 +666,10 @@ class ModelOutput(FreezableClass):
         # Check argument types
         if not isinstance(stokes, str):
             raise ValueError("stokes argument should be a string")
+
+        # Convert distance to cm if specified as a quantity
+        if isinstance(distance, u.Quantity):
+            distance = distance.to_value(u.cm)
 
         # Check for inconsistent parameters
         if distance is not None and stokes in ['linpol', 'circpol']:
