@@ -840,10 +840,14 @@ class ExternalBoxSource(Source):
 
 class MapSource(Source):
     '''
-    A diffuse source.
+    A diffuse source emitting from within the cells of the grid.
 
-    This can be used for example to simulate the interstellar radiation
-    field. This source emits *inwards*.
+    The ``luminosity`` attribute gives the total luminosity of the source,
+    summed over all cells of the map (ergs/s), while the ``map`` attribute
+    gives the relative luminosity in each cell (it does not need to be
+    normalized). The map is the luminosity per cell, not per unit volume. If
+    neither a spectrum nor a temperature is set, photons are emitted using the
+    local emissivity of the dust.
 
     Parameters
     ----------

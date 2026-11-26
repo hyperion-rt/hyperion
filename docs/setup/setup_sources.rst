@@ -161,7 +161,10 @@ or::
 
     source.spectrum = (nu, fnu)
 
-.. note:: The ``map`` array does not need to be normalized.
+.. note:: The ``map`` array does not need to be normalized. It gives the
+          relative luminosity of each cell, not the luminosity per unit
+          volume, so ``source.luminosity`` is the total luminosity summed
+          over all cells.
 
 External sources
 ----------------
