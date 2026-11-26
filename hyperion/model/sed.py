@@ -40,6 +40,8 @@ class SED(FreezableClass):
 
         self.inside_observer = False
 
+        self.filter_names = None
+
         self._freeze()
 
     @property
@@ -232,3 +234,17 @@ class SED(FreezableClass):
             self._inside_observer = value
         else:
             raise ValueError("inside_observer should be a boolean")
+
+    @property
+    def filter_names(self):
+        """
+        The names of the filters, if filter convolution was used (otherwise None).
+        """
+        return self._filter_names
+
+    @filter_names.setter
+    def filter_names(self, value):
+        if value is None or (type(value) is list and all(isinstance(name, str) for name in value)):
+            self._filter_names = value
+        else:
+            raise ValueError("filter_names should be a list of strings")

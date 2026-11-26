@@ -356,6 +356,8 @@ class TestSED(object):
 
         assert sed.units == 'ergs/s'
 
+        assert sed.filter_names is None
+
         assert sed.nu.shape == (5,)
         assert sed.wav.shape == (5,)
         assert sed.val.shape == (2, 4, 5)

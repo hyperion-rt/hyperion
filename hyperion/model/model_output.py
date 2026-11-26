@@ -360,9 +360,11 @@ class ModelOutput(FreezableClass):
                                         source_id=source_id, dust_id=dust_id, n_scat=n_scat)
 
         # Set up wavelength space
+        filter_names = None
         if 'use_filters' in g.attrs and g.attrs['use_filters'].decode('utf-8').lower() == 'yes':
             nu = g['filt_nu0'][()]
             wav = c / nu * 1.e4
+            filter_names = self._get_filter_names(technique, group)
         elif 'numin' in g['seds'].attrs:
             numin = g['seds'].attrs['numin']
             numax = g['seds'].attrs['numax']
@@ -533,6 +535,9 @@ class ModelOutput(FreezableClass):
         # Save whether the SED was from an inside observer
         sed.inside_observer = inside_observer
 
+        # Add filter names, if filters were used
+        sed.filter_names = filter_names
+
         return sed
 
     @on_the_fly_hdf5
@@ -684,9 +689,11 @@ class ModelOutput(FreezableClass):
                                         source_id=source_id, dust_id=dust_id, n_scat=n_scat)
 
         # Set up wavelength space
+        filter_names = None
         if 'use_filters' in g.attrs and g.attrs['use_filters'].decode('utf-8').lower() == 'yes':
             nu = g['filt_nu0'][()]
             wav = c / nu * 1.e4
+            filter_names = self._get_filter_names(technique, group)
         elif 'numin' in g['images'].attrs:
             numin = g['images'].attrs['numin']
             numax = g['images'].attrs['numax']
@@ -925,7 +932,35 @@ class ModelOutput(FreezableClass):
         # Save whether the image was from an inside observer
         image.inside_observer = inside_observer
 
+        # Add filter names, if filters were used
+        image.filter_names = filter_names
+
         return image
+
+    def _get_filter_names(self, technique, group):
+        """
+        Find the names of the filters for a given image/SED group, which are
+        only stored in the input file. If the input file is not available
+        (e.g. it was linked rather than copied and has since been moved), this
+        returns None.
+        """
+
+        if technique == 'peeled':
+            path = 'Output/Peeled/group_%05i' % (group + 1)
+        else:
+            path = 'Output/Binned/group_00001'
+
+        try:
+            if self.file['Input'].file != self.file.file:
+                # Workaround for h5py bug - can't access link directly,
+                # need to use file attribute
+                g = self.file['Input'].file[self.file['Input'].name][path]
+            else:
+                g = self.file['Input'][path]
+            return [g['filter_%05i' % (ifilter + 1)].attrs['name'].decode('utf-8')
+                    for ifilter in range(g.attrs['n_filt'])]
+        except (KeyError, OSError):
+            return None
 
     @on_the_fly_hdf5
     def get_available_sources(self):
