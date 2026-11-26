@@ -416,6 +416,35 @@ def test_model_minimal(tmpdir):
     m.run()
 
 
+def test_run_existing_output(tmpdir):
+
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    m.set_n_initial_iterations(0)
+    m.set_n_photons(imaging=10)
+    m.write(tmpdir.join(random_id()).strpath)
+    output_file = tmpdir.join(random_id()).strpath
+    open(output_file, 'w').close()
+    with pytest.raises(OSError) as exc:
+        m.run(output_file)
+    assert exc.value.args[0] == 'Output file {0} already exists - use overwrite=True to overwrite it'.format(output_file)
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_run_output_to_sys_stdout(tmpdir, capsys):
+
+    # Make sure the output from the code goes through sys.stdout, so that it
+    # is shown e.g. in notebook cells
+
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    m.set_n_initial_iterations(0)
+    m.set_n_photons(imaging=10)
+    m.write(tmpdir.join(random_id()).strpath)
+    m.run(tmpdir.join(random_id()).strpath)
+    assert 'Hyperion v' in capsys.readouterr().out
+
+
 def test_binned_forced_first_interaction(tmpdir):
 
     m = Model()
