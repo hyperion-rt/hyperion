@@ -1942,13 +1942,17 @@ then
   hdf_compiler=`basename $(h5fc -show | awk {'print $1'})`
 else
   hdf_compiler=`basename $(h5pfc -show | awk {'print $1'})`
-  if test "$hdf_compiler" == "mpif90"
-  then
-    hdf_compiler=`basename $(mpif90 -show | awk {'print $1'})`
-  elif test "$hdf_compiler" == "mpifort"
-  then
-    hdf_compiler=`basename $(mpifort -show | awk {'print $1'})`
-  fi
+fi
+
+# The HDF5 wrapper can itself call an MPI wrapper (for example the h5fc
+# installed by the hdf5-mpi package in Homebrew), in which case we need to
+# find out what compiler that calls
+if test "$hdf_compiler" == "mpif90"
+then
+  hdf_compiler=`basename $(mpif90 -show | awk {'print $1'})`
+elif test "$hdf_compiler" == "mpifort"
+then
+  hdf_compiler=`basename $(mpifort -show | awk {'print $1'})`
 fi
 
 # gfortran sometimes includes version number and/or platform info
