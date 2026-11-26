@@ -85,3 +85,17 @@ when calling ``hyperion`` or on of the ``hyperion_*`` commands::
 of use the ``overwrite=True`` argument when using ``Model.run``::
 
     m.run('model.rtout', overwrite=True)
+
+Debugging output
+----------------
+
+To turn on all the internal debugging output of the Fortran code, use the
+``-d`` option when calling ``hyperion`` or one of the ``hyperion_*``
+commands::
+
+    $ hyperion -d input output
+
+Note that this prints messages every time a photon crosses a cell wall, so
+the output is very large and is only useful for models with a very small
+number of photons. When running in parallel, the output from the different
+processes will be interleaved.
