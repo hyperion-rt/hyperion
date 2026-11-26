@@ -630,6 +630,14 @@ class Model(FreezableClass, RunConf):
         if self.grid is None:
             raise Exception("No coordinate grid has been set up")
 
+        # Check that the diffusion approximations are not used with Voronoi
+        # grids, since they are not implemented for these
+        if isinstance(self.grid, VoronoiGrid):
+            if self.pda:
+                raise Exception("PDA is not implemented for Voronoi grids - use set_pda(False) to disable")
+            if self.mrw:
+                raise Exception("MRW is not implemented for Voronoi grids - use set_mrw(False) to disable")
+
         # Check that containing directory exists to give a more understandable
         # message than 'File does not exist', since this might confuse users
         # (it is the output directory that does not exist)
