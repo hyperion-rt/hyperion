@@ -10,6 +10,7 @@ module mpi_core
   public :: mp_stop
   public :: mp_join
   public :: main_process
+  public :: mp_node_name
 
   ! MPI errors
   integer :: ierr
@@ -48,5 +49,15 @@ contains
     implicit none
     call mpi_barrier(mpi_comm_world, ierr)
   end subroutine mp_join
+
+  function mp_node_name() result(name)
+    ! Return the name of the node the current process is running on
+    implicit none
+    character(len=mpi_max_processor_name) :: name
+    integer :: length
+    name = ''
+    call mpi_get_processor_name(name, length, ierr)
+    if(len_trim(name) == 0) name = 'unknown'
+  end function mp_node_name
 
 end module mpi_core
