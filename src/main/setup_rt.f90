@@ -329,6 +329,17 @@ contains
        end do
     end if
 
+    ! The modified random walk and the partial diffusion approximation are
+    ! diffusion approximations that assume that the dust emits thermally in
+    ! LTE, so they cannot be used with dust that has non-LTE emissivities.
+    if((use_mrw .or. use_pda) .and. n_dust > 0) then
+       do idust=1,n_dust
+          if(.not. d(idust)%is_lte) then
+             call error("setup_initial", "MRW and PDA cannot be used with non-LTE dust")
+          end if
+       end do
+    end if
+
   end subroutine setup_initial
 
   subroutine setup_final_iteration(input_handle)
