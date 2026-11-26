@@ -43,11 +43,23 @@ project.
 
 For details of changes between Hyperion versions, see the `changelog <https://github.com/hyperion-rt/hyperion/blob/main/CHANGES.md>`_.
 
+.. _units-and-constants:
+
 Note on units and constants
 ---------------------------
 
-All quantities in Hyperion are expressed in the cgs system. Throughout the
-documentation, constants are sometimes used in place of values (e.g. ``au``,
+All quantities in Hyperion are expressed in the cgs system (e.g. cm, g, s,
+ergs, ergs/s, Hz, K, and cm^2/g for opacities), with the exception of
+wavelengths, which are always given in microns (for example when calling
+:meth:`~hyperion.conf.PeeledImageConf.set_wavelength_range` or
+:meth:`~hyperion.model.Model.set_monochromatic`, and in the ``wav`` attribute
+of SEDs and images extracted from output files). Frequencies are always given
+in Hz. By default, SEDs and images are returned in ergs/s, or in ergs/cm^2/s if
+a distance is specified, and other units can be selected using the ``units=``
+argument of :meth:`~hyperion.model.ModelOutput.get_sed` and
+:meth:`~hyperion.model.ModelOutput.get_image`.
+
+Throughout the documentation, constants are sometimes used in place of values (e.g. ``au``,
 ``pc``). These can be imported (in Python) using::
 
     from hyperion.util.constants import *
