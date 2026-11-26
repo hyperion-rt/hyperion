@@ -2,7 +2,7 @@ program main
 
   use core_lib, only : hid_t, dp, now, check_file_exists, warn, set_verbose_level
 
-  use mpi_core, only : main_process, mp_join, mp_stop, mp_initialize
+  use mpi_core, only : main_process, mp_join, mp_stop, mp_initialize, mp_node_name
 
   use mpi_routines, only : mp_sync, &
        &                   mp_set_random_seed, &
@@ -135,6 +135,7 @@ program main
      handle_out = mp_open_new(output_file, confirm=confirm_overwrite)
      call mp_write_keyword(handle_out, '/', 'date_started', trim(datetime))
      call mp_write_keyword(handle_out, '/', 'fortran_version', fortran_version)
+     call mp_write_keyword(handle_out, '/', 'node_name', trim(mp_node_name()))
   end if
 
   ! Include the input in the output file
