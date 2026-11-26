@@ -141,4 +141,4 @@ def assert_identical_results(file1, file2):
 
         for a in attr1:
             if a not in EXCLUDE_ATTR:
-                assert f1[item].attrs[a] == f2[item].attrs[a]
+                assert np.all(f1[item].attrs[a] == f2[item].attrs[a])
