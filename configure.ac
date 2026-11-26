@@ -294,33 +294,15 @@ fi
 # The mpich "mpi" module does not declare interfaces for the MPI routines that
 # take choice buffers, so we provide them in mpi_interfaces.f90. Other MPI
 # libraries (such as Open MPI) already declare them, in which case declaring
-# them again makes the names ambiguous, so we check whether a program using
-# both the "mpi" module and our own interface compiles, and otherwise use an
-# empty module.
+# them again makes the names ambiguous. We therefore check whether
+# check_mpi_interfaces.f90, which uses both the "mpi" module and
+# mpi_interfaces, compiles, and otherwise use the empty module in
+# mpi_interfaces_none.f90.
 
 AC_MSG_CHECKING([whether the MPI module needs explicit interfaces for choice buffer routines])
+mpi_src=`cd "$srcdir" && pwd`/src/mpi
 mkdir -p conftest_mpi_interfaces
-cat > conftest_mpi_interfaces/conftest.f90 << EOF
-module conftest_interfaces
-  implicit none
-  interface
-     subroutine mpi_bcast(buffer, count, datatype, root, comm, ierror)
-       !GCC\$ ATTRIBUTES NO_ARG_CHECK :: buffer
-       !DEC\$ ATTRIBUTES NO_ARG_CHECK :: buffer
-       type(*) :: buffer(*)
-       integer :: count, datatype, root, comm, ierror
-     end subroutine mpi_bcast
-  end interface
-end module conftest_interfaces
-program conftest
-  use mpi
-  use conftest_interfaces
-  implicit none
-  integer :: a(1), ierr
-  call mpi_bcast(a, 1, mpi_integer, 0, mpi_comm_world, ierr)
-end program conftest
-EOF
-if (cd conftest_mpi_interfaces && eval "$mpi_fc -c conftest.f90") > /dev/null 2>&1
+if (cd conftest_mpi_interfaces && eval "$mpi_fc -c $mpi_src/mpi_interfaces.f90 $mpi_src/check_mpi_interfaces.f90") > /dev/null 2>&1
 then
   AC_MSG_RESULT([yes])
   AC_SUBST(mpi_interfaces, mpi_interfaces)
