@@ -27,6 +27,11 @@ available), you can call ``read`` with the ``only_initial=`` argument set to
 
     m = Model.read('some_model.rtout', only_initial=False)
 
+Note that the final density is only available if ``output_density`` was set
+to ``'last'`` or ``'all'`` in the previous model (the default is ``'none'``).
+Otherwise the input density is used, which will not include any changes due to
+dust sublimation, and a warning is emitted if sublimation was enabled.
+
 If, instead of reading in the whole model, you want to re-use only certain
 aspects of a previous model, see the following sections.
 

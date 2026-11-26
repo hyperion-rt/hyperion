@@ -89,3 +89,49 @@ def test_use_quantities(tmpdir, grid_type, copy):
     # Write out and run to test that the file is coherent
     m2.write(input_file_2, overwrite=True, copy=copy[1])
     m2.run(output_file_2, overwrite=True)
+
+
+@pytest.mark.requires_hyperion_binaries
+@pytest.mark.parametrize(('sublimation', 'output_density', 'output_density_diff'),
+                         list(product(['no', 'fast'], ['none', 'last'], ['none', 'last'])))
+def test_use_quantities_sublimation_warning(tmpdir, caplog, sublimation, output_density, output_density_diff):
+
+    # If dust sublimation is enabled but the final density was not written
+    # out, re-using the final quantities gives the input density, which may
+    # not be consistent with the final specific energy, so a warning should
+    # be emitted.
+
+    input_file = tmpdir.join(random_id()).strpath
+    output_file = tmpdir.join(random_id()).strpath
+
+    dust = get_test_dust()
+    if sublimation != 'no':
+        dust.set_sublimation_temperature(sublimation, temperature=1.)
+
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    m.add_density_grid(np.array([[[1.]]]), dust)
+    m.conf.output.output_density = output_density
+    m.conf.output.output_density_diff = output_density_diff
+
+    s = m.add_point_source()
+    s.luminosity = 1.
+    s.temperature = 1000.
+
+    m.set_n_photons(initial=1000, imaging=0)
+    m.set_n_initial_iterations(2)
+
+    m.write(input_file)
+    m.run(output_file)
+
+    caplog.clear()
+    Model.read(output_file, only_initial=True)
+    assert 'The final density was not written' not in caplog.text
+
+    caplog.clear()
+    Model.read(output_file, only_initial=False)
+    if sublimation != 'no' and output_density == 'none':
+        assert 'The final density was not written' in caplog.text
+        assert ('density_diff' in caplog.text) is (output_density_diff == 'last')
+    else:
+        assert 'The final density was not written' not in caplog.text
