@@ -97,3 +97,56 @@ class TestFilters(object):
         image = self.m.get_image(units='MJy/sr', distance=1)
         np.testing.assert_allclose(np.sum(image.val[:, :, :, 0]), 3438.059082285024, rtol=0.1)
         np.testing.assert_allclose(np.sum(image.val[:, :, :, 1]), 2396.4803378036186, rtol=0.1)
+
+    @pytest.mark.requires_hyperion_binaries
+    def test_image_filter_names(self):
+        image = self.m.get_image()
+        assert image.filter_names == ['F1', 'F2']
+
+    @pytest.mark.requires_hyperion_binaries
+    def test_sed_filter_names(self):
+        sed = self.m.get_sed()
+        assert sed.filter_names == ['F1', 'F2']
+
+
+@pytest.mark.requires_hyperion_binaries
+def test_filter_names_linked_input(tmpdir):
+
+    # If the input is linked rather than copied into the output file, the
+    # filter names should be read through the link, and should be None if the
+    # input file is no longer available
+
+    m = Model()
+    m.set_cartesian_grid([-1., 1.], [-1., 1.], [-1., 1.])
+    m.add_density_grid(np.array([[[1.]]]), get_test_dust())
+
+    s = m.add_point_source()
+    s.luminosity = 1.
+    s.temperature = 6000.
+
+    i = m.add_peeled_images(sed=True, image=False)
+    i.set_viewing_angles([1.], [1.])
+
+    f = i.add_filter()
+    f.name = 'F1'
+    f.spectral_coord = [1, 1.1, 1.2, 1.3] * u.micron
+    f.transmission = [0., 100., 50, 0.] * u.percent
+    f.detector_type = 'photons'
+    f.alpha = 0.
+    f.central_spectral_coord = 1.15 * u.micron
+
+    m.set_n_initial_iterations(0)
+    m.set_n_photons(imaging=1000)
+    m.set_copy_input(False)
+
+    input_file = tmpdir.join('test.rtin').strpath
+    m.write(input_file)
+    mo = m.run(tmpdir.join('test.rtout').strpath)
+
+    assert mo.get_sed().filter_names == ['F1']
+
+    os.rename(input_file, tmpdir.join('moved.rtin').strpath)
+
+    sed = mo.get_sed()
+    assert sed.filter_names is None
+    np.testing.assert_allclose(sed.wav, [1.15])

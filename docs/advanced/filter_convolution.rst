@@ -83,7 +83,11 @@ The attributes to set are the following:
   which the monochromatic flux should be given.
 
 Once the filters have been set up, Hyperion runs as usual. The output SEDs and
-images will be defined at the central wavelengths of the filters.
+images will be defined at the central wavelengths of the filters, and the
+names of the filters are available as the ``filter_names`` attribute of the
+SED and Image objects returned by ``get_sed`` and ``get_image`` (this
+requires the input file to be available if it was linked rather than copied
+into the output file, otherwise ``filter_names`` is `None`).
 
 Note that filter convolution cannot be used in conjunction with raytracing, nor
 with monochromatic radiative transfer.

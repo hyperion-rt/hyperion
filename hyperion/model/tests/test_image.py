@@ -444,6 +444,8 @@ class TestImage(object):
 
         assert image.units == 'ergs/s'
 
+        assert image.filter_names is None
+
         assert image.nu.shape == (5,)
         assert image.wav.shape == (5,)
         assert image.val.shape == (2, 20, 10, 5)
