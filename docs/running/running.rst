@@ -50,20 +50,17 @@ not signed with a stable identity, so the macOS firewall cannot remember your
 answer between runs (or between rebuilds of the binaries).
 
 Since all the communication is local when running on a single machine, the
-cleanest solution is to keep MPI off the external network interfaces
-entirely, in which case no prompts appear at all. With OpenMPI, this can be
-done by setting the following in ``~/.hyperionrc``::
+processes can communicate through shared memory rather than network sockets,
+in which case no prompts appear. With OpenMPI, this can be done by setting
+the following in ``~/.hyperionrc``::
 
     [mpi]
-    command = mpirun --mca btl self,sm --mca oob_tcp_if_include lo0 --mca btl_tcp_if_include lo0
+    command = mpirun --mca btl self,sm
 
-and with MPICH::
-
-    [mpi]
-    command = mpiexec -iface lo0
-
-The same options can be passed directly to ``mpirun``/``mpiexec`` when
-calling the Fortran binaries directly as described in the next section.
+The same option can be passed directly to ``mpirun`` when calling the
+Fortran binaries directly as described in the next section. Note that
+restricting OpenMPI's internal communication to the loopback interface with
+``oob_tcp_if_include lo0`` prevents the processes from starting at all.
 
 Calling the Fortran binaries directly
 -------------------------------------
