@@ -35,9 +35,10 @@ def tau_to_radius(model, tau, wav):
     Returns
     -------
     r : np.ndarray
-        The radius or radii at which the optical depth to escape radially
-        is ``tau`` at ``wav``. This is a scalar, a 1-d, or a 2-d array
-        depending on the dimensionality of the grid.
+        The radii at which the optical depth to escape radially is ``tau``
+        at ``wav``, as a 2-d array with shape ``(n_phi, n_theta)`` (so with
+        shape ``(1, 1)`` for a 1-d grid). The radius is zero for columns
+        where the total radial optical depth is less than ``tau``.
     """
 
     if not isinstance(model, Model):
