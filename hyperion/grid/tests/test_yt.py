@@ -367,9 +367,12 @@ def test_to_yt_single_array_quantity():
 def test_to_yt_no_deprecation_warnings(grid_type):
 
     # Make sure that we use the yt API in a way that does not cause any
-    # deprecation warnings
+    # deprecation warnings. We only check for warnings attributed to Hyperion
+    # code, since older yt versions emit deprecation warnings internally (for
+    # example from Numpy) that we cannot do anything about.
 
     import warnings
+    import hyperion
 
     if grid_type == 'car':
         g = CartesianGrid([-1., 1.], [-2., 0., 2.], [-3., -1., 1., 3.])
@@ -385,9 +388,15 @@ def test_to_yt_no_deprecation_warnings(grid_type):
         grid.nx, grid.ny, grid.nz = 4, 3, 2
         grid.quantities['density'] = [np.ones((2, 3, 4))]
 
-    with warnings.catch_warnings():
-        warnings.simplefilter('error', DeprecationWarning)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter('always')
         ds = g.to_yt()
         ds.all_data()['gas', 'density']
         if grid_type == 'amr':
             AMRGrid.from_yt(ds, quantity_mapping={'density': ('gas', 'density')})
+
+    hyperion_dir = os.path.dirname(hyperion.__file__)
+    deprecations = [str(w.message) for w in caught
+                    if issubclass(w.category, DeprecationWarning) and
+                    os.path.abspath(w.filename).startswith(hyperion_dir)]
+    assert deprecations == []
