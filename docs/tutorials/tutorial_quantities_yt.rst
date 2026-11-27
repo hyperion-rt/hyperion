@@ -41,9 +41,6 @@ for the spherical or cylindrical polar grids. The frequency-resolved specific
 energy (``specific_energy_spectrum``, see :doc:`../setup/setup_conf`) is
 skipped with a warning when converting to yt.
 
-.. note:: Exporting Octree grids to yt does not currently work with recent
-          versions of yt.
-
 Projection plots are just a very small fraction of the functionality of yt -
 you should have a careful look at their `documentation
 <http://yt-project.org/doc/index.html>`_ to find out about all the available

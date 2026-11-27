@@ -80,11 +80,10 @@ message lists all the fields available in the dataset. Note the following:
   imported in this way. All positions are converted to cm.
 
 * The grid is re-centered so that the center of the yt domain
-  (``ds.domain_center``) is at the origin in Hyperion.
-
-* The yt x and z axes become the Hyperion z and x axes respectively (the y
-  axis is unchanged), so you should take this into account when choosing
-  viewing angles or positioning sources.
+  (``ds.domain_center``) is at the origin in Hyperion. Apart from this shift,
+  the x, y, and z axes are the same in yt and Hyperion, so you should
+  subtract ``ds.domain_center`` from any yt position (for example when
+  positioning sources).
 
 * Only AMR (patch-based) datasets can be converted, since the conversion uses
   the yt grid hierarchy. Octree and particle-based datasets cannot be imported
