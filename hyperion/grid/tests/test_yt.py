@@ -369,7 +369,9 @@ def test_to_yt_no_deprecation_warnings(grid_type):
     # Make sure that we use the yt API in a way that does not cause any
     # deprecation warnings. We only check for warnings attributed to Hyperion
     # code, since older yt versions emit deprecation warnings internally (for
-    # example from Numpy) that we cannot do anything about.
+    # example from Numpy) that we cannot do anything about. Some yt versions
+    # use their own VisibleDeprecationWarning class, which is not a subclass
+    # of DeprecationWarning, so we check the class name.
 
     import warnings
     import hyperion
@@ -397,6 +399,6 @@ def test_to_yt_no_deprecation_warnings(grid_type):
 
     hyperion_dir = os.path.dirname(hyperion.__file__)
     deprecations = [str(w.message) for w in caught
-                    if issubclass(w.category, DeprecationWarning) and
+                    if 'DeprecationWarning' in w.category.__name__ and
                     os.path.abspath(w.filename).startswith(hyperion_dir)]
     assert deprecations == []
