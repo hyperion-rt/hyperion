@@ -102,7 +102,7 @@ def mc_circular_polarization(I, sigma_I, V, sigma_V, N=1000):
 
 
 
-def _select_origin(flux, unc, io, sum_over_ids):
+def _select_origin_component(flux, unc, io, sum_over_ids):
     """
     Select the flux (and uncertainty) for one origin component.
 
@@ -142,7 +142,7 @@ def _select_origin(flux, unc, io, sum_over_ids):
         adding contributions), or `None` if ``unc`` was `None`.
     """
     if type(io) is list:
-        selected = [_select_origin(flux, unc, io_single, sum_over_ids) for io_single in io]
+        selected = [_select_origin_component(flux, unc, io_single, sum_over_ids) for io_single in io]
         flux = sum(f for f, _ in selected)
         if unc is not None:
             unc = np.sqrt(sum(u ** 2 for _, u in selected))
@@ -541,7 +541,7 @@ class ModelOutput(FreezableClass):
         elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat', 'dust', 'source']:
             sum_over_ids = ((component.startswith('source') and source_id is None) or
                             (component.startswith('dust') and dust_id is None))
-            flux, unc_selected = _select_origin(flux, unc if uncertainties else None, io, sum_over_ids)
+            flux, unc_selected = _select_origin_component(flux, unc if uncertainties else None, io, sum_over_ids)
             if uncertainties:
                 unc = unc_selected
         else:
@@ -918,7 +918,7 @@ class ModelOutput(FreezableClass):
         elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat', 'dust', 'source']:
             sum_over_ids = ((component.startswith('source') and source_id is None) or
                             (component.startswith('dust') and dust_id is None))
-            flux, unc_selected = _select_origin(flux, unc if uncertainties else None, io, sum_over_ids)
+            flux, unc_selected = _select_origin_component(flux, unc if uncertainties else None, io, sum_over_ids)
             if uncertainties:
                 unc = unc_selected
         else:
