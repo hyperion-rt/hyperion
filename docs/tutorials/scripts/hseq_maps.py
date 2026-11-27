@@ -33,7 +33,10 @@ for ax, iteration in zip(axes, (0, len(filenames) - 1)):
     ax.contour(g.w / au, g.z / au, density, levels=[1.e-18, 1.e-16, 1.e-14],
                colors='white', linewidths=0.75)
 
-    ax.set_xlim(0., 100.)
+    # The radial cells are spaced logarithmically, so show w on a log scale,
+    # on which all the cells have the same width (the first wall is at w=0)
+    ax.set_xscale('log')
+    ax.set_xlim(g.w_wall[1] / au, 100.)
     ax.set_ylim(-50., 50.)
     ax.set_xlabel('w (au)')
     ax.set_title('Iteration {0}'.format(iteration))
