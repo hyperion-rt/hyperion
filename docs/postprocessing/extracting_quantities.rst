@@ -80,12 +80,12 @@ quantities with::
 
     amr = m.get_quantities()
 
-you can call the following method to output a ``StreamStaticOutput`` yt
-object that can be directly used for plotting in yt::
+you can call the following method to output a yt dataset that can be
+directly used for plotting in yt::
 
-    pf = amr.to_yt()
+    ds = amr.to_yt()
 
-where ``pf`` is a yt ``StaticOutput`` object. See
+See
 :doc:`../tutorials/tutorial_quantities_yt` for more details and a plotting
 tutorial.
 
@@ -102,12 +102,12 @@ quantities with::
 
     oct = m.get_quantities()
 
-you can call the following method to output a ``StreamStaticOutput`` yt
-object that can be directly used for plotting in yt::
+you can call the following method to output a yt dataset that can be
+directly used for plotting in yt::
 
-    pf = oct.to_yt()
+    ds = oct.to_yt()
 
-where ``pf`` is a yt ``StaticOutput`` object. See
+See
 :doc:`../tutorials/tutorial_quantities_yt` for more details and a plotting
 tutorial.
 

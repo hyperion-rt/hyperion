@@ -236,7 +236,7 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
     ``('gas', 'density')``)::
 
         >>> from yt import load
-        >>> from hyperion.yt_wrappers import yt_dataset_to_amr_grid
+        >>> from hyperion.grid.yt_wrappers import yt_dataset_to_amr_grid
         >>> ds = load('DD0010/moving7_0010')
         >>> amr = yt_dataset_to_amr_grid(ds, quantity_mapping={'density':('gas', 'density')})
 
@@ -245,7 +245,7 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
     you can add a field yourself, for example::
 
         >>> from yt import load
-        >>> from hyperion.yt_wrappers import yt_dataset_to_amr_grid
+        >>> from hyperion.grid.yt_wrappers import yt_dataset_to_amr_grid
         >>> ds = load('DD0010/moving7_0010')
         >>> def _dust_density(field, data):
         ...     return data[('gas', 'density')].in_units('g/cm**3') * 0.01

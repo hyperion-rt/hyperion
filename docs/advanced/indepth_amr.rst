@@ -54,6 +54,66 @@ error.
 From simulation output
 ======================
 
+.. _amr_from_yt:
+
+Using yt
+--------
+
+If your simulation can be read in by the `yt <https://yt-project.org/>`_
+package (which supports many simulation codes), the easiest way to convert it
+to a Hyperion AMR grid is to load it with yt and use the
+:meth:`~hyperion.grid.AMRGrid.from_yt` method (this requires yt to be
+installed, see :doc:`../installation/installation`)::
+
+    import yt
+    from hyperion.grid import AMRGrid
+
+    ds = yt.load('DD0010/moving7_0010')
+    amr = AMRGrid.from_yt(ds, quantity_mapping={'density': ('gas', 'density')})
+
+The ``quantity_mapping`` argument is required, and is a dictionary mapping the
+name to give each quantity in Hyperion (the key) to the name of the field to
+extract from the yt dataset (the value). If a field does not exist, the error
+message lists all the fields available in the dataset. Note the following:
+
+* The quantities are converted to g/cm^3, so only density fields can be
+  imported in this way. All positions are converted to cm.
+
+* The grid is re-centered so that the center of the yt domain
+  (``ds.domain_center``) is at the origin in Hyperion. Apart from this shift,
+  the x, y, and z axes are the same in yt and Hyperion, so you should
+  subtract ``ds.domain_center`` from any yt position (for example when
+  positioning sources).
+
+* Only AMR (patch-based) datasets can be converted, since the conversion uses
+  the yt grid hierarchy. Octree and particle-based datasets cannot be imported
+  with this method.
+
+The densities should be consistent with the units of the dust opacities (see
+:doc:`../important/important`). For example, if the dust opacities are given
+per unit dust mass but the yt dataset only contains gas densities, you can
+define a dust density field in yt and import that instead::
+
+    def _dust_density(field, data):
+        return data[('gas', 'density')].in_units('g/cm**3') * 0.01
+
+    ds.add_field(('gas', 'dust_density'), function=_dust_density,
+                 units='g/cm**3', sampling_type='cell')
+
+    amr = AMRGrid.from_yt(ds, quantity_mapping={'density': ('gas', 'dust_density')})
+
+The resulting object can then be used to set up the grid and the density in a
+model (see :doc:`../setup/setup_grid`)::
+
+    from hyperion.model import Model
+
+    m = Model()
+    m.set_amr_grid(amr)
+    m.add_density_grid(amr['density'], 'kmh.hdf5')
+
+Orion
+-----
+
 Importing functions are available in ``hyperion.importers`` to convert simulation output to the AMR structure required. At this time, only output from the Orion code can be read in. If the output is contained in a directory  ``directory``, then the AMR structure can be retrieved with::
 
     from hyperion.importers import parse_orion

@@ -20,15 +20,16 @@ object contains all the information about the grid geometry, as well as the
 physical quantities such as density, temperature, and specific energy
 (depending on how you configured the model). You can then simply do::
 
-    pf = grid.to_yt()
+    ds = grid.to_yt()
 
-where ``pf`` is a ``StaticOutput`` yt object! This can then be used as a
-normal dataset in yt. For example, we can easily make projections of density
-and temperature along the y-axis::
+where ``ds`` is a yt dataset! This can then be used as a normal dataset in yt.
+By default, the quantities for the first dust population are used, but you can
+select a different one with e.g. ``grid.to_yt(dust_id=1)``. For example, we can
+easily make projections of density and temperature along the y-axis::
 
     from yt import ProjectionPlot
 
-    prj = ProjectionPlot(pf, 'y', ['density', 'temperature'], 
+    prj = ProjectionPlot(ds, 'y', ['density', 'temperature'],
                          center=[0.0, 0.0, 0.0])
     prj.set_cmap('temperature', 'gist_heat')
     prj.set_cmap('density', 'gist_heat')
@@ -36,10 +37,9 @@ and temperature along the y-axis::
     prj.save()
 
 The ``to_yt`` method is also available for regular cartesian grids, but not
-for the spherical or cylindrical polar grids.
-
-.. note:: At the moment, the method used to plot Octrees is very
-          inefficient, so plotting these will be very slow.
+for the spherical or cylindrical polar grids. The frequency-resolved specific
+energy (``specific_energy_spectrum``, see :doc:`../setup/setup_conf`) is
+skipped with a warning when converting to yt.
 
 Projection plots are just a very small fraction of the functionality of yt -
 you should have a careful look at their `documentation
