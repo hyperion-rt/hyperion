@@ -30,6 +30,18 @@ where ``<n_processes>`` is the number of processes to run in parallel (does not 
 
 This may not work with all MPI installations. If you have issues, see :doc:`../troubleshooting/troubleshooting` for known problems and the next section on calling the Fortran binaries directly (and `report`_ the issue).
 
+The ``hyperion`` command normally launches the parallel code with ``mpirun``
+or ``mpiexec``, whichever is found first. If you need to customize the
+launcher (for example to pass additional options to it), you can set the
+``command`` option in the ``[mpi]`` section of the ``~/.hyperionrc`` file -
+the number of processes and binary name are appended to it::
+
+    [mpi]
+    command = mpirun
+
+For example, see :doc:`../troubleshooting/troubleshooting` for how to use
+this to avoid firewall prompts on Macs.
+
 Calling the Fortran binaries directly
 -------------------------------------
 

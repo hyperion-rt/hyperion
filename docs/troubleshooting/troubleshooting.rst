@@ -88,3 +88,32 @@ for Open MPI 5, or::
 
 for Open MPI 4. Note that running more processes than there are cores will not
 make the code run faster.
+
+Firewall prompts on Macs when running with MPI
+----------------------------------------------
+
+When running the parallel code on a Mac with the firewall enabled, you will
+typically be asked once::
+
+    Do you want the application "prte" to accept incoming network connections?
+
+``prte`` is the program that Open MPI (version 5 and later) uses to launch the
+processes, and it listens for connections from them. It is safe to allow this,
+and macOS remembers the answer until Open MPI is updated.
+
+In addition, each of the ``hyperion_*_mpi`` processes opens network ports on
+all network interfaces to communicate with the other processes, which can
+result in one prompt per process on every run, since binaries compiled locally
+are not recognized as the same application once they are recompiled. When all
+the processes run on the same machine, they can instead communicate through
+shared memory, in which case they do not open any network ports. With Open
+MPI, this can be done by setting the following in ``~/.hyperionrc``::
+
+    [mpi]
+    command = mpirun --mca btl self,sm
+
+(see :doc:`../running/running`). The same options can be passed to ``mpirun``
+when calling the Fortran binaries directly. You can check which programs are
+listening for network connections during a run with::
+
+    lsof -nP -iTCP -sTCP:LISTEN | grep -i -E "prte|hyperion"
