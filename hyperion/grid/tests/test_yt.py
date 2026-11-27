@@ -315,3 +315,48 @@ def test_from_yt_axis_ordering_amr():
     assert (fine.zmin, fine.zmax) == (-1., 0.)
 
     _check_same_positions(ds, amr)
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+def test_from_yt_to_yt_roundtrip():
+
+    # Converting an AMRGrid to yt and back should give the original grid
+
+    amr = AMRGrid()
+    level = amr.add_level()
+    grid = level.add_grid()
+    grid.xmin, grid.xmax = -4., 4.
+    grid.ymin, grid.ymax = -3., 3.
+    grid.zmin, grid.zmax = -1., 1.
+    grid.nx, grid.ny, grid.nz = 4, 3, 2
+    grid.quantities['density'] = [_asymmetric_values(4, 3, 2).transpose()]
+
+    amr_new = AMRGrid.from_yt(amr.to_yt(), quantity_mapping={'density': ('gas', 'density')})
+
+    grid_new = amr_new.levels[0].grids[0]
+    assert (grid_new.nx, grid_new.ny, grid_new.nz) == (4, 3, 2)
+    assert (grid_new.xmin, grid_new.xmax) == (-4., 4.)
+    assert (grid_new.ymin, grid_new.ymax) == (-3., 3.)
+    assert (grid_new.zmin, grid_new.zmax) == (-1., 1.)
+    np.testing.assert_array_equal(grid_new.quantities['density'],
+                                  grid.quantities['density'][0])
+
+    # And converting the result back to yt should give the same values at the
+    # same positions as the original grid
+    _check_same_positions(amr_new.to_yt(), amr)
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+def test_to_yt_single_array_quantity():
+
+    # Quantities set to a single array rather than a list of arrays (one per
+    # dust population) should still be exported
+
+    g = CartesianGrid([-1., 1.], [-2., 0., 2.], [-3., -1., 1., 3.])
+    g['density'] = []
+    g['density'].append(np.arange(6.).reshape((3, 2, 1)))
+
+    ds = g['density'][0].to_yt()
+
+    ad = ds.all_data()
+    np.testing.assert_array_equal(np.sort(ad['gas', 'density'].ndarray_view()), np.arange(6.))

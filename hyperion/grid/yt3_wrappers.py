@@ -11,6 +11,25 @@ def almost_equal(a, b):
     return a / b < 1. + 1.e-4 and b / a < 1. + 1.e-4
 
 
+def _scalar_quantities(quantities, dust_id, ndim):
+    """
+    Yield (name, array) for each quantity that can be exported to yt.
+
+    Quantities are either lists of arrays (one per dust population), in which
+    case the array for ``dust_id`` is used, or single arrays with ``ndim``
+    dimensions (for example when the grid was created with ``from_yt`` or a
+    single dust population was selected). Any other quantity is
+    frequency-resolved and is skipped.
+    """
+    for field, values in quantities.items():
+        if isinstance(values, list):
+            yield field, values[dust_id]
+        elif np.ndim(values) == ndim:
+            yield field, values
+        else:
+            logger.warning("Skipping frequency-resolved quantity '{0}' in yt export (select a single frequency first)".format(field))
+
+
 def amr_grid_to_yt_stream(levels, dust_id=0):
 
     # Try and guess the refinement ratio - if it is not constant, then
@@ -80,11 +99,8 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
             grid_dict['dimensions'] = [grid.nx, grid.ny, grid.nz]
             grid_dict['level'] = ilevel
 
-            for field in grid.quantities:
-                if not isinstance(grid.quantities[field], list):
-                    logger.warning("Skipping frequency-resolved quantity '{0}' in yt export (select a single frequency first)".format(field))
-                    continue
-                grid_dict[('gas', field)] = grid.quantities[field][dust_id].transpose()
+            for field, values in _scalar_quantities(grid.quantities, dust_id, 3):
+                grid_dict[('gas', field)] = values.transpose()
 
             grid_data.append(grid_dict)
 
@@ -186,11 +202,8 @@ def octree_grid_to_yt_stream(grid, dust_id=0):
     from yt import load_octree
 
     quantities = {}
-    for field in grid.quantities:
-        if not isinstance(grid.quantities[field], list):
-            logger.warning("Skipping frequency-resolved quantity '{0}' in yt export (select a single frequency first)".format(field))
-            continue
-        quantities[('gas', field)] = np.atleast_2d(grid.quantities[field][dust_id][order][~refined]).transpose()
+    for field, values in _scalar_quantities(grid.quantities, dust_id, 1):
+        quantities[('gas', field)] = np.atleast_2d(values[order][~refined]).transpose()
 
     bbox = np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])
 
@@ -226,11 +239,8 @@ def cartesian_grid_to_yt_stream(grid, xmin, xmax, ymin, ymax, zmin, zmax, dust_i
 
     # Make data dict which should contain (array, unit) tuples
     data = {}
-    for field in grid.quantities:
-        if not isinstance(grid.quantities[field], list):
-            logger.warning("Skipping frequency-resolved quantity '{0}' in yt export (select a single frequency first)".format(field))
-            continue
-        data[field] = grid.quantities[field][dust_id].transpose(), ''
+    for field, values in _scalar_quantities(grid.quantities, dust_id, 3):
+        data[field] = values.transpose(), ''
 
     # Load cartesian grid into yt
     from yt import load_uniform_grid
