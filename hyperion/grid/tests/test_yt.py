@@ -214,3 +214,12 @@ def test_octree_to_yt_positions():
     assert len(values) == np.sum(leaves)
     for xc, yc, zc, value in zip(x, y, z, values):
         assert expected[(xc, yc, zc)] == value
+
+
+@pytest.mark.parametrize(('refined', 'depth'), [([0], 0),
+                                                ([1] + [0] * 8, 1),
+                                                ([1, 0, 1] + [0] * 8 + [0] * 5 + [1] + [0] * 8, 2),
+                                                ([1, 1, 1] + [0] * 8 + [0] * 7 + [0] * 7, 3)])
+def test_octree_depth(refined, depth):
+    from ..yt3_wrappers import _octree_depth
+    assert _octree_depth(np.array(refined).astype(bool)) == depth
