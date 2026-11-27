@@ -360,3 +360,34 @@ def test_to_yt_single_array_quantity():
 
     ad = ds.all_data()
     np.testing.assert_array_equal(np.sort(ad['gas', 'density'].ndarray_view()), np.arange(6.))
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+@pytest.mark.parametrize('grid_type', ['car', 'amr'])
+def test_to_yt_no_deprecation_warnings(grid_type):
+
+    # Make sure that we use the yt API in a way that does not cause any
+    # deprecation warnings
+
+    import warnings
+
+    if grid_type == 'car':
+        g = CartesianGrid([-1., 1.], [-2., 0., 2.], [-3., -1., 1., 3.])
+        g['density'] = []
+        g['density'].append(np.ones((3, 2, 1)))
+    else:
+        g = AMRGrid()
+        level = g.add_level()
+        grid = level.add_grid()
+        grid.xmin, grid.xmax = -1., 1.
+        grid.ymin, grid.ymax = -1., 1.
+        grid.zmin, grid.zmax = -1., 1.
+        grid.nx, grid.ny, grid.nz = 4, 3, 2
+        grid.quantities['density'] = [np.ones((2, 3, 4))]
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', DeprecationWarning)
+        ds = g.to_yt()
+        ds.all_data()['gas', 'density']
+        if grid_type == 'amr':
+            AMRGrid.from_yt(ds, quantity_mapping={'density': ('gas', 'density')})

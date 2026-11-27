@@ -11,6 +11,21 @@ def almost_equal(a, b):
     return a / b < 1. + 1.e-4 and b / a < 1. + 1.e-4
 
 
+def _cartesian_geometry(loader):
+    """
+    Return the keyword arguments to pass to a yt loader to specify a cartesian
+    geometry with the axes in (x, y, z) order.
+
+    yt 4.2 and later take the axis order as a separate ``axis_order`` argument
+    and deprecate passing it as part of a ``geometry`` tuple, while older
+    versions only accept the tuple.
+    """
+    if 'axis_order' in inspect.signature(loader).parameters:
+        return {'geometry': 'cartesian', 'axis_order': ('x', 'y', 'z')}
+    else:
+        return {'geometry': ('cartesian', ('x', 'y', 'z'))}
+
+
 def _scalar_quantities(quantities, dust_id, ndim):
     """
     Yield (name, array) for each quantity that can be exported to yt.
@@ -131,7 +146,7 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
     from yt import load_amr_grids
 
     spf = load_amr_grids(grid_data, domain_dimensions, bbox=bbox,
-                         geometry=('cartesian', ('x', 'y', 'z')))
+                         **_cartesian_geometry(load_amr_grids))
 
     return spf
 
@@ -247,7 +262,7 @@ def cartesian_grid_to_yt_stream(grid, xmin, xmax, ymin, ymax, zmin, zmax, dust_i
     spf = load_uniform_grid(data=data,
                             domain_dimensions=np.array(grid.shape[::-1], dtype=np.int32),
                             bbox=np.array([(xmin, xmax), (ymin, ymax), (zmin, zmax)]),
-                            geometry=('cartesian', ('x', 'y', 'z')))
+                            **_cartesian_geometry(load_uniform_grid))
 
     return spf
 
