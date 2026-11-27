@@ -162,3 +162,77 @@ def test_evaluate_function_average_constant():
     avg = g.evaluate_function_average(lambda x, y, z: 3.5 * np.ones_like(x),
                                       n_samples=2000000, min_cell_samples=5)
     np.testing.assert_allclose(avg, 3.5, rtol=1e-6)
+
+
+def _sites_in_sphere(n, x0, y0, z0, r0, seed=42):
+    # Random sites uniformly distributed inside a sphere
+    rng = np.random.RandomState(seed)
+    r = r0 * rng.uniform(0., 1., n) ** (1. / 3.)
+    costh = rng.uniform(-1., 1., n)
+    phi = rng.uniform(0., 2. * np.pi, n)
+    sinth = np.sqrt(1. - costh ** 2)
+    x = x0 + r * sinth * np.cos(phi)
+    y = y0 + r * sinth * np.sin(phi)
+    z = z0 + r * costh
+    return x, y, z
+
+
+def test_voronoi_sphere_wall_volumes():
+    # With a spherical wall, the cells at the edge of the site distribution
+    # are bounded by the wall instead of extending to the domain box, so the
+    # total volume should be close to the volume of the sphere. Since voro++
+    # cuts each cell with the plane tangent to the sphere, the sphere is
+    # circumscribed by planar facets and the total volume converges to the
+    # sphere volume from above as the number of sites increases.
+    x, y, z = _sites_in_sphere(10000, 1., 2., 3., 5.)
+    sites = np.array([x, y, z]).transpose()
+    domain = np.array([[-6., 8.], [-5., 9.], [-4., 10.]])
+
+    g_nowall = vh.voronoi_grid(sites, domain)
+    volume_nowall = np.sum(g_nowall.neighbours_table['volume'])
+    np.testing.assert_allclose(volume_nowall, 14. ** 3)
+
+    g_wall = vh.voronoi_grid(sites, domain, wall='sphere', wall_args=(1., 2., 3., 5.))
+    volume_wall = np.sum(g_wall.neighbours_table['volume'])
+    volume_sphere = 4. / 3. * np.pi * 5. ** 3
+    assert volume_sphere < volume_wall < 1.05 * volume_sphere
+
+    # The wall faces should appear in the neighbour lists with the id -7
+    assert np.min(g_wall.st[0]) == -7
+
+
+def test_voronoi_sphere_wall_invalid():
+    import pytest
+    x, y, z = _sites_in_sphere(100, 0., 0., 0., 5.)
+    sites = np.array([x, y, z]).transpose()
+    domain = np.array([[-6., 6.], [-6., 6.], [-6., 6.]])
+    with pytest.raises(ValueError):
+        vh.voronoi_grid(sites, domain, wall='cube', wall_args=(0., 0., 0., 5.))
+    with pytest.raises(ValueError):
+        vh.voronoi_grid(sites, domain, wall='sphere', wall_args=(0., 0., 5.))
+    with pytest.raises(ValueError):
+        vh.voronoi_grid(sites, domain, wall='sphere', wall_args=(0., 0., 0., -5.))
+    with pytest.raises(ValueError):
+        # sites outside the wall
+        vh.voronoi_grid(sites, domain, wall='sphere', wall_args=(0., 0., 0., 1.))
+
+
+def test_voronoi_grid_sphere_wall_roundtrip(tmpdir):
+    # The wall parameters should survive a write/read round-trip, including
+    # the geometry hash check on read.
+    x, y, z = _sites_in_sphere(1000, 0., 0., 0., 5.)
+    g = VoronoiGrid(x, y, z,
+                    xmin=-6., xmax=6., ymin=-6., ymax=6., zmin=-6., zmax=6.,
+                    wall='sphere', wall_args=(0., 0., 0., 5.))
+    volume_sphere = 4. / 3. * np.pi * 5. ** 3
+    assert np.sum(g.volumes) < 1.2 * volume_sphere
+
+    filename = os.path.join(str(tmpdir), 'wall_grid.h5')
+    with h5py.File(filename, 'w') as f:
+        g.write(f)
+    with h5py.File(filename, 'r') as f:
+        g2 = VoronoiGrid()
+        g2.read(f)
+    assert g2._wall == 'sphere'
+    assert g2._wall_args == (0., 0., 0., 5.)
+    np.testing.assert_allclose(np.sum(g2.volumes), np.sum(g.volumes))

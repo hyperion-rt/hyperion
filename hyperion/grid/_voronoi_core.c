@@ -52,18 +52,35 @@ static PyObject *_voropp_wrapper(PyObject *self, PyObject *args)
 {
     PyObject *sites_obj, *domain_obj, *wall_args_obj;
     int with_vertices;
-    const char *wall_str = "";
+    const char *wall_str;
     int verbose;
     int with_sampling, n_samples, min_cell_samples, seed;
 
-    if (!PyArg_ParseTuple(args, "OOiiiiii", &sites_obj, &domain_obj, &with_vertices,
+    if (!PyArg_ParseTuple(args, "OOisOiiiii", &sites_obj, &domain_obj, &with_vertices,&wall_str,&wall_args_obj,
         &with_sampling, &n_samples, &min_cell_samples, &seed, &verbose))
     {
         return NULL;
     }
 
+    // Handle the wall-related arguments.
+    // NOTE: at the moment, the walls implemented in voro++ have at most 7 doubles as construction params.
     double wall_args_arr[7];
-    int n_wall_args = 0;
+    // The actual number of construction arguments.
+    int n_wall_args = (int)PyTuple_Size(wall_args_obj);
+    if (n_wall_args > 7) {
+        PyErr_SetString(PyExc_TypeError, "Too many construction arguments for the wall object.");
+        return NULL;
+    }
+    {
+        // Read the wall construction arguments.
+        int i;
+        for (i = 0; i < n_wall_args; ++i) {
+            // NOTE: PyTuple_GetItem returns a borrowed reference, no need to handle refcount.
+            // PyFloat_AsDouble (rather than the PyFloat_AS_DOUBLE macro) is used
+            // because this extension is built against the limited Python API.
+            wall_args_arr[i] = PyFloat_AsDouble(PyTuple_GetItem(wall_args_obj,(Py_ssize_t)i));
+        }
+    }
 
     /* Interpret the input objects as `numpy` arrays. */
     PyObject *s_array = PyArray_FROM_OTF(sites_obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);

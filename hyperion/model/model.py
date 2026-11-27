@@ -975,11 +975,13 @@ class Model(FreezableClass, RunConf):
     def set_voronoi_grid(self, x, y, z,
                          xmin=None, xmax=None,
                          ymin=None, ymax=None,
-                         zmin=None, zmax=None):
+                         zmin=None, zmax=None,
+                         wall=None, wall_args=None):
         self.set_grid(VoronoiGrid(x, y, z,
                                   xmin=xmin, xmax=xmax,
                                   ymin=ymin, ymax=ymax,
                                   zmin=zmin, zmax=zmax,
+                                  wall=wall, wall_args=wall_args,
                                   seed=self._seed))
 
     def set_grid(self, grid):

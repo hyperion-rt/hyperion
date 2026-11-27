@@ -66,6 +66,57 @@ static inline bool size_cmp(const std::vector<T> &a, const std::vector<T> &b)
 // Global string used for reporting errors back to Python.
 static std::string error_message;
 
+// Wall utilities.
+// Need to store this statically as the wall object needs to exist outside the scope
+// in which it is created.
+static std::unique_ptr<wall> wall_ptr;
+
+// The id assigned to the wall, chosen so that after the +1 indexing shift
+// applied when reading the neighbours in Fortran it maps onto the value -6,
+// which the Fortran geometry code interprets as the spherical wall (the
+// domain box walls map onto 0 to -5).
+#define HYPERION_WALL_ID (-7)
+
+// Helper function to add the wall. Currently only spherical walls are
+// supported, since these are the only ones that the radiative transfer
+// geometry code knows how to compute intersections with. Note that voro++
+// walls cut each cell with the plane tangent to the wall surface at the
+// point nearest to the site, so the spherical boundary is approximated by
+// planar facets (one per cell touching the wall).
+static inline void add_walls(container &con,const char *wall_str,const double *wall_args_arr,int n_wall_args,int verbose)
+{
+    if (std::strlen(wall_str) == 0) {
+        return;
+    }
+
+    if (verbose) {
+        std::cout << "Wall type: " << wall_str << '\n';
+        std::cout << "Wall number of args: " << n_wall_args << '\n';
+        std::cout << "Wall params: [";
+        for (int i = 0; i < n_wall_args; ++i) {
+            std::cout << wall_args_arr[i];
+            if (i != n_wall_args - 1) {
+                std::cout << ',';
+            }
+        }
+        std::cout << "]\n";
+    }
+
+    if (std::strcmp(wall_str,"sphere") == 0) {
+        // Some checks.
+        if (n_wall_args != 4) {
+            throw std::invalid_argument("invalid number of arguments for a 'sphere' wall, exactly 4 are needed");
+        }
+        if (wall_args_arr[3] <= 0.) {
+            throw std::invalid_argument("the radius of a 'sphere' wall must be strictly positive");
+        }
+        wall_ptr.reset(new wall_sphere(wall_args_arr[0],wall_args_arr[1],wall_args_arr[2],wall_args_arr[3],HYPERION_WALL_ID));
+        con.add_wall(wall_ptr.get());
+    } else {
+        throw std::invalid_argument("only 'sphere' walls are supported");
+    }
+}
+
 // Compute the volume of a tetrahedron.
 template <typename It>
 static inline double tetra_volume(It v0, It v1, It v2, It v3)
@@ -178,6 +229,9 @@ const char *hyperion_voropp_wrap(int **sparse_neighbours, int **neigh_pos, int *
     for(int i = 0; i < nsites; ++i) {
             con.put(i,points[i*3],points[i*3 + 1],points[i*3 + 2]);
     }
+
+    // Handle the walls.
+    add_walls(con,wall_str,wall_args_arr,n_wall_args,verbose);
 
     // Initialise the looping variables and the temporary cell object used for computation.
     voronoicell_neighbor c;
@@ -367,6 +421,14 @@ const char *hyperion_voropp_wrap(int **sparse_neighbours, int **neigh_pos, int *
                 n_list[n_list[idx][j]].push_back(idx);
             }
         }
+    }
+
+    // Recompute the total number of neighbours, since the symmetrisation
+    // fix above can add entries to the neighbour lists (this is common when
+    // a wall is present, since the wall cuts the cells asymmetrically).
+    *nn = 0;
+    for (idx = 0; idx < nsites; ++idx) {
+        *nn += n_list[idx].size();
     }
 
     // Allocate space for the sparse version of the neighbour indices.

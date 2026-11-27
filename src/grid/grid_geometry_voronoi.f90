@@ -102,6 +102,8 @@ contains
     real(dp), allocatable :: x(:), y(:), z(:)
     integer, allocatable :: sparse_neighs(:), sparse_idx(:)
     real(dp),allocatable :: bb_min(:,:), bb_max(:,:)
+    character(len=32) :: wall_type
+    real(dp),allocatable :: wall_args(:)
 
     ! Read geometry file
     call mp_read_keyword(group, '.', "geometry", geo%id)
@@ -156,6 +158,20 @@ contains
     call mp_read_keyword(group, '.', 'ymax', geo%ymax)
     call mp_read_keyword(group, '.', 'zmin', geo%zmin)
     call mp_read_keyword(group, '.', 'zmax', geo%zmax)
+
+    ! Optional spherical wall bounding the cells within the domain. Photons
+    ! crossing the wall escape from the grid.
+    if(mp_exists_keyword(group, '.', 'wall')) then
+       call mp_read_keyword(group, '.', 'wall', wall_type)
+       if(trim(wall_type) /= 'sphere') call error("setup_grid_geometry", "only 'sphere' walls are supported")
+       call mp_read_keyword_vector_auto(group, '.', 'wall_args', wall_args)
+       if(size(wall_args) /= 4) call error("setup_grid_geometry", "wall_args should contain four values for a 'sphere' wall")
+       geo%sphere_wall = .true.
+       geo%wall_x = wall_args(1)
+       geo%wall_y = wall_args(2)
+       geo%wall_z = wall_args(3)
+       geo%wall_r = wall_args(4)
+    end if
 
     call mp_table_read_column_auto(group, 'cells', 'volume', geo%volume)
 
@@ -298,6 +314,13 @@ contains
         call random_uni(pos%y, geo%cells(icell%ic)%ymin, geo%cells(icell%ic)%ymax)
         call random_uni(pos%z, geo%cells(icell%ic)%zmin, geo%cells(icell%ic)%zmax)
 
+        ! If a spherical wall is present, reject positions outside it,
+        ! since the region of the cell beyond the wall is cut off.
+        if(geo%sphere_wall) then
+           if((pos%x - geo%wall_x) ** 2 + (pos%y - geo%wall_y) ** 2 &
+                & + (pos%z - geo%wall_z) ** 2 >= geo%wall_r ** 2) cycle
+        end if
+
         ! Check if in right cell
         point = [pos%x, pos%y, pos%z]
         call kdtree2_n_nearest(geo%tree, point, 1, results)
@@ -340,6 +363,7 @@ contains
     integer :: i, n_neighbors
     type(vector3d_dp) :: rmid, n
     real(dp) :: t
+    real(dp) :: wx, wy, wz, wb, wc, wd
 
 
     icell => geo%cells(p%icell%ic)
@@ -354,7 +378,7 @@ contains
     call reset_t()
 
     do i = 1,n_neighbors
-        if (icell%neighbors(i) <= 0 .and. icell%neighbors(i) >= -5) then
+        if (icell%neighbors(i) <= 0 .and. icell%neighbors(i) >= -6) then
             select case (icell%neighbors(i))
                 case (0)
                     ! Note that here we are checking indices from 0 to -5 (instead of -1 to -6 as in the
@@ -376,6 +400,14 @@ contains
                 case (-5)
                     ! zmax wall
                     if (p%v%z > 0._dp) call insert_t(( geo%zmax - p%r%z ) / p%v%z, 1, geo%n_cells + 1, 0._dp)
+                case (-6)
+                    ! Spherical wall face (the value -6 corresponds to the
+                    ! wall id -7 assigned in the voro++ wrapper, shifted by
+                    ! the same offset as the other indices above). The
+                    ! intersection with the spherical wall is checked
+                    ! unconditionally after this loop, so nothing needs to
+                    ! be done here - this case only prevents the wall id
+                    ! from being used as a cell index below.
             end select
             cycle
         end if
@@ -393,6 +425,24 @@ contains
         call insert_t(t, 1, icell%neighbors(i), 0._dp)
 
     end do
+
+    ! If a spherical wall is present, check for an intersection with it
+    ! unconditionally rather than only for cells with a wall face: the wall
+    ! cuts the cells with tangent planes, so cells close to (but not cut by)
+    ! the wall can still slightly overlap the sphere, and photons in these
+    ! cells need to escape when reaching the spherical surface too.
+    if (geo%sphere_wall) then
+        wx = p%r%x - geo%wall_x
+        wy = p%r%y - geo%wall_y
+        wz = p%r%z - geo%wall_z
+        wb = wx * p%v%x + wy * p%v%y + wz * p%v%z
+        wc = wx * wx + wy * wy + wz * wz - geo%wall_r * geo%wall_r
+        wd = wb * wb - wc
+        if (wd > 0._dp) then
+            t = -wb + sqrt(wd)
+            if (t > 0._dp) call insert_t(t, 1, geo%n_cells + 1, 0._dp)
+        end if
+    end if
 
     call find_next_wall(tmin,id_min)
 

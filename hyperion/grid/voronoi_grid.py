@@ -74,6 +74,9 @@ class VoronoiGrid(FreezableClass):
         self._samples = None
         self._samples_idx = None
 
+        self._wall = None
+        self._wall_args = None
+
         self.quantities = {}
 
         # The Voronoi grid information is split into two main variables:
@@ -102,7 +105,8 @@ class VoronoiGrid(FreezableClass):
                 self.set_points(args[0].x, args[0].y, args[0].z,
                                 xmin=args[0].xmin, xmax=args[0].xmax,
                                 ymin=args[0].ymin, ymax=args[0].ymax,
-                                zmin=args[0].zmin, zmax=args[0].zmax)
+                                zmin=args[0].zmin, zmax=args[0].zmax,
+                                wall=args[0]._wall, wall_args=args[0]._wall_args)
                 self.voronoi_table = args[0].voronoi_table
                 self._sparse_neighbors = args[0]._sparse_neighbors
             else:
@@ -111,7 +115,8 @@ class VoronoiGrid(FreezableClass):
     def set_points(self, x, y, z,
                    xmin=None, xmax=None,
                    ymin=None, ymax=None,
-                   zmin=None, zmax=None):
+                   zmin=None, zmax=None,
+                   wall=None, wall_args=None):
 
         if type(x) in [list, tuple]:
             x = np.array(x)
@@ -164,6 +169,16 @@ class VoronoiGrid(FreezableClass):
             self.ymax = float(ymax)
             self.zmin = float(zmin)
             self.zmax = float(zmax)
+
+        if wall is not None and wall != 'sphere':
+            raise ValueError("wall should be None or 'sphere'")
+        if wall == 'sphere':
+            if wall_args is None or len(wall_args) != 4:
+                raise ValueError("a 'sphere' wall requires wall_args=(x, y, z, r)")
+            wall_args = tuple(float(arg) for arg in wall_args)
+
+        self._wall = wall
+        self._wall_args = wall_args if wall is not None else None
 
         self._x = x
         self._y = y
@@ -245,6 +260,8 @@ class VoronoiGrid(FreezableClass):
                                          ),
                                 n_samples=self._n_samples or 0,
                                 min_cell_samples=self._min_cell_samples or 0,
+                                wall=self._wall,
+                                wall_args=self._wall_args,
                                 verbose=self._verbose,
                                 seed=self._seed)
 
@@ -369,10 +386,18 @@ class VoronoiGrid(FreezableClass):
 
         coords = group['cells']['coordinates']
 
+        if 'wall' in group.attrs:
+            wall = as_str(group.attrs['wall'])
+            wall_args = tuple(group.attrs['wall_args'])
+        else:
+            wall = None
+            wall_args = None
+
         self.set_points(coords[:, 0], coords[:, 1], coords[:, 2],
                         xmin=group.attrs['xmin'], xmax=group.attrs['xmax'],
                         ymin=group.attrs['ymin'], ymax=group.attrs['ymax'],
-                        zmin=group.attrs['zmin'], zmax=group.attrs['zmax'])
+                        zmin=group.attrs['zmin'], zmax=group.attrs['zmax'],
+                        wall=wall, wall_args=wall_args)
 
         # Check that advertised hash matches real hash
         if as_str(group.attrs['geometry']) != self.get_geometry_id():
@@ -464,6 +489,10 @@ class VoronoiGrid(FreezableClass):
         g_geometry.attrs['zmin'] = self.zmin
         g_geometry.attrs['zmax'] = self.zmax
 
+        if self._wall is not None:
+            g_geometry.attrs['wall'] = np.bytes_(self._wall.encode('utf-8'))
+            g_geometry.attrs['wall_args'] = np.array(self._wall_args, dtype=float)
+
         # Compute Voronoi tesselation
         voronoi_table = self.voronoi_table
 
@@ -540,6 +569,10 @@ class VoronoiGrid(FreezableClass):
         geo_hash.update(struct.pack('>d', self.ymax))
         geo_hash.update(struct.pack('>d', self.zmin))
         geo_hash.update(struct.pack('>d', self.zmax))
+        if self._wall is not None:
+            geo_hash.update(self._wall.encode('utf-8'))
+            for arg in self._wall_args:
+                geo_hash.update(struct.pack('>d', arg))
         return geo_hash.hexdigest()
 
     def __getitem__(self, item):
@@ -581,7 +614,8 @@ class VoronoiGridView(GridViewArrayMixin, VoronoiGrid):
         self.set_points(grid.x, grid.y, grid.z,
                         xmin=grid.xmin, xmax=grid.xmax,
                         ymin=grid.ymin, ymax=grid.ymax,
-                        zmin=grid.zmin, zmax=grid.zmax)
+                        zmin=grid.zmin, zmax=grid.zmax,
+                        wall=grid._wall, wall_args=grid._wall_args)
         self.voronoi_table = grid.voronoi_table
         self.quantities = {quantity: grid.quantities[quantity]}
 
