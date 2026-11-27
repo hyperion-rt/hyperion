@@ -108,3 +108,26 @@ noise in the temperatures, and can be reduced by using more photons. If the
 density structure has not converged, you can run more iterations.
 
 This model takes about 9 minutes to run with four MPI processes.
+
+Visualizing the density structure
+---------------------------------
+
+To see how the structure of the disk as a whole has changed, the following
+script plots the density in the (w, z) plane for the initial model and for
+the last iteration, using the same color scale:
+
+.. literalinclude:: scripts/hseq_maps.py
+   :language: python
+
+which gives:
+
+.. image:: scripts/hseq_density_maps.png
+   :width: 100%
+   :align: center
+
+The white lines show contours of constant density (at 10\ :sup:`-18`,
+10\ :sup:`-16`, and 10\ :sup:`-14` g/cm\ :sup:`3`). The upper layers of the
+disk are heated directly by the star and are much warmer than the midplane,
+so in hydrostatic equilibrium the disk is more extended vertically than the
+initial model, especially beyond around 20au. Since the mass in each vertical
+column is preserved, the density in the midplane is correspondingly lower.
