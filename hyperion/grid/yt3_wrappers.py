@@ -1,6 +1,8 @@
 
-import numpy as np
+import inspect
 import logging
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -145,6 +147,30 @@ def find_order(refined):
     return find_nested(0)[1]
 
 
+def _octree_depth(refined):
+    """
+    Find the maximum depth of an octree given its ``refined`` array (0 if the
+    root cell is not refined).
+    """
+
+    # Number of cells still to visit at each level of the current branch
+    remaining = []
+    depth = 0
+
+    for cell_refined in refined:
+        if cell_refined:
+            remaining.append(8)
+            depth = max(depth, len(remaining))
+        else:
+            while remaining:
+                remaining[-1] -= 1
+                if remaining[-1] > 0:
+                    break
+                remaining.pop()
+
+    return depth
+
+
 def octree_grid_to_yt_stream(grid, dust_id=0):
 
     order = find_order(grid.refined)
@@ -170,11 +196,26 @@ def octree_grid_to_yt_stream(grid, dust_id=0):
 
     octree_mask = refined.astype(np.uint8) * 8
 
+    # We need one cell per oct along each dimension. This is specified with
+    # num_zones=1 in yt 4.1 and later, while older versions only accept
+    # over_refine_factor=0. Passing over_refine_factor to yt 4.1 and later
+    # results in inconsistent settings internally and a ZeroDivisionError.
+    if 'num_zones' in inspect.signature(load_octree).parameters:
+        zones = {'num_zones': 1}
+    else:
+        zones = {'over_refine_factor': 0}
+
     spf = load_octree(octree_mask=octree_mask,
                       data=quantities,
                       bbox=bbox,
-                      over_refine_factor=0,
-                      partial_coverage=0)
+                      partial_coverage=0,
+                      **zones)
+
+    # yt versions before 4.2 do not determine the maximum level of the octree
+    # and leave it set to 0, so that only a single cell is selected when
+    # accessing the data. Later versions overwrite this value with the one
+    # determined from the octree.
+    spf.max_level = _octree_depth(grid.refined)
 
     return spf
 
