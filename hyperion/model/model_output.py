@@ -101,6 +101,35 @@ def mc_circular_polarization(I, sigma_I, V, sigma_V, N=1000):
     return np.mean(Ps, axis=0), np.std(Ps, axis=0)
 
 
+
+def _select_origin(flux, unc, io, sum_over_ids):
+    """
+    Select a component along the origin axis (axis 1) of flux and unc, as
+    given by ModelOutput._get_origin_slice: io is either an index, a (start,
+    end) tuple for a range of sources or dust types (which is summed over if
+    sum_over_ids is True), or a list of these, whose fluxes are added up. unc
+    can be None if uncertainties are not needed.
+    """
+    if type(io) is list:
+        selected = [_select_origin(flux, unc, io_single, sum_over_ids) for io_single in io]
+        flux = sum(f for f, _ in selected)
+        if unc is not None:
+            unc = np.sqrt(sum(u ** 2 for _, u in selected))
+    elif type(io) is tuple:
+        start, end = io
+        flux = flux[:, start:end]
+        if unc is not None:
+            unc = unc[:, start:end]
+        if sum_over_ids:
+            flux = np.sum(flux, axis=1)
+            if unc is not None:
+                unc = np.sqrt(np.sum(unc ** 2, axis=1))
+    else:
+        flux = flux[:, io]
+        if unc is not None:
+            unc = unc[:, io]
+    return flux, unc
+
 class ModelOutput(FreezableClass):
     '''
     A class that can be used to access data in the output file from
@@ -479,46 +508,11 @@ class ModelOutput(FreezableClass):
             if uncertainties:
                 unc = np.sqrt(np.sum(unc ** 2, axis=1))
         elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat', 'dust', 'source']:
-            if type(io) is list:
-                # The 'source' and 'dust' components are the sum of the
-                # emitted and scattered contributions, which are returned as
-                # two separate slices along the origin axis.
-                fluxes, uncs = [], []
-                for io_single in io:
-                    if type(io_single) is tuple:
-                        start, end = io_single
-                        f = flux[:, start:end]
-                        if uncertainties:
-                            u = unc[:, start:end]
-                        if (component == 'source' and source_id is None) or \
-                           (component == 'dust' and dust_id is None):
-                            f = np.sum(f, axis=1)
-                            if uncertainties:
-                                u = np.sqrt(np.sum(u ** 2, axis=1))
-                    else:
-                        f = flux[:, io_single]
-                        if uncertainties:
-                            u = unc[:, io_single]
-                    fluxes.append(f)
-                    if uncertainties:
-                        uncs.append(u)
-                flux = fluxes[0] + fluxes[1]
-                if uncertainties:
-                    unc = np.sqrt(uncs[0] ** 2 + uncs[1] ** 2)
-            elif type(io) is tuple:
-                start, end = io
-                flux = flux[:, start:end]
-                if uncertainties:
-                    unc = unc[:, start:end]
-                if (component.startswith('source') and source_id is None) or \
-                   (component.startswith('dust') and dust_id is None):
-                    flux = np.sum(flux, axis=1)
-                    if uncertainties:
-                        unc = np.sqrt(np.sum(unc ** 2, axis=1))
-            else:
-                flux = flux[:, io]
-                if uncertainties:
-                    unc = unc[:, io]
+            sum_over_ids = ((component.startswith('source') and source_id is None) or
+                            (component.startswith('dust') and dust_id is None))
+            flux, unc_selected = _select_origin(flux, unc if uncertainties else None, io, sum_over_ids)
+            if uncertainties:
+                unc = unc_selected
         else:
             raise Exception("Unknown component: %s" % component)
 
@@ -891,46 +885,11 @@ class ModelOutput(FreezableClass):
             if uncertainties:
                 unc = np.sqrt(np.sum(unc ** 2, axis=1))
         elif component in ['source_emit', 'dust_emit', 'source_scat', 'dust_scat', 'dust', 'source']:
-            if type(io) is list:
-                # The 'source' and 'dust' components are the sum of the
-                # emitted and scattered contributions, which are returned as
-                # two separate slices along the origin axis.
-                fluxes, uncs = [], []
-                for io_single in io:
-                    if type(io_single) is tuple:
-                        start, end = io_single
-                        f = flux[:, start:end]
-                        if uncertainties:
-                            u = unc[:, start:end]
-                        if (component == 'source' and source_id is None) or \
-                           (component == 'dust' and dust_id is None):
-                            f = np.sum(f, axis=1)
-                            if uncertainties:
-                                u = np.sqrt(np.sum(u ** 2, axis=1))
-                    else:
-                        f = flux[:, io_single]
-                        if uncertainties:
-                            u = unc[:, io_single]
-                    fluxes.append(f)
-                    if uncertainties:
-                        uncs.append(u)
-                flux = fluxes[0] + fluxes[1]
-                if uncertainties:
-                    unc = np.sqrt(uncs[0] ** 2 + uncs[1] ** 2)
-            elif type(io) is tuple:
-                start, end = io
-                flux = flux[:, start:end]
-                if uncertainties:
-                    unc = unc[:, start:end]
-                if (component.startswith('source') and source_id is None) or \
-                   (component.startswith('dust') and dust_id is None):
-                    flux = np.sum(flux, axis=1)
-                    if uncertainties:
-                        unc = np.sqrt(np.sum(unc ** 2, axis=1))
-            else:
-                flux = flux[:, io]
-                if uncertainties:
-                    unc = unc[:, io]
+            sum_over_ids = ((component.startswith('source') and source_id is None) or
+                            (component.startswith('dust') and dust_id is None))
+            flux, unc_selected = _select_origin(flux, unc if uncertainties else None, io, sum_over_ids)
+            if uncertainties:
+                unc = unc_selected
         else:
             raise Exception("Unknown component: %s" % component)
 
