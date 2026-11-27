@@ -80,7 +80,7 @@ The number of iterations is fixed by ``n_iter``, and no check is made of
 whether the density structure has converged, so you should check this
 yourself. The following script reads in the output files for all the
 iterations, plots the vertical density and temperature profiles at a radius
-of 50au for the initial model, the first iteration, and the last iteration,
+of 5au for the initial model, the first iteration, and the last iteration,
 and prints out the fraction of the disk mass that has moved between successive
 iterations:
 
@@ -95,15 +95,15 @@ which gives:
 
 and prints out::
 
-    Fraction of mass moved in iteration 1: 0.274
-    Fraction of mass moved in iteration 2: 0.151
-    Fraction of mass moved in iteration 3: 0.025
-    Fraction of mass moved in iteration 4: 0.006
-    Fraction of mass moved in iteration 5: 0.005
-    Fraction of mass moved in iteration 6: 0.005
+    Fraction of mass moved in iteration 1: 0.088
+    Fraction of mass moved in iteration 2: 0.118
+    Fraction of mass moved in iteration 3: 0.034
+    Fraction of mass moved in iteration 4: 0.018
+    Fraction of mass moved in iteration 5: 0.018
+    Fraction of mass moved in iteration 6: 0.017
 
 In this case, the density structure has converged after about four
-iterations: the remaining changes of around 0.5% are due to the Monte-Carlo
+iterations: the remaining changes of around 2% are due to the Monte-Carlo
 noise in the temperatures, and can be reduced by using more photons. If the
 density structure has not converged, you can run more iterations.
 
@@ -114,7 +114,8 @@ Visualizing the density structure
 
 To see how the structure of the disk as a whole has changed, the following
 script plots the density in the (w, z) plane for the initial model and for
-the last iteration, using the same color scale:
+the last iteration, using the same color scale, both for the whole disk and
+zoomed in on its inner edge:
 
 .. literalinclude:: scripts/hseq_maps.py
    :language: python
@@ -125,9 +126,16 @@ which gives:
    :width: 100%
    :align: center
 
-The white lines show contours of constant density (at 10\ :sup:`-18`,
-10\ :sup:`-16`, and 10\ :sup:`-14` g/cm\ :sup:`3`). The upper layers of the
-disk are heated directly by the star and are much warmer than the midplane,
-so in hydrostatic equilibrium the disk is more extended vertically than the
-initial model, especially beyond around 20au. Since the mass in each vertical
-column is preserved, the density in the midplane is correspondingly lower.
+The white lines show contours of constant density (at 10\ :sup:`-17`,
+10\ :sup:`-14`, 10\ :sup:`-11`, and 10\ :sup:`-8` g/cm\ :sup:`3`). The upper
+layers of the disk are heated directly by the star and are much warmer than
+the midplane, so in hydrostatic equilibrium the disk is more extended
+vertically than the initial model, especially in the outer parts of the disk.
+Since the mass in each vertical column is preserved, the density in the
+midplane is correspondingly lower.
+
+The zoom on the inner edge of the disk (bottom row) shows that in hydrostatic
+equilibrium the disk becomes thicker right at its inner edge than just behind
+it: the inner edge of the disk is illuminated directly by the star and is
+therefore hotter, and it shadows the disk behind it. This is the puffed-up
+inner rim that is expected for disks around young stars.
