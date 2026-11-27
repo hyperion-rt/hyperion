@@ -11,10 +11,9 @@ image of the central region of a flared disk in order to image the inner rim:
 .. literalinclude:: scripts/pure_scattering_setup.py
    :language: python
 
-.. note:: If you want to run this model you will need to download
-          the :download:`kmh_lite.hdf5 <scripts/kmh_lite.hdf5>` dust file into the
-          same directory as the script above (**disclaimer**: do not use this
-          dust file outside of these tutorials!).
+.. note:: This example uses the ``kmh94_3.1_hg`` dust model provided by the
+          `hyperion-dust <https://github.com/hyperion-rt/hyperion-dust>`_
+          package, which can be installed with ``pip install hyperion-dust``.
 
 Once this model has run, we can make a plot of the image (including a linear
 polarization map):
