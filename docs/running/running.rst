@@ -28,7 +28,7 @@ where ``<n_processes>`` is the number of processes to run in parallel (does not 
 
     hyperion -m 24 model.rtin model.rtout
 
-This may not work with all MPI installations. If you have issues, see the next section on calling the Fortran binaries directly (and `report`_ the issue).
+This may not work with all MPI installations. If you have issues, see :doc:`../troubleshooting/troubleshooting` for known problems and the next section on calling the Fortran binaries directly (and `report`_ the issue).
 
 Calling the Fortran binaries directly
 -------------------------------------

@@ -81,6 +81,7 @@ Documentation
    setup/setup.rst
    running/running.rst
    postprocessing/postprocessing.rst
+   troubleshooting/troubleshooting.rst
    tutorials/index.rst
    dust/dust.rst
 
