@@ -98,7 +98,7 @@ The packages required for the Python code (in addition to Python itself) are:
 * `h5py <http://www.h5py.org>`_ 2.4 or later
 * `Astropy <http://www.astropy.org>`_ 1.2 or later
 
-The `yt <http://yt-project.org/>`_ package (3.2 or later) is optional, and is
+The `yt <http://yt-project.org/>`_ package (4.1 or later) is optional, and is
 needed to convert grids to and from yt datasets (see
 :doc:`../tutorials/tutorial_quantities_yt` and :ref:`amr_from_yt`). It is
 installed along with Hyperion if you use the ``recommended`` extra (see
