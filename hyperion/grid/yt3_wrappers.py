@@ -310,8 +310,8 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
             raise ValueError("yt field {0} does not exist. Available fields "
                              "are: \n\n    {1}".format(input_field, field_list))
 
-    z0, y0, x0 = ds.domain_center.in_units('cm').ndarray_view()
-    dz, dy, dx = ds.domain_width.in_units('cm').ndarray_view()
+    x0, y0, z0 = ds.domain_center.in_units('cm').ndarray_view()
+    dx, dy, dz = ds.domain_width.in_units('cm').ndarray_view()
 
     logger.info("Domain center: x={0}cm, y={1}cm, z={2}cm".format(x0, y0, z0))
     logger.info("Domain width: dx={0}cm, dy={1}cm, dz={2}cm".format(dx, dy, dz))
@@ -319,8 +319,8 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
     # Get levels and limits of all the grids
     n_levels = ds.index.max_level + 1
     levels = ds.index.grid_levels
-    zmin, ymin, xmin = ds.index.grid_left_edge.in_units('cm').ndarray_view().transpose()
-    zmax, ymax, xmax = ds.index.grid_right_edge.in_units('cm').ndarray_view().transpose()
+    xmin, ymin, zmin = ds.index.grid_left_edge.in_units('cm').ndarray_view().transpose()
+    xmax, ymax, zmax = ds.index.grid_right_edge.in_units('cm').ndarray_view().transpose()
 
     logger.info("Re-centering simulation so that domain center is at (0, 0, 0)")
     xmin -= x0
@@ -351,9 +351,11 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
             grid.ymin, grid.ymax = ymin[igrid], ymax[igrid]
             grid.zmin, grid.zmax = zmin[igrid], zmax[igrid]
 
-            grid.nz, grid.ny, grid.nx = yt_grid.shape
+            grid.nx, grid.ny, grid.nz = yt_grid.shape
 
             for output_quantity, input_field in quantity_mapping.items():
-                grid.quantities[output_quantity] = yt_grid[input_field].in_units('g/cm**3').ndarray_view()
+                # yt arrays are indexed as (x, y, z) whereas Hyperion arrays
+                # are indexed as (z, y, x)
+                grid.quantities[output_quantity] = yt_grid[input_field].in_units('g/cm**3').ndarray_view().transpose()
 
     return amr

@@ -223,3 +223,95 @@ def test_octree_to_yt_positions():
 def test_octree_depth(refined, depth):
     from ..yt3_wrappers import _octree_depth
     assert _octree_depth(np.array(refined).astype(bool)) == depth
+
+
+def _asymmetric_values(nx, ny, nz, offset=0.):
+    # Values indexed as (x, y, z) that differ along every axis
+    i, j, k = np.meshgrid(np.arange(nx), np.arange(ny), np.arange(nz), indexing='ij')
+    return offset + 100. * i + 10. * j + k + 1.
+
+
+def _hyperion_values_at(amr, x, y, z):
+    # Return the value of the density in the finest Hyperion grid containing
+    # each of the specified positions
+    values = np.full(len(x), np.nan)
+    for level in amr.levels:
+        for grid in level.grids:
+            inside = ((x > grid.xmin) & (x < grid.xmax) &
+                      (y > grid.ymin) & (y < grid.ymax) &
+                      (z > grid.zmin) & (z < grid.zmax))
+            ix = ((x[inside] - grid.xmin) / (grid.xmax - grid.xmin) * grid.nx).astype(int)
+            iy = ((y[inside] - grid.ymin) / (grid.ymax - grid.ymin) * grid.ny).astype(int)
+            iz = ((z[inside] - grid.zmin) / (grid.zmax - grid.zmin) * grid.nz).astype(int)
+            density = grid.quantities['density']
+            if isinstance(density, list):
+                density = density[0]
+            values[inside] = density[iz, iy, ix]
+    return values
+
+
+def _check_same_positions(ds, amr):
+    # Check that every yt cell has the same density at the same position
+    # (relative to the domain center) in the Hyperion grid
+    ad = ds.all_data()
+    center = ds.domain_center.in_units('cm').ndarray_view()
+    x, y, z = [ad['index', axis].in_units('cm').ndarray_view() - center[iaxis]
+               for iaxis, axis in enumerate('xyz')]
+    expected = ad['gas', 'density'].in_units('g/cm**3').ndarray_view()
+    np.testing.assert_array_equal(_hyperion_values_at(amr, x, y, z), expected)
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+def test_from_yt_axis_ordering_uniform():
+
+    # Regression test for a bug that caused the x and z axes to be swapped
+    # when converting a yt dataset to an AMRGrid
+
+    from yt import load_uniform_grid
+
+    nx, ny, nz = 4, 3, 2
+    density = _asymmetric_values(nx, ny, nz)
+    bbox = np.array([[0., 8.], [10., 16.], [100., 102.]])
+    ds = load_uniform_grid({('gas', 'density'): (density, 'g/cm**3')},
+                           [nx, ny, nz], bbox=bbox, length_unit='cm')
+
+    amr = AMRGrid.from_yt(ds, quantity_mapping={'density': ('gas', 'density')})
+
+    grid = amr.levels[0].grids[0]
+    assert (grid.nx, grid.ny, grid.nz) == (4, 3, 2)
+    assert (grid.xmin, grid.xmax) == (-4., 4.)
+    assert (grid.ymin, grid.ymax) == (-3., 3.)
+    assert (grid.zmin, grid.zmax) == (-1., 1.)
+    np.testing.assert_array_equal(grid.quantities['density'], density.transpose())
+
+    _check_same_positions(ds, amr)
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+def test_from_yt_axis_ordering_amr():
+
+    # As above, but for a dataset with a refined grid that is not centered in
+    # the domain
+
+    from yt import load_amr_grids
+
+    grid_data = [dict(left_edge=[0., 10., 100.], right_edge=[8., 16., 102.],
+                      level=0, dimensions=[4, 3, 2]),
+                 dict(left_edge=[4., 12., 100.], right_edge=[8., 16., 101.],
+                      level=1, dimensions=[4, 4, 2])]
+    for igrid, g in enumerate(grid_data):
+        g[('gas', 'density')] = (_asymmetric_values(*g['dimensions'], offset=1000. * igrid), 'g/cm**3')
+
+    ds = load_amr_grids(grid_data, [4, 3, 2],
+                        bbox=np.array([[0., 8.], [10., 16.], [100., 102.]]),
+                        length_unit='cm')
+
+    amr = AMRGrid.from_yt(ds, quantity_mapping={'density': ('gas', 'density')})
+
+    fine = amr.levels[1].grids[0]
+    assert (fine.nx, fine.ny, fine.nz) == (4, 4, 2)
+    assert (fine.xmin, fine.xmax) == (0., 4.)
+    assert (fine.ymin, fine.ymax) == (-1., 3.)
+    assert (fine.zmin, fine.zmax) == (-1., 0.)
+
+    _check_same_positions(ds, amr)
