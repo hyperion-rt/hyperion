@@ -570,7 +570,7 @@ class AMRGrid(FreezableClass):
         """
         Convert a yt dataset to a Hyperion AMRGrid object
 
-        .. note:: This method requires yt 3.0 or later
+        .. note:: This method requires yt 4.1 or later
 
         Parameters
         ----------
