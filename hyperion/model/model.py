@@ -363,6 +363,19 @@ class Model(FreezableClass, RunConf):
             if 'density' in quantities:
                 if only_initial or last_iteration is None or 'density' not in f[last_iteration]:
                     quantities_path['density'] = '/Input/Grid/Quantities'
+                    if not only_initial and last_iteration is not None and 'Dust' in f['Input']:
+                        g_dust = f['Input/Dust']
+                        sublimation = [g_dust[name].attrs['sublimation_mode'].decode('ascii') != 'no'
+                                       for name in g_dust if 'sublimation_mode' in g_dust[name].attrs]
+                        if any(sublimation):
+                            message = ("The final density was not written to {0} (see "
+                                       "output_density), so the input density will be used. "
+                                       "Since some dust types have sublimation enabled, this "
+                                       "may differ from the final density that is consistent "
+                                       "with the final specific energy.".format(filename))
+                            if 'density_diff' in f[last_iteration]:
+                                message += " The change in density (density_diff) is present but is not used."
+                            logger.warning(message)
                 else:
                     quantities_path['density'] = last_iteration
 
