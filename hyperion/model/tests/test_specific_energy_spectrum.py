@@ -370,6 +370,7 @@ def test_specific_energy_spectrum_yt_export_skips_frequency_resolved(tmpdir):
 
 
 @pytest.mark.requires_hyperion_binaries
+@pytest.mark.requires_mpi
 def test_specific_energy_spectrum_mpi_matches_serial(tmpdir):
     # The saved spectrum must not depend on the number of MPI processes. We
     # compare the total (which is conserved, hence robust to Monte Carlo noise)

@@ -37,7 +37,8 @@ def scattering_model(seed):
 
 
 @pytest.mark.requires_hyperion_binaries
-def test_mpi_small_seed(tmpdir):
+@pytest.mark.requires_mpi
+def test_mpi_small_seed(tmpdir, monkeypatch):
 
     # Each MPI process needs a different random number sequence. Previously,
     # process k used seed + k, so that with a seed of -2 and 4 processes,
@@ -50,6 +51,12 @@ def test_mpi_small_seed(tmpdir):
         pytest.skip("no MPI launcher available")
     if shutil.which('hyperion_sph_mpi') is None:
         pytest.skip("MPI build of the Hyperion binaries not available")
+
+    # The test needs four processes, which can be more than the number of
+    # cores, so allow Open MPI to oversubscribe (the variables are for Open MPI
+    # 5 and 4 respectively, and are ignored by other MPI implementations)
+    monkeypatch.setenv('PRTE_MCA_rmaps_default_mapping_policy', ':oversubscribe')
+    monkeypatch.setenv('OMPI_MCA_rmaps_base_oversubscribe', 'true')
 
     m = scattering_model(-2)
     m.write(tmpdir.join(random_id()).strpath)

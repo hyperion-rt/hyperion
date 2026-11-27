@@ -127,13 +127,17 @@ then
   hdf_compiler=`basename $(h5fc -show | awk {'print $1'})`
 else
   hdf_compiler=`basename $(h5pfc -show | awk {'print $1'})`
-  if test "$hdf_compiler" == "mpif90"
-  then
-    hdf_compiler=`basename $(mpif90 -show | awk {'print $1'})`
-  elif test "$hdf_compiler" == "mpifort"
-  then
-    hdf_compiler=`basename $(mpifort -show | awk {'print $1'})`
-  fi
+fi
+
+# The HDF5 wrapper can itself call an MPI wrapper (for example the h5fc
+# installed by the hdf5-mpi package in Homebrew), in which case we need to
+# find out what compiler that calls
+if test "$hdf_compiler" == "mpif90"
+then
+  hdf_compiler=`basename $(mpif90 -show | awk {'print $1'})`
+elif test "$hdf_compiler" == "mpifort"
+then
+  hdf_compiler=`basename $(mpifort -show | awk {'print $1'})`
 fi
 
 # gfortran sometimes includes version number and/or platform info
@@ -290,6 +294,27 @@ then
 else
   AC_MSG_ERROR([Could not determine MPI compiler: $mpi_compiler])
 fi
+
+# The mpich "mpi" module does not declare interfaces for the MPI routines that
+# take choice buffers, so we provide them in mpi_interfaces.f90. Other MPI
+# libraries (such as Open MPI) already declare them, in which case declaring
+# them again makes the names ambiguous. We therefore check whether
+# check_mpi_interfaces.f90, which uses both the "mpi" module and
+# mpi_interfaces, compiles, and otherwise use the empty module in
+# mpi_interfaces_none.f90.
+
+AC_MSG_CHECKING([whether the MPI module needs explicit interfaces for choice buffer routines])
+mpi_src=`cd "$srcdir" && pwd`/src/mpi
+mkdir -p conftest_mpi_interfaces
+if (cd conftest_mpi_interfaces && eval "$mpi_fc -c $mpi_src/mpi_interfaces.f90 $mpi_src/check_mpi_interfaces.f90") > /dev/null 2>&1
+then
+  AC_MSG_RESULT([yes])
+  AC_SUBST(mpi_interfaces, mpi_interfaces)
+else
+  AC_MSG_RESULT([no])
+  AC_SUBST(mpi_interfaces, mpi_interfaces_none)
+fi
+rm -rf conftest_mpi_interfaces
 
 # Output final Makefile
 
