@@ -2,6 +2,8 @@
 import h5py
 import numpy as np
 
+from ..util.functions import is_numpy_array
+
 
 def single_grid_dims(data, ndim=3):
     '''
@@ -72,3 +74,36 @@ def single_grid_dims(data, ndim=3):
                          "external HDF5 link")
 
     return n_pop, shape
+
+
+class GridViewArrayMixin(object):
+    """
+    Mixin for the grid view classes that gives access to the viewed quantity
+    through the ``array`` attribute, including assigning to it, which in-place
+    operators such as ``*=`` do.
+    """
+
+    def __getattr__(self, attribute):
+        if attribute == 'array':
+            return self.quantities[self.viewed_quantity]
+        else:
+            return super().__getattr__(attribute)
+
+    def __setattr__(self, attribute, value):
+        if attribute == 'array':
+            current = self.quantities[self.viewed_quantity]
+            # In-place operators such as *= assign back the same object
+            if value is current:
+                return
+            if type(current) is list:
+                raise TypeError("Can only set the array of a view of a single grid, e.g. grid['density'][0].array")
+            if not is_numpy_array(value):
+                raise TypeError("array should be a Numpy array")
+            if value.shape != current.shape:
+                raise ValueError("Quantity arrays do not have the right "
+                                 "dimensions: %s instead of %s"
+                                 % (value.shape, current.shape))
+            # Modify in place so that the change propagates to the parent grid
+            current[...] = value
+        else:
+            super().__setattr__(attribute, value)

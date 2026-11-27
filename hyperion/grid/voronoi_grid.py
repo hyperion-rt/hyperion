@@ -10,7 +10,7 @@ import logging
 from astropy.table import Table
 
 from ..util.functions import FreezableClass, is_numpy_array, link_or_copy, as_str
-from .grid_helpers import single_grid_dims
+from .grid_helpers import single_grid_dims, GridViewArrayMixin
 
 logger = logging.getLogger(__name__)
 
@@ -573,7 +573,7 @@ class VoronoiGrid(FreezableClass):
         function(self.quantities)
 
 
-class VoronoiGridView(VoronoiGrid):
+class VoronoiGridView(GridViewArrayMixin, VoronoiGrid):
 
     def __init__(self, grid, quantity):
         self.viewed_quantity = quantity
@@ -636,9 +636,3 @@ class VoronoiGridView(VoronoiGrid):
             return grid
         else:
             return VoronoiGrid.__getitem__(self, item)
-
-    def __getattr__(self, attribute):
-        if attribute == 'array':
-            return self.quantities[self.viewed_quantity]
-        else:
-            return VoronoiGrid.__getattr__(self, attribute)
