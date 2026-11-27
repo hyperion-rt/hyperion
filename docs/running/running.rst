@@ -39,8 +39,19 @@ the number of processes and binary name are appended to it::
     [mpi]
     command = mpirun
 
-For example, see :doc:`../troubleshooting/troubleshooting` for how to use
-this to avoid firewall prompts on Macs.
+On clusters that use the SLURM scheduler, parallel jobs often have to be
+launched with ``srun`` rather than ``mpirun``. You can do this with::
+
+    [mpi]
+    command = srun --mpi=pmix
+
+which will result in e.g. ``srun --mpi=pmix -n 24 hyperion_car_mpi ...`` being
+run. The ``--mpi`` option depends on how MPI was set up on the cluster (check
+the documentation for your cluster), and the number of processes should not be
+larger than the number of tasks allocated to the job.
+
+As another example, see :doc:`../troubleshooting/troubleshooting` for how to
+use this to avoid firewall prompts on Macs.
 
 Calling the Fortran binaries directly
 -------------------------------------
