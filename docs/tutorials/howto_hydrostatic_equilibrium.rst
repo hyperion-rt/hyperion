@@ -37,6 +37,12 @@ calling ``write`` and ``run`` directly:
           same directory as the script above (**disclaimer**: do not use this
           dust file outside of these tutorials!).
 
+Since the density structure is recomputed separately in each vertical column
+of cells, the grid should have enough cells in the vertical direction to
+resolve the vertical density profiles. This is set by the second argument of
+:meth:`~hyperion.model.AnalyticalYSOModel.set_cylindrical_polar_grid_auto`,
+which is set to 300 here.
+
 The first argument of :func:`~hyperion.model.helpers.run_with_vertical_hseq`
 is a prefix for the files written out. The model is first written out and run
 with the initial (analytical) density structure, as ``hseq_00000.rtin`` and
@@ -46,9 +52,11 @@ structure, and the resulting model is written out and run as
 ``hseq_00001.rtin`` and ``hseq_00001.rtout``, ``hseq_00002.rtin`` and
 ``hseq_00002.rtout``, and so on. The last output file contains the final
 model. As for :meth:`~hyperion.model.Model.run`, you can use ``mpi=True`` and
-``n_processes=`` to run each model in parallel, and ``logfile=True`` writes
-the output of each run to a log file (``hseq_00000.log``, etc.) instead of to
-the terminal.
+``n_processes=`` to run each model in parallel, as is done above with four
+processes (this requires Hyperion to have been compiled with MPI; otherwise,
+remove these two arguments to run in serial mode), and ``logfile=True``
+writes the output of each run to a log file (``hseq_00000.log``, etc.)
+instead of to the terminal.
 
 When recomputing the density structure, the following assumptions are made:
 
@@ -87,20 +95,16 @@ which gives:
 
 and prints out::
 
-    Fraction of mass moved in iteration 1: 0.279
-    Fraction of mass moved in iteration 2: 0.147
-    Fraction of mass moved in iteration 3: 0.023
-    Fraction of mass moved in iteration 4: 0.005
+    Fraction of mass moved in iteration 1: 0.274
+    Fraction of mass moved in iteration 2: 0.151
+    Fraction of mass moved in iteration 3: 0.025
+    Fraction of mass moved in iteration 4: 0.006
     Fraction of mass moved in iteration 5: 0.005
     Fraction of mass moved in iteration 6: 0.005
-    Fraction of mass moved in iteration 7: 0.004
-    Fraction of mass moved in iteration 8: 0.005
-    Fraction of mass moved in iteration 9: 0.004
-    Fraction of mass moved in iteration 10: 0.005
 
 In this case, the density structure has converged after about four
 iterations: the remaining changes of around 0.5% are due to the Monte-Carlo
 noise in the temperatures, and can be reduced by using more photons. If the
 density structure has not converged, you can run more iterations.
 
-This model takes about 25 minutes to run in serial mode.
+This model takes about 9 minutes to run with four MPI processes.

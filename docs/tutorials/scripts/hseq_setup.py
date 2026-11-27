@@ -23,8 +23,10 @@ d.r_0 = 100. * au
 d.h_0 = 10. * au
 d.dust = 'kmh_lite.hdf5'
 
-# Set up a cylindrical polar grid
-m.set_cylindrical_polar_grid_auto(100, 100, 1)
+# Set up a cylindrical polar grid. The second argument is the number of cells
+# in the vertical (z) direction, which needs to be large enough to resolve the
+# vertical density profiles that are computed for the hydrostatic equilibrium
+m.set_cylindrical_polar_grid_auto(100, 300, 1)
 
 # Set up the temperature calculation, using the modified random walk and the
 # partial diffusion approximation to speed up the calculation in the optically
@@ -34,5 +36,8 @@ m.set_n_photons(initial=1000000, imaging=0)
 m.set_mrw(True)
 m.set_pda(True)
 
-# Iterate the radiative transfer and the vertical density structure 10 times
-run_with_vertical_hseq('hseq', m, n_iter=10, overwrite=True)
+# Iterate the radiative transfer and the vertical density structure 6 times,
+# running each model in parallel with MPI on 4 processes (if Hyperion was not
+# compiled with MPI, remove the mpi and n_processes arguments)
+run_with_vertical_hseq('hseq', m, n_iter=6, overwrite=True,
+                       mpi=True, n_processes=4)
