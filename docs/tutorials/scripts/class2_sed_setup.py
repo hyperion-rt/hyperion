@@ -2,9 +2,13 @@ import numpy as np
 
 from hyperion.model import AnalyticalYSOModel
 from hyperion.util.constants import rsun, au, msun, sigma
+from hyperion_dust import get_dust
 
 # Initalize the model
 m = AnalyticalYSOModel()
+
+# Use the KMH94 dust model with Henyey-Greenstein scattering
+dust = get_dust('kmh94_3.1_hg')
 
 # Set the stellar parameters
 m.star.radius = 2. * rsun
@@ -20,7 +24,7 @@ disk.r_0 = m.star.radius
 disk.h_0 = 0.01 * disk.r_0
 disk.p = -1.0
 disk.beta = 1.25
-disk.dust = 'kmh_lite.hdf5'
+disk.dust = dust
 
 # Use raytracing to improve s/n of thermal/source emission
 m.set_raytracing(True)

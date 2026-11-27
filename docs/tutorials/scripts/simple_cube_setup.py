@@ -2,6 +2,7 @@ import numpy as np
 
 from hyperion.model import Model
 from hyperion.util.constants import pc, lsun
+from hyperion_dust import get_dust
 
 # Initialize model
 m = Model()
@@ -14,7 +15,7 @@ m.set_cartesian_grid(w, w, w)
 # cause a shadow.
 density = np.ones(m.grid.shape) * 1e-21
 density[26:38, 26:38, 26:38] = 1.e-18
-m.add_density_grid(density, 'kmh_lite.hdf5')
+m.add_density_grid(density, get_dust('kmh94_3.1_hg'))
 
 # Add a point source in the center
 s = m.add_point_source()

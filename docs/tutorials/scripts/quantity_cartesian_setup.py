@@ -4,6 +4,7 @@ random.seed('hyperion')  # ensure that random numbers are the same every time
 import numpy as np
 from hyperion.model import Model
 from hyperion.util.constants import pc, lsun
+from hyperion_dust import get_dust
 
 # Define cell walls
 x = np.linspace(-10., 10., 101) * pc
@@ -13,7 +14,8 @@ z = np.linspace(-10., 10., 101) * pc
 # Initialize model and set up density grid
 m = Model()
 m.set_cartesian_grid(x, y, z)
-m.add_density_grid(np.ones((100, 100, 100)) * 1.e-20, 'kmh_lite.hdf5')
+m.add_density_grid(np.ones((100, 100, 100)) * 1.e-20,
+                   get_dust('kmh94_3.1_hg'))
 
 # Generate random sources
 for i in range(100):

@@ -1,9 +1,13 @@
 
 from hyperion.model import AnalyticalYSOModel
 from hyperion.util.constants import au, lsun, rsun, tsun, msun
+from hyperion_dust import get_dust
 
 # Initialize model
 m = AnalyticalYSOModel()
+
+# Use the KMH94 dust model with Henyey-Greenstein scattering
+dust = get_dust('kmh94_3.1_hg')
 
 # Set up star
 m.star.radius = 1.5 * rsun
@@ -19,7 +23,7 @@ d.p = -1
 d.beta = 1.25
 d.r_0 = 10. * au
 d.h_0 = 0.4 * au
-d.dust = 'kmh_lite.hdf5'
+d.dust = dust
 
 # Set up grid
 m.set_spherical_polar_grid_auto(400, 100, 1)

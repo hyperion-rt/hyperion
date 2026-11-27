@@ -10,12 +10,11 @@ future. First, we set up the model using the
 .. literalinclude:: scripts/class1_example_setup.py
    :language: python
 
-.. note:: If you want to run this model you will need to download
-          the :download:`kmh_lite.hdf5 <scripts/kmh_lite.hdf5>` dust file into the
-          same directory as the script above (**disclaimer**: do not use this
-          dust file outside of these tutorials!). You will also need the
-          stellar photosphere model from :download:`here
-          <scripts/kt04000g+3.5z-2.0.ascii>`.
+.. note:: This example uses the ``kmh94_3.1_hg`` dust model provided by the
+          `hyperion-dust <https://github.com/hyperion-rt/hyperion-dust>`_
+          package, which can be installed with ``pip install hyperion-dust``.
+          You will also need the stellar photosphere model from
+          :download:`here <scripts/kt04000g+3.5z-2.0.ascii>`.
 
 The model takes a few minutes to run on 12 processes (a little less than an hour in serial mode). We can then proceed for example to plotting the SED:
 

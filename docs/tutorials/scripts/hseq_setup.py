@@ -1,9 +1,13 @@
 from hyperion.model import AnalyticalYSOModel
 from hyperion.model.helpers import run_with_vertical_hseq
 from hyperion.util.constants import au, lsun, rsun, tsun, msun
+from hyperion_dust import get_dust
 
 # Initialize model
 m = AnalyticalYSOModel()
+
+# Use the KMH94 dust model with Henyey-Greenstein scattering
+dust = get_dust('kmh94_3.1_hg')
 
 # Set up star (the stellar mass is required to compute the hydrostatic
 # equilibrium)
@@ -21,7 +25,7 @@ d.p = -1
 d.beta = 1.25
 d.r_0 = 100. * au
 d.h_0 = 10. * au
-d.dust = 'kmh_lite.hdf5'
+d.dust = dust
 
 # Set up a cylindrical polar grid. The second argument is the number of cells
 # in the vertical (z) direction, which needs to be large enough to resolve the

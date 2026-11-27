@@ -2,6 +2,10 @@ import numpy as np
 
 from hyperion.model import Model
 from hyperion.util.constants import au, lsun
+from hyperion_dust import get_dust
+
+# Use the KMH94 dust model with Henyey-Greenstein scattering
+dust = get_dust('kmh94_3.1_hg')
 
 # Use a fixed random seed so that the cloud is the same every time
 rng = np.random.default_rng(2026)
@@ -94,7 +98,7 @@ def setup_model(wall):
                            zmin=-1.6 * R, zmax=1.6 * R)
 
     # Add the density, with one value per site, in the same order as the sites
-    m.add_density_grid(rho, 'kmh_lite.hdf5')
+    m.add_density_grid(rho, dust)
 
     # Add a hot star at the center and two cooler stars
     for position, luminosity, temperature in [((0., 0., 0.), 3.e4, 20000.),

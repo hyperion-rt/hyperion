@@ -2,9 +2,13 @@ import numpy as np
 
 from hyperion.model import AnalyticalYSOModel
 from hyperion.util.constants import rsun, lsun, au, msun, yr, c
+from hyperion_dust import get_dust
 
 # Initalize the model
 m = AnalyticalYSOModel()
+
+# Use the KMH94 dust model with Henyey-Greenstein scattering
+dust = get_dust('kmh94_3.1_hg')
 
 # Read in stellar spectrum
 wav, fnu = np.loadtxt('kt04000g+3.5z-2.0.ascii', unpack=True)
@@ -25,7 +29,7 @@ disk.r_0 = m.star.radius
 disk.h_0 = 0.01 * disk.r_0
 disk.p = -1.0
 disk.beta = 1.25
-disk.dust = 'kmh_lite.hdf5'
+disk.dust = dust
 
 # Add an Ulrich envelope
 envelope = m.add_ulrich_envelope()
@@ -33,7 +37,7 @@ envelope.rc = disk.rmax
 envelope.mdot = 5.e-6 * msun / yr
 envelope.rmin = 7 * m.star.radius
 envelope.rmax = 5000 * au
-envelope.dust = 'kmh_lite.hdf5'
+envelope.dust = dust
 
 # Add a bipolar cavity
 cavity = envelope.add_bipolar_cavity()
@@ -42,7 +46,7 @@ cavity.theta_0 = 20
 cavity.r_0 = envelope.rmax
 cavity.rho_0 = 5e4 * 3.32e-24
 cavity.rho_exp = 0.
-cavity.dust = 'kmh_lite.hdf5'
+cavity.dust = dust
 
 # Use raytracing to improve s/n of thermal/source emission
 m.set_raytracing(True)
