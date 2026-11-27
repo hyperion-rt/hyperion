@@ -39,28 +39,8 @@ the number of processes and binary name are appended to it::
     [mpi]
     command = mpirun
 
-MPI popups and firewall prompts on Mac
---------------------------------------
-
-When running the parallel code on a Mac, you may get one popup per process
-asking whether the ``hyperion_*_mpi`` application should be allowed to accept
-incoming network connections. This is because each MPI process opens network
-sockets on all network interfaces, and because locally compiled binaries are
-not signed with a stable identity, so the macOS firewall cannot remember your
-answer between runs (or between rebuilds of the binaries).
-
-Since all the communication is local when running on a single machine, the
-processes can communicate through shared memory rather than network sockets,
-in which case no prompts appear. With OpenMPI, this can be done by setting
-the following in ``~/.hyperionrc``::
-
-    [mpi]
-    command = mpirun --mca btl self,sm
-
-The same option can be passed directly to ``mpirun`` when calling the
-Fortran binaries directly as described in the next section. Note that
-restricting OpenMPI's internal communication to the loopback interface with
-``oob_tcp_if_include lo0`` prevents the processes from starting at all.
+For example, see :doc:`../troubleshooting/troubleshooting` for how to use
+this to avoid firewall prompts on Macs.
 
 Calling the Fortran binaries directly
 -------------------------------------
