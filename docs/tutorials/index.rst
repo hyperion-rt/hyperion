@@ -37,6 +37,7 @@ Example models
    :maxdepth: 1
 
    example_class1.rst
+   example_voronoi.rst
 
 Advanced
 ========
