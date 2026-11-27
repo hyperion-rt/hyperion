@@ -37,6 +37,7 @@ def scattering_model(seed):
 
 
 @pytest.mark.requires_hyperion_binaries
+@pytest.mark.requires_mpi
 def test_mpi_small_seed(tmpdir, monkeypatch):
 
     # Each MPI process needs a different random number sequence. Previously,

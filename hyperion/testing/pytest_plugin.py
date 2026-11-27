@@ -4,6 +4,7 @@ import pytest
 def pytest_configure(config):
     config.addinivalue_line("markers", "bitlevel: check that results are reproducible at the bit level")
     config.addinivalue_line("markers", "requires_hyperion_binaries: require the Hyperion Fortran binaries to run")
+    config.addinivalue_line("markers", "requires_mpi: run the MPI binaries with an MPI launcher")
 
 
 def pytest_addoption(parser):
