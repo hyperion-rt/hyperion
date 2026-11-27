@@ -104,11 +104,42 @@ def mc_circular_polarization(I, sigma_I, V, sigma_V, N=1000):
 
 def _select_origin(flux, unc, io, sum_over_ids):
     """
-    Select a component along the origin axis (axis 1) of flux and unc, as
-    given by ModelOutput._get_origin_slice: io is either an index, a (start,
-    end) tuple for a range of sources or dust types (which is summed over if
-    sum_over_ids is True), or a list of these, whose fluxes are added up. unc
-    can be None if uncertainties are not needed.
+    Select the flux (and uncertainty) for one origin component.
+
+    SEDs and images are stored with an axis (axis 1) that separates the
+    contributions of different origins (e.g. emitted or scattered light from
+    the sources or the dust, and with detailed origin tracking, each source
+    and dust type separately). This selects the component given by ``io``,
+    which is the output of `ModelOutput._get_origin_slice`.
+
+    Parameters
+    ----------
+    flux : `~numpy.ndarray`
+        The flux values, with the origin along axis 1.
+    unc : `~numpy.ndarray` or None
+        The uncertainties, with the same shape as ``flux``, or `None` if
+        uncertainties are not needed.
+    io : int, tuple, or list
+        The component to select, which can be:
+
+        * an integer, giving the index along the origin axis
+        * a ``(start, end)`` tuple, giving a range of indices for the
+          individual sources or dust types, which are summed over if
+          ``sum_over_ids`` is `True`
+        * a list of the above, whose selections are added together (this is
+          used for the ``'source'`` and ``'dust'`` components, which combine
+          the emitted and scattered contributions)
+    sum_over_ids : bool
+        Whether to sum over the range of indices given by a tuple, rather
+        than keeping the individual sources or dust types.
+
+    Returns
+    -------
+    flux : `~numpy.ndarray`
+        The selected flux values.
+    unc : `~numpy.ndarray` or None
+        The selected uncertainties (combined in quadrature when summing or
+        adding contributions), or `None` if ``unc`` was `None`.
     """
     if type(io) is list:
         selected = [_select_origin(flux, unc, io_single, sum_over_ids) for io_single in io]
