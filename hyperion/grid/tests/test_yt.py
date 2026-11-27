@@ -78,11 +78,6 @@ class TestToYt(object):
         g['density'].append(self.density[grid_type])
         pf = g.to_yt()
 
-        # TEMP: xfail due to bug in yt
-        # https://bitbucket.org/yt_analysis/yt/pull-requests/2362/fix-type-issue-in-octree-construction/diff
-        if grid_type == 'oct':
-            pytest.xfail()
-
         p = ProjectionPlot(pf, 'x', ["density"], center='c', origin='native')
         p.save(tmpdir.join('test.png').strpath)
 
@@ -185,3 +180,37 @@ def test_axis_ordering_amr():
         prj = SlicePlot(pf, 'z', ['density'], center=[0.0, 0.0, z])
         np.testing.assert_allclose(get_frb(prj, 'density').min(), iz)
         np.testing.assert_allclose(get_frb(prj, 'density').max(), iz)
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+def test_octree_to_yt_positions():
+
+    # Regression test for a bug that caused octree grids to fail to load in
+    # yt 4.1 and later, which also checks that each cell in yt has the same
+    # position and value as the corresponding cell in the octree
+
+    refined = np.array([1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]).astype(bool)
+
+    g = OctreeGrid(1., 2., 3., 4., 6., 8., refined)
+    density = np.arange(len(refined)) + 1.
+    g['density'] = []
+    g['density'].append(density)
+
+    ds = g.to_yt()
+
+    np.testing.assert_allclose(ds.domain_left_edge.ndarray_view(), [-3., -4., -5.])
+    np.testing.assert_allclose(ds.domain_right_edge.ndarray_view(), [5., 8., 11.])
+
+    ad = ds.all_data()
+    x, y, z = [ad['index', axis].ndarray_view() for axis in 'xyz']
+    values = ad['gas', 'density'].ndarray_view()
+
+    xmin, xmax, ymin, ymax, zmin, zmax = g.limits
+    leaves = ~refined
+    expected = {(0.5 * (xmin[i] + xmax[i]), 0.5 * (ymin[i] + ymax[i]), 0.5 * (zmin[i] + zmax[i])): density[i]
+                for i in np.nonzero(leaves)[0]}
+
+    assert len(values) == np.sum(leaves)
+    for xc, yc, zc, value in zip(x, y, z, values):
+        assert expected[(xc, yc, zc)] == value
