@@ -46,7 +46,11 @@ The following geometrical requirements have to be respected:
   greater than 2.
 
 * The boundaries of grids in a given level have to line up with cell walls in
-  the parent level.
+  the parent level. This applies to both the lower and upper boundaries in
+  each direction, so each grid has to cover whole cells of the parent level.
+  For example, to refine a single parent cell into eight cells, use one grid
+  covering the whole parent cell with ``nx = ny = nz = 2``, rather than eight
+  grids with one cell each covering an octant of the parent cell.
 
 If these conditions are not met, then the Fortran Hyperion code will raise an
 error.

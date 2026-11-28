@@ -180,6 +180,54 @@ def test_amr_not_aligned_across_levels(tmpdir, direction):
 
 
 @pytest.mark.requires_hyperion_binaries
+@pytest.mark.parametrize(('direction'), ['x', 'y', 'z'])
+def test_amr_upper_edge_not_aligned_across_levels(tmpdir, direction):
+
+    # Regression test for a bug that caused grids whose lower edge was aligned
+    # with the cells in the parent level but whose upper edge was not (so that
+    # they only covered part of a parent cell) to not be caught, which then
+    # caused a crash during the propagation
+
+    dust = get_test_dust()
+
+    amr = AMRGrid()
+
+    level1 = amr.add_level()
+
+    grid1 = level1.add_grid()
+    grid1.nx = grid1.ny = grid1.nz = 4
+    grid1.xmin = grid1.ymin = grid1.zmin = -10.
+    grid1.xmax = grid1.ymax = grid1.zmax = +10.
+    grid1.quantities['density'] = np.ones(grid1.shape) * 1.e-10
+
+    level2 = amr.add_level()
+
+    # The lower edge is on a cell wall of the parent level (cells of width 5
+    # starting at -10), but the upper edge in the given direction is in the
+    # middle of a parent cell
+    grid2 = level2.add_grid()
+    grid2.nx = grid2.ny = grid2.nz = 4
+    grid2.xmin = grid2.ymin = grid2.zmin = -5.
+    grid2.xmax = grid2.ymax = grid2.zmax = +5.
+    setattr(grid2, direction + 'max', 2.5)
+    setattr(grid2, 'n' + direction, 3)
+    grid2.quantities['density'] = np.ones(grid2.shape) * 1.e-10
+
+    m = Model()
+    m.set_grid(amr)
+    m.add_density_grid(amr['density'], dust)
+    m.set_n_photons(initial=1, imaging=0)
+    m.write(tmpdir.join(random_id()).strpath)
+    log_file = tmpdir.join(random_id()).strpath
+    with pytest.raises(SystemExit) as exc:
+        m.run(tmpdir.join(random_id()).strpath, logfile=log_file)
+
+    assert exc.value.args[0] == 'An error occurred, and the run did not ' + \
+                                'complete'
+    assert ('Grid 1 in level 2 is not aligned with cells in level 1 in the \n           %s direction' % direction) in open(log_file).read()
+
+
+@pytest.mark.requires_hyperion_binaries
 @pytest.mark.skipif("YT_VERSION is None")
 def test_shadowing_regression(tmpdir):
 

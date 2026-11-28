@@ -291,22 +291,28 @@ contains
        end if
     end do
 
-    ! Check that grid edges line up with cells in parent level
+    ! Check that grid edges line up with cells in parent level. Both the lower
+    ! and upper edges need to be checked, since a grid that starts on a cell
+    ! wall of the parent level but covers only part of a parent cell is not
+    ! valid (and would otherwise only fail later on, during the propagation).
     do ilevel=1,size(geo%levels) - 1
        level1 => geo%levels(ilevel)
        level2 => geo%levels(ilevel + 1)
        grid_ref => level1%grids(1)
        do igrid=1,size(level2%grids)
           grid => level2%grids(igrid)
-          if(.not.aligned(grid%xmin, grid_ref%xmin, grid_ref%width(1))) then
+          if(.not.aligned(grid%xmin, grid_ref%xmin, grid_ref%width(1)) .or. &
+               & .not.aligned(grid%xmax, grid_ref%xmin, grid_ref%width(1))) then
              write(message, '("Grid ", I0, " in level ", I0, " is not aligned with cells in level ", I0, " in the x direction")') igrid, ilevel + 1, ilevel
              call error("setup_grid_geometry", trim(message))
           end if
-          if(.not.aligned(grid%ymin, grid_ref%ymin, grid_ref%width(2))) then
+          if(.not.aligned(grid%ymin, grid_ref%ymin, grid_ref%width(2)) .or. &
+               & .not.aligned(grid%ymax, grid_ref%ymin, grid_ref%width(2))) then
              write(message, '("Grid ", I0, " in level ", I0, " is not aligned with cells in level ", I0, " in the y direction")') igrid, ilevel + 1, ilevel
              call error("setup_grid_geometry", trim(message))
           end if
-          if(.not.aligned(grid%zmin, grid_ref%zmin, grid_ref%width(3))) then
+          if(.not.aligned(grid%zmin, grid_ref%zmin, grid_ref%width(3)) .or. &
+               & .not.aligned(grid%zmax, grid_ref%zmin, grid_ref%width(3))) then
              write(message, '("Grid ", I0, " in level ", I0, " is not aligned with cells in level ", I0, " in the z direction")') igrid, ilevel + 1, ilevel
              call error("setup_grid_geometry", trim(message))
           end if
