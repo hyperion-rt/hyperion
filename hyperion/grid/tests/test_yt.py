@@ -223,3 +223,182 @@ def test_octree_to_yt_positions():
 def test_octree_depth(refined, depth):
     from ..yt3_wrappers import _octree_depth
     assert _octree_depth(np.array(refined).astype(bool)) == depth
+
+
+def _asymmetric_values(nx, ny, nz, offset=0.):
+    # Values indexed as (x, y, z) that differ along every axis
+    i, j, k = np.meshgrid(np.arange(nx), np.arange(ny), np.arange(nz), indexing='ij')
+    return offset + 100. * i + 10. * j + k + 1.
+
+
+def _hyperion_values_at(amr, x, y, z):
+    # Return the value of the density in the finest Hyperion grid containing
+    # each of the specified positions
+    values = np.full(len(x), np.nan)
+    for level in amr.levels:
+        for grid in level.grids:
+            inside = ((x > grid.xmin) & (x < grid.xmax) &
+                      (y > grid.ymin) & (y < grid.ymax) &
+                      (z > grid.zmin) & (z < grid.zmax))
+            ix = ((x[inside] - grid.xmin) / (grid.xmax - grid.xmin) * grid.nx).astype(int)
+            iy = ((y[inside] - grid.ymin) / (grid.ymax - grid.ymin) * grid.ny).astype(int)
+            iz = ((z[inside] - grid.zmin) / (grid.zmax - grid.zmin) * grid.nz).astype(int)
+            density = grid.quantities['density']
+            if isinstance(density, list):
+                density = density[0]
+            values[inside] = density[iz, iy, ix]
+    return values
+
+
+def _check_same_positions(ds, amr):
+    # Check that every yt cell has the same density at the same position
+    # (relative to the domain center) in the Hyperion grid
+    ad = ds.all_data()
+    center = ds.domain_center.in_units('cm').ndarray_view()
+    x, y, z = [ad['index', axis].in_units('cm').ndarray_view() - center[iaxis]
+               for iaxis, axis in enumerate('xyz')]
+    expected = ad['gas', 'density'].in_units('g/cm**3').ndarray_view()
+    np.testing.assert_array_equal(_hyperion_values_at(amr, x, y, z), expected)
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+def test_from_yt_axis_ordering_uniform():
+
+    # Regression test for a bug that caused the x and z axes to be swapped
+    # when converting a yt dataset to an AMRGrid
+
+    from yt import load_uniform_grid
+
+    nx, ny, nz = 4, 3, 2
+    density = _asymmetric_values(nx, ny, nz)
+    bbox = np.array([[0., 8.], [10., 16.], [100., 102.]])
+    ds = load_uniform_grid({('gas', 'density'): (density, 'g/cm**3')},
+                           [nx, ny, nz], bbox=bbox, length_unit='cm')
+
+    amr = AMRGrid.from_yt(ds, quantity_mapping={'density': ('gas', 'density')})
+
+    grid = amr.levels[0].grids[0]
+    assert (grid.nx, grid.ny, grid.nz) == (4, 3, 2)
+    assert (grid.xmin, grid.xmax) == (-4., 4.)
+    assert (grid.ymin, grid.ymax) == (-3., 3.)
+    assert (grid.zmin, grid.zmax) == (-1., 1.)
+    np.testing.assert_array_equal(grid.quantities['density'], density.transpose())
+
+    _check_same_positions(ds, amr)
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+def test_from_yt_axis_ordering_amr():
+
+    # As above, but for a dataset with a refined grid that is not centered in
+    # the domain
+
+    from yt import load_amr_grids
+
+    grid_data = [dict(left_edge=[0., 10., 100.], right_edge=[8., 16., 102.],
+                      level=0, dimensions=[4, 3, 2]),
+                 dict(left_edge=[4., 12., 100.], right_edge=[8., 16., 101.],
+                      level=1, dimensions=[4, 4, 2])]
+    for igrid, g in enumerate(grid_data):
+        g[('gas', 'density')] = (_asymmetric_values(*g['dimensions'], offset=1000. * igrid), 'g/cm**3')
+
+    ds = load_amr_grids(grid_data, [4, 3, 2],
+                        bbox=np.array([[0., 8.], [10., 16.], [100., 102.]]),
+                        length_unit='cm')
+
+    amr = AMRGrid.from_yt(ds, quantity_mapping={'density': ('gas', 'density')})
+
+    fine = amr.levels[1].grids[0]
+    assert (fine.nx, fine.ny, fine.nz) == (4, 4, 2)
+    assert (fine.xmin, fine.xmax) == (0., 4.)
+    assert (fine.ymin, fine.ymax) == (-1., 3.)
+    assert (fine.zmin, fine.zmax) == (-1., 0.)
+
+    _check_same_positions(ds, amr)
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+def test_from_yt_to_yt_roundtrip():
+
+    # Converting an AMRGrid to yt and back should give the original grid
+
+    amr = AMRGrid()
+    level = amr.add_level()
+    grid = level.add_grid()
+    grid.xmin, grid.xmax = -4., 4.
+    grid.ymin, grid.ymax = -3., 3.
+    grid.zmin, grid.zmax = -1., 1.
+    grid.nx, grid.ny, grid.nz = 4, 3, 2
+    grid.quantities['density'] = [_asymmetric_values(4, 3, 2).transpose()]
+
+    amr_new = AMRGrid.from_yt(amr.to_yt(), quantity_mapping={'density': ('gas', 'density')})
+
+    grid_new = amr_new.levels[0].grids[0]
+    assert (grid_new.nx, grid_new.ny, grid_new.nz) == (4, 3, 2)
+    assert (grid_new.xmin, grid_new.xmax) == (-4., 4.)
+    assert (grid_new.ymin, grid_new.ymax) == (-3., 3.)
+    assert (grid_new.zmin, grid_new.zmax) == (-1., 1.)
+    np.testing.assert_array_equal(grid_new.quantities['density'],
+                                  grid.quantities['density'][0])
+
+    # And converting the result back to yt should give the same values at the
+    # same positions as the original grid
+    _check_same_positions(amr_new.to_yt(), amr)
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+def test_to_yt_single_array_quantity():
+
+    # Quantities set to a single array rather than a list of arrays (one per
+    # dust population) should still be exported
+
+    g = CartesianGrid([-1., 1.], [-2., 0., 2.], [-3., -1., 1., 3.])
+    g['density'] = []
+    g['density'].append(np.arange(6.).reshape((3, 2, 1)))
+
+    ds = g['density'][0].to_yt()
+
+    ad = ds.all_data()
+    np.testing.assert_array_equal(np.sort(ad['gas', 'density'].ndarray_view()), np.arange(6.))
+
+
+@pytest.mark.skipif("YT_VERSION is None")
+@pytest.mark.parametrize('grid_type', ['car', 'amr'])
+def test_to_yt_no_deprecation_warnings(grid_type):
+
+    # Make sure that we use the yt API in a way that does not cause any
+    # deprecation warnings. We only check for warnings attributed to Hyperion
+    # code, since older yt versions emit deprecation warnings internally (for
+    # example from Numpy) that we cannot do anything about. Some yt versions
+    # use their own VisibleDeprecationWarning class, which is not a subclass
+    # of DeprecationWarning, so we check the class name.
+
+    import warnings
+    import hyperion
+
+    if grid_type == 'car':
+        g = CartesianGrid([-1., 1.], [-2., 0., 2.], [-3., -1., 1., 3.])
+        g['density'] = []
+        g['density'].append(np.ones((3, 2, 1)))
+    else:
+        g = AMRGrid()
+        level = g.add_level()
+        grid = level.add_grid()
+        grid.xmin, grid.xmax = -1., 1.
+        grid.ymin, grid.ymax = -1., 1.
+        grid.zmin, grid.zmax = -1., 1.
+        grid.nx, grid.ny, grid.nz = 4, 3, 2
+        grid.quantities['density'] = [np.ones((2, 3, 4))]
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter('always')
+        ds = g.to_yt()
+        ds.all_data()['gas', 'density']
+        if grid_type == 'amr':
+            AMRGrid.from_yt(ds, quantity_mapping={'density': ('gas', 'density')})
+
+    hyperion_dir = os.path.dirname(hyperion.__file__)
+    deprecations = [str(w.message) for w in caught
+                    if 'DeprecationWarning' in w.category.__name__ and
+                    os.path.abspath(w.filename).startswith(hyperion_dir)]
+    assert deprecations == []

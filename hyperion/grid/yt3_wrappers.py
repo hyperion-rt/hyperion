@@ -11,6 +11,40 @@ def almost_equal(a, b):
     return a / b < 1. + 1.e-4 and b / a < 1. + 1.e-4
 
 
+def _cartesian_geometry(loader):
+    """
+    Return the keyword arguments to pass to a yt loader to specify a cartesian
+    geometry with the axes in (x, y, z) order.
+
+    yt 4.2 and later take the axis order as a separate ``axis_order`` argument
+    and deprecate passing it as part of a ``geometry`` tuple, while older
+    versions only accept the tuple.
+    """
+    if 'axis_order' in inspect.signature(loader).parameters:
+        return {'geometry': 'cartesian', 'axis_order': ('x', 'y', 'z')}
+    else:
+        return {'geometry': ('cartesian', ('x', 'y', 'z'))}
+
+
+def _scalar_quantities(quantities, dust_id, ndim):
+    """
+    Yield (name, array) for each quantity that can be exported to yt.
+
+    Quantities are either lists of arrays (one per dust population), in which
+    case the array for ``dust_id`` is used, or single arrays with ``ndim``
+    dimensions (for example when the grid was created with ``from_yt`` or a
+    single dust population was selected). Any other quantity is
+    frequency-resolved and is skipped.
+    """
+    for field, values in quantities.items():
+        if isinstance(values, list):
+            yield field, values[dust_id]
+        elif np.ndim(values) == ndim:
+            yield field, values
+        else:
+            logger.warning("Skipping frequency-resolved quantity '{0}' in yt export (select a single frequency first)".format(field))
+
+
 def amr_grid_to_yt_stream(levels, dust_id=0):
 
     # Try and guess the refinement ratio - if it is not constant, then
@@ -80,11 +114,8 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
             grid_dict['dimensions'] = [grid.nx, grid.ny, grid.nz]
             grid_dict['level'] = ilevel
 
-            for field in grid.quantities:
-                if not isinstance(grid.quantities[field], list):
-                    logger.warning("Skipping frequency-resolved quantity '{0}' in yt export (select a single frequency first)".format(field))
-                    continue
-                grid_dict[('gas', field)] = grid.quantities[field][dust_id].transpose()
+            for field, values in _scalar_quantities(grid.quantities, dust_id, 3):
+                grid_dict[('gas', field)] = values.transpose()
 
             grid_data.append(grid_dict)
 
@@ -115,7 +146,7 @@ def amr_grid_to_yt_stream(levels, dust_id=0):
     from yt import load_amr_grids
 
     spf = load_amr_grids(grid_data, domain_dimensions, bbox=bbox,
-                         geometry=('cartesian', ('x', 'y', 'z')))
+                         **_cartesian_geometry(load_amr_grids))
 
     return spf
 
@@ -186,11 +217,8 @@ def octree_grid_to_yt_stream(grid, dust_id=0):
     from yt import load_octree
 
     quantities = {}
-    for field in grid.quantities:
-        if not isinstance(grid.quantities[field], list):
-            logger.warning("Skipping frequency-resolved quantity '{0}' in yt export (select a single frequency first)".format(field))
-            continue
-        quantities[('gas', field)] = np.atleast_2d(grid.quantities[field][dust_id][order][~refined]).transpose()
+    for field, values in _scalar_quantities(grid.quantities, dust_id, 1):
+        quantities[('gas', field)] = np.atleast_2d(values[order][~refined]).transpose()
 
     bbox = np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])
 
@@ -226,18 +254,15 @@ def cartesian_grid_to_yt_stream(grid, xmin, xmax, ymin, ymax, zmin, zmax, dust_i
 
     # Make data dict which should contain (array, unit) tuples
     data = {}
-    for field in grid.quantities:
-        if not isinstance(grid.quantities[field], list):
-            logger.warning("Skipping frequency-resolved quantity '{0}' in yt export (select a single frequency first)".format(field))
-            continue
-        data[field] = grid.quantities[field][dust_id].transpose(), ''
+    for field, values in _scalar_quantities(grid.quantities, dust_id, 3):
+        data[field] = values.transpose(), ''
 
     # Load cartesian grid into yt
     from yt import load_uniform_grid
     spf = load_uniform_grid(data=data,
                             domain_dimensions=np.array(grid.shape[::-1], dtype=np.int32),
                             bbox=np.array([(xmin, xmax), (ymin, ymax), (zmin, zmax)]),
-                            geometry=('cartesian', ('x', 'y', 'z')))
+                            **_cartesian_geometry(load_uniform_grid))
 
     return spf
 
@@ -310,8 +335,8 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
             raise ValueError("yt field {0} does not exist. Available fields "
                              "are: \n\n    {1}".format(input_field, field_list))
 
-    z0, y0, x0 = ds.domain_center.in_units('cm').ndarray_view()
-    dz, dy, dx = ds.domain_width.in_units('cm').ndarray_view()
+    x0, y0, z0 = ds.domain_center.in_units('cm').ndarray_view()
+    dx, dy, dz = ds.domain_width.in_units('cm').ndarray_view()
 
     logger.info("Domain center: x={0}cm, y={1}cm, z={2}cm".format(x0, y0, z0))
     logger.info("Domain width: dx={0}cm, dy={1}cm, dz={2}cm".format(dx, dy, dz))
@@ -319,8 +344,8 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
     # Get levels and limits of all the grids
     n_levels = ds.index.max_level + 1
     levels = ds.index.grid_levels
-    zmin, ymin, xmin = ds.index.grid_left_edge.in_units('cm').ndarray_view().transpose()
-    zmax, ymax, xmax = ds.index.grid_right_edge.in_units('cm').ndarray_view().transpose()
+    xmin, ymin, zmin = ds.index.grid_left_edge.in_units('cm').ndarray_view().transpose()
+    xmax, ymax, zmax = ds.index.grid_right_edge.in_units('cm').ndarray_view().transpose()
 
     logger.info("Re-centering simulation so that domain center is at (0, 0, 0)")
     xmin -= x0
@@ -351,9 +376,11 @@ def yt_dataset_to_amr_grid(ds, quantity_mapping={}):
             grid.ymin, grid.ymax = ymin[igrid], ymax[igrid]
             grid.zmin, grid.zmax = zmin[igrid], zmax[igrid]
 
-            grid.nz, grid.ny, grid.nx = yt_grid.shape
+            grid.nx, grid.ny, grid.nz = yt_grid.shape
 
             for output_quantity, input_field in quantity_mapping.items():
-                grid.quantities[output_quantity] = yt_grid[input_field].in_units('g/cm**3').ndarray_view()
+                # yt arrays are indexed as (x, y, z) whereas Hyperion arrays
+                # are indexed as (z, y, x)
+                grid.quantities[output_quantity] = yt_grid[input_field].in_units('g/cm**3').ndarray_view().transpose()
 
     return amr
