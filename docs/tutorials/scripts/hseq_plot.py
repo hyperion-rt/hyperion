@@ -23,8 +23,8 @@ for iteration, filename in enumerate(filenames):
     density = g['density'][0].array[0, :, :]
     temperature = g['temperature'][0].array[0, :, :]
 
-    # Find the radial cell closest to 50au
-    iw = np.argmin(np.abs(g.w - 50. * au))
+    # Find the radial cell closest to 5au
+    iw = np.argmin(np.abs(g.w - 5. * au))
 
     # Plot the vertical density and temperature profiles at that radius
     if iteration in (0, 1, len(filenames) - 1):
@@ -44,14 +44,14 @@ for iteration, filename in enumerate(filenames):
 for i, c in enumerate(change):
     print('Fraction of mass moved in iteration {0}: {1:.3f}'.format(i + 1, c))
 
-ax1.set_xlim(-50., 50.)
+ax1.set_xlim(-4., 4.)
 ax1.set_yscale('log')
-ax1.set_ylim(1.e-20, 1.e-13)
+ax1.set_ylim(1.e-20, 1.e-11)
 ax1.set_xlabel('z (au)')
 ax1.set_ylabel('Density (g/cm^3)')
 ax1.legend(loc='lower center', fontsize='small')
 
-ax2.set_xlim(-50., 50.)
+ax2.set_xlim(-4., 4.)
 ax2.set_xlabel('z (au)')
 ax2.set_ylabel('Temperature (K)')
 

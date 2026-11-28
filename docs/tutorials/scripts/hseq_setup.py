@@ -19,8 +19,8 @@ m.star.mass = 0.5 * msun
 # Set up disk
 d = m.add_flared_disk()
 d.rmin = 10 * rsun
-d.rmax = 100. * au
-d.mass = 0.01 * msun
+d.rmax = 10. * au
+d.mass = 0.001 * msun
 d.p = -1
 d.beta = 1.25
 d.r_0 = 100. * au
