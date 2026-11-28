@@ -222,3 +222,25 @@ if os.environ.get('READTHEDOCS', None) == 'True':
     MOCK_MODULES = ['h5py', 'atpy']
     for mod_name in MOCK_MODULES:
         sys.modules[mod_name] = Mock()
+
+
+# When part of a script is included with literalinclude and :end-before:, the
+# included lines include any empty lines before the end marker, which then
+# show up at the end of the code block. Remove trailing empty lines from all
+# included code.
+
+from sphinx.directives.code import LiteralIncludeReader
+
+_original_literalinclude_read = LiteralIncludeReader.read
+
+
+def _read_without_trailing_empty_lines(self, location=None):
+    text, n_lines = _original_literalinclude_read(self, location=location)
+    stripped = text.rstrip('\n')
+    if stripped == text:
+        return text, n_lines
+    stripped += '\n'
+    return stripped, stripped.count('\n')
+
+
+LiteralIncludeReader.read = _read_without_trailing_empty_lines
