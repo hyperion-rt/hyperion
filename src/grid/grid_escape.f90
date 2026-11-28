@@ -31,7 +31,7 @@ module grid_escape
   use type_photon, only : photon
   use type_angle3d, only : random_sphere_angle3d
   use type_vector3d, only : angle3d_to_vector3d, operator(.dot.), operator(+), operator(*)
-  use type_grid_cell, only : new_grid_cell, wall_id, no_wall, operator(==)
+  use type_grid_cell, only : new_grid_cell, wall_id, no_wall, operator(.eq.)
   use grid_geometry, only : geo, random_position_cell, escaped, find_wall, next_cell, opposite_wall
   use grid_physics, only : density
   use dust_main, only : n_dust
